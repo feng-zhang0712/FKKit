@@ -1,6 +1,6 @@
 # FKUIKit
 
-iOS 组件库：`FKButton`、`FKBar`、`FKPresentation`、`FKPopover` 及共享模块 `FKUIKitCore`。与系统 `UIPopoverPresentationController` 无绑定关系；`FKPopover` 为 `FKBar` + 锚点浮层的组合封装。
+iOS 组件库：`FKButton`、`FKBar`、`FKPresentation`、`FKPopover` 及共享模块 `FKUIKitCore`。
 
 ## 要求
 
