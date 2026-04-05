@@ -48,7 +48,7 @@ open class FKBar: UIView {
   /// 当前已由 `reloadItems` 加载的条目（只读快照）。
   public var loadedItems: [Item] { items }
   
-  /// 当前选中条目的下标；无选中时为 `nil`（供 `FKPopover` 等组合组件判断选中态）。
+  /// 当前选中条目的下标；无选中时为 `nil`（供 `FKBarPresentation` 等组合组件判断选中态）。
   public private(set) var selectedIndex: Int?
   
   private let scrollView = UIScrollView()

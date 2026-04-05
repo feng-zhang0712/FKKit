@@ -1,17 +1,17 @@
 //
-// FKPopover+Configuration.swift
+// FKBarPresentation+Configuration.swift
 //
-// `FKPopover` 顶层配置：`FKBar`、浮层 `FKPresentation`、交互策略与挂载容器。
-// 类型与属性说明见 `FKPopover.swift`；条与浮层的细项字段仍以 `FKBar.Configuration`、`FKPresentation.Configuration` 为准。
+// `FKBarPresentation` 顶层配置：`FKBar`、浮层 `FKPresentation`、交互策略与挂载容器。
+// 类型与属性说明见 `FKBarPresentation.swift`；条与浮层的细项字段仍以 `FKBar.Configuration`、`FKPresentation.Configuration` 为准。
 //
 
 import UIKit
 import FKBar
 import FKPresentation
 
-// MARK: - FKPopover.Configuration（顶层）
+// MARK: - FKBarPresentation.Configuration（顶层）
 
-public extension FKPopover {
+public extension FKBarPresentation {
   /// 组合件的全局配置：条外观与滚动、`FKPresentation` 的浮层参数、以及 Bar↔浮层 的衔接行为。
   struct Configuration {
     // MARK: 子配置（与 `FKBar.Configuration`、`FKPresentation.Configuration` 对齐）
@@ -25,7 +25,7 @@ public extension FKPopover {
     /// Bar 选中/取消与浮层展示/消失的交互策略。
     public var behavior: Behavior
 
-    /// 浮层挂载到哪个父视图；默认在展示时取 `FKPopover.superview`。
+    /// 浮层挂载到哪个父视图；默认在展示时取 `FKBarPresentation.superview`。
     public var presentationHost: PresentationHost
 
     public init(
@@ -46,14 +46,14 @@ public extension FKPopover {
 
 // MARK: - 浮层挂载策略
 
-public extension FKPopover.Configuration {
+public extension FKBarPresentation.Configuration {
   /// 决定 `FKPresentation.show(..., in:)` 的容器视图。
   enum PresentationHost {
-    /// 展示时使用 `popover.superview`；若为 `nil` 则退回 `popover.window`。
+    /// 展示时使用 `barPresentation.superview`；若为 `nil` 则退回 `barPresentation.window`。
     case automatic
     /// 强制使用 `superview`（为 `nil` 时不展示并可在调试中发现布局问题）。
     case superview
-    /// 使用 `popover.window`，适合尚未加入窗口层级时的临时场景。
+    /// 使用 `barPresentation.window`，适合尚未加入窗口层级时的临时场景。
     case window
     /// 指定任意容器（例如某全屏 `UIView`）。
     case explicit(WeakUIViewBox)
@@ -74,8 +74,8 @@ public final class WeakUIViewBox {
 
 // MARK: - 行为策略
 
-public extension FKPopover.Configuration {
-  /// Bar 与浮层之间的默认衔接逻辑；可通过 `FKPopoverDelegate` 再收紧或扩展。
+public extension FKBarPresentation.Configuration {
+  /// Bar 与浮层之间的默认衔接逻辑；可通过 `FKBarPresentationDelegate` 再收紧或扩展。
   struct Behavior {
     /// 当某条目变为选中时，是否尝试展示浮层（仍受内容与 `shouldPresent` 影响）。
     public var presentsOnSelection: Bool
@@ -105,8 +105,8 @@ public extension FKPopover.Configuration {
 
 // MARK: - 浮层关闭原因（Delegate）
 
-public extension FKPopover {
-  /// `popover(_:didDismissPresentation:)` 中说明关闭来源。
+public extension FKBarPresentation {
+  /// `barPresentation(_:didDismissPresentation:)` 中说明关闭来源。
   enum PresentationDismissReason: Equatable, Sendable {
     case maskTap
     case programmatic

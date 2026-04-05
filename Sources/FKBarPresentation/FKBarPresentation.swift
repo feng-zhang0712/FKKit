@@ -1,7 +1,7 @@
 //
-// FKPopover.swift
+// FKBarPresentation.swift
 //
-// 组合控件：`FKBar` + `FKPresentation`，与系统 `UIPopoverPresentationController` 无关。
+// 组合控件：`FKBar` + `FKPresentation`。
 // 配置见 `Configuration`；`presentationContent` / `presentationViewController` 优先于 `dataSource`；
 // `barDelegate` 与 `presentation*` 在内部处理之后额外转发。
 //
@@ -14,47 +14,47 @@ import FKUIKitCore
 // MARK: - Delegate / DataSource
 
 /// 组合件级生命周期与展示门禁（细粒度动画/遮罩仍可用 `presentationDelegate` 接到 `FKPresentation`）。
-public protocol FKPopoverDelegate: AnyObject {
+public protocol FKBarPresentationDelegate: AnyObject {
   /// 某条目已选中，即将按配置尝试展示浮层；返回 `false` 可拦截。
-  func popover(_ popover: FKPopover, shouldPresentFor item: FKBar.Item, at index: Int) -> Bool
+  func barPresentation(_ barPresentation: FKBarPresentation, shouldPresentFor item: FKBar.Item, at index: Int) -> Bool
   /// 浮层即将出现（`FKPresentation` 已走 `show` 流程）。
-  func popover(_ popover: FKPopover, willPresentFor item: FKBar.Item, at index: Int)
+  func barPresentation(_ barPresentation: FKBarPresentation, willPresentFor item: FKBar.Item, at index: Int)
   /// 浮层已出现。
-  func popover(_ popover: FKPopover, didPresentFor item: FKBar.Item, at index: Int)
+  func barPresentation(_ barPresentation: FKBarPresentation, didPresentFor item: FKBar.Item, at index: Int)
   /// 浮层即将消失（含点遮罩、改选、代码关闭等）。
-  func popover(_ popover: FKPopover, willDismissPresentation reason: FKPopover.PresentationDismissReason)
+  func barPresentation(_ barPresentation: FKBarPresentation, willDismissPresentation reason: FKBarPresentation.PresentationDismissReason)
   /// 浮层已消失。
-  func popover(_ popover: FKPopover, didDismissPresentation reason: FKPopover.PresentationDismissReason)
+  func barPresentation(_ barPresentation: FKBarPresentation, didDismissPresentation reason: FKBarPresentation.PresentationDismissReason)
 }
 
-public extension FKPopoverDelegate {
-  func popover(_ popover: FKPopover, shouldPresentFor item: FKBar.Item, at index: Int) -> Bool { true }
-  func popover(_ popover: FKPopover, willPresentFor item: FKBar.Item, at index: Int) {}
-  func popover(_ popover: FKPopover, didPresentFor item: FKBar.Item, at index: Int) {}
-  func popover(_ popover: FKPopover, willDismissPresentation reason: FKPopover.PresentationDismissReason) {}
-  func popover(_ popover: FKPopover, didDismissPresentation reason: FKPopover.PresentationDismissReason) {}
+public extension FKBarPresentationDelegate {
+  func barPresentation(_ barPresentation: FKBarPresentation, shouldPresentFor item: FKBar.Item, at index: Int) -> Bool { true }
+  func barPresentation(_ barPresentation: FKBarPresentation, willPresentFor item: FKBar.Item, at index: Int) {}
+  func barPresentation(_ barPresentation: FKBarPresentation, didPresentFor item: FKBar.Item, at index: Int) {}
+  func barPresentation(_ barPresentation: FKBarPresentation, willDismissPresentation reason: FKBarPresentation.PresentationDismissReason) {}
+  func barPresentation(_ barPresentation: FKBarPresentation, didDismissPresentation reason: FKBarPresentation.PresentationDismissReason) {}
 }
 
 /// 按条目提供浮层内容或首选尺寸；与闭包 `presentationContent` / `presentationViewController` 并存时闭包优先。
-public protocol FKPopoverDataSource: AnyObject {
+public protocol FKBarPresentationDataSource: AnyObject {
   /// 可选覆盖浮层首选尺寸。
-  func popover(_ popover: FKPopover, preferredPresentationSizeForItemAt index: Int) -> CGSize?
+  func barPresentation(_ barPresentation: FKBarPresentation, preferredPresentationSizeForItemAt index: Int) -> CGSize?
   /// 返回浮层根视图；与 `presentationViewControllerForItemAt` 二选一即可。
-  func popover(_ popover: FKPopover, presentationViewForItemAt index: Int) -> UIView?
+  func barPresentation(_ barPresentation: FKBarPresentation, presentationViewForItemAt index: Int) -> UIView?
   /// 返回嵌入浮层的视图控制器。
-  func popover(_ popover: FKPopover, presentationViewControllerForItemAt index: Int) -> UIViewController?
+  func barPresentation(_ barPresentation: FKBarPresentation, presentationViewControllerForItemAt index: Int) -> UIViewController?
 }
 
-public extension FKPopoverDataSource {
-  func popover(_ popover: FKPopover, preferredPresentationSizeForItemAt index: Int) -> CGSize? { nil }
-  func popover(_ popover: FKPopover, presentationViewForItemAt index: Int) -> UIView? { nil }
-  func popover(_ popover: FKPopover, presentationViewControllerForItemAt index: Int) -> UIViewController? { nil }
+public extension FKBarPresentationDataSource {
+  func barPresentation(_ barPresentation: FKBarPresentation, preferredPresentationSizeForItemAt index: Int) -> CGSize? { nil }
+  func barPresentation(_ barPresentation: FKBarPresentation, presentationViewForItemAt index: Int) -> UIView? { nil }
+  func barPresentation(_ barPresentation: FKBarPresentation, presentationViewControllerForItemAt index: Int) -> UIViewController? { nil }
 }
 
-// MARK: - FKPopover
+// MARK: - FKBarPresentation
 
 /// 横向条与锚点浮层的组合；浮层关闭时若仍选中「本次展示对应条目」可按 `Configuration.behavior` 同步取消选中。
-open class FKPopover: UIView {
+open class FKBarPresentation: UIView {
 
   /// 横向条目条。
   public let bar: FKBar = {
@@ -63,20 +63,20 @@ open class FKPopover: UIView {
     return b
   }()
 
-  /// 底层浮层引擎；可改 `configuration`、或挂接 `delegate`/`dataSource`（与 `FKPopover` 侧转发并存）。
+  /// 底层浮层引擎；可改 `configuration`、或挂接 `delegate`/`dataSource`（与 `FKBarPresentation` 侧转发并存）。
   public var panel: FKPresentation { embeddedPresentation }
 
   private let embeddedPresentation: FKPresentation
 
-  public weak var delegate: FKPopoverDelegate?
-  public weak var dataSource: FKPopoverDataSource?
+  public weak var delegate: FKBarPresentationDelegate?
+  public weak var dataSource: FKBarPresentationDataSource?
 
-  /// 额外接收 `FKBarDelegate` 回调（在 `FKPopover` 处理选中/浮层之后转发）。
+  /// 额外接收 `FKBarDelegate` 回调（在 `FKBarPresentation` 处理选中/浮层之后转发）。
   public weak var barDelegate: FKBarDelegate? {
     didSet { barProxy.forward = barDelegate }
   }
 
-  /// 额外接收 `FKPresentationDelegate`（与 `FKPopoverDelegate` 并存）。
+  /// 额外接收 `FKPresentationDelegate`（与 `FKBarPresentationDelegate` 并存）。
   public weak var presentationDelegate: FKPresentationDelegate? {
     didSet { panelDelegateProxy.forward = presentationDelegate }
   }
@@ -87,10 +87,10 @@ open class FKPopover: UIView {
   }
 
   /// 为某条目提供浮层 `UIView`；非 `nil` 时优先生效。
-  public var presentationContent: ((FKPopover, Int, FKBar.Item) -> UIView?)?
+  public var presentationContent: ((FKBarPresentation, Int, FKBar.Item) -> UIView?)?
 
   /// 为某条目提供浮层 `UIViewController`；若 `presentationContent` 已为非 `nil` 则不会调用。
-  public var presentationViewController: ((FKPopover, Int, FKBar.Item) -> UIViewController?)?
+  public var presentationViewController: ((FKBarPresentation, Int, FKBar.Item) -> UIViewController?)?
 
   public var configuration: Configuration = .default {
     didSet { applyConfiguration(animated: false, completion: nil) }
@@ -106,7 +106,7 @@ open class FKPopover: UIView {
   /// 浮层是否正在展示（透传 `FKPresentation.isPresented`）。
   public var isPresentationPresented: Bool { embeddedPresentation.isPresented }
 
-  private var scheduledDismissReason: FKPopover.PresentationDismissReason?
+  private var scheduledDismissReason: FKBarPresentation.PresentationDismissReason?
 
   public override init(frame: CGRect) {
     embeddedPresentation = FKPresentation()
@@ -169,7 +169,7 @@ open class FKPopover: UIView {
 
   fileprivate func onBarDidSelect(sender: UIView, item: FKBar.Item, at index: Int) {
     guard configuration.behavior.presentsOnSelection else { return }
-    guard delegate?.popover(self, shouldPresentFor: item, at: index) ?? true else { return }
+    guard delegate?.barPresentation(self, shouldPresentFor: item, at: index) ?? true else { return }
 
     if configuration.behavior.ignoresRepeatedSelectWhilePresented,
        embeddedPresentation.isPresented,
@@ -178,7 +178,7 @@ open class FKPopover: UIView {
     }
 
     guard let host = configuration.presentationHost.resolve(from: self), host.bounds.width > 0 else {
-      assertionFailure("FKPopover: 无法解析 presentationHost，请检查是否已加入视图层级或改用 `.explicit`。")
+      assertionFailure("FKBarPresentation: 无法解析 presentationHost，请检查是否已加入视图层级或改用 `.explicit`。")
       return
     }
 
@@ -190,11 +190,11 @@ open class FKPopover: UIView {
       presentPanel(content: .viewController(vc), anchor: sender, item: item, at: index, in: host)
       return
     }
-    if let view = dataSource?.popover(self, presentationViewForItemAt: index) {
+    if let view = dataSource?.barPresentation(self, presentationViewForItemAt: index) {
       presentPanel(content: .view(view), anchor: sender, item: item, at: index, in: host)
       return
     }
-    if let vc = dataSource?.popover(self, presentationViewControllerForItemAt: index) {
+    if let vc = dataSource?.barPresentation(self, presentationViewControllerForItemAt: index) {
       presentPanel(content: .viewController(vc), anchor: sender, item: item, at: index, in: host)
       return
     }
@@ -239,7 +239,7 @@ open class FKPopover: UIView {
     }
   }
 
-  fileprivate func dismissReasonForCallbacks() -> FKPopover.PresentationDismissReason {
+  fileprivate func dismissReasonForCallbacks() -> FKBarPresentation.PresentationDismissReason {
     scheduledDismissReason ?? .maskTap
   }
 
@@ -262,16 +262,16 @@ open class FKPopover: UIView {
 
 // MARK: - PresentationHost 解析
 
-private extension FKPopover.Configuration.PresentationHost {
+private extension FKBarPresentation.Configuration.PresentationHost {
   @MainActor
-  func resolve(from popover: FKPopover) -> UIView? {
+  func resolve(from barPresentation: FKBarPresentation) -> UIView? {
     switch self {
     case .automatic:
-      return popover.superview ?? popover.window
+      return barPresentation.superview ?? barPresentation.window
     case .superview:
-      return popover.superview
+      return barPresentation.superview
     case .window:
-      return popover.window
+      return barPresentation.window
     case .explicit(let box):
       return box.view
     }
@@ -281,7 +281,7 @@ private extension FKPopover.Configuration.PresentationHost {
 // MARK: - Bar 代理多路转发
 
 private final class BarDelegateProxy: FKBarDelegate {
-  weak var owner: FKPopover?
+  weak var owner: FKBarPresentation?
   weak var forward: FKBarDelegate?
 
   func bar(_ bar: FKBar, shouldSelect item: FKBar.Item, at index: Int) -> Bool {
@@ -324,7 +324,7 @@ private final class BarDelegateProxy: FKBarDelegate {
 // MARK: - FKPresentation Delegate 转发
 
 private final class PanelDelegateProxy: FKPresentationDelegate {
-  weak var owner: FKPopover?
+  weak var owner: FKBarPresentation?
   weak var forward: FKPresentationDelegate?
 
   func presentationWillPresent(_ presentation: FKPresentation) {
@@ -333,7 +333,7 @@ private final class PanelDelegateProxy: FKPresentationDelegate {
       return
     }
     if let ctx = owner.presentationContext {
-      owner.delegate?.popover(owner, willPresentFor: ctx.item, at: ctx.index)
+      owner.delegate?.barPresentation(owner, willPresentFor: ctx.item, at: ctx.index)
     }
     forward?.presentationWillPresent(presentation)
   }
@@ -344,7 +344,7 @@ private final class PanelDelegateProxy: FKPresentationDelegate {
       return
     }
     if let ctx = owner.presentationContext {
-      owner.delegate?.popover(owner, didPresentFor: ctx.item, at: ctx.index)
+      owner.delegate?.barPresentation(owner, didPresentFor: ctx.item, at: ctx.index)
     }
     forward?.presentationDidPresent(presentation)
   }
@@ -359,7 +359,7 @@ private final class PanelDelegateProxy: FKPresentationDelegate {
       return
     }
     let r = owner.dismissReasonForCallbacks()
-    owner.delegate?.popover(owner, willDismissPresentation: r)
+    owner.delegate?.barPresentation(owner, willDismissPresentation: r)
     forward?.presentationWillDismiss(presentation)
   }
 
@@ -370,7 +370,7 @@ private final class PanelDelegateProxy: FKPresentationDelegate {
     }
     owner.synchronizeBarSelectionAfterPresentationDismissed()
     let r = owner.dismissReasonForCallbacks()
-    owner.delegate?.popover(owner, didDismissPresentation: r)
+    owner.delegate?.barPresentation(owner, didDismissPresentation: r)
     owner.clearDismissSchedulingAfterCallbacks()
     owner.clearPresentationContext()
     forward?.presentationDidDismiss(presentation)
@@ -384,12 +384,12 @@ private final class PanelDelegateProxy: FKPresentationDelegate {
 // MARK: - FKPresentation DataSource 转发
 
 private final class PanelDataSourceProxy: FKPresentationDataSource {
-  weak var owner: FKPopover?
+  weak var owner: FKBarPresentation?
   weak var forward: FKPresentationDataSource?
 
   func presentationPreferredSize(_ presentation: FKPresentation) -> CGSize? {
     if let owner, let idx = owner.presentationContext?.index {
-      if let s = owner.dataSource?.popover(owner, preferredPresentationSizeForItemAt: idx) {
+      if let s = owner.dataSource?.barPresentation(owner, preferredPresentationSizeForItemAt: idx) {
         return s
       }
     }

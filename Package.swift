@@ -10,7 +10,7 @@ let package = Package(
   products: [
     .library(name: "FKBar", targets: ["FKBar"]),
     .library(name: "FKButton", targets: ["FKButton"]),
-    .library(name: "FKPopover", targets: ["FKPopover"]),
+    .library(name: "FKBarPresentation", targets: ["FKBarPresentation"]),
     .library(name: "FKPresentation", targets: ["FKPresentation"]),
     .library(name: "FKUIKitCore", targets: ["FKUIKitCore"]),
   ],
@@ -26,9 +26,9 @@ let package = Package(
       path: "Sources/FKButton"
     ),
     .target(
-      name: "FKPopover",
+      name: "FKBarPresentation",
       dependencies: ["FKBar", "FKPresentation", "FKUIKitCore"],
-      path: "Sources/FKPopover"
+      path: "Sources/FKBarPresentation"
     ),
     .target(
       name: "FKPresentation",
