@@ -527,16 +527,34 @@ public final class FKPresentation {
         return CGSize(width: w, height: h)
       }
       // Fallback: use VC.view fitting.
+      // Note: During `computeAndApplyFrames` the host chrome can be ~1pt tall while probing.
+      // Fitting against that constraint often yields height 0 even for valid child VCs.
       vc.view.layoutIfNeeded()
-      let fitting = CGSize(width: targetWidth > 0 ? targetWidth : 320, height: UIView.layoutFittingCompressedSize.height)
+      let fittingW = targetWidth > 0 ? targetWidth : 320
+      let fitting = CGSize(width: fittingW, height: UIView.layoutFittingCompressedSize.height)
       let size = vc.view.systemLayoutSizeFitting(
         fitting,
         withHorizontalFittingPriority: .required,
         verticalFittingPriority: .fittingSizeLevel
       )
-      let h = configuration.content.preferredHeight ?? size.height
+      var h = configuration.content.preferredHeight ?? size.height
+      if h <= 0 {
+        let expanded = vc.view.systemLayoutSizeFitting(
+          CGSize(width: fittingW, height: UIView.layoutFittingExpandedSize.height),
+          withHorizontalFittingPriority: .required,
+          verticalFittingPriority: .fittingSizeLevel
+        )
+        h = configuration.content.preferredHeight ?? expanded.height
+      }
+      if h <= 0, let scrollMeasured = Self.measureScrollViewContentHeight(in: vc.view) {
+        h = configuration.content.preferredHeight ?? scrollMeasured
+      }
+      if h <= 0 {
+        // Sensible minimum so the panel is still usable without requiring every VC to set `preferredContentSize`.
+        h = configuration.content.preferredHeight ?? 220
+      }
       let clamped = max(0, min(h, maxHeight > 0 ? maxHeight : h))
-      return CGSize(width: size.width, height: clamped)
+      return CGSize(width: size.width > 0 ? size.width : fittingW, height: clamped)
     case nil:
       return CGSize(width: targetWidth, height: 220)
     }
@@ -909,6 +927,21 @@ public final class FKPresentation {
   }
 
   // MARK: Helpers
+
+  /// Depth-first search for the first `UIScrollView` and returns a **non-zero** `contentSize.height`
+  /// after a layout pass (useful when Auto Layout fitting collapses during one-point-tall probe layouts).
+  private static func measureScrollViewContentHeight(in root: UIView) -> CGFloat? {
+    var stack: [UIView] = [root]
+    while let view = stack.popLast() {
+      if let scroll = view as? UIScrollView {
+        scroll.layoutIfNeeded()
+        let h = scroll.contentSize.height
+        if h > 0 { return h }
+      }
+      stack.append(contentsOf: view.subviews)
+    }
+    return nil
+  }
 
   private func findHostContainer(for sourceView: UIView) -> UIView {
     if let provided = sourceView.superview { return provided }

@@ -8,6 +8,19 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.3.0] - 2026-04-11
+
+### Breaking changes (FKBar)
+- `FKBar.Configuration`: renamed `stackViewAlignment` → **`alignment`** and `stackViewDistribution` → **`distribution`**.
+- Added **`arrangement`** (`FKBar.Configuration.Arrangement`: `leading`, `center`, `trailing`, `between`, `around`, `evenlyDistributed`) to control horizontal item-row layout vs. the visible bar (scroll vs. centered group vs. distributed fill, with overflow fallback).
+
+### Added (FKBar)
+- Configuration-driven horizontal constraints between the scroll view and stack, recomputed when non-leading arrangements cross the overflow threshold (`layoutSubviews`).
+- Selection auto-scroll skips repositioning when content fits; resets horizontal offset when appropriate.
+
+### Fixed (FKPresentation)
+- More robust embedded view-controller **content height** when computing panel size: avoid collapsed heights during ~1pt-tall layout probes, with expanded fitting, optional first-`UIScrollView` content height measurement, and a 220pt fallback before clamping.
+
 ## [0.2.2] - 2026-04-07
 
 ### Changed
@@ -50,6 +63,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 <!-- Replace the links below with your repository URL when published -->
 [Unreleased]: #
+[0.3.0]: #
 [0.2.2]: #
 [0.2.1]: #
 [0.2.0]: #

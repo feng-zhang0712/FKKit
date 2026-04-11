@@ -66,6 +66,12 @@ open class FKBar: UIView {
 
   private var isHandlingSelection = false
 
+  /// Horizontal constraints between `scrollView.contentLayoutGuide` and `stackView` (swapped by ``Configuration/Arrangement``).
+  private var horizontalLayoutConstraints: [NSLayoutConstraint] = []
+
+  /// Cached overflow state for layouts that switch between “fill viewport” and “scroll intrinsic width”.
+  private var lastHorizontalLayoutOverflowState: Bool?
+
   public override init(frame: CGRect) {
     super.init(frame: frame)
     commonInit()
@@ -98,17 +104,25 @@ open class FKBar: UIView {
       scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
       scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
 
-      // Horizontal: layout width is driven by `stackView`.
       // Vertical: content height follows the visible area (no vertical scrolling),
       // and `stackView` is centered vertically within the visible area.
-      stackView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
-      stackView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+      // Horizontal constraints are installed by `applyArrangementFromConfiguration()`.
       stackView.centerYAnchor.constraint(equalTo: scrollView.frameLayoutGuide.centerYAnchor),
       stackView.topAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.topAnchor),
-      stackView.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.bottomAnchor)
+      stackView.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.bottomAnchor),
     ])
 
     applyBarConfiguration(animated: false, completion: nil)
+  }
+
+  open override func layoutSubviews() {
+    super.layoutSubviews()
+    guard configuration.arrangement != .leading else { return }
+    guard scrollView.bounds.width > 0, !sourceViewsByIndex.isEmpty else { return }
+
+    let overflows = resolvedContentOverflowsViewport()
+    if let previous = lastHorizontalLayoutOverflowState, previous == overflows { return }
+    rebuildHorizontalLayoutConstraints(invalidateIntrinsic: true)
   }
 
   open override var intrinsicContentSize: CGSize {
@@ -260,8 +274,179 @@ open class FKBar: UIView {
     }
   }
   
+  // MARK: - Horizontal layout (configuration-driven)
+
+  /// Applies `configuration.arrangement` and related `UIStackView.distribution` rules.
+  /// Called from `applyBarConfiguration`.
+  internal func applyArrangementFromConfiguration() {
+    stackView.spacing = configuration.itemSpacing
+    stackView.alignment = configuration.alignment
+    rebuildHorizontalLayoutConstraints(invalidateIntrinsic: true)
+  }
+
+  private func rebuildHorizontalLayoutConstraints(invalidateIntrinsic: Bool) {
+    NSLayoutConstraint.deactivate(horizontalLayoutConstraints)
+    horizontalLayoutConstraints.removeAll(keepingCapacity: true)
+
+    let mode = configuration.arrangement
+    let overflows: Bool = {
+      switch mode {
+      case .leading:
+        return false
+      case .center, .trailing, .between, .around, .evenlyDistributed:
+        return resolvedContentOverflowsViewport()
+      }
+    }()
+
+    switch mode {
+    case .leading:
+      stackView.distribution = configuration.distribution
+      horizontalLayoutConstraints = makeLeadingPinnedToContentWidthConstraints()
+
+    case .center:
+      if overflows {
+        stackView.distribution = configuration.distribution
+        horizontalLayoutConstraints = makeLeadingPinnedToContentWidthConstraints()
+      } else {
+        stackView.distribution = .fill
+        horizontalLayoutConstraints = makeCenteredGroupConstraints()
+      }
+
+    case .trailing:
+      if overflows {
+        stackView.distribution = configuration.distribution
+        horizontalLayoutConstraints = makeLeadingPinnedToContentWidthConstraints()
+      } else {
+        stackView.distribution = .fill
+        horizontalLayoutConstraints = makeTrailingGroupConstraints()
+      }
+
+    case .between:
+      if overflows {
+        stackView.distribution = configuration.distribution
+        horizontalLayoutConstraints = makeLeadingPinnedToContentWidthConstraints()
+      } else {
+        stackView.distribution = .equalSpacing
+        horizontalLayoutConstraints = makeDistributedFillViewportConstraints()
+      }
+
+    case .around:
+      if overflows {
+        stackView.distribution = configuration.distribution
+        horizontalLayoutConstraints = makeLeadingPinnedToContentWidthConstraints()
+      } else {
+        stackView.distribution = .equalCentering
+        horizontalLayoutConstraints = makeDistributedFillViewportConstraints()
+      }
+
+    case .evenlyDistributed:
+      if overflows {
+        stackView.distribution = configuration.distribution
+        horizontalLayoutConstraints = makeLeadingPinnedToContentWidthConstraints()
+      } else {
+        stackView.distribution = .fillEqually
+        horizontalLayoutConstraints = makeDistributedFillViewportConstraints()
+      }
+    }
+
+    NSLayoutConstraint.activate(horizontalLayoutConstraints)
+
+    switch mode {
+    case .leading:
+      lastHorizontalLayoutOverflowState = nil
+    default:
+      lastHorizontalLayoutOverflowState = overflows
+    }
+
+    if invalidateIntrinsic {
+      invalidateIntrinsicContentSize()
+    }
+  }
+
+  private func makeLeadingPinnedToContentWidthConstraints() -> [NSLayoutConstraint] {
+    [
+      stackView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+      stackView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+    ]
+  }
+
+  private func makeCenteredGroupConstraints() -> [NSLayoutConstraint] {
+    [
+      stackView.centerXAnchor.constraint(equalTo: scrollView.contentLayoutGuide.centerXAnchor),
+      stackView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.leadingAnchor),
+      stackView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.trailingAnchor),
+      scrollView.contentLayoutGuide.widthAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.widthAnchor),
+      scrollView.contentLayoutGuide.widthAnchor.constraint(greaterThanOrEqualTo: stackView.widthAnchor),
+    ]
+  }
+
+  private func makeTrailingGroupConstraints() -> [NSLayoutConstraint] {
+    [
+      stackView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+      stackView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.leadingAnchor),
+      scrollView.contentLayoutGuide.widthAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.widthAnchor),
+      scrollView.contentLayoutGuide.widthAnchor.constraint(greaterThanOrEqualTo: stackView.widthAnchor),
+    ]
+  }
+
+  private func makeDistributedFillViewportConstraints() -> [NSLayoutConstraint] {
+    [
+      stackView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+      stackView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+      scrollView.contentLayoutGuide.widthAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.widthAnchor),
+    ]
+  }
+
+  private func horizontalScrollContentInsetWidth() -> CGFloat {
+    let isRTL = UIView.userInterfaceLayoutDirection(for: semanticContentAttribute) == .rightToLeft
+    let inset = configuration.contentInsets
+    let left = isRTL ? inset.trailing : inset.leading
+    let right = isRTL ? inset.leading : inset.trailing
+    return CGFloat(left + right)
+  }
+
+  private func resolvedContentOverflowsViewport() -> Bool {
+    guard !sourceViewsByIndex.isEmpty else { return false }
+
+    let insetWidth = horizontalScrollContentInsetWidth()
+    let viewport = scrollView.bounds.width - insetWidth
+    let contentW = estimatedBarContentWidth()
+
+    if viewport > 1 {
+      return contentW > viewport + 0.5
+    }
+
+    if bounds.width > 0 {
+      let outerViewport = bounds.width - insetWidth
+      return outerViewport > 1 && contentW > outerViewport + 0.5
+    }
+
+    return false
+  }
+
+  /// Sum of item widths plus inter-item spacing (cheap; uses post-layout bounds when available).
+  private func estimatedBarContentWidth() -> CGFloat {
+    guard !sourceViewsByIndex.isEmpty else { return 0 }
+    var total: CGFloat = 0
+    for v in sourceViewsByIndex {
+      let w: CGFloat
+      if v.bounds.width > 0.5 {
+        w = v.bounds.width
+      } else {
+        w = v.systemLayoutSizeFitting(
+          CGSize(width: UIView.layoutFittingCompressedSize.width, height: stackView.bounds.height > 0 ? stackView.bounds.height : 44),
+          withHorizontalFittingPriority: .fittingSizeLevel,
+          verticalFittingPriority: .required
+        ).width
+      }
+      total += w
+    }
+    total += CGFloat(max(0, sourceViewsByIndex.count - 1)) * stackView.spacing
+    return total
+  }
+
   // MARK: - Private
-  
+
   private func makeView(for item: Item, at index: Int) -> UIView {
     // Setup accessibility first (delegate's prepare may override, but base info stays intact).
     func applyAccessibility(_ view: UIView) {
@@ -488,6 +673,24 @@ open class FKBar: UIView {
   private func scrollToSelectedIndexIfNeeded(animated: Bool) {
     guard let selectedIndex else { return }
     guard configuration.selectionScroll.isEnabled else { return }
+    // Keep the row visually fixed when all items already fit in the visible bar.
+    // Auto-scroll should only happen in true overflow scenarios.
+    guard resolvedContentOverflowsViewport() else {
+      let preserveY = scrollView.contentOffset.y
+      let resetX = -scrollView.contentInset.left
+      let current = scrollView.contentOffset
+      guard abs(current.x - resetX) > 0.5 else { return }
+
+      let duration = configuration.selectionScroll.animation.duration
+      if animated, duration > 0 {
+        UIView.animate(withDuration: duration) {
+          self.scrollView.contentOffset = CGPoint(x: resetX, y: preserveY)
+        }
+      } else {
+        scrollView.contentOffset = CGPoint(x: resetX, y: preserveY)
+      }
+      return
+    }
 
     guard let targetView = sourceViewsByIndex[safe: selectedIndex] else { return }
     layoutIfNeeded()

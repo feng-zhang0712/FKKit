@@ -121,6 +121,28 @@ public extension FKBar {
       }
     }
 
+    /// How the **row of bar items** is arranged along the horizontal axis relative to the visible width
+    /// (scroll vs. centered group vs. space-between, etc.).
+    ///
+    /// This is orthogonal to cross-axis ``Configuration/alignment``. Spacing between items is
+    /// ``itemSpacing``. Along-axis stacking uses ``Configuration/distribution`` when `FKBar` applies your
+    /// setting; some ``Arrangement`` modes temporarily override it while the row fits the visible width.
+    ///
+    /// - **`leading`**: uses ``Configuration/distribution`` for the internal `UIStackView`.
+    /// - **`center` / `trailing`**: when the row **fits** the bar, distribution is `.fill`; when **overflowing**,
+    ///   falls back to scrollable layout using ``Configuration/distribution``.
+    /// - **`between` / `around` / `evenlyDistributed`**: when the row **fits**, distribution is
+    ///   `.equalSpacing`, `.equalCentering`, or `.fillEqually` respectively; when **overflowing**,
+    ///   ``Configuration/distribution``.
+    public enum Arrangement: Sendable, Equatable {
+      case leading
+      case center
+      case trailing
+      case between
+      case around
+      case evenlyDistributed
+    }
+
     /// Spacing between adjacent items (mapped to `UIStackView.spacing`).
     public var itemSpacing: CGFloat
 
@@ -145,11 +167,25 @@ public extension FKBar {
     /// Scrolling strategy after selection.
     public var selectionScroll: SelectionScroll
 
+    /// How the item row is arranged horizontally vs. the visible bar (see ``Arrangement``).
+    public var arrangement: Arrangement
+
     /// Whether to apply built-in fallback visuals for selected/disabled states (background/foreground/alpha).
     public var usesDefaultSelectionAppearance: Bool
 
-    public var stackViewAlignment: UIStackView.Alignment
-    public var stackViewDistribution: UIStackView.Distribution
+    /// Cross-axis (vertical) alignment of bar items in the horizontal `UIStackView`
+    /// (e.g. `.top` / `.center` / `.bottom`, or baseline modes when subviews expose baselines).
+    /// Always mapped directly to the stack; never overridden by ``arrangement``.
+    public var alignment: UIStackView.Alignment
+
+    /// Along-axis `UIStackView.distribution` from configuration when `FKBar` uses your value:
+    /// - ``Arrangement/leading``: always ``distribution``.
+    /// - Any other ``Arrangement``: when the row **overflows** (scrollable fallback), always ``distribution``.
+    ///
+    /// When the row **fits** the visible width, `FKBar` may ignore this property and set `.fill`
+    /// (``Arrangement/center``, ``Arrangement/trailing``) or `.equalSpacing` / `.equalCentering` /
+    /// `.fillEqually` (``Arrangement/between``, ``Arrangement/around``, ``Arrangement/evenlyDistributed``)—see ``Arrangement``.
+    public var distribution: UIStackView.Distribution
 
     public init(
       itemSpacing: CGFloat = 10,
@@ -160,9 +196,10 @@ public extension FKBar {
       enablesSelectionWhileScrollingDisabled: Bool = true,
       appearance: Appearance = .init(),
       selectionScroll: SelectionScroll = .init(),
+      arrangement: Arrangement = .leading,
       usesDefaultSelectionAppearance: Bool = false,
-      stackViewAlignment: UIStackView.Alignment = .center,
-      stackViewDistribution: UIStackView.Distribution = .fill
+      alignment: UIStackView.Alignment = .center,
+      distribution: UIStackView.Distribution = .fill
     ) {
       self.itemSpacing = itemSpacing
       self.contentInsets = contentInsets
@@ -172,9 +209,10 @@ public extension FKBar {
       self.enablesSelectionWhileScrollingDisabled = enablesSelectionWhileScrollingDisabled
       self.appearance = appearance
       self.selectionScroll = selectionScroll
+      self.arrangement = arrangement
       self.usesDefaultSelectionAppearance = usesDefaultSelectionAppearance
-      self.stackViewAlignment = stackViewAlignment
-      self.stackViewDistribution = stackViewDistribution
+      self.alignment = alignment
+      self.distribution = distribution
     }
 
     public static let `default` = Configuration()
@@ -254,9 +292,9 @@ public extension FKBar {
 
       if let stackView = self.firstDescendant(of: UIStackView.self) {
         stackView.spacing = cfg.itemSpacing
-        stackView.alignment = cfg.stackViewAlignment
-        stackView.distribution = cfg.stackViewDistribution
+        stackView.alignment = cfg.alignment
       }
+      self.applyArrangementFromConfiguration()
     }
 
     if animated {
