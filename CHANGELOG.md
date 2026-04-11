@@ -8,7 +8,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
-## [0.3.0] - 2026-04-11
+## [0.2.3] - 2026-04-11
 
 ### Breaking changes (FKBar)
 - `FKBar.Configuration`: renamed `stackViewAlignment` → **`alignment`** and `stackViewDistribution` → **`distribution`**.
@@ -63,7 +63,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 <!-- Replace the links below with your repository URL when published -->
 [Unreleased]: #
-[0.3.0]: #
+[0.2.3]: #
 [0.2.2]: #
 [0.2.1]: #
 [0.2.0]: #
