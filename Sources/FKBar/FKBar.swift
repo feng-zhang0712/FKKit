@@ -59,6 +59,9 @@ open class FKBar: UIView {
   
   private let scrollView = UIScrollView()
   private let stackView = UIStackView()
+  // Internal bridge for same-module extensions (not public API).
+  var _configurationScrollView: UIScrollView { scrollView }
+  var _configurationStackView: UIStackView { stackView }
   
   private var items: [Item] = []
   
@@ -117,6 +120,7 @@ open class FKBar: UIView {
 
   open override func layoutSubviews() {
     super.layoutSubviews()
+    updateBarShadowPathIfNeeded()
     guard configuration.arrangement != .leading else { return }
     guard scrollView.bounds.width > 0, !sourceViewsByIndex.isEmpty else { return }
 
@@ -208,7 +212,7 @@ open class FKBar: UIView {
       return
     }
 
-    handleItemTap(at: index, sender: sourceViewsByIndex[safe: index], triggeredByTap: false, animated: animated)
+    handleItemTap(at: index, sender: sourceViewsByIndex[safe: index], animated: animated)
     completion?()
   }
   
@@ -251,7 +255,7 @@ open class FKBar: UIView {
   /// Stores and applies associated configuration.
   /// `animated` and `completion` are forwarded to `applyBarConfiguration`.
   public func setConfiguration(_ configuration: Configuration, animated: Bool = false, completion: (() -> Void)? = nil) {
-    self.configuration = configuration
+    setStoredConfiguration(configuration)
     applyBarConfiguration(animated: animated, completion: completion)
     invalidateIntrinsicContentSize()
   }
@@ -523,7 +527,7 @@ open class FKBar: UIView {
     }
   }
 
-  private func updateSelectionAppearance(selectedIndex: Int? = nil) {
+  private func updateSelectionAppearance() {
     let usesDefaultSelectionAppearance = configuration.usesDefaultSelectionAppearance
 
     for idx in items.indices {
@@ -536,33 +540,41 @@ open class FKBar: UIView {
       if let control = sender as? UIControl {
         control.isSelected = item.isSelected
         control.isEnabled = item.isEnabled
-        
-        if usesDefaultSelectionAppearance {
-          if let uiButton = sender as? UIButton,
-             var cfg = uiButton.configuration {
-            // Fallback visual when delegate.prepare is not provided:
-            // selected uses a soft blue background, and disabled reduces alpha.
-            cfg.background.backgroundColor = item.isSelected
-              ? UIColor.systemBlue.withAlphaComponent(0.16)
-              : .clear
-            cfg.baseForegroundColor = item.isEnabled ? .label : .secondaryLabel
-            uiButton.configuration = cfg
-            uiButton.alpha = item.isEnabled ? 1.0 : 0.45
-          } else {
-            // For pure UIView wrapper: delegate prepare will handle alpha/background if needed.
-            sender.alpha = item.isEnabled ? (item.isSelected ? 1.0 : 0.88) : 0.45
-          }
-        }    
       }
+
+      guard usesDefaultSelectionAppearance else { continue }
+      applyDefaultSelectionAppearance(to: sender, item: item)
     }
   }
-  
+
+  private func applyDefaultSelectionAppearance(to sender: UIView, item: Item) {
+    if let uiButton = sender as? UIButton,
+       var cfg = uiButton.configuration {
+      // Fallback visual when delegate.prepare is not provided:
+      // selected uses a soft blue background, and disabled reduces alpha.
+      cfg.background.backgroundColor = item.isSelected
+        ? UIColor.systemBlue.withAlphaComponent(0.16)
+        : .clear
+      cfg.baseForegroundColor = item.isEnabled ? .label : .secondaryLabel
+      uiButton.configuration = cfg
+      uiButton.alpha = item.isEnabled ? 1.0 : 0.45
+      return
+    }
+
+    // Covers FKButton and custom wrappers consistently.
+    sender.alpha = item.isEnabled ? (item.isSelected ? 1.0 : 0.88) : 0.45
+    if !(sender is UIControl) {
+      sender.backgroundColor = item.isSelected
+        ? UIColor.systemBlue.withAlphaComponent(0.12)
+        : .clear
+    }
+  }
+
   // MARK: - Handle click
 
   private func handleItemTap(
     at index: Int,
     sender: UIView?,
-    triggeredByTap: Bool,
     animated: Bool
   ) {
     guard !isHandlingSelection else { return }
@@ -730,7 +742,6 @@ open class FKBar: UIView {
     handleItemTap(
       at: index,
       sender: sender,
-      triggeredByTap: true,
       animated: true
     )
   }
@@ -741,7 +752,6 @@ open class FKBar: UIView {
     handleItemTap(
       at: index,
       sender: view,
-      triggeredByTap: true,
       animated: true
     )
   }

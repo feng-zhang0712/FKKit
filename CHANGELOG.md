@@ -8,6 +8,24 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.4.0] - 2026-04-13
+
+### Breaking changes (FKBar)
+- `FKBar.Configuration.Appearance` now exposes `cornerStyle` and `border` as first-class models.
+- Removed legacy direct accessors from `FKBar.Configuration.Appearance` (`cornerRadius`, `cornerCurve`, `maskedCorners`, `borderWidth`, `borderColor`); migrate to `appearance.cornerStyle.*` and `appearance.border.*`.
+
+### Added (FKBar)
+- Added `FKBar.Configuration.Appearance.ShadowPathStrategy` with automatic rounded `shadowPath` updates on layout.
+- Added internal configuration storage API used by `setConfiguration` to avoid duplicate apply passes.
+- Added `FKBar.Item.FKButtonSpec.setAppearances(_:)` for one-call normal/selected/highlighted/disabled setup.
+
+### Changed (FKBar)
+- `FKBar.Configuration` now clamps invalid values for spacing, alpha, shadow, and corner/border inputs.
+- `FKBar` now applies default selection fallback visuals consistently across `UIButton`, `FKButton`, and custom wrapper items.
+- `FKBar.Item.Layout` now normalizes invalid min/max constraints and clamps negative dimensions.
+- `FKBar.Item.FKButtonSpec.apply(to:)` now batches updates through `FKButton.performBatchUpdates` to reduce redundant refreshes.
+- Replaced recursive descendant lookup in configuration apply path with direct internal references to improve reliability and performance.
+
 ## [0.3.0] - 2026-04-13
 
 ### Breaking changes (FKButton)
@@ -82,6 +100,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 <!-- Replace the links below with your repository URL when published -->
 [Unreleased]: #
+[0.4.0]: #
 [0.3.0]: #
 [0.2.3]: #
 [0.2.2]: #

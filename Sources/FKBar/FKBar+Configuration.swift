@@ -27,7 +27,7 @@ public extension FKBar {
       public var duration: TimeInterval
 
       public init(duration: TimeInterval = 0.25) {
-        self.duration = duration
+        self.duration = max(0, duration)
       }
     }
 
@@ -45,10 +45,46 @@ public extension FKBar {
         radius: CGFloat = 4
       ) {
         self.color = color
-        self.opacity = opacity
+        self.opacity = max(0, min(1, opacity))
         self.offset = offset
-        self.radius = radius
+        self.radius = max(0, radius)
       }
+    }
+
+    public struct CornerStyle: Sendable {
+      public var radius: CGFloat
+      public var curve: CALayerCornerCurve
+      public var maskedCorners: CACornerMask
+
+      public init(
+        radius: CGFloat = 0,
+        curve: CALayerCornerCurve = .continuous,
+        maskedCorners: CACornerMask = [
+          .layerMinXMinYCorner,
+          .layerMaxXMinYCorner,
+          .layerMinXMaxYCorner,
+          .layerMaxXMaxYCorner,
+        ]
+      ) {
+        self.radius = max(0, radius)
+        self.curve = curve
+        self.maskedCorners = maskedCorners
+      }
+    }
+
+    public struct Border: Sendable {
+      public var width: CGFloat
+      public var color: UIColor
+
+      public init(width: CGFloat = 0, color: UIColor = .clear) {
+        self.width = max(0, width)
+        self.color = color
+      }
+    }
+
+    public enum ShadowPathStrategy: Sendable {
+      case automatic
+      case none
     }
 
     /// Background, corner radius, border, and shadow for the bar root view.
@@ -56,15 +92,14 @@ public extension FKBar {
       public var backgroundColor: UIColor
       public var alpha: CGFloat
 
-      public var cornerRadius: CGFloat
-      public var cornerCurve: CALayerCornerCurve
-      public var maskedCorners: CACornerMask
+      public var cornerStyle: CornerStyle
 
-      public var borderWidth: CGFloat
-      public var borderColor: UIColor
+      public var border: Border
 
       /// Shadow configuration; `nil` disables shadow.
       public var shadow: Shadow?
+      /// Whether to keep `layer.shadowPath` in sync with current bounds/corners.
+      public var shadowPathStrategy: ShadowPathStrategy
 
       /// Whether to clip subviews. When `nil`, uses:
       /// - Has shadow: do not clip
@@ -85,18 +120,18 @@ public extension FKBar {
         borderWidth: CGFloat = 0,
         borderColor: UIColor = .clear,
         shadow: Shadow? = nil,
+        shadowPathStrategy: ShadowPathStrategy = .automatic,
         clipsToBounds: Bool? = nil
       ) {
         self.backgroundColor = backgroundColor
-        self.alpha = alpha
-        self.cornerRadius = cornerRadius
-        self.cornerCurve = cornerCurve
-        self.maskedCorners = maskedCorners
-        self.borderWidth = borderWidth
-        self.borderColor = borderColor
+        self.alpha = max(0, min(1, alpha))
+        self.cornerStyle = CornerStyle(radius: cornerRadius, curve: cornerCurve, maskedCorners: maskedCorners)
+        self.border = Border(width: borderWidth, color: borderColor)
         self.shadow = shadow
+        self.shadowPathStrategy = shadowPathStrategy
         self.clipsToBounds = clipsToBounds
       }
+
     }
 
     public struct SelectionScroll: Sendable {
@@ -201,7 +236,7 @@ public extension FKBar {
       alignment: UIStackView.Alignment = .center,
       distribution: UIStackView.Distribution = .fill
     ) {
-      self.itemSpacing = itemSpacing
+      self.itemSpacing = max(0, itemSpacing)
       self.contentInsets = contentInsets
       self.alwaysBounceHorizontal = alwaysBounceHorizontal
       self.showsHorizontalScrollIndicator = showsHorizontalScrollIndicator
@@ -225,18 +260,21 @@ public extension FKBar {
         ?? .default
     }
     set {
-      objc_setAssociatedObject(
-        self,
-        &FKBarConfigurationAssociatedKeys.configuration,
-        newValue,
-        .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-      )
+      setStoredConfiguration(newValue)
       applyBarConfiguration(animated: false, completion: nil)
     }
   }
 
-  /// Applies `configuration` to the bar root view and descendant `UIScrollView` / `UIStackView`
-  /// (found via traversal to keep this file reusable for extensions).
+  internal func setStoredConfiguration(_ configuration: Configuration) {
+    objc_setAssociatedObject(
+      self,
+      &FKBarConfigurationAssociatedKeys.configuration,
+      configuration,
+      .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+    )
+  }
+
+  /// Applies `configuration` to the bar root view and internal `UIScrollView` / `UIStackView`.
   func applyBarConfiguration(animated: Bool = false, completion: (() -> Void)? = nil) {
     let cfg = configuration
 
@@ -246,11 +284,11 @@ public extension FKBar {
       self.alpha = cfg.appearance.alpha
 
       let layer = self.layer
-      layer.cornerRadius = cfg.appearance.cornerRadius
-      layer.cornerCurve = cfg.appearance.cornerCurve
-      layer.maskedCorners = cfg.appearance.maskedCorners
-      layer.borderWidth = cfg.appearance.borderWidth
-      layer.borderColor = cfg.appearance.borderColor.cgColor
+      layer.cornerRadius = cfg.appearance.cornerStyle.radius
+      layer.cornerCurve = cfg.appearance.cornerStyle.curve
+      layer.maskedCorners = cfg.appearance.cornerStyle.maskedCorners
+      layer.borderWidth = cfg.appearance.border.width
+      layer.borderColor = cfg.appearance.border.color.cgColor
 
       let shouldClip: Bool
       if let clipsToBounds = cfg.appearance.clipsToBounds {
@@ -265,8 +303,7 @@ public extension FKBar {
         layer.shadowOpacity = shadow.opacity
         layer.shadowRadius = shadow.radius
         layer.shadowOffset = shadow.offset
-        // `shadowPath` changes with layout. Re-call this method after external layout completes to refresh.
-        layer.shadowPath = nil
+        self.updateBarShadowPathIfNeeded()
       } else {
         layer.shadowOpacity = 0
         layer.shadowColor = nil
@@ -276,24 +313,19 @@ public extension FKBar {
       }
 
       // MARK: - Scroll view & stack view (descendants)
-      guard let scrollView = self.firstDescendant(of: UIScrollView.self) else { return }
+      let scrollView = self._configurationScrollView
       scrollView.alwaysBounceHorizontal = cfg.alwaysBounceHorizontal
       scrollView.showsHorizontalScrollIndicator = cfg.showsHorizontalScrollIndicator
       scrollView.isScrollEnabled = cfg.isScrollEnabled
 
-      // NSDirectionalEdgeInsets -> UIEdgeInsets (converted by current semantic direction)
-      let isRTL = (UIView.userInterfaceLayoutDirection(for: self.semanticContentAttribute) == .rightToLeft)
-      let left = isRTL ? cfg.contentInsets.trailing : cfg.contentInsets.leading
-      let right = isRTL ? cfg.contentInsets.leading : cfg.contentInsets.trailing
-      let insets = UIEdgeInsets(top: cfg.contentInsets.top, left: left, bottom: cfg.contentInsets.bottom, right: right)
+      let insets = self.resolvedDirectionalInsets(cfg.contentInsets)
 
       scrollView.contentInset = insets
       scrollView.scrollIndicatorInsets = insets
 
-      if let stackView = self.firstDescendant(of: UIStackView.self) {
-        stackView.spacing = cfg.itemSpacing
-        stackView.alignment = cfg.alignment
-      }
+      let stackView = self._configurationStackView
+      stackView.spacing = cfg.itemSpacing
+      stackView.alignment = cfg.alignment
       self.applyArrangementFromConfiguration()
     }
 
@@ -306,16 +338,34 @@ public extension FKBar {
   }
 
   // MARK: - Private helpers
-
-  private func firstDescendant<T: UIView>(of type: T.Type) -> T? {
-    func search(from root: UIView) -> T? {
-      for view in root.subviews {
-        if let typed = view as? T { return typed }
-        if let found = search(from: view) { return found }
-      }
-      return nil
+  internal func updateBarShadowPathIfNeeded() {
+    let appearance = configuration.appearance
+    guard appearance.shadow != nil, appearance.shadowPathStrategy == .automatic else {
+      layer.shadowPath = nil
+      return
     }
-    if let hit = self as? T { return hit }
-    return search(from: self)
+    layer.shadowPath = UIBezierPath(
+      roundedRect: bounds,
+      byRoundingCorners: appearance.cornerStyle.maskedCorners.uiRectCorner,
+      cornerRadii: CGSize(width: appearance.cornerStyle.radius, height: appearance.cornerStyle.radius)
+    ).cgPath
+  }
+
+  private func resolvedDirectionalInsets(_ insets: NSDirectionalEdgeInsets) -> UIEdgeInsets {
+    let isRTL = UIView.userInterfaceLayoutDirection(for: semanticContentAttribute) == .rightToLeft
+    let left = isRTL ? insets.trailing : insets.leading
+    let right = isRTL ? insets.leading : insets.trailing
+    return UIEdgeInsets(top: insets.top, left: left, bottom: insets.bottom, right: right)
+  }
+}
+
+private extension CACornerMask {
+  var uiRectCorner: UIRectCorner {
+    var corners: UIRectCorner = []
+    if contains(.layerMinXMinYCorner) { corners.insert(.topLeft) }
+    if contains(.layerMaxXMinYCorner) { corners.insert(.topRight) }
+    if contains(.layerMinXMaxYCorner) { corners.insert(.bottomLeft) }
+    if contains(.layerMaxXMaxYCorner) { corners.insert(.bottomRight) }
+    return corners
   }
 }

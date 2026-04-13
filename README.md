@@ -77,6 +77,20 @@ let barPresentation = FKBarPresentation(frame: .zero)
 barPresentation.reloadBarItems([/* FKBar.Item */])
 ```
 
+### FKBar
+
+```swift
+import FKBar
+
+let bar = FKBar()
+var config = FKBar.Configuration.default
+config.itemSpacing = 8
+config.appearance.cornerStyle = .init(radius: 12, curve: .continuous)
+config.appearance.border = .init(width: 1, color: .separator)
+config.appearance.shadowPathStrategy = .automatic
+bar.setConfiguration(config)
+```
+
 ## Versioning
 
 This project follows SemVer. See `CHANGELOG.md` and git tags for releases.

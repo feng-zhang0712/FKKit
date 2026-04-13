@@ -15,14 +15,14 @@ public extension FKBar {
 
     /// Scrolling alignment when an item is selected.
     /// Actual scrolling is implemented by `FKBar` and `Configuration.selectionScroll`.
-    public enum ScrollAlignment {
+    public enum ScrollAlignment: Equatable, Sendable {
       case leading
       case center
       case trailing
     }
 
     /// Selection-state change strategy when tapping an already-selected item.
-    public enum SelectionBehavior {
+    public enum SelectionBehavior: Equatable, Sendable {
       /// Toggle selected state.
       case toggle
       /// Always keep selected.
@@ -52,11 +52,11 @@ public extension FKBar {
         normalBackgroundColor: UIColor? = nil,
         selectedBackgroundColor: UIColor? = nil
       ) {
-        self.cornerRadius = cornerRadius
+        self.cornerRadius = cornerRadius.map { max(0, $0) }
         self.cornerCurve = cornerCurve
         self.clipsToBounds = clipsToBounds
-        self.normalAlpha = normalAlpha
-        self.selectedAlpha = selectedAlpha
+        self.normalAlpha = max(0, min(1, normalAlpha))
+        self.selectedAlpha = max(0, min(1, selectedAlpha))
         self.normalBackgroundColor = normalBackgroundColor
         self.selectedBackgroundColor = selectedBackgroundColor
       }
@@ -94,15 +94,27 @@ public extension FKBar {
         hitTestInsets: UIEdgeInsets = .zero,
         scrollAlignment: ScrollAlignment = .center
       ) {
-        self.fixedWidth = fixedWidth
-        self.fixedHeight = fixedHeight
-        self.minWidth = minWidth
-        self.maxWidth = maxWidth
-        self.minHeight = minHeight
-        self.maxHeight = maxHeight
+        self.fixedWidth = fixedWidth.map { max(0, $0) }
+        self.fixedHeight = fixedHeight.map { max(0, $0) }
+        self.minWidth = minWidth.map { max(0, $0) }
+        self.maxWidth = maxWidth.map { max(0, $0) }
+        self.minHeight = minHeight.map { max(0, $0) }
+        self.maxHeight = maxHeight.map { max(0, $0) }
         self.wrapperInsets = wrapperInsets
         self.hitTestInsets = hitTestInsets
         self.scrollAlignment = scrollAlignment
+        normalizeMinMaxDimensions()
+      }
+
+      private mutating func normalizeMinMaxDimensions() {
+        if let minWidth, let maxWidth, minWidth > maxWidth {
+          self.minWidth = maxWidth
+          self.maxWidth = minWidth
+        }
+        if let minHeight, let maxHeight, minHeight > maxHeight {
+          self.minHeight = maxHeight
+          self.maxHeight = minHeight
+        }
       }
     }
 
@@ -144,6 +156,14 @@ public extension FKBar {
         appearanceByState[state.rawValue] = appearance
       }
 
+      /// Writes normal/selected/highlighted/disabled appearances in one call.
+      public mutating func setAppearances(_ appearances: FKButton.StateAppearances) {
+        appearanceByState[UIControl.State.normal.rawValue] = appearances.normal
+        appearanceByState[UIControl.State.selected.rawValue] = appearances.selected
+        appearanceByState[UIControl.State.highlighted.rawValue] = appearances.highlighted
+        appearanceByState[UIControl.State.disabled.rawValue] = appearances.disabled
+      }
+
       public mutating func setTitle(_ title: FKButton.Text?, for state: UIControl.State) {
         guard let title else {
           titleByState.removeValue(forKey: state.rawValue)
@@ -176,7 +196,11 @@ public extension FKBar {
         var map = imageBySlotAndState[slot] ?? [:]
         guard let image else {
           map.removeValue(forKey: state.rawValue)
-          imageBySlotAndState[slot] = map
+          if map.isEmpty {
+            imageBySlotAndState.removeValue(forKey: slot)
+          } else {
+            imageBySlotAndState[slot] = map
+          }
           return
         }
         map[state.rawValue] = image
@@ -186,31 +210,33 @@ public extension FKBar {
       /// Applies this spec to an existing `FKButton` (for reuse/testing; the normal path is called by `FKBar` when creating items).
       @MainActor
       public func apply(to button: FKButton) {
-        button.content = content
-        button.axis = axis
+        button.performBatchUpdates {
+          button.content = content
+          button.axis = axis
 
-        appearanceByState.forEach { key, appearance in
-          button.setAppearance(appearance, for: UIControl.State(rawValue: key))
-        }
-        titleByState.forEach { key, title in
-          button.setTitle(title, for: UIControl.State(rawValue: key))
-        }
-        subtitleByState.forEach { key, subtitle in
-          button.setSubtitle(subtitle, for: UIControl.State(rawValue: key))
-        }
-        customContentByState.forEach { key, content in
-          button.setCustomContent(content, for: UIControl.State(rawValue: key))
-        }
-        for (slot, byState) in imageBySlotAndState {
-          for (key, image) in byState {
-            let state = UIControl.State(rawValue: key)
-            switch slot {
-            case .center:
-              button.setImage(image, for: state)
-            case .leading:
-              button.setLeadingImage(image, for: state)
-            case .trailing:
-              button.setTrailingImage(image, for: state)
+          appearanceByState.forEach { key, appearance in
+            button.setAppearance(appearance, for: UIControl.State(rawValue: key))
+          }
+          titleByState.forEach { key, title in
+            button.setTitle(title, for: UIControl.State(rawValue: key))
+          }
+          subtitleByState.forEach { key, subtitle in
+            button.setSubtitle(subtitle, for: UIControl.State(rawValue: key))
+          }
+          customContentByState.forEach { key, content in
+            button.setCustomContent(content, for: UIControl.State(rawValue: key))
+          }
+          for (slot, byState) in imageBySlotAndState {
+            for (key, image) in byState {
+              let state = UIControl.State(rawValue: key)
+              switch slot {
+              case .center:
+                button.setImage(image, for: state)
+              case .leading:
+                button.setLeadingImage(image, for: state)
+              case .trailing:
+                button.setTrailingImage(image, for: state)
+              }
             }
           }
         }
