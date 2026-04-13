@@ -276,7 +276,8 @@ final class FKBarPresentationDemoViewController: UIViewController {
     label.translatesAutoresizingMaskIntoConstraints = false
     container.addSubview(label)
 
-    let lineHeight = 1 / max(UIScreen.main.scale, 1)
+    let scale = container.window?.windowScene?.screen.scale ?? container.traitCollection.displayScale
+    let lineHeight = 1 / max(scale, 1)
     NSLayoutConstraint.activate([
       hairline.topAnchor.constraint(equalTo: container.topAnchor),
       hairline.leadingAnchor.constraint(equalTo: container.leadingAnchor),

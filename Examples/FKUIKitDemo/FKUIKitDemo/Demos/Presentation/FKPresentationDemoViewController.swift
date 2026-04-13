@@ -176,7 +176,8 @@ final class FKPresentationDemoViewController: UIViewController {
     let v = UIView()
     v.backgroundColor = .separator
     v.translatesAutoresizingMaskIntoConstraints = false
-    v.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
+    let scale = max(v.window?.windowScene?.screen.scale ?? v.traitCollection.displayScale, 1)
+    v.heightAnchor.constraint(equalToConstant: 1 / scale).isActive = true
     return v
   }
 
