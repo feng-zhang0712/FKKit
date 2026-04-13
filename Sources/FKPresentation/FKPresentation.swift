@@ -295,6 +295,8 @@ public final class FKPresentation {
     let (presentationFrame, chromeFrame) = computeAndApplyFrames()
     presentationContainerView?.frame = presentationFrame
     contentChromeView?.frame = chromeFrame
+    // Ensure style and wrapper constraints remain consistent after size/anchor updates.
+    applyAppearance()
     applyMaskInitial()
 
     if animated, configuration.reposition.animationDuration > 0 {
@@ -634,25 +636,32 @@ public final class FKPresentation {
     guard let chrome = contentChromeView
     else { return }
 
-    chrome.backgroundColor = configuration.appearance.backgroundColor
-    chrome.alpha = configuration.appearance.alpha
+    let appearance = configuration.appearance
+    chrome.backgroundColor = appearance.backgroundColor
+    chrome.alpha = appearance.alpha
 
+    applyChromeLayerAppearance(appearance, to: chrome)
+    applyChromeShadow(appearance, to: chrome)
+
+    // Apply `configuration.content.containerInsets` via the inset wrapper.
+    ensureContentInsetWrapper()
+  }
+
+  private func applyChromeLayerAppearance(_ appearance: Configuration.Appearance, to chrome: UIView) {
     let layer = chrome.layer
-    layer.cornerRadius = configuration.appearance.cornerRadius
-    layer.cornerCurve = configuration.appearance.cornerCurve
-    layer.maskedCorners = configuration.appearance.maskedCorners
-    layer.borderWidth = configuration.appearance.borderWidth
-    layer.borderColor = configuration.appearance.borderColor.cgColor
+    layer.cornerRadius = appearance.cornerRadius
+    layer.cornerCurve = appearance.cornerCurve
+    layer.maskedCorners = appearance.maskedCorners
+    layer.borderWidth = appearance.borderWidth
+    layer.borderColor = appearance.borderColor.cgColor
 
-    let shouldClip: Bool
-    if let clipsToBounds = configuration.appearance.clipsToBounds {
-      shouldClip = clipsToBounds
-    } else {
-      shouldClip = (configuration.appearance.shadow == nil)
-    }
+    let shouldClip = appearance.clipsToBounds ?? (appearance.shadow == nil)
     chrome.clipsToBounds = shouldClip
+  }
 
-    if let shadow = configuration.appearance.shadow {
+  private func applyChromeShadow(_ appearance: Configuration.Appearance, to chrome: UIView) {
+    let layer = chrome.layer
+    if let shadow = appearance.shadow {
       layer.shadowColor = shadow.color.cgColor
       layer.shadowOpacity = shadow.opacity
       layer.shadowRadius = shadow.radius
@@ -665,9 +674,6 @@ public final class FKPresentation {
       layer.shadowOffset = .zero
       layer.shadowPath = nil
     }
-
-    // Apply `configuration.content.containerInsets` via the inset wrapper.
-    ensureContentInsetWrapper()
   }
 
   /// Update `contentChromeView`'s `shadowPath` based on `shadow.edgeStyle` and current bounds/anchor.
@@ -894,7 +900,7 @@ public final class FKPresentation {
     ) {
       self.maskView?.alpha = self.configuration.mask.enabled ? phase.alphaTo : 0
       self.presentationContainerView?.transform = .identity
-      self.contentChromeView?.alpha = 1
+      self.contentChromeView?.alpha = self.configuration.appearance.alpha
     } completion: { _ in completion() }
   }
 

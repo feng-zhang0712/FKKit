@@ -8,6 +8,26 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.5.0] - 2026-04-13
+
+### Added (FKBarPresentation)
+- `FKBarPresentation.Configuration.Behavior` now conforms to `Equatable` and `Sendable`.
+- Added behavior presets: `.default`, `.keepPanelOnSelectionChange`, `.selectionDrivenDismiss`.
+
+### Changed (FKBarPresentation)
+- `applyConfiguration` now updates `FKPresentation` via `updateConfiguration` when already presented, so runtime config changes are applied immediately.
+- Refactored panel content resolution into a dedicated helper to centralize priority and reduce duplicated logic.
+
+### Changed (FKPresentation)
+- Added defensive value normalization in configuration initializers (alpha, durations, sizes, radius, min/max bounds).
+- Reposition pass now reapplies appearance to keep chrome style and content inset wrapper state consistent after frame updates.
+- `content.containerInsets` updates now propagate to existing wrapper constraints and correctly handle RTL leading/trailing mapping.
+
+### Fixed (FKPresentation)
+- `animation.show` end state now respects `appearance.alpha` instead of forcing content chrome alpha to `1`.
+- `reposition.listenTraitCollectionChanges` now has effective runtime behavior by observing trait changes in host container.
+- Dismiss cleanup now releases transient overlay references more completely to avoid stale state on reuse.
+
 ## [0.4.0] - 2026-04-13
 
 ### Breaking changes (FKBar)
@@ -100,6 +120,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 <!-- Replace the links below with your repository URL when published -->
 [Unreleased]: #
+[0.5.0]: #
 [0.4.0]: #
 [0.3.0]: #
 [0.2.3]: #

@@ -149,8 +149,13 @@ open class FKBarPresentation: UIView {
 
   /// Applies `configuration.bar` / `configuration.presentation` to child components.
   public func applyConfiguration(animated: Bool = false, completion: VoidHandler? = nil) {
-    bar.setConfiguration(configuration.bar, animated: animated, completion: completion)
-    embeddedPresentation.configuration = configuration.presentation
+    bar.setConfiguration(configuration.bar, animated: animated, completion: nil)
+    if embeddedPresentation.isPresented {
+      embeddedPresentation.updateConfiguration(configuration.presentation, animated: animated, completion: completion)
+    } else {
+      embeddedPresentation.configuration = configuration.presentation
+      completion?()
+    }
   }
 
   /// Equivalent to `bar.reloadItems`.
@@ -185,22 +190,8 @@ open class FKBarPresentation: UIView {
       return
     }
 
-    if let view = presentationContent?(self, index, item) {
-      presentPanel(content: .view(view), anchor: sender, item: item, at: index, in: host)
-      return
-    }
-    if let vc = presentationViewController?(self, index, item) {
-      presentPanel(content: .viewController(vc), anchor: sender, item: item, at: index, in: host)
-      return
-    }
-    if let view = dataSource?.barPresentation(self, presentationViewForItemAt: index) {
-      presentPanel(content: .view(view), anchor: sender, item: item, at: index, in: host)
-      return
-    }
-    if let vc = dataSource?.barPresentation(self, presentationViewControllerForItemAt: index) {
-      presentPanel(content: .viewController(vc), anchor: sender, item: item, at: index, in: host)
-      return
-    }
+    guard let resolvedContent = resolvePresentationContent(for: item, at: index) else { return }
+    presentPanel(content: resolvedContent, anchor: sender, item: item, at: index, in: host)
   }
 
   fileprivate func onBarDidDeselect(item: FKBar.Item, at index: Int) {
@@ -240,6 +231,22 @@ open class FKBarPresentation: UIView {
     case let .viewController(vc):
       embeddedPresentation.show(from: anchor, sourceRect: nil, content: vc, in: host, animated: true, completion: nil)
     }
+  }
+
+  private func resolvePresentationContent(for item: FKBar.Item, at index: Int) -> PresentContent? {
+    if let view = presentationContent?(self, index, item) {
+      return .view(view)
+    }
+    if let vc = presentationViewController?(self, index, item) {
+      return .viewController(vc)
+    }
+    if let view = dataSource?.barPresentation(self, presentationViewForItemAt: index) {
+      return .view(view)
+    }
+    if let vc = dataSource?.barPresentation(self, presentationViewControllerForItemAt: index) {
+      return .viewController(vc)
+    }
+    return nil
   }
 
   fileprivate func dismissReasonForCallbacks() -> FKBarPresentation.PresentationDismissReason {

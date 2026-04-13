@@ -40,9 +40,9 @@ public extension FKPresentation {
         edgeStyle: ShadowEdgeStyle = .followsPresentation
       ) {
         self.color = color
-        self.opacity = opacity
+        self.opacity = max(0, min(1, opacity))
         self.offset = offset
-        self.radius = radius
+        self.radius = max(0, radius)
         self.edgeStyle = edgeStyle
       }
     }
@@ -82,11 +82,11 @@ public extension FKPresentation {
         clipsToBounds: Bool? = nil
       ) {
         self.backgroundColor = backgroundColor
-        self.alpha = alpha
-        self.cornerRadius = cornerRadius
+        self.alpha = max(0, min(1, alpha))
+        self.cornerRadius = max(0, cornerRadius)
         self.cornerCurve = cornerCurve
         self.maskedCorners = maskedCorners
-        self.borderWidth = borderWidth
+        self.borderWidth = max(0, borderWidth)
         self.borderColor = borderColor
         self.shadow = shadow
         self.clipsToBounds = clipsToBounds
@@ -119,8 +119,13 @@ public extension FKPresentation {
       ) {
         self.containerInsets = containerInsets
         self.fallbackBackgroundColor = fallbackBackgroundColor
-        self.preferredHeight = preferredHeight
-        self.maxHeight = maxHeight
+        self.preferredHeight = preferredHeight.map { max(0, $0) }
+        self.maxHeight = maxHeight.map { max(0, $0) }
+        if let preferredHeight = self.preferredHeight,
+           let maxHeight = self.maxHeight,
+           preferredHeight > maxHeight {
+          self.maxHeight = preferredHeight
+        }
       }
 
       public nonisolated(unsafe) static let `default` = Content()
@@ -178,10 +183,21 @@ public extension FKPresentation {
       ) {
         self.verticalSpacing = verticalSpacing
         self.horizontalAlignment = horizontalAlignment
-        self.widthMode = widthMode
-        self.widthMin = widthMin
-        self.widthMax = widthMax
-        self.maxHeight = maxHeight
+        switch widthMode {
+        case let .custom(width):
+          self.widthMode = .custom(max(0, width))
+        default:
+          self.widthMode = widthMode
+        }
+        self.widthMin = widthMin.map { max(0, $0) }
+        self.widthMax = widthMax.map { max(0, $0) }
+        self.maxHeight = maxHeight.map { max(0, $0) }
+        if let widthMin = self.widthMin,
+           let widthMax = self.widthMax,
+           widthMin > widthMax {
+          self.widthMin = widthMax
+          self.widthMax = widthMin
+        }
         self.clampToSafeArea = clampToSafeArea
         self.preferBelowSource = preferBelowSource
         self.allowFlipToAbove = allowFlipToAbove
@@ -217,7 +233,7 @@ public extension FKPresentation {
       ) {
         self.enabled = enabled
         self.backgroundColor = backgroundColor
-        self.alpha = alpha
+        self.alpha = max(0, min(1, alpha))
         self.tapToDismissEnabled = tapToDismissEnabled
         self.passthroughViews = passthroughViews
         self.coveragePolicy = coveragePolicy
@@ -271,12 +287,12 @@ public extension FKPresentation {
           scale: CGFloat = 1.0,
           useSpring: Bool = false
         ) {
-          self.duration = duration
-          self.delay = delay
-          self.alphaFrom = alphaFrom
-          self.alphaTo = alphaTo
+          self.duration = max(0, duration)
+          self.delay = max(0, delay)
+          self.alphaFrom = max(0, min(1, alphaFrom))
+          self.alphaTo = max(0, min(1, alphaTo))
           self.translation = translation
-          self.scale = scale
+          self.scale = max(0.01, scale)
           self.useSpring = useSpring
         }
       }
@@ -320,7 +336,7 @@ public extension FKPresentation {
         listenTraitCollectionChanges: Bool = true
       ) {
         self.enabled = enabled
-        self.animationDuration = animationDuration
+        self.animationDuration = max(0, animationDuration)
         self.listenOrientationChanges = listenOrientationChanges
         self.listenTraitCollectionChanges = listenTraitCollectionChanges
       }

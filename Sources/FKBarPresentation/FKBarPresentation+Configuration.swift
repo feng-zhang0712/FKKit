@@ -79,7 +79,7 @@ public final class WeakUIViewBox {
 
 public extension FKBarPresentation.Configuration {
   /// Default bar↔panel behavior. You may further customize via `FKBarPresentationDelegate`.
-  struct Behavior {
+  struct Behavior: Equatable, Sendable {
     /// When an item becomes selected, whether to attempt presenting the panel.
     public var presentsOnSelection: Bool
 
@@ -103,6 +103,25 @@ public extension FKBarPresentation.Configuration {
       self.dismissBeforeChangingSelection = dismissBeforeChangingSelection
       self.ignoresRepeatedSelectWhilePresented = ignoresRepeatedSelectWhilePresented
     }
+
+    /// Default behavior: selection presents panel; clearing or switching selection dismisses current panel.
+    public nonisolated(unsafe) static let `default` = Behavior()
+
+    /// Keep current panel while switching selected item; useful for in-panel tab switching UX.
+    public nonisolated(unsafe) static let keepPanelOnSelectionChange = Behavior(
+      presentsOnSelection: true,
+      dismissesWhenSelectionCleared: true,
+      dismissBeforeChangingSelection: false,
+      ignoresRepeatedSelectWhilePresented: true
+    )
+
+    /// Selection strictly drives panel lifecycle; repeated selection is still handled.
+    public nonisolated(unsafe) static let selectionDrivenDismiss = Behavior(
+      presentsOnSelection: true,
+      dismissesWhenSelectionCleared: true,
+      dismissBeforeChangingSelection: true,
+      ignoresRepeatedSelectWhilePresented: false
+    )
   }
 }
 

@@ -91,6 +91,18 @@ config.appearance.shadowPathStrategy = .automatic
 bar.setConfiguration(config)
 ```
 
+## Recent updates (0.5.0)
+
+- `FKBarPresentation.Configuration.Behavior` adds presets for common panel lifecycle strategies:
+  - `.default`
+  - `.keepPanelOnSelectionChange`
+  - `.selectionDrivenDismiss`
+- Runtime `FKBarPresentation` config updates are now safer while presented (`applyConfiguration` forwards to `FKPresentation.updateConfiguration` when needed).
+- `FKPresentation` improves dynamic layout consistency:
+  - `content.containerInsets` changes can update an already presented panel.
+  - Trait-collection-driven repositioning is now effective when enabled.
+  - Show animation end alpha respects `appearance.alpha`.
+
 ## Versioning
 
 This project follows SemVer. See `CHANGELOG.md` and git tags for releases.
