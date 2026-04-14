@@ -97,7 +97,13 @@ final class FKBarPresentationDemoViewController: UIViewController {
 
     let panel = makeControlPanel()
     panel.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(panel)
+
+    let panelScrollView = UIScrollView()
+    panelScrollView.translatesAutoresizingMaskIntoConstraints = false
+    panelScrollView.alwaysBounceVertical = true
+    panelScrollView.showsVerticalScrollIndicator = true
+    view.addSubview(panelScrollView)
+    panelScrollView.addSubview(panel)
 
     let guide = view.safeAreaLayoutGuide
     NSLayoutConstraint.activate([
@@ -105,10 +111,16 @@ final class FKBarPresentationDemoViewController: UIViewController {
       barPresentation.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       barPresentation.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-      panel.topAnchor.constraint(equalTo: barPresentation.bottomAnchor, constant: 16),
-      panel.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 16),
-      panel.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -16),
-      panel.bottomAnchor.constraint(lessThanOrEqualTo: guide.bottomAnchor, constant: -16),
+      panelScrollView.topAnchor.constraint(equalTo: barPresentation.bottomAnchor, constant: 16),
+      panelScrollView.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
+      panelScrollView.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
+      panelScrollView.bottomAnchor.constraint(equalTo: guide.bottomAnchor),
+
+      panel.topAnchor.constraint(equalTo: panelScrollView.contentLayoutGuide.topAnchor),
+      panel.leadingAnchor.constraint(equalTo: panelScrollView.contentLayoutGuide.leadingAnchor, constant: 16),
+      panel.trailingAnchor.constraint(equalTo: panelScrollView.contentLayoutGuide.trailingAnchor, constant: -16),
+      panel.bottomAnchor.constraint(equalTo: panelScrollView.contentLayoutGuide.bottomAnchor, constant: -16),
+      panel.widthAnchor.constraint(equalTo: panelScrollView.frameLayoutGuide.widthAnchor, constant: -32),
     ])
 
     barPresentation.backgroundColor = .white
