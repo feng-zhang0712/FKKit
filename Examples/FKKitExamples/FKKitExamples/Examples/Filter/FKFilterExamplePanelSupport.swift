@@ -51,7 +51,7 @@ enum FKFilterExamplePanelSupport {
             let selectedCount = newSections.flatMap(\.items).filter(\.isSelected).count
             if selectedCount == 0 { filterBar.updateBarTitle("标签", for: .tags) }
           },
-          configuration: .init(columns: 2, maxPresentedHeight: 320)
+          configuration: .init(columns: 2, heightBehavior: .capped(maximum: 320, minimum: 80))
         ),
         .singleList: .singleList(
           section: { sortSection },

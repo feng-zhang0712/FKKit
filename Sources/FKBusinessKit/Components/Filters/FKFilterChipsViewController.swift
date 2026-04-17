@@ -80,11 +80,9 @@ public final class FKFilterChipsViewController: UIViewController {
     public var contentInsets: UIEdgeInsets
     /// Row height for chip cells and preferred-content height estimation.
     public var itemRowHeight: CGFloat
-    /// Legacy height cap. Prefer `heightBehavior`.
-    public var maxPresentedHeight: CGFloat?
     /// Controls panel height behavior (auto / capped / fixed / ratio).
     public var heightBehavior: FKFilterPanelHeightBehavior
-    public var chipStyle: FKFilterPillStyle
+    public var pillStyle: FKFilterPillStyle
 
     public init(
       columns: Int = 4,
@@ -92,22 +90,16 @@ public final class FKFilterChipsViewController: UIViewController {
       lineSpacing: CGFloat = 12,
       contentInsets: UIEdgeInsets = .init(top: 12, left: 12, bottom: 12, right: 12),
       itemRowHeight: CGFloat = 40,
-      maxPresentedHeight: CGFloat? = nil,
       heightBehavior: FKFilterPanelHeightBehavior = .automatic(minimum: 80),
-      chipStyle: FKFilterPillStyle = .init()
+      pillStyle: FKFilterPillStyle = .init()
     ) {
       self.columns = max(columns, 1)
       self.interitemSpacing = interitemSpacing
       self.lineSpacing = lineSpacing
       self.contentInsets = contentInsets
       self.itemRowHeight = max(itemRowHeight, 32)
-      self.maxPresentedHeight = maxPresentedHeight
-      if let maxPresentedHeight {
-        self.heightBehavior = .capped(maximum: maxPresentedHeight, minimum: 80)
-      } else {
-        self.heightBehavior = heightBehavior
-      }
-      self.chipStyle = chipStyle
+      self.heightBehavior = heightBehavior
+      self.pillStyle = pillStyle
     }
   }
 
@@ -212,7 +204,7 @@ extension FKFilterChipsViewController: UICollectionViewDataSource {
   ) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FKFilterChipCell.reuseID, for: indexPath)
     guard let chip = cell as? FKFilterChipCell else { return cell }
-    chip.apply(sections[indexPath.section].items[indexPath.item], style: config.chipStyle)
+    chip.apply(sections[indexPath.section].items[indexPath.item], style: config.pillStyle)
     return chip
   }
 }

@@ -54,7 +54,4 @@ public struct FKFilterPillStyle {
   }
 }
 
-/// Backward-compatible name kept for earlier versions.
-@available(*, deprecated, renamed: "FKFilterPillStyle")
-public typealias FKFilterChipStyle = FKFilterPillStyle
 
