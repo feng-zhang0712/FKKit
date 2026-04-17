@@ -17,9 +17,9 @@ final class FKFilterTableHostExampleViewController: UIViewController {
     view.backgroundColor = .systemBackground
     filterHost.installBelowTopSafeArea(of: self)
     filterBar.setItems([
-      .init(id: .init(rawValue: "platform"), title: "课程归属", panelKind: .platformChips),
-      .init(id: .init(rawValue: "all-courses"), title: "全部课程", panelKind: .courseTwoColumn),
-      .init(id: .init(rawValue: "tags"), title: "标签", panelKind: .tagsChips),
+      .init(id: .init(rawValue: "platform"), title: "课程归属", panelKind: .gridSecondary),
+      .init(id: .init(rawValue: "all-courses"), title: "全部课程", panelKind: .dualHierarchy),
+      .init(id: .init(rawValue: "tags"), title: "标签", panelKind: .tags),
     ])
     filterBar.makePanelViewController = { [weak self] kind in
       guard let self else { return nil }

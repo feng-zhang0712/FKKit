@@ -18,9 +18,9 @@ final class FKFilterCustomViewHostExampleViewController: UIViewController {
     view.backgroundColor = .systemBackground
     filterHost.installBelowTopSafeArea(of: self)
     filterBar.setItems([
-      .init(id: .init(rawValue: "knowledge"), title: "知识目录", panelKind: .twoColumn),
-      .init(id: .init(rawValue: "type"), title: "全部", panelKind: .fileTypeChips),
-      .init(id: .init(rawValue: "sort"), title: "最新", panelKind: .sortList),
+      .init(id: .init(rawValue: "knowledge"), title: "知识目录", panelKind: .hierarchy),
+      .init(id: .init(rawValue: "type"), title: "全部", panelKind: .gridPrimary),
+      .init(id: .init(rawValue: "sort"), title: "最新", panelKind: .singleList),
     ])
     filterBar.makePanelViewController = { [weak self] kind in
       guard let self else { return nil }

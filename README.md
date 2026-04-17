@@ -71,12 +71,12 @@ let filterHost = FKFilterBarHost(filterBar: filterBar)
 - Products are consolidated to `FKUIKit` and `FKBusinessKit`.
 - Example app structure has been refactored to the new `FKKitExamples` layout.
 
-## Recent updates (0.6.0)
+## Recent updates (0.6.1)
 
-- Introduced `FKBusinessKit` as a dedicated business component layer.
-- Added a full filter module (filter bar host/presentation, panel/list/chips/course generic views, and example app demos).
-- Refactored examples from `FKUIKitDemo` to `FKKitExamples`.
-- Polished component APIs in `FKButton` and `FKBarPresentation`.
+- Added a deep refactor of `FKBusinessKit` Filters with clearer panel taxonomy and split controllers (`SingleList`, `TwoColumnList`, `TwoColumnGrid`).
+- Added `FKFilterPanelFactory` and configurable panel height strategies (`automatic`, `capped`, `fixed`, `screenFraction`) to reduce integration cost.
+- Added a reusable `FKFilterTwoColumnGridViewController` for course-like left-list + right-grid experiences.
+- Improved filter bar lifecycle APIs and component-level documentation for better integration and maintenance.
 
 ## Branching & Collaboration (Recommended)
 

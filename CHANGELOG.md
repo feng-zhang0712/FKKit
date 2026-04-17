@@ -8,6 +8,24 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.6.1] - 2026-04-17
+
+### Added (FKBusinessKit Filters)
+- Added configurable panel height behavior via `FKFilterPanelHeightBehavior` (`automatic` / `capped` / `fixed` / `screenFraction`) and integrated it across list/chips/two-column panels.
+- Added `FKFilterPanelFactory` to centralize panel construction and state wiring from lightweight data closures.
+- Added `FKFilterTwoColumnGridViewController` for left-list + right-grid course-like layouts with section header support.
+- Added richer filter bar lifecycle callbacks, including should-present and will-dismiss delegation.
+
+### Changed (FKBusinessKit Filters)
+- Refactored and split filter panel controllers into focused files (`SingleList`, `TwoColumnList`, `TwoColumnGrid`) with clearer naming and responsibilities.
+- Generalized panel kind semantics and factory source naming (`twoColumnList` / `twoColumnGrid`) to reduce business-coupled terminology.
+- Unified reusable option-item styling with `FKFilterPillStyle` and kept backward compatibility through a deprecated `FKFilterChipStyle` typealias.
+- Expanded documentation comments across key filter models/configurations/controllers to improve component usability.
+
+### Changed (Examples)
+- Updated filter examples to use the new panel factory source names and two-column grid presentation for the "All Courses" panel.
+- Expanded mock filter data options and tuned demo panel typography/behavior for better parity with real business layouts.
+
 ## [0.6.0] - 2026-04-16
 
 ### Breaking changes
@@ -149,7 +167,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.6.1...HEAD
+[0.6.1]: https://github.com/feng-zhang0712/FKKit/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/feng-zhang0712/FKKit/compare/0.5.1...0.6.0
 [0.5.1]: https://github.com/feng-zhang0712/FKKit/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/feng-zhang0712/FKKit/compare/0.4.0...0.5.0

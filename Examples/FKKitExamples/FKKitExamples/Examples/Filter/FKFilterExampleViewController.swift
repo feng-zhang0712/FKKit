@@ -105,12 +105,12 @@ final class FKFilterExampleViewController: UIViewController {
 
   private func configureBarItems() {
     filterBar.setItems([
-      .init(id: .init(rawValue: "knowledge"), title: "知识目录", panelKind: .twoColumn),
-      .init(id: .init(rawValue: "all-courses"), title: "全部课程", panelKind: .courseTwoColumn),
-      .init(id: .init(rawValue: "type"), title: "全部", panelKind: .fileTypeChips),
-      .init(id: .init(rawValue: "platform"), title: "课程归属", panelKind: .platformChips),
-      .init(id: .init(rawValue: "tags"), title: "标签", panelKind: .tagsChips),
-      .init(id: .init(rawValue: "sort"), title: "最新", panelKind: .sortList),
+      .init(id: .init(rawValue: "knowledge"), title: "知识目录", panelKind: .hierarchy),
+      .init(id: .init(rawValue: "all-courses"), title: "全部课程", panelKind: .dualHierarchy),
+      .init(id: .init(rawValue: "type"), title: "全部", panelKind: .gridPrimary),
+      .init(id: .init(rawValue: "platform"), title: "课程归属", panelKind: .gridSecondary),
+      .init(id: .init(rawValue: "tags"), title: "标签", panelKind: .tags),
+      .init(id: .init(rawValue: "sort"), title: "最新", panelKind: .singleList),
     ])
   }
 

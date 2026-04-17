@@ -4,6 +4,10 @@ final class FKFilterChipCell: UICollectionViewCell {
   static let reuseID = "FKFilterChipCell"
 
   private let label = UILabel()
+  private var labelTopConstraint: NSLayoutConstraint?
+  private var labelBottomConstraint: NSLayoutConstraint?
+  private var labelLeadingConstraint: NSLayoutConstraint?
+  private var labelTrailingConstraint: NSLayoutConstraint?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -17,28 +21,38 @@ final class FKFilterChipCell: UICollectionViewCell {
     label.translatesAutoresizingMaskIntoConstraints = false
     contentView.addSubview(label)
 
+    labelTopConstraint = label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10)
+    labelBottomConstraint = label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
+    labelLeadingConstraint = label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12)
+    labelTrailingConstraint = label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12)
     NSLayoutConstraint.activate([
-      label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-      label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
-      label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
-      label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
-    ])
+      labelTopConstraint,
+      labelBottomConstraint,
+      labelLeadingConstraint,
+      labelTrailingConstraint,
+    ].compactMap { $0 })
 
     isAccessibilityElement = true
   }
 
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-  func apply(_ item: FKFilterOptionItem) {
+  func apply(_ item: FKFilterOptionItem, style: FKFilterPillStyle) {
+    contentView.layer.cornerRadius = style.cornerRadius
+    labelTopConstraint?.constant = style.contentInsets.top
+    labelBottomConstraint?.constant = -style.contentInsets.bottom
+    labelLeadingConstraint?.constant = style.contentInsets.left
+    labelTrailingConstraint?.constant = -style.contentInsets.right
     label.text = item.title
+    label.font = style.font
     accessibilityLabel = item.title
     accessibilityTraits = item.isSelected ? [.button, .selected] : [.button]
 
     if !item.isEnabled {
-      contentView.backgroundColor = .systemGray6
-      contentView.layer.borderColor = UIColor.separator.cgColor
-      label.textColor = .secondaryLabel
-      contentView.alpha = 0.6
+      contentView.backgroundColor = style.disabledBackgroundColor
+      contentView.layer.borderColor = style.disabledBorderColor.cgColor
+      label.textColor = style.disabledTextColor
+      contentView.alpha = style.disabledAlpha
       isUserInteractionEnabled = false
       return
     }
@@ -47,27 +61,30 @@ final class FKFilterChipCell: UICollectionViewCell {
     isUserInteractionEnabled = true
 
     if item.isSelected {
-      contentView.backgroundColor = UIColor.systemRed.withAlphaComponent(0.10)
-      contentView.layer.borderColor = UIColor.systemRed.withAlphaComponent(0.55).cgColor
-      label.textColor = .systemRed
+      contentView.backgroundColor = style.selectedBackgroundColor
+      contentView.layer.borderColor = style.selectedBorderColor.cgColor
+      label.textColor = style.selectedTextColor
     } else {
-      contentView.backgroundColor = .systemBackground
-      contentView.layer.borderColor = UIColor.separator.cgColor
-      label.textColor = .label
+      contentView.backgroundColor = style.normalBackgroundColor
+      contentView.layer.borderColor = style.normalBorderColor.cgColor
+      label.textColor = style.normalTextColor
     }
   }
 }
 
 public final class FKFilterChipsViewController: UIViewController {
-  public struct Configuration: Sendable {
+  public struct Configuration {
     public var columns: Int
     public var interitemSpacing: CGFloat
     public var lineSpacing: CGFloat
     public var contentInsets: UIEdgeInsets
     /// Row height for chip cells and preferred-content height estimation.
     public var itemRowHeight: CGFloat
-    /// When set, limits panel height so content taller than this scrolls inside the collection view.
+    /// Legacy height cap. Prefer `heightBehavior`.
     public var maxPresentedHeight: CGFloat?
+    /// Controls panel height behavior (auto / capped / fixed / ratio).
+    public var heightBehavior: FKFilterPanelHeightBehavior
+    public var chipStyle: FKFilterPillStyle
 
     public init(
       columns: Int = 4,
@@ -75,7 +92,9 @@ public final class FKFilterChipsViewController: UIViewController {
       lineSpacing: CGFloat = 12,
       contentInsets: UIEdgeInsets = .init(top: 12, left: 12, bottom: 12, right: 12),
       itemRowHeight: CGFloat = 40,
-      maxPresentedHeight: CGFloat? = nil
+      maxPresentedHeight: CGFloat? = nil,
+      heightBehavior: FKFilterPanelHeightBehavior = .automatic(minimum: 80),
+      chipStyle: FKFilterPillStyle = .init()
     ) {
       self.columns = max(columns, 1)
       self.interitemSpacing = interitemSpacing
@@ -83,6 +102,12 @@ public final class FKFilterChipsViewController: UIViewController {
       self.contentInsets = contentInsets
       self.itemRowHeight = max(itemRowHeight, 32)
       self.maxPresentedHeight = maxPresentedHeight
+      if let maxPresentedHeight {
+        self.heightBehavior = .capped(maximum: maxPresentedHeight, minimum: 80)
+      } else {
+        self.heightBehavior = heightBehavior
+      }
+      self.chipStyle = chipStyle
     }
   }
 
@@ -129,13 +154,8 @@ public final class FKFilterChipsViewController: UIViewController {
   public override var preferredContentSize: CGSize {
     get {
       let full = estimatedContentHeight()
-      let h: CGFloat
-      if let cap = config.maxPresentedHeight {
-        h = min(full, cap)
-      } else {
-        h = full
-      }
-      return CGSize(width: 0, height: max(h, 80))
+      let h = config.heightBehavior.resolvedHeight(for: full)
+      return CGSize(width: 0, height: h)
     }
     set { super.preferredContentSize = newValue }
   }
@@ -192,7 +212,7 @@ extension FKFilterChipsViewController: UICollectionViewDataSource {
   ) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FKFilterChipCell.reuseID, for: indexPath)
     guard let chip = cell as? FKFilterChipCell else { return cell }
-    chip.apply(sections[indexPath.section].items[indexPath.item])
+    chip.apply(sections[indexPath.section].items[indexPath.item], style: config.chipStyle)
     return chip
   }
 }
@@ -233,7 +253,10 @@ extension FKFilterChipsViewController: UICollectionViewDelegateFlowLayout {
     let tapped = section.items[indexPath.item]
     let tappedID = tapped.id
 
-    let effectiveMode: FKFilterSelectionMode = (allowsMultipleSelection && section.selectionMode == .multiple) ? .multiple : .single
+    let effectiveMode = FKFilterSelection.effectiveMode(
+      requestedMode: section.selectionMode,
+      allowsMultipleSelection: allowsMultipleSelection
+    )
 
     switch effectiveMode {
     case .single:

@@ -2,6 +2,28 @@ import UIKit
 import FKUIKit
 
 public protocol FKFilterBarPresentationDelegate: AnyObject {
+  func filterBarPresentation(_ bar: FKFilterBarPresentation, willPresentPanel panel: FKFilterBarPresentation.PanelKind)
+  func filterBarPresentation(_ bar: FKFilterBarPresentation, didPresentPanel panel: FKFilterBarPresentation.PanelKind)
+  func filterBarPresentation(_ bar: FKFilterBarPresentation, didDismissPanel panel: FKFilterBarPresentation.PanelKind?)
+  /// Return `false` to prevent the panel from being presented.
+  func filterBarPresentation(
+    _ bar: FKFilterBarPresentation,
+    shouldPresentPanel panel: FKFilterBarPresentation.PanelKind,
+    for barItem: FKFilterBarPresentation.BarItemModel,
+    at index: Int
+  ) -> Bool
+
+  /// Called when the panel is about to be dismissed (mask tap, selection change, programmatic dismiss, etc.).
+  func filterBarPresentation(
+    _ bar: FKFilterBarPresentation,
+    willDismissPanel panel: FKFilterBarPresentation.PanelKind?,
+    reason: FKBarPresentation.PresentationDismissReason
+  )
+  func filterBarPresentation(
+    _ bar: FKFilterBarPresentation,
+    didSelectBarItem item: FKFilterBarPresentation.BarItemModel,
+    at index: Int
+  )
   func filterBarPresentation(
     _ bar: FKFilterBarPresentation,
     didSelect item: FKFilterOptionItem,
@@ -11,6 +33,26 @@ public protocol FKFilterBarPresentationDelegate: AnyObject {
 }
 
 public extension FKFilterBarPresentationDelegate {
+  func filterBarPresentation(_ bar: FKFilterBarPresentation, willPresentPanel panel: FKFilterBarPresentation.PanelKind) {}
+  func filterBarPresentation(_ bar: FKFilterBarPresentation, didPresentPanel panel: FKFilterBarPresentation.PanelKind) {}
+  func filterBarPresentation(_ bar: FKFilterBarPresentation, didDismissPanel panel: FKFilterBarPresentation.PanelKind?) {}
+  func filterBarPresentation(
+    _ bar: FKFilterBarPresentation,
+    shouldPresentPanel panel: FKFilterBarPresentation.PanelKind,
+    for barItem: FKFilterBarPresentation.BarItemModel,
+    at index: Int
+  ) -> Bool { true }
+
+  func filterBarPresentation(
+    _ bar: FKFilterBarPresentation,
+    willDismissPanel panel: FKFilterBarPresentation.PanelKind?,
+    reason: FKBarPresentation.PresentationDismissReason
+  ) {}
+  func filterBarPresentation(
+    _ bar: FKFilterBarPresentation,
+    didSelectBarItem item: FKFilterBarPresentation.BarItemModel,
+    at index: Int
+  ) {}
   func filterBarPresentation(
     _ bar: FKFilterBarPresentation,
     didSelect item: FKFilterOptionItem,
@@ -21,13 +63,19 @@ public extension FKFilterBarPresentationDelegate {
 
 /// A reusable filter bar built on `FKBarPresentation`.
 public final class FKFilterBarPresentation: UIView {
-  public enum PanelKind: Hashable, Sendable {
-    case twoColumn
-    case courseTwoColumn
-    case fileTypeChips
-    case platformChips
-    case tagsChips
-    case sortList
+  /// Extensible panel identifier. Use predefined static values or custom string literals.
+  public struct PanelKind: Hashable, Sendable, RawRepresentable, ExpressibleByStringLiteral {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public init(stringLiteral value: String) { self.rawValue = value }
+
+    // Generic presets.
+    public static let hierarchy: PanelKind = "hierarchy"
+    public static let dualHierarchy: PanelKind = "dualHierarchy"
+    public static let gridPrimary: PanelKind = "gridPrimary"
+    public static let gridSecondary: PanelKind = "gridSecondary"
+    public static let tags: PanelKind = "tags"
+    public static let singleList: PanelKind = "singleList"
   }
 
   public struct BarItemModel: Hashable, Sendable {
@@ -46,16 +94,30 @@ public final class FKFilterBarPresentation: UIView {
     }
   }
 
-  private let barPresentation = FKBarPresentation()
-  private var barModels: [BarItemModel] = []
-
   public var makePanelViewController: ((PanelKind) -> UIViewController?)?
   public weak var delegate: FKFilterBarPresentationDelegate?
   public var onSelectItem: ((PanelKind, FKFilterOptionItem, FKFilterID?) -> Void)?
+  /// Called right before the panel is presented (after selection and `shouldPresentPanel`).
+  public var onWillPresentPanel: ((PanelKind) -> Void)?
+  /// Called after the panel is presented.
+  public var onDidPresentPanel: ((PanelKind) -> Void)?
+  /// Called after the panel is dismissed. `nil` means the panel kind couldn't be resolved.
+  public var onDidDismissPanel: ((PanelKind?) -> Void)?
+  public var configuration: Configuration = .default {
+    didSet {
+      applyConfiguration()
+      reloadBarTitles(keepSelectedIndex: barPresentation.bar.selectedIndex)
+    }
+  }
 
   /// Called when the user selects a bar segment (tab). Index matches ``setItems(_:)`` order.
   /// Panel presentation still follows `FKBarPresentation`; use this for analytics or syncing external UI.
   public var onBarTabSelected: ((Int, BarItemModel) -> Void)?
+  
+  private let barPresentation = FKBarPresentation()
+  private var barModels: [BarItemModel] = []
+  fileprivate var panelKind: PanelKind?
+  private let presentationDelegateSink = PresentationDelegateSink()
 
   private let barTabDelegateSink = BarTabDelegateSink()
 
@@ -80,14 +142,17 @@ public final class FKFilterBarPresentation: UIView {
       barPresentation.trailingAnchor.constraint(equalTo: trailingAnchor),
     ])
 
-    applyDefaultConfiguration()
+    applyConfiguration()
 
     barTabDelegateSink.owner = self
     barPresentation.barDelegate = barTabDelegateSink
+    presentationDelegateSink.owner = self
+    barPresentation.delegate = presentationDelegateSink
 
     barPresentation.presentationViewController = { [weak self] _, index, _ in
       guard let self else { return nil }
       guard let model = self.barModels[safe: index] else { return nil }
+      self.panelKind = model.panelKind
       return self.makePanelViewController?(model.panelKind)
     }
   }
@@ -145,35 +210,35 @@ public final class FKFilterBarPresentation: UIView {
   }
 
   private func makeBarItem(_ model: BarItemModel) -> FKBar.Item {
-    let bodyFont = UIFont.preferredFont(forTextStyle: .callout)
+    let appearance = configuration.barItemAppearance
 
     var spec = FKBar.Item.FKButtonSpec()
     spec.content = FKButton.Content(kind: .textAndImage(.trailing))
     spec.axis = .horizontal
 
     spec.setTitle(
-      FKButton.Text(text: model.title, font: bodyFont, color: .label),
+      FKButton.Text(text: model.title, font: appearance.titleFont, color: appearance.normalTitleColor),
       for: .normal
     )
     spec.setTitle(
-      FKButton.Text(text: model.title, font: bodyFont, color: .systemRed),
+      FKButton.Text(text: model.title, font: appearance.titleFont, color: appearance.selectedTitleColor),
       for: .selected
     )
 
-    let downConfig = UIImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
+    let downConfig = UIImage.SymbolConfiguration(pointSize: appearance.chevronPointSize, weight: .semibold)
     let down = FKButton.Image(
       systemName: "chevron.down",
       symbolConfiguration: downConfig,
-      tintColor: .secondaryLabel,
+      tintColor: appearance.normalChevronColor,
       fixedSize: CGSize(width: 14, height: 14),
-      spacingToTitle: 4
+      spacingToTitle: appearance.chevronSpacing
     )
     let up = FKButton.Image(
       systemName: "chevron.up",
       symbolConfiguration: downConfig,
-      tintColor: .systemRed,
+      tintColor: appearance.selectedChevronColor,
       fixedSize: CGSize(width: 14, height: 14),
-      spacingToTitle: 4
+      spacingToTitle: appearance.chevronSpacing
     )
     spec.setImage(down, for: .normal, slot: .trailing)
     spec.setImage(up, for: .selected, slot: .trailing)
@@ -216,41 +281,10 @@ public final class FKFilterBarPresentation: UIView {
     }
   }
 
-  private func applyDefaultConfiguration() {
-    var barCfg = FKBar.Configuration.default
-    barCfg.itemSpacing = 0
-    barCfg.arrangement = .around
-    barCfg.contentInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 0)
-    barCfg.appearance.backgroundColor = .systemBackground
-    barCfg.selectionScroll.isEnabled = false
-    barCfg.usesDefaultSelectionAppearance = false
-
-    var pres = FKPresentation.Configuration.default
-    pres.layout.widthMode = .fullWidth
-    pres.layout.horizontalAlignment = .center
-    pres.layout.verticalSpacing = 0
-    pres.layout.preferBelowSource = true
-    pres.layout.allowFlipToAbove = false
-    pres.layout.clampToSafeArea = false
-
-    pres.mask.enabled = true
-    pres.mask.tapToDismissEnabled = true
-    pres.mask.alpha = 0.25
-
-    pres.appearance.backgroundColor = .systemBackground
-    pres.appearance.alpha = 1
-    // Bottom corners only (panel attaches flush to the bar on top).
-    pres.appearance.cornerRadius = 10
-    pres.appearance.cornerCurve = .continuous
-    pres.appearance.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-    pres.appearance.shadow = nil
-
-    pres.content.containerInsets = .zero
-    pres.content.fallbackBackgroundColor = .systemBackground
-
+  private func applyConfiguration() {
     barPresentation.configuration = FKBarPresentation.Configuration(
-      bar: barCfg,
-      presentation: pres,
+      bar: configuration.barConfiguration,
+      presentation: configuration.presentationConfiguration,
       behavior: .init()
     )
   }
@@ -267,14 +301,40 @@ private final class BarTabDelegateSink: NSObject, FKBarDelegate {
 
   func bar(_ bar: FKBar, didSelect sender: UIView, for item: FKBar.Item, at index: Int) {
     guard let owner, let model = owner.barItemModel(at: index) else { return }
+    owner.delegate?.filterBarPresentation(owner, didSelectBarItem: model, at: index)
     owner.onBarTabSelected?(index, model)
   }
 }
 
-private extension Array {
-  subscript(safe index: Int) -> Element? {
-    guard indices.contains(index) else { return nil }
-    return self[index]
+private final class PresentationDelegateSink: NSObject, FKBarPresentationDelegate {
+  weak var owner: FKFilterBarPresentation?
+
+  func barPresentation(_ barPresentation: FKBarPresentation, shouldPresentFor item: FKBar.Item, at index: Int) -> Bool {
+    guard let owner, let model = owner.barItemModel(at: index) else { return true }
+    return owner.delegate?.filterBarPresentation(owner, shouldPresentPanel: model.panelKind, for: model, at: index) ?? true
+  }
+
+  func barPresentation(_ barPresentation: FKBarPresentation, willPresentFor item: FKBar.Item, at index: Int) {
+    guard let owner, let model = owner.barItemModel(at: index) else { return }
+    owner.delegate?.filterBarPresentation(owner, willPresentPanel: model.panelKind)
+    owner.onWillPresentPanel?(model.panelKind)
+  }
+
+  func barPresentation(_ barPresentation: FKBarPresentation, didPresentFor item: FKBar.Item, at index: Int) {
+    guard let owner, let panel = owner.panelKind else { return }
+    owner.delegate?.filterBarPresentation(owner, didPresentPanel: panel)
+    owner.onDidPresentPanel?(panel)
+  }
+
+  func barPresentation(_ barPresentation: FKBarPresentation, willDismissPresentation reason: FKBarPresentation.PresentationDismissReason) {
+    guard let owner else { return }
+    owner.delegate?.filterBarPresentation(owner, willDismissPanel: owner.panelKind, reason: reason)
+  }
+
+  func barPresentation(_ barPresentation: FKBarPresentation, didDismissPresentation reason: FKBarPresentation.PresentationDismissReason) {
+    guard let owner else { return }
+    owner.delegate?.filterBarPresentation(owner, didDismissPanel: owner.panelKind)
+    owner.onDidDismissPanel?(owner.panelKind)
+    owner.panelKind = nil
   }
 }
-
