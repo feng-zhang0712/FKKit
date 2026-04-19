@@ -90,6 +90,12 @@ let filterHost = FKFilterBarHost(filterBar: filterBar)
 - Products are consolidated to `FKUIKit` and `FKBusinessKit`.
 - Example app structure has been refactored to the new `FKKitExamples` layout.
 
+## Recent updates (0.9.1)
+
+- **Shared types**: closure aliases in `Types.swift` are now prefixed (**`FKVoidHandler`**, **`FKValueHandler`**, …); **`FKBar`** / **`FKBarPresentation`** completion parameters use them.
+- **`FKBar.Item.FKButtonSpec`**: title/subtitle maps use **`FKButton.LabelAttributes`**; images use **`FKButton.ImageAttributes`**.
+- **Examples**: Bar, BarPresentation, and Presentation sample screens updated (English copy; bar specs aligned with the types above). See `CHANGELOG.md` for migration notes.
+
 ## Recent updates (0.9.0)
 
 - **`FKEmptyState`**: unified placeholders for **loading**, **empty**, and **error** (plus **content** to hide the overlay) on `UIView` / `UIScrollView`. Includes `FKEmptyStateModel`, `FKEmptyStatePhase`, preset **`FKEmptyStateScenario`**, optional custom middle view, keyboard-safe layout, and refresh-control-aware loading skip. See `Sources/FKUIKit/Components/FKEmptyState/`.

@@ -8,6 +8,21 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.9.1] - 2026-04-19
+
+### Changed (FKUIKit)
+- **`Types.swift`**: shared closure typealiases renamed with an `FK` prefix — **`FKVoidHandler`**, **`FKValueHandler`**, **`FKOptionalValueHandler`**, **`FKErrorHandler`**, **`FKResultHandler`** (replaces `VoidHandler`, `ValueHandler`, etc.).
+- **`FKBar`**: selection APIs (`selectItem`, `selectIndex`, `deselectItem`, `deselectIndex`) now take `completion: FKVoidHandler?` instead of `VoidHandler?`.
+- **`FKBar.Item.FKButtonSpec`**: `titleByState` / `subtitleByState` use **`FKButton.LabelAttributes`**; per-slot images use **`FKButton.ImageAttributes`** (aligned with `FKButton` naming).
+- **`FKBarPresentation`**: `applyConfiguration` and `dismissPresentation` completion parameters use **`FKVoidHandler`**.
+
+### Changed (Examples)
+- **`FKBarExampleViewController`**, **`FKBarPresentationExampleViewController`**, **`FKPresentationExampleViewController`**: English copy/comments; bar item specs updated for **`LabelAttributes`**.
+
+### Migration (0.9.1)
+- Replace any direct use of `VoidHandler`, `ValueHandler`, `OptionalValueHandler`, `ErrorHandler`, or `ResultHandler` with the **`FK*Handler`** names above.
+- In **`FKBar.Item.FKButtonSpec`**, replace **`FKButton.Text`** / **`FKButton.Image`** with **`FKButton.LabelAttributes`** / **`FKButton.ImageAttributes`**.
+
 ## [0.9.0] - 2026-04-19
 
 ### Added (FKUIKit FKEmptyState)
@@ -241,7 +256,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.9.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.9.1...HEAD
+[0.9.1]: https://github.com/feng-zhang0712/FKKit/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/feng-zhang0712/FKKit/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/feng-zhang0712/FKKit/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/feng-zhang0712/FKKit/compare/0.6.4...0.7.0
