@@ -27,7 +27,7 @@ In Xcode:
 
 | Product | Import | Notes |
 |---|---|---|
-| FKUIKit | `import FKUIKit` | core reusable UIKit components (`FKBar`, `FKButton`, `FKPresentation`, `FKBadge`, `FKSkeleton`, `FKEmptyState`, …) |
+| FKUIKit | `import FKUIKit` | core reusable UIKit components (`FKBar`, `FKButton`, `FKPresentation`, `FKBadge`, `FKSkeleton`, `FKEmptyState`, `FKRefresh`, …) |
 | FKBusinessKit | `import FKBusinessKit` | business-layer components, depends on `FKUIKit` |
 
 Dependency graph:
@@ -74,6 +74,16 @@ contentView.fk_showSkeleton()
 contentView.fk_hideSkeleton()
 ```
 
+### FKRefresh (pull to refresh & load more)
+
+```swift
+import FKUIKit
+
+tableView.fk_addPullToRefresh { /* reload */ }
+tableView.fk_addLoadMore { /* next page */ }
+// When done: tableView.fk_pullToRefresh?.endRefreshing()
+```
+
 ### FKBusinessKit
 
 ```swift
@@ -89,6 +99,11 @@ let filterHost = FKFilterBarHost(filterBar: filterBar)
 - SwiftPM package name is now `FKKit`.
 - Products are consolidated to `FKUIKit` and `FKBusinessKit`.
 - Example app structure has been refactored to the new `FKKitExamples` layout.
+
+## Recent updates (0.10.0)
+
+- **`FKRefresh`**: pull-to-refresh and load-more on `UIScrollView` / `UITableView` / `UICollectionView` (`fk_addPullToRefresh`, `fk_addLoadMore`), global defaults (`FKRefreshSettings`), built-in and custom indicators (`FKDefaultRefreshContentView`, `FKRefreshContentView`, GIF / hosted views). See `Sources/FKUIKit/Components/FKRefresh/` and `CHANGELOG.md`.
+- **Examples**: `FKRefreshExamplesHubViewController` and screens under `Examples/FKKitExamples/.../Refresh/`; main menu entry **FKRefresh**.
 
 ## Recent updates (0.9.1)
 

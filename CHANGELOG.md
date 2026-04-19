@@ -8,6 +8,21 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.10.0] - 2026-04-19
+
+### Added (FKUIKit FKRefresh)
+- **Pull-to-refresh & load-more** for any `UIScrollView`: `UIScrollView.fk_addPullToRefresh` / `fk_addLoadMore`, `fk_beginPullToRefresh`, `fk_beginLoadMore`, `fk_resetLoadMoreAfterPullToRefresh`.
+- **`FKRefreshControl`** / **`FKRefreshKind`**: state machine (`FKRefreshState` including `listEmpty`), weak scroll view attachment, main-queue `begin*` / `end*` APIs, duplicate-request guards, footer auto-hide when content is shorter than the viewport, baseline `contentInset` / `verticalScrollIndicatorInsets` sync, optional silent refresh and minimum loading visibility duration.
+- **`FKRefreshConfiguration`** & **`FKRefreshText`**: thresholds, timing, tint, localized copy, footer safe-area padding.
+- **`FKRefreshSettings`**: app-wide default configurations when `configuration` is omitted (assign on the main thread).
+- **`FKRefreshPagination`**: simple page index helper (`resetForNewRequest`, `advance`).
+- **`FKRefreshControlDelegate`**: optional state callbacks.
+- **Indicators**: **`FKDefaultRefreshContentView`** (arrow + spinner + label; arrow hosted above label to avoid overlap), **`FKGIFRefreshContentView`**, **`FKHostedRefreshContentView`** (host e.g. Lottie without a dependency).
+
+### Added (Examples)
+- **`FKRefreshExamplesHubViewController`** and demos under **`Examples/FKKitExamples/.../Refresh/`** (default, dots, GIF, hosted, configuration, global settings, delegate, pagination, collection view, plain scroll view).
+- **`ExampleMenuViewController`**: **FKRefresh** menu entry.
+
 ## [0.9.1] - 2026-04-19
 
 ### Changed (FKUIKit)
@@ -256,7 +271,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.9.1...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.10.0...HEAD
+[0.10.0]: https://github.com/feng-zhang0712/FKKit/compare/0.9.1...0.10.0
 [0.9.1]: https://github.com/feng-zhang0712/FKKit/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/feng-zhang0712/FKKit/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/feng-zhang0712/FKKit/compare/0.7.0...0.8.0

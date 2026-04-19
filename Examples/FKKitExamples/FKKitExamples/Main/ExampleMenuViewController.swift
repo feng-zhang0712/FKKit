@@ -64,6 +64,11 @@ final class ExampleMenuViewController: UITableViewController {
       make: { FKPresentationExampleViewController() }
     ),
     MenuItem(
+      title: "FKRefresh",
+      subtitle: "Hub: default, GIF, hosted, delegate, settings, collection, scroll view, …",
+      make: { FKRefreshExamplesHubViewController() }
+    ),
+    MenuItem(
       title: "FKSkeleton",
       subtitle: "Overlay, presets, standalone blocks, table/collection skeleton cells, unified shimmer",
       make: { FKSkeletonExampleViewController() }
