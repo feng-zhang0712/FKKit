@@ -8,7 +8,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
-## [0.25.0] - 2026-04-20
+## [0.26.0] - 2026-04-21
 
 ### Added (FKUIKit FKMultiPicker)
 - Added a new native cascading picker component module at `Sources/FKUIKit/Components/MultiPicker/` with layered structure:
@@ -37,10 +37,29 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ### Changed (FKUIKit FKMultiPicker)
 - Improved toolbar alignment and layout behavior:
-  - center title is constrained to true toolbar center
-  - cancel/confirm actions are width-balanced for consistent alignment
+  - centered title now pins to true toolbar center
+  - cancel/confirm action areas use symmetric width constraints for stable alignment
 - Improved sheet bottom docking to remove visual gap at the bottom edge.
 - Completed professional English API documentation comments across all MultiPicker source files.
+
+### Added (Examples)
+- Added a comprehensive FKMultiPicker showcase page at:
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/MultiPicker/FKMultiPickerExampleViewController.swift`
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/MultiPicker/FKMultiPickerCustomDataProvider.swift`
+- Added `MultiPicker` entry in `ExampleMenuViewController` under `FKUIKit`.
+- Example coverage includes:
+  - 3-level custom linkage picker
+  - built-in 4-level region linkage picker
+  - single-level picker mode
+  - custom UI/popup style and default selection setup
+  - global style setup
+  - dynamic data refresh and manual dismiss flow
+  - protocol-driven custom provider linkage demo
+
+### Changed (Documentation)
+- Updated root `README.md` to include FKMultiPicker in module structure, FKUIKit component list, and module docs navigation.
+
+## [0.25.0] - 2026-04-20
 
 ### Added (FKUIKit FKTextField)
 - Added a new one-stop formatted input component module at `Sources/FKUIKit/Components/TextField/` with layered structure:
@@ -84,11 +103,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 ### Added (Examples)
 - Added a comprehensive FKTextField showcase page at:
   - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/TextField/FKTextFieldExampleViewController.swift`
-- Added a comprehensive FKMultiPicker showcase page at:
-  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/MultiPicker/FKMultiPickerExampleViewController.swift`
-  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/MultiPicker/FKMultiPickerCustomDataProvider.swift`
 - Added `TextField` entry in `ExampleMenuViewController` under `FKUIKit`.
-- Added `MultiPicker` entry in `ExampleMenuViewController` under `FKUIKit`.
 - Example coverage includes:
   - phone / ID card / bank card formatted inputs
   - verification code input (`FKTextField` + `FKCodeTextField`)
@@ -99,14 +114,9 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
   - clear and dismiss actions
   - validation shake feedback
   - global style configuration usage
-  - 3-level custom linkage picker
-  - built-in 4-level region linkage picker
-  - single-level picker mode
-  - custom UI/popup style and default selection setup
-  - dynamic data refresh and manual dismiss flow
 
 ### Changed (Documentation)
-- Updated root `README.md` to include FKTextField and FKMultiPicker in module structure, FKUIKit component list, and module docs navigation.
+- Updated root `README.md` to include FKTextField in module structure, FKUIKit component list, module docs navigation, and release version alignment (`0.25.0`).
 
 ## [0.24.0] - 2026-04-20
 
@@ -759,7 +769,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.25.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.26.0...HEAD
+[0.26.0]: https://github.com/feng-zhang0712/FKKit/compare/0.25.0...0.26.0
 [0.25.0]: https://github.com/feng-zhang0712/FKKit/compare/0.24.0...0.25.0
 [0.24.0]: https://github.com/feng-zhang0712/FKKit/compare/0.23.0...0.24.0
 [0.23.0]: https://github.com/feng-zhang0712/FKKit/compare/0.22.0...0.23.0
