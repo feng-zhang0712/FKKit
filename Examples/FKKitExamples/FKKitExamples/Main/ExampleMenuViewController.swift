@@ -122,7 +122,7 @@ final class ExampleMenuViewController: UITableViewController {
       ]
     ),
     KitEntry(
-      title: "CompositeKit",
+      title: "FKCompositeKit",
       subtitle: "Composed modules built on FKUIKit and FKCoreKit",
       items: [
         ExampleMenuItem(
@@ -145,7 +145,7 @@ final class ExampleMenuViewController: UITableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "Kit Examples"
+    title = "FKKit Examples"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
   }
