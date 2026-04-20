@@ -42,7 +42,17 @@ public final class FKBadgeController: NSObject {
     }
   }
 
+  /// Called when the badge view is tapped.
+  ///
+  /// Keep captures weak when referencing owning objects to avoid retain cycles.
+  public var onTap: ((FKBadgeController) -> Void)? {
+    didSet {
+      perform { self.updateTapGestureState() }
+    }
+  }
+
   private let badgeView = FKBadgeContentView()
+  private lazy var tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleBadgeTap))
   private var layoutConstraints: [NSLayoutConstraint] = []
 
   private enum Payload: Equatable {
@@ -57,7 +67,7 @@ public final class FKBadgeController: NSObject {
   /// Creates a controller; prefer `UIView.fk_badge` so the instance is associated with the target view.
   public init(target: UIView, configuration: FKBadgeConfiguration? = nil) {
     self.targetView = target
-    self.configuration = configuration ?? FKBadge.defaultConfiguration
+    self.configuration = configuration ?? FKBadgeManager.shared.defaultConfiguration
     self.anchor = .topTrailing
     self.offset = .zero
     super.init()
@@ -89,6 +99,24 @@ public final class FKBadgeController: NSObject {
       self.payload = .none
       self.applyResolvedContent(animated: animated)
     }
+  }
+
+  /// Updates hidden state without changing current payload.
+  public func setHidden(_ hidden: Bool, animated: Bool = false) {
+    perform {
+      self.visibilityPolicy = hidden ? .forcedHidden : .automatic
+      self.applyResolvedContent(animated: animated)
+    }
+  }
+
+  /// Convenience alias for updating numeric content.
+  public func updateCount(_ count: Int, animated: Bool = false, animation: FKBadgeAnimation = .none) {
+    showCount(count, animated: animated, animation: animation)
+  }
+
+  /// Convenience API to clear numeric badge (count to zero).
+  public func clearCount(animated: Bool = false) {
+    showCount(0, animated: animated, animation: .none)
   }
 
   /// Pure red dot (no text).
@@ -253,6 +281,7 @@ public final class FKBadgeController: NSObject {
 
     badgeView.mode = mode
     badgeView.isHidden = false
+    updateTapGestureState()
 
     attachBadgeToParentOfTarget()
     rebuildLayoutConstraints()
@@ -383,16 +412,38 @@ public final class FKBadgeController: NSObject {
     badgeView.layer.removeAllAnimations()
   }
 
+  private func updateTapGestureState() {
+    if onTap != nil {
+      if badgeView.gestureRecognizers?.contains(tapGestureRecognizer) != true {
+        badgeView.addGestureRecognizer(tapGestureRecognizer)
+      }
+      badgeView.isUserInteractionEnabled = true
+    } else {
+      if badgeView.gestureRecognizers?.contains(tapGestureRecognizer) == true {
+        badgeView.removeGestureRecognizer(tapGestureRecognizer)
+      }
+      badgeView.isUserInteractionEnabled = false
+    }
+  }
+
+  @objc private func handleBadgeTap() {
+    onTap?(self)
+  }
+
   private func detachAssociatedObject() {
     guard let target = targetView else { return }
     objc_setAssociatedObject(target, &FKBadgeAssociatedKeys.controller, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
   }
 
-  private func perform(_ work: @escaping () -> Void) {
+  private nonisolated func perform(_ work: @escaping @MainActor () -> Void) {
     if Thread.isMainThread {
-      work()
+      MainActor.assumeIsolated {
+        work()
+      }
     } else {
-      DispatchQueue.main.async(execute: work)
+      Task { @MainActor in
+        work()
+      }
     }
   }
 }

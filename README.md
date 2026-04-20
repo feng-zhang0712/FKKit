@@ -33,7 +33,18 @@
 
 The module is implemented with system frameworks only (`Foundation`, `UIKit`, `Network`, `AudioToolbox`, `AVFoundation`) and does not require Objective-C bridging or third-party dependencies.
 
-Latest release: **0.20.0**
+Latest release: **0.20.1**
+
+### Release Highlights (0.20.1)
+- Introduced a production-ready `FKBadge` module layout under `Sources/FKUIKit/Components/Badge/`:
+  - `Core`
+  - `Model`
+  - `Manager`
+  - `Extension`
+  - `Animation`
+- Added global badge manager API (`FKBadgeManager.shared`) and richer one-line usage for UIView, UIBarButtonItem, and UITabBarItem.
+- Added complete FKBadge module documentation:
+  - `Sources/FKUIKit/Components/Badge/README.md`
 
 ## Features
 - Pure native implementation with zero external dependencies.

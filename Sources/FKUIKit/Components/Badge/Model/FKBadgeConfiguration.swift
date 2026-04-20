@@ -21,6 +21,8 @@ public struct FKBadgeConfiguration: Equatable {
   public var horizontalPadding: CGFloat
   /// Vertical inset around the label.
   public var verticalPadding: CGFloat
+  /// Extra kerning for number/text glyph spacing.
+  public var textKerning: CGFloat
 
   /// Diameter for pure dot mode.
   public var dotDiameter: CGFloat
@@ -45,6 +47,7 @@ public struct FKBadgeConfiguration: Equatable {
     borderColor: UIColor = .clear,
     horizontalPadding: CGFloat = 5,
     verticalPadding: CGFloat = 2,
+    textKerning: CGFloat = 0,
     dotDiameter: CGFloat = 8,
     textCornerRadius: CGFloat? = nil,
     maxDisplayCount: Int = 99,
@@ -58,6 +61,7 @@ public struct FKBadgeConfiguration: Equatable {
     self.borderColor = borderColor
     self.horizontalPadding = horizontalPadding
     self.verticalPadding = verticalPadding
+    self.textKerning = textKerning
     self.dotDiameter = dotDiameter
     self.textCornerRadius = textCornerRadius
     self.maxDisplayCount = max(0, maxDisplayCount)

@@ -58,6 +58,12 @@ final class FKBadgeContentView: UIView {
     backgroundColor = configuration.backgroundColor
     label.textColor = configuration.titleColor
     label.font = configuration.font
+    if let text = label.text, !text.isEmpty {
+      label.attributedText = NSAttributedString(
+        string: text,
+        attributes: [.kern: configuration.textKerning]
+      )
+    }
     layer.borderWidth = configuration.borderWidth
     layer.borderColor = configuration.borderColor.cgColor
   }
@@ -78,7 +84,10 @@ final class FKBadgeContentView: UIView {
 
     case .text(let text):
       label.isHidden = false
-      label.text = text
+      label.attributedText = NSAttributedString(
+        string: text,
+        attributes: [.kern: configuration.textKerning]
+      )
       let numericStyle = text.allSatisfy { $0.isNumber || $0 == "+" }
       label.semanticContentAttribute = numericStyle ? .forceLeftToRight : .unspecified
       let hp = configuration.horizontalPadding
