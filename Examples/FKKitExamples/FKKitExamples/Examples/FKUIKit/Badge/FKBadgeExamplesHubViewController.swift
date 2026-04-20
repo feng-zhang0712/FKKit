@@ -173,6 +173,11 @@ final class FKBadgeExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
+      title: "Complete copy-ready demo",
+      subtitle: "Single screen covering all core FKBadge scenarios",
+      controllerType: FKBadgeCompleteExampleViewController.self
+    ),
+    Row(
       title: "Basics & numbers",
       subtitle: "Interface style, dot, numeric counts, text badges",
       controllerType: FKBadgeExampleBasicsViewController.self

@@ -8,6 +8,25 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.20.1] - 2026-04-20
+
+### Added (FKUIKit FKBadge)
+- Added a protocol-oriented and production-ready FKBadge architecture with `Core/Model/Manager/Extension/Animation` layering under `Sources/FKUIKit/Components/Badge/`.
+- Added `FKBadgeManager.shared` for global default style and global hide/restore operations.
+- Added `FKBadgePresenting` protocol and main-actor-safe conformance for `FKBadgeController`.
+- Added additional one-line APIs and lifecycle controls (`updateCount`, `clearCount`, `setHidden`) plus badge tap callback support.
+- Added dedicated extensions for `UIButton`, `UILabel`, and `UIImageView` shortcut accessors.
+- Added host-view based badge helpers for `UIBarButtonItem` and `UITabBarItem` (dot/text/count/hide).
+
+### Added (Documentation)
+- Added module-level FKBadge documentation at `Sources/FKUIKit/Components/Badge/README.md` with complete usage, advanced styling, and API reference.
+- Updated root `README.md` with FKBadge release highlights and navigation to the module guide.
+
+### Changed (FKUIKit FKBadge)
+- Reorganized FKBadge source files into layered directories without changing public behavior.
+- Expanded badge style configuration with text kerning support.
+- Improved main-thread bridging in controller internals for Swift concurrency safety.
+
 ## [0.20.0] - 2026-04-20
 
 ### Added (FKCoreKit FKUtils)
@@ -451,7 +470,9 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.19.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.20.1...HEAD
+[0.20.1]: https://github.com/feng-zhang0712/FKKit/compare/0.20.0...0.20.1
+[0.20.0]: https://github.com/feng-zhang0712/FKKit/compare/0.19.0...0.20.0
 [0.19.0]: https://github.com/feng-zhang0712/FKKit/compare/0.18.0...0.19.0
 [0.18.0]: https://github.com/feng-zhang0712/FKKit/compare/0.17.0...0.18.0
 [0.17.0]: https://github.com/feng-zhang0712/FKKit/compare/0.16.0...0.17.0
