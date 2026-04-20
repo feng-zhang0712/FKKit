@@ -1,345 +1,211 @@
-# FKUtils
+# FKKit
 
 ## Table of Contents
 - [Overview](#overview)
 - [Features](#features)
-- [Core Utility Categories](#core-utility-categories)
-  - [Date \& Time Utilities](#date--time-utilities)
-  - [Regex Validation](#regex-validation)
-  - [Number Formatting](#number-formatting)
-  - [String Processing](#string-processing)
-  - [Device \& App Info](#device--app-info)
-  - [UI Helpers](#ui-helpers)
-  - [Collection Safety](#collection-safety)
-  - [Image Processing](#image-processing)
-  - [Common Helpers](#common-helpers)
+- [Module Structure](#module-structure)
+- [Core Components](#core-components)
+  - [FKCoreKit](#fkcorekit)
+  - [FKUIKit](#fkuikit)
+  - [FKCompositeKit](#fkcompositekit)
 - [Requirements](#requirements)
-- [Installation](#installation)
-- [Basic Usage](#basic-usage)
-- [Advanced Usage](#advanced-usage)
-  - [Date Format \& Relative Time](#date-format--relative-time)
-  - [Regular Expression Validation](#regular-expression-validation)
-  - [String Masking \& Format](#string-masking--format)
-  - [Device Info Acquisition](#device-info-acquisition)
-  - [UI \& Color Adaptation](#ui--color-adaptation)
-  - [Safe Collection Operations](#safe-collection-operations)
-- [API Reference](#api-reference)
-- [Best Practices](#best-practices)
-- [Notes](#notes)
+- [Installation (SPM)](#installation-spm)
+- [Usage](#usage)
+- [Branching & Collaboration (Recommended)](#branching--collaboration-recommended)
 - [License](#license)
+- [Changelog](#changelog)
 
 ## Overview
-`FKUtils` is a native Swift utility component for large-scale iOS projects. It provides a unified, static API for high-frequency tasks across date/time handling, validation, formatting, string processing, device metadata, UI helpers, collection safety, image operations, and general application utilities.
+FKKit is a modular, pure-native Swift component library for iOS applications.  
+It is built on top of Apple system frameworks and distributed via Swift Package Manager (SPM), with no third-party runtime dependencies.
 
-The module is implemented with system frameworks only (`Foundation`, `UIKit`, `Network`, `AudioToolbox`, `AVFoundation`) and does not require Objective-C bridging or third-party dependencies.
+The repository is organized into three product modules:
+- `FKCoreKit`
+- `FKUIKit`
+- `FKCompositeKit`
 
-Latest release: **0.21.0**
-
-### Release Highlights (0.21.0)
-- Reorganized **FKSkeleton** module into layered architecture under `Sources/FKUIKit/Components/Skeleton/`:
-  - `Core`
-  - `Animation`
-  - `Manager`
-  - `Extension`
-  - `Model`
-  - `Cell`
-  - `Preset`
-- Added automatic view-tree skeleton generation and lifecycle manager:
-  - `FKSkeletonManager.shared`
-  - `fk_showAutoSkeleton` / `fk_hideAutoSkeleton`
-  - `fk_setSkeletonLoading` / `fk_withSkeletonLoading`
-- Added per-view customization capabilities:
-  - `fk_skeletonConfigurationOverride`
-  - `fk_skeletonShape`
-  - `fk_isSkeletonExcluded`
-- Added richer style and animation options:
-  - `FKSkeletonStyle`
-  - `FKSkeletonDisplayOptions`
-  - `gradientColors`, `borderWidth`, `pulse` animation mode
-- Added release-grade Skeleton module README:
-  - `Sources/FKUIKit/Components/Skeleton/README.md`
-- Upgraded example implementation:
-  - `Examples/FKKitExamples/.../FKUIKit/Skeleton/FKSkeletonExampleViewController.swift`  
-    (covers UIView/stack/table/collection/manual state/global style/custom animation/exclusion scenarios)
-
-### Release Highlights (0.20.1)
-- Introduced a production-ready `FKBadge` module layout under `Sources/FKUIKit/Components/Badge/`:
-  - `Core`
-  - `Model`
-  - `Manager`
-  - `Extension`
-  - `Animation`
-- Added global badge manager API (`FKBadgeManager.shared`) and richer one-line usage for UIView, UIBarButtonItem, and UITabBarItem.
-- Added complete FKBadge module documentation:
-  - `Sources/FKUIKit/Components/Badge/README.md`
+Each module focuses on a different layer of app development, from infrastructure and utilities to UI components and composite business widgets.
 
 ## Features
-- Pure native implementation with zero external dependencies.
-- Static utility APIs with no initialization cost.
-- Namespace-based usage via `FKUtils.*`.
-- Protocol-based provider customization for date and regex modules.
-- Thread-safe provider registration for extensibility and testability.
-- Commercial-project friendly utility coverage for common iOS workflows.
+- Pure Swift implementation (Swift 6 language mode in package settings).
+- No third-party dependencies.
+- Swift Package Manager first-class integration.
+- Modular architecture with clear package products.
+- Protocol-oriented design in multiple components for extensibility and testability.
+- Example project included for direct integration reference.
 
-## Core Utility Categories
-
-### Date & Time Utilities
-Use when you need reliable date transformations and timeline logic:
-- Date ↔ String conversion with custom format, timezone, locale, and calendar.
-- Relative time description (`just now`, `minutes ago`, `yesterday`).
-- Timestamp conversion, date comparison, component-based date addition.
-- Weekday and month extraction.
-- Date-string validation against a specific format.
-
-### Regex Validation
-Use for user input validation and text processing:
-- Built-in validations for phone, email, ID card, password strength, verification code, license plate.
-- URL, IPv4, postal code, and bank card validation (with Luhn check).
-- Generic regex matching, extraction, and replacement.
-
-### Number Formatting
-Use for financial display and numeric readability:
-- Decimal amount formatting with grouping separators.
-- Rounding and truncation for `Decimal` values.
-- Chinese unit formatting (`万`/`亿`).
-- Percentage formatting.
-- Random integer generation, zero-padding, and compact large-number formatting.
-
-### String Processing
-Use for text normalization and secure display:
-- Safe substring extraction and join utilities.
-- Whitespace/newline/special-character cleanup.
-- Sensitive data masking (phone, ID card, email, bank card).
-- Blank checks and length access.
-- Pinyin conversion and first-letter extraction.
-- URL/Base64 encode-decode and HTML escape-unescape.
-
-### Device & App Info
-Use for diagnostics, analytics metadata, and runtime info:
-- Device model identifier and system version.
-- Screen size, scale, and pixel resolution.
-- Battery level/state and async network reachability status.
-- Disk and memory status.
-- App version, build, bundle identifier, app name, and vendor identifier.
-
-### UI Helpers
-Use for fast UI scaffolding and style consistency:
-- Hex ↔ `UIColor` conversion and dynamic color creation.
-- Adaptive font sizing based on screen width.
-- Point/pixel conversion.
-- Quick corner radius, shadow, and gradient application.
-- Main-thread-safe execution and view screenshot capture.
-
-### Collection Safety
-Use to prevent crashes and simplify data mapping:
-- Safe array indexing (`array[safe:]`).
-- Typed dictionary value access.
-- Array deduplication, sorting, and chunk splitting.
-- Dictionary compaction, JSON serialization, and dictionary-to-model decoding.
-
-### Image Processing
-Use for upload optimization and lightweight image transformation:
-- JPEG compression by target byte size.
-- Rectangle crop.
-- Rounded-corner rendering.
-- Solid-color image creation.
-- Image/Base64 conversion.
-
-### Common Helpers
-Use for app-level utility scenarios:
-- Sandbox directory shortcuts and recursive file-size calculation.
-- System jumps (App Store, Settings, call, SMS, email).
-- Vibration feedback and local sound playback.
-- Nil/empty checks and safe type conversions.
-- Error-tolerant execution wrapper.
-
-## Requirements
-- **Language**: Swift 5.9+ compatible API style.
-- **Platform Goal**: iOS 13+ utility design.
-- **Current Package Configuration**: this repository currently declares iOS 15+ in `Package.swift`.
-- **Dependencies**: no third-party libraries.
-
-## Installation
-Add the package with Swift Package Manager and import `FKCoreKit`.
-
-```swift
-import FKCoreKit
-```
-
-Git URL:
+## Module Structure
 
 ```text
-git@github.com:feng-zhang0712/FKKit.git
+FKKit/
+├─ Package.swift
+├─ Sources/
+│  ├─ FKCoreKit/
+│  │  ├─ Async/
+│  │  ├─ BusinessKit/
+│  │  ├─ FileManager/
+│  │  ├─ Logger/
+│  │  ├─ Network/
+│  │  ├─ Permissions/
+│  │  ├─ Security/
+│  │  ├─ Storage/
+│  │  └─ Utils/
+│  ├─ FKUIKit/
+│  │  └─ Components/
+│  │     ├─ Badge/
+│  │     ├─ Bar/
+│  │     ├─ BarPresentation/
+│  │     ├─ Button/
+│  │     ├─ EmptyState/
+│  │     ├─ Presentation/
+│  │     ├─ Refresh/
+│  │     └─ Skeleton/
+│  └─ FKCompositeKit/
+│     └─ Components/
+│        ├─ Filter/
+│        └─ ListKit/
+└─ Examples/
 ```
 
-In Xcode:
-1. `File` → `Add Package Dependencies...`
-2. Paste the repository URL.
-3. Select product `FKCoreKit`.
+## Core Components
 
-## Basic Usage
-`FKUtils` exposes grouped static APIs:
+### FKCoreKit
+`FKCoreKit` provides foundational capabilities used across app layers:
+
+- `Network`: URLSession-based networking stack (request models, interceptors, caching, upload/download helpers).
+- `Storage`: multi-backend storage abstraction (UserDefaults, Keychain, file, memory) with Codable support.
+- `Logger`: structured logging, formatting, file persistence, and diagnostics helpers.
+- `Permissions`: unified iOS permission management and status/request flow.
+- `Security`: crypto/security utilities (hash, AES/RSA helpers, encoding, signature helpers).
+- `FileManager`: file I/O, directory utilities, and transfer-oriented helpers.
+- `Async`: concurrency utilities (queues, cancellable task wrappers, debounce/throttle helpers).
+- `BusinessKit`: app/business infrastructure (version, deeplink, lifecycle, analytics, i18n helpers).
+- `Utils`: high-frequency utility APIs for date/string/number/device/UI/collection/common operations.
+
+Module docs:
+- `Sources/FKCoreKit/Network/README.md`
+- `Sources/FKCoreKit/Storage/README.md`
+- `Sources/FKCoreKit/Logger/README.md`
+- `Sources/FKCoreKit/Permissions/README.md`
+- `Sources/FKCoreKit/Security/README.md`
+- `Sources/FKCoreKit/FileManager/README.md`
+- `Sources/FKCoreKit/Async/README.md`
+- `Sources/FKCoreKit/BusinessKit/README.md`
+- `Sources/FKCoreKit/Utils/README.md`
+
+### FKUIKit
+`FKUIKit` contains reusable UIKit components for modern iOS interfaces:
+
+- `Button`: configurable button system with style/content/loading behavior.
+- `Bar`: composable horizontal bar/tab-like navigation container.
+- `Presentation`: presentation container and positioning utilities.
+- `BarPresentation`: bar-driven presentation coordinator.
+- `EmptyState`: loading/empty/error state overlay system.
+- `Refresh`: pull-to-refresh and load-more controls.
+- `Badge`: flexible badge display for views, bar items, and tab items.
+- `Skeleton`: skeleton loading system for views/lists/containers with animation options.
+
+Module docs:
+- `Sources/FKUIKit/Components/Badge/README.md`
+- `Sources/FKUIKit/Components/Skeleton/README.md`
+
+### FKCompositeKit
+`FKCompositeKit` builds business-facing composite components on top of `FKCoreKit` + `FKUIKit`:
+
+- `Filter`: filter bar/panel/pill and multi-layout filtering components.
+- `ListKit`: list state/pagination coordination and plugin-style list assembly.
+
+This module currently focuses on source-level composable components; add internal docs in each directory as your team standard evolves.
+
+## Requirements
+- iOS 15.0+ (as declared in `Package.swift`)
+- macOS 10.15+ (package-level declaration for compatible builds)
+- Swift toolchain with Swift 6.3 support
+
+## Installation (SPM)
+
+### Xcode
+1. Open `File` -> `Add Package Dependencies...`
+2. Enter repository URL:
+   - `https://github.com/feng-zhang0712/FKKit.git`
+3. Select one or more products:
+   - `FKCoreKit`
+   - `FKUIKit`
+   - `FKCompositeKit`
+
+### Package.swift
+```swift
+dependencies: [
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.21.0")
+],
+targets: [
+  .target(
+    name: "YourTarget",
+    dependencies: [
+      .product(name: "FKCoreKit", package: "FKKit"),
+      .product(name: "FKUIKit", package: "FKKit"),
+      .product(name: "FKCompositeKit", package: "FKKit")
+    ]
+  )
+]
+```
+
+## Usage
+
+Import only what you need:
 
 ```swift
 import FKCoreKit
+import FKUIKit
+import FKCompositeKit
+```
 
-let dateText = FKUtils.DateTime.string(from: Date(), format: "yyyy-MM-dd HH:mm:ss")
+Example quick integrations:
+
+```swift
+// FKCoreKit
 let isEmail = FKUtils.Regex.isValidEmail("dev@example.com")
-let amount = FKUtils.Number.formatAmount(Decimal(string: "1234567.89") ?? 0)
-let masked = FKUtils.String.maskPhone("13812345678")
 
-let safeValue = [10, 20, 30][safe: 5] // nil
-let docsURL = FKUtils.Common.documentsDirectory()
+// FKUIKit
+someView.fk_showSkeleton()
+
+// FKCompositeKit
+let pageManager = FKPageManager()
 ```
 
-## Advanced Usage
+For complete usage and advanced APIs, refer to each module README in `Sources/...`.
 
-### Date Format & Relative Time
-```swift
-import FKCoreKit
+## Branching & Collaboration (Recommended)
 
-let now = Date()
-let createdAt = FKUtils.DateTime.add(DateComponents(hour: -3), to: now) ?? now
-
-let formatted = FKUtils.DateTime.string(
-  from: now,
-  format: "yyyy-MM-dd HH:mm",
-  timeZone: TimeZone(identifier: "Asia/Shanghai"),
-  locale: Locale(identifier: "en_US_POSIX"),
-  calendar: Calendar(identifier: .gregorian)
-)
-
-let relative = FKUtils.DateTime.relativeDescription(for: createdAt, reference: now)
-let valid = FKUtils.DateTime.isValidDate("2026-04-20", format: "yyyy-MM-dd")
-```
-
-### Regular Expression Validation
-```swift
-import FKCoreKit
-
-let phoneOK = FKUtils.Regex.isValidPhone("13812345678")
-let passwordOK = FKUtils.Regex.isStrongPassword("Aa@12345")
-let cardOK = FKUtils.Regex.isValidBankCard("6222021001116244")
-
-let items = FKUtils.Regex.extract("Order IDs: A-100 B-200", pattern: #"[A-Z]-\d+"#)
-let replaced = FKUtils.Regex.replace("price=199", pattern: #"\d+"#, with: "299")
-```
-
-### String Masking & Format
-```swift
-import FKCoreKit
-
-let phone = FKUtils.String.maskPhone("13812345678")        // 138****5678
-let email = FKUtils.String.maskEmail("hello@example.com")
-let noSpace = FKUtils.String.removeWhitespacesAndNewlines(" a \n b\tc ")
-let pinyin = FKUtils.String.pinyin(from: "中文工具")
-let first = FKUtils.String.firstLetter("中文工具")
-
-let encoded = FKUtils.String.base64Encode("FKUtils")
-let decoded = FKUtils.String.base64Decode(encoded)
-```
-
-### Device Info Acquisition
-```swift
-import FKCoreKit
-
-let model = FKUtils.Device.modelIdentifier()
-let version = FKUtils.Device.systemVersion()
-let resolution = FKUtils.Device.screenResolution()
-let appVersion = FKUtils.Device.appVersion()
-let disk = FKUtils.Device.diskSpace()
-let memory = FKUtils.Device.memoryStatus()
-
-FKUtils.Device.networkStatus { status in
-  print("Network:", status) // wifi / cellular / ethernet / unreachable / other
-}
-```
-
-### UI & Color Adaptation
-```swift
-import UIKit
-import FKCoreKit
-
-let color = FKUtils.UI.color(hex: "#3B82F6")
-let dynamic = FKUtils.UI.dynamicColor(light: .white, dark: .black)
-let font = FKUtils.UI.adaptiveFont(size: 16, weight: .medium)
-
-let view = UIView(frame: CGRect(x: 0, y: 0, width: 120, height: 120))
-view.backgroundColor = color
-
-FKUtils.UI.applyCornerRadius(12, to: view)
-FKUtils.UI.applyShadow(to: view)
-_ = FKUtils.UI.addGradient(to: view, colors: [.red, .orange])
-
-FKUtils.UI.runOnMain {
-  let image = FKUtils.UI.screenshot(of: view)
-  print(image.size)
-}
-```
-
-### Safe Collection Operations
-```swift
-import FKCoreKit
-
-struct User: Decodable {
-  let id: Int
-  let name: String
-}
-
-let values = [1, 2, 2, 3, 3, 3]
-let unique = FKUtils.Collection.unique(values)
-let chunks = FKUtils.Collection.chunk(values, size: 2)
-let third = values[safe: 2]
-
-let dictionary: [String: Any] = ["id": 1, "name": "Frank"]
-let user = FKUtils.Collection.decode(User.self, from: dictionary)
-let json = FKUtils.Collection.jsonString(from: dictionary, prettyPrinted: true)
-```
-
-## API Reference
-
-### Namespace
-- `FKUtils.DateTime`
-- `FKUtils.Regex`
-- `FKUtils.Number`
-- `FKUtils.String`
-- `FKUtils.Device`
-- `FKUtils.Collection`
-- `FKUtils.Common`
-- `FKUtils.UI` *(when `UIKit` is available)*
-- `FKUtils.Image` *(when `UIKit` is available)*
-
-### Provider Customization
-You can replace default providers for extension or testing:
-
-```swift
-FKUtils.DateTime.register(provider: FKDateUtilsProvider())
-FKUtils.Regex.register(provider: FKRegexUtilsProvider())
-```
-
-### Key API Groups
-- **Date**: `string`, `date`, `timestamp`, `relativeDescription`, `compare`, `add`, `weekday`, `month`, `isValidDate`
-- **Regex**: `isMatch`, `extract`, `replace`, `isValidPhone`, `isValidEmail`, `isValidBankCard`, ...
-- **Number**: `formatAmount`, `rounded`, `truncated`, `formatPercent`, `compact`
-- **String**: `substring`, `trim`, masking helpers, pinyin helpers, URL/Base64/HTML converters
-- **Device**: model/system/screen/battery/network/disk/memory/app metadata
-- **Collection**: `unique`, `sort`, `chunk`, `jsonString`, `decode`, plus safe array/dictionary extensions
-- **Image**: `compress`, `crop`, `rounded`, `solidColor`, Base64 conversions
-- **Common**: sandbox directories, file size, app jumps, vibration, sound, type conversions, safe execution
-
-## Best Practices
-- Keep utility calls in application/service layers instead of view code when possible.
-- For date parsing in critical paths, pass explicit `locale` and `timeZone`.
-- Validate external input using `FKUtils.Regex` before persistence or network submission.
-- Use masking helpers before logging or analytics reporting.
-- Prefer `array[safe:]` and typed dictionary accessors to avoid runtime crashes.
-- For upload pipelines, combine `FKUtilsImage.compress` with server-side constraints.
-
-## Notes
-- `UI` and `Image` utilities are conditionally compiled with `UIKit`.
-- `networkStatus` is asynchronous and returns one-shot status via callback.
-- `safeDeviceIdentifier` uses `identifierForVendor` when available; do not treat it as a permanent global ID.
-- In this repository, `swift build` on plain macOS may fail for UIKit-based targets; use an iOS destination in Xcode.
+- Use `develop` as the integration branch.
+- Create feature branches from `develop` (for example: `feature/skeleton-auto-mode`).
+- Keep commits focused and use clear conventional-style messages.
+- Follow this commit format:
+  - `<type>(<scope>): <subject>`
+  - Example: `feat(ui): add auto skeleton exclusion options`
+- Recommended commit types:
+  - `feat`: new feature
+  - `fix`: bug fix
+  - `refactor`: internal refactor without behavior change
+  - `perf`: performance improvement
+  - `docs`: documentation updates
+  - `test`: tests added or updated
+  - `build`: build/dependency/tooling changes
+  - `chore`: maintenance tasks
+- Commit message rules:
+  - Use present tense and imperative mood (`add`, `fix`, `refactor`).
+  - Keep the subject concise (recommended <= 72 characters).
+  - Reference module scope whenever possible (for example: `core`, `ui`, `composite`, `examples`, `docs`).
+  - Add a body when context is needed (why, impact, migration notes).
+- Open pull requests into `develop` with:
+  - change summary
+  - test/verification notes
+  - migration notes when APIs change
+- Tag stable releases with semantic versions (for example: `0.21.0`), then merge release work back into `develop`.
 
 ## License
-This project is released under the [MIT License](LICENSE).
+This repository is licensed under the MIT License.  
+See [`LICENSE`](LICENSE) for details.
+
+## Changelog
+Release history and migration details are maintained in [`CHANGELOG.md`](CHANGELOG.md).
