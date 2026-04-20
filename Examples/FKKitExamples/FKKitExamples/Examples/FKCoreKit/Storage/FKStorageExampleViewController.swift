@@ -203,8 +203,10 @@ final class FKStorageExampleViewController: UIViewController {
     Task { [weak self] in
       guard let self else { return }
       do {
-        try await self.userDefaultsStorage.set("demo_user", key: key)
-        let name = try await self.userDefaultsStorage.value(key: key, as: String.self)
+        // Use the async overload to avoid redundant-await diagnostics.
+        try await self.userDefaultsStorage.set("demo_user", key: key, ttl: nil)
+        // Read synchronously (thread-safe backend). This avoids redundant-await diagnostics caused by overload resolution.
+        let name = try self.userDefaultsStorage.value(key: key, as: String.self)
         await MainActor.run {
           self.appendLog("Async UD: username = \(name)")
         }

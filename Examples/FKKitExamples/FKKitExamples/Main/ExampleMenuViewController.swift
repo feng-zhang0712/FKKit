@@ -75,6 +75,11 @@ final class ExampleMenuViewController: UITableViewController {
       subtitle: "Core non-UI capabilities (networking, logging, utilities, etc.)",
       items: [
         ExampleMenuItem(
+          title: "FKAsync",
+          subtitle: "Main/background dispatch, delay cancel, debounce, throttle, groups, executors",
+          make: { FKAsyncExampleViewController() }
+        ),
+        ExampleMenuItem(
           title: "FKNetwork",
           subtitle: "GET/POST, async/await, upload/download, cache, cancel, parsing",
           make: { FKNetworkExampleViewController() }

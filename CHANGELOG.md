@@ -8,6 +8,19 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.14.0] - 2026-04-20
+
+### Added (FKCoreKit FKAsync)
+- **`FKAsync`**: native GCD-based scheduling under `Sources/FKCoreKit/Async/` — protocol-oriented API (`FKAsyncMainExecuting`, `FKAsyncBackgroundExecuting`, `FKAsyncCancellable`, `FKAsyncDebouncing`, `FKAsyncThrottling`), main-thread-safe execution (`runOnMain`, `asyncOnMain`), global/serial/concurrent queue helpers (`FKAsyncQueues`), cancelable delayed work (`FKCancellableDelayedWork`), debounce (`FKDebouncer`), throttle (`FKThrottler`), `DispatchGroup` wrapper (`FKAsyncTaskGroup`), and serial/concurrent executors.
+- English module documentation: `Sources/FKCoreKit/Async/README.md` (includes Table of Contents and copy-paste-ready examples).
+
+### Added (Examples)
+- **`FKAsyncExampleViewController`** under `Examples/FKKitExamples/.../FKCoreKit/Async/` covering main/background dispatch, delay+cancel, debounce (search bar), throttle (scroll/button), group coordination, serial/concurrent tasks, and thread checks.
+- **Example menu**: **FKAsync** entry under **FKCoreKit**.
+
+### Fixed (Examples)
+- `FKAsyncExampleViewController`: ensure all log UI updates run on the main actor (no Main Thread Checker violations).
+
 ## [0.13.0] - 2026-04-20
 
 ### Added (FKCoreKit FKStorage)
@@ -319,7 +332,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.13.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.14.0...HEAD
+[0.14.0]: https://github.com/feng-zhang0712/FKKit/compare/0.13.0...0.14.0
 [0.13.0]: https://github.com/feng-zhang0712/FKKit/compare/0.12.0...0.13.0
 [0.12.0]: https://github.com/feng-zhang0712/FKKit/compare/0.11.0...0.12.0
 [0.11.0]: https://github.com/feng-zhang0712/FKKit/compare/0.10.0...0.11.0
