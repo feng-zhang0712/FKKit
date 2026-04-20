@@ -64,6 +64,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKExpandableTextExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "LoadingAnimator",
+          subtitle: "Hub: fullscreen/embedded loading, progress ring, style switching, list reuse",
+          make: { FKLoadingAnimatorExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "MultiPicker",
           subtitle: "Multi-level cascading picker with built-in region and custom data linkage",
           make: { FKMultiPickerExampleViewController() }

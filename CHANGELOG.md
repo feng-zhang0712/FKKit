@@ -8,6 +8,75 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.30.0] - 2026-04-21
+
+### Added (FKUIKit FKLoadingAnimator)
+- Added a new pure-native loading animation module at `Sources/FKUIKit/Components/LoadingAnimator/` with layered source structure:
+  - `Core`
+  - `Animations`
+  - `Manager`
+  - `Extension`
+- Added `FKLoadingAnimatorView` with unified lifecycle control:
+  - `start`
+  - `stop`
+  - `pause`
+  - `resume`
+  - `setProgress(_:)`
+  - `switchStyle(_:autoRestart:)`
+- Added style system and configuration models:
+  - `FKLoadingAnimatorStyle`
+  - `FKLoadingAnimatorStyleConfiguration`
+  - `FKLoadingAnimatorConfiguration`
+  - `FKLoadingAnimatorState`
+  - `FKLoadingAnimatorPresentationMode`
+- Added built-in loading styles:
+  - ring / gradient ring / progress ring
+  - wave / ripple wave
+  - particles / flowing particles / twinkle particles
+  - spinner / pulse circle / pulse square
+  - rotating dots / gear
+- Added protocol-oriented custom extension entry:
+  - `FKLoadingAnimationProviding`
+  - `.custom(FKLoadingAnimationProviding)` style injection
+- Added global default manager:
+  - `FKLoadingAnimatorManager.shared`
+  - template mutation via `configureTemplate(_:)`
+- Added one-line host APIs on `UIView`:
+  - `fk_showLoadingAnimator(...)`
+  - `fk_hideLoadingAnimator(animated:)`
+  - `fk_switchLoadingStyle(_:autoRestart:)`
+  - `fk_updateLoadingProgress(_:)`
+  - `fk_startLoadingAnimation()`
+  - `fk_stopLoadingAnimation()`
+  - `fk_pauseLoadingAnimation()`
+  - `fk_resumeLoadingAnimation()`
+- Added module-level documentation at `Sources/FKUIKit/Components/LoadingAnimator/README.md`.
+
+### Added (Examples)
+- Added complete FKLoadingAnimator demo suite under:
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/LoadingAnimator/FKLoadingAnimatorExamplesHubViewController.swift`
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/LoadingAnimator/FKLoadingAnimatorComprehensiveExampleViewController.swift`
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/LoadingAnimator/FKLoadingAnimatorTableExampleViewController.swift`
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/LoadingAnimator/FKLoadingAnimatorCollectionExampleViewController.swift`
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/LoadingAnimator/Core/FKLoadingAnimatorDemoSupport.swift`
+- Added `LoadingAnimator` entry in `ExampleMenuViewController` under `FKUIKit`.
+- Example coverage includes:
+  - fullscreen loading masks across ring/wave/particle/spinner styles
+  - embedded loading in `UIView`, `UIImageView`, and `UIButton`
+  - determinate progress-ring updates
+  - dynamic style switching at runtime
+  - global style template updates
+  - state callbacks and completion callbacks
+  - `UITableViewCell` / `UICollectionViewCell` reuse-safe loading patterns
+
+### Fixed (FKUIKit FKLoadingAnimator)
+- Fixed Swift 6 concurrency diagnostics for spinner animator lifecycle by aligning animator protocol/base actor isolation with UIKit usage.
+- Fixed layered rendering order in embedded/fullscreen presentation by ensuring loading hosts stay above host subviews.
+
+### Changed (Documentation)
+- Updated root `README.md` to include `LoadingAnimator` in module structure, FKUIKit component list, and FKUIKit module docs navigation.
+- Updated SPM version reference in root `README.md` from `0.29.0` to `0.30.0`.
+
 ## [0.29.0] - 2026-04-21
 
 ### Added (FKUIKit FKStarRating)
@@ -929,7 +998,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.29.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.30.0...HEAD
+[0.30.0]: https://github.com/feng-zhang0712/FKKit/compare/0.29.0...0.30.0
 [0.29.0]: https://github.com/feng-zhang0712/FKKit/compare/0.28.0...0.29.0
 [0.28.0]: https://github.com/feng-zhang0712/FKKit/compare/0.27.0...0.28.0
 [0.27.0]: https://github.com/feng-zhang0712/FKKit/compare/0.26.0...0.27.0
