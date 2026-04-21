@@ -101,17 +101,6 @@ FKKit/
 - `BusinessKit`: app/business infrastructure (version, deeplink, lifecycle, analytics, i18n helpers).
 - `Utils`: high-frequency utility APIs for date/string/number/device/UI/collection/common operations.
 
-Module docs:
-- `Sources/FKCoreKit/Network/README.md`
-- `Sources/FKCoreKit/Storage/README.md`
-- `Sources/FKCoreKit/Logger/README.md`
-- `Sources/FKCoreKit/Permissions/README.md`
-- `Sources/FKCoreKit/Security/README.md`
-- `Sources/FKCoreKit/FileManager/README.md`
-- `Sources/FKCoreKit/Async/README.md`
-- `Sources/FKCoreKit/BusinessKit/README.md`
-- `Sources/FKCoreKit/Utils/README.md`
-
 ### FKUIKit
 `FKUIKit` contains reusable UIKit components for modern iOS interfaces:
 
@@ -135,24 +124,6 @@ Module docs:
 - `Toast`: lightweight global toast/snackbar presenter with queueing, style presets, custom content, and SwiftUI hosting support.
 - `TopNotification`: lightweight global top floating notification presenter with styles, priority preemption, progress updates, custom content, and SwiftUI hosting support.
 - `TextField`: one-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback.
-
-Module docs:
-- `Sources/FKUIKit/Components/Badge/README.md`
-- `Sources/FKUIKit/Components/Carousel/README.md`
-- `Sources/FKUIKit/Components/CornerShadow/README.md`
-- `Sources/FKUIKit/Components/Divider/README.md`
-- `Sources/FKUIKit/Components/EmptyState/README.md`
-- `Sources/FKUIKit/Components/ExpandableText/README.md`
-- `Sources/FKUIKit/Components/LoadingAnimator/README.md`
-- `Sources/FKUIKit/Components/MultiPicker/README.md`
-- `Sources/FKUIKit/Components/Refresh/README.md`
-- `Sources/FKUIKit/Components/Skeleton/README.md`
-- `Sources/FKUIKit/Components/StarRating/README.md`
-- `Sources/FKUIKit/Components/Sticky/README.md`
-- `Sources/FKUIKit/Components/SwipeAction/README.md`
-- `Sources/FKUIKit/Components/Toast/README.md`
-- `Sources/FKUIKit/Components/TopNotification/README.md`
-- `Sources/FKUIKit/Components/TextField/README.md`
 
 ### FKCompositeKit
 `FKCompositeKit` builds business-facing composite components on top of `FKCoreKit` + `FKUIKit`:
