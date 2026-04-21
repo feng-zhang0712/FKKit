@@ -8,6 +8,51 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.34.0] - 2026-04-21
+
+### Added (FKUIKit FKToast)
+- Added a new lightweight global toast/snackbar module under `Sources/FKUIKit/Components/Toast/` with pure Swift UIKit implementation and SwiftUI interoperability.
+- Added core toast architecture with queue-safe global presenter:
+  - `FKToast`
+  - `FKToastConfiguration`
+  - `FKToastStyle`
+  - `FKToastAnimator`
+  - `FKToastView`
+- Added built-in dual presentation modes:
+  - classic floating toast
+  - snackbar-style action hint
+- Added five preset styles with default icon and adaptive color semantics:
+  - `normal`
+  - `success`
+  - `error`
+  - `warning`
+  - `info`
+- Added configurable placement (`top` / `center` / `bottom`), animation (`fade` / `slide`), interactions (tap/swipe dismiss), action button support, and custom UIView/SwiftUI content hosting.
+- Added thread-safe invocation path with main-actor UI rendering, sequential queue presentation, and cancellable auto-dismiss scheduling.
+
+### Added (Examples)
+- Added comprehensive FKToast demo hub at:
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Toast/FKToastExamplesHubViewController.swift`
+- Added full scenario coverage including:
+  - presets, positions, animations, interaction controls, durations
+  - custom style and custom content (UIKit + SwiftUI)
+  - queue behavior and global configuration
+  - dark/light appearance preview and standalone SwiftUI demo page
+- Added `Toast` entry in `ExampleMenuViewController` under `FKUIKit`.
+
+### Changed (FKUIKit FKToast)
+- Refined top-position layout behavior:
+  - when a navigation bar is visible, top toast appears below the navigation bar with configured spacing
+  - otherwise, top toast appears below the safe-area top inset with configured spacing
+- Aligned internal concurrency annotations and callback sendability for Swift 6 diagnostics in toast queue/animation paths.
+
+### Added (Documentation)
+- Added module-level documentation:
+  - `Sources/FKUIKit/Components/Toast/README.md`
+
+### Changed (Documentation)
+- Updated root `README.md` to include `Toast` in FKUIKit component list, module docs navigation, and SPM reference version (`0.34.0`).
+
 ## [0.33.1] - 2026-04-21
 
 ### Changed (FKUIKit FKBadge)
@@ -1133,7 +1178,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.33.1...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.34.0...HEAD
+[0.34.0]: https://github.com/feng-zhang0712/FKKit/compare/0.33.1...0.34.0
 [0.33.1]: https://github.com/feng-zhang0712/FKKit/compare/0.33.0...0.33.1
 [0.33.0]: https://github.com/feng-zhang0712/FKKit/compare/0.32.0...0.33.0
 [0.32.0]: https://github.com/feng-zhang0712/FKKit/compare/0.31.0...0.32.0
