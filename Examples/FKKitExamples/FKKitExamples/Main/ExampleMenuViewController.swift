@@ -113,6 +113,11 @@ final class ExampleMenuViewController: UITableViewController {
           subtitle: "Formatted input, validation, style customization, callbacks, and global defaults",
           make: { FKTextFieldExampleViewController() }
         ),
+        ExampleMenuItem(
+          title: "Toast",
+          subtitle: "Global toast/snackbar hints with queueing, styles, positions, custom view, and SwiftUI support",
+          make: { FKToastExamplesHubViewController() }
+        ),
       ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),
     KitEntry(

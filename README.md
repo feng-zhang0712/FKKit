@@ -68,6 +68,7 @@ FKKit/
 │  │     ├─ StarRating/
 │  │     ├─ Sticky/
 │  │     ├─ SwipeAction/
+│  │     ├─ Toast/
 │  │     └─ TextField/
 │  └─ FKCompositeKit/
 │     └─ Components/
@@ -122,6 +123,7 @@ Module docs:
 - `StarRating`: configurable star-rating component supporting full/half/precise modes, image/color rendering, gestures, callbacks, global defaults, and reuse-safe integration.
 - `Sticky`: high-performance sticky coordinator for generic views and list section headers with multi-target chaining, lifecycle callbacks, and safe-area-aware offsets.
 - `SwipeAction`: native left/right swipe action system for `UITableViewCell` and `UICollectionViewCell` with multi-button actions and global/per-cell configuration.
+- `Toast`: lightweight global toast/snackbar presenter with queueing, style presets, custom content, and SwiftUI hosting support.
 - `TextField`: one-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback.
 
 Module docs:
@@ -137,6 +139,7 @@ Module docs:
 - `Sources/FKUIKit/Components/StarRating/README.md`
 - `Sources/FKUIKit/Components/Sticky/README.md`
 - `Sources/FKUIKit/Components/SwipeAction/README.md`
+- `Sources/FKUIKit/Components/Toast/README.md`
 - `Sources/FKUIKit/Components/TextField/README.md`
 
 ### FKCompositeKit
@@ -167,7 +170,7 @@ This module currently focuses on source-level composable components; add interna
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.33.1")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.34.0")
 ],
 targets: [
   .target(
