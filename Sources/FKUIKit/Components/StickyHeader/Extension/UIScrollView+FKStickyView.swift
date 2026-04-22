@@ -117,65 +117,6 @@ public extension UIScrollView {
     fk_stickyEngine.resetStickyState()
   }
 
-  /// Enables section sticky behavior for table views.
-  ///
-  /// This method does not require subclassing your existing list.
-  func fk_enableSectionStickyHeaders(
-    configuration: FKStickyConfiguration? = nil,
-    makeTarget: ((_ section: Int, _ view: UIView) -> FKStickyTarget?)? = nil
-  ) {
-    guard let tableView = self as? UITableView else { return }
-    fk_enableStickyHeaders(configuration: configuration) { _ in
-      let sections = tableView.numberOfSections
-      guard sections > 0 else { return [] }
-      return (0..<sections).compactMap { section in
-        if let makeTarget, let header = tableView.headerView(forSection: section) {
-          return makeTarget(section, header)
-        }
-        return FKStickyTarget(
-          id: "fk_table_section_\(section)",
-          viewProvider: { [weak tableView] in
-            tableView?.headerView(forSection: section)
-          },
-          threshold: tableView.rectForHeader(inSection: section).minY
-        )
-      }
-    }
-  }
-
-  /// Enables section sticky behavior for collection views.
-  func fk_enableSectionStickyHeaders(
-    configuration: FKStickyConfiguration? = nil,
-    elementKind: String = UICollectionView.elementKindSectionHeader,
-    makeTarget: ((_ section: Int, _ view: UICollectionReusableView, _ frame: CGRect) -> FKStickyTarget?)? = nil
-  ) {
-    guard let collectionView = self as? UICollectionView else { return }
-    fk_enableStickyHeaders(configuration: configuration) { _ in
-      let sections = collectionView.numberOfSections
-      guard sections > 0 else { return [] }
-      return (0..<sections).compactMap { section in
-        let indexPath = IndexPath(item: 0, section: section)
-        guard let attributes = collectionView.collectionViewLayout.layoutAttributesForSupplementaryView(
-          ofKind: elementKind,
-          at: indexPath
-        ) else {
-          return nil
-        }
-
-        if let makeTarget, let header = collectionView.supplementaryView(forElementKind: elementKind, at: indexPath) {
-          return makeTarget(section, header, attributes.frame)
-        }
-        return FKStickyTarget(
-          id: "fk_collection_section_\(section)",
-          viewProvider: { [weak collectionView] in
-            collectionView?.supplementaryView(forElementKind: elementKind, at: indexPath)
-          },
-          threshold: attributes.frame.minY
-        )
-      }
-    }
-  }
-
   private func ensureAutoRefreshDriver() {
     if let driver = objc_getAssociatedObject(self, &FKStickyAssociationKey.autoRefreshToken) as? FKStickyDisplayLinkDriver {
       driver.start()
@@ -192,6 +133,70 @@ public extension UIScrollView {
       block()
     } else {
       DispatchQueue.main.async(execute: block)
+    }
+  }
+}
+
+public extension UITableView {
+  /// Enables sticky behavior for table section headers.
+  ///
+  /// This method does not require subclassing your existing list.
+  func fk_enableSectionStickyHeaders(
+    configuration: FKStickyConfiguration? = nil,
+    makeTarget: ((_ section: Int, _ view: UIView) -> FKStickyTarget?)? = nil
+  ) {
+    fk_enableStickyHeaders(configuration: configuration) { [weak self] _ in
+      guard let self else { return [] }
+      let sections = self.numberOfSections
+      guard sections > 0 else { return [] }
+      return (0..<sections).compactMap { section in
+        if let makeTarget, let header = self.headerView(forSection: section) {
+          return makeTarget(section, header)
+        }
+        return FKStickyTarget(
+          id: "fk_table_section_\(section)",
+          viewProvider: { [weak self] in
+            self?.headerView(forSection: section)
+          },
+          threshold: self.rectForHeader(inSection: section).minY
+        )
+      }
+    }
+  }
+}
+
+public extension UICollectionView {
+  /// Enables sticky behavior for collection section headers.
+  func fk_enableSectionStickyHeaders(
+    configuration: FKStickyConfiguration? = nil,
+    elementKind: String = UICollectionView.elementKindSectionHeader,
+    makeTarget: ((_ section: Int, _ view: UICollectionReusableView, _ frame: CGRect) -> FKStickyTarget?)? = nil
+  ) {
+    fk_enableStickyHeaders(configuration: configuration) { [weak self] _ in
+      guard let self else { return [] }
+      let sections = self.numberOfSections
+      guard sections > 0 else { return [] }
+      return (0..<sections).compactMap { section in
+        let indexPath = IndexPath(item: 0, section: section)
+        guard let attributes = self.collectionViewLayout.layoutAttributesForSupplementaryView(
+          ofKind: elementKind,
+          at: indexPath
+        ) else {
+          return nil
+        }
+
+        if let makeTarget, let header = self.supplementaryView(forElementKind: elementKind, at: indexPath) {
+          return makeTarget(section, header, attributes.frame)
+        }
+
+        return FKStickyTarget(
+          id: "fk_collection_section_\(section)",
+          viewProvider: { [weak self] in
+            self?.supplementaryView(forElementKind: elementKind, at: indexPath)
+          },
+          threshold: attributes.frame.minY
+        )
+      }
     }
   }
 }
