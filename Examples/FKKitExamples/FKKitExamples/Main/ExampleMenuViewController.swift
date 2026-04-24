@@ -79,6 +79,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKMultiPickerExampleViewController() }
         ),
         ExampleMenuItem(
+          title: "PagingController",
+          subtitle: "Hub: FKPagingController demos with FKTabBar two-way synchronization",
+          make: { FKPagingControllerExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Presentation",
           subtitle: "Anchored panel with mask",
           make: { FKPresentationExampleViewController() }
