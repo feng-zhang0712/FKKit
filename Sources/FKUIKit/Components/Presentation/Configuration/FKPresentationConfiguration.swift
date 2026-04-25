@@ -2,6 +2,28 @@ import UIKit
 
 /// Top-level configuration that describes what kind of presentation experience to build.
 public struct FKPresentationConfiguration {
+  /// Unified dismissal behavior used across modal and embedded presentations.
+  public struct DismissBehavior {
+    /// Whether tapping outside content can dismiss.
+    public var allowsTapOutside: Bool
+    /// Whether drag gestures can dismiss.
+    public var allowsSwipe: Bool
+    /// Whether backdrop tap specifically participates in dismissal.
+    ///
+    /// Set to `false` when you only want gesture-based outside dismissal logic.
+    public var allowsBackdropTap: Bool
+
+    public init(
+      allowsTapOutside: Bool = true,
+      allowsSwipe: Bool = true,
+      allowsBackdropTap: Bool = true
+    ) {
+      self.allowsTapOutside = allowsTapOutside
+      self.allowsSwipe = allowsSwipe
+      self.allowsBackdropTap = allowsBackdropTap
+    }
+  }
+
   /// Shadow appearance used by the presented container.
   public struct ShadowConfiguration {
     /// Shadow color.
@@ -29,6 +51,15 @@ public struct FKPresentationConfiguration {
 
   /// Sheet-specific behavior and allowed heights.
   public struct SheetConfiguration {
+    public enum WidthPolicy {
+      /// Uses full container width (legacy behavior).
+      case fill
+      /// Uses a fraction of container width and centers the sheet.
+      case fraction(CGFloat)
+      /// Uses full width until this max value, then centers.
+      case max(CGFloat)
+    }
+
     /// Backdrop tuning that reacts to detent state.
     public struct MultiStageBackdropConfiguration {
       /// Enables detent-based backdrop intensity updates.
@@ -62,6 +93,8 @@ public struct FKPresentationConfiguration {
     public var dismissThreshold: CGFloat
     /// Velocity threshold for deciding finish/cancel in interactive transitions.
     public var dismissVelocityThreshold: CGFloat
+    /// Interactive dismissal completion threshold for finish/cancel decision.
+    public var interactiveDismissProgressThreshold: CGFloat
     /// Scroll handoff strategy between content and sheet pan gestures.
     public var scrollTrackingStrategy: FKSheetScrollTrackingStrategy
     /// Enables magnetic snapping near detents.
@@ -72,6 +105,8 @@ public struct FKPresentationConfiguration {
     public var minimumContentHeight: CGFloat?
     /// Optional maximum content height safety constraint.
     public var maximumContentHeight: CGFloat?
+    /// Width policy used by top/bottom sheet modes.
+    public var widthPolicy: WidthPolicy
     /// Detent-aware backdrop behavior.
     public var multiStageBackdrop: MultiStageBackdropConfiguration
 
@@ -85,11 +120,13 @@ public struct FKPresentationConfiguration {
       grabberTopInset: CGFloat = 8,
       dismissThreshold: CGFloat = 44,
       dismissVelocityThreshold: CGFloat = 1200,
+      interactiveDismissProgressThreshold: CGFloat = 0.38,
       scrollTrackingStrategy: FKSheetScrollTrackingStrategy = .automatic,
       enablesMagneticSnapping: Bool = true,
       magneticSnapThreshold: CGFloat = 28,
       minimumContentHeight: CGFloat? = 180,
       maximumContentHeight: CGFloat? = nil,
+      widthPolicy: WidthPolicy = .fill,
       multiStageBackdrop: MultiStageBackdropConfiguration = .init()
     ) {
       self.detents = detents.isEmpty ? [.fitContent] : detents
@@ -100,11 +137,13 @@ public struct FKPresentationConfiguration {
       self.grabberTopInset = max(0, grabberTopInset)
       self.dismissThreshold = max(0, dismissThreshold)
       self.dismissVelocityThreshold = max(0, dismissVelocityThreshold)
+      self.interactiveDismissProgressThreshold = min(max(interactiveDismissProgressThreshold, 0.05), 0.95)
       self.scrollTrackingStrategy = scrollTrackingStrategy
       self.enablesMagneticSnapping = enablesMagneticSnapping
       self.magneticSnapThreshold = max(0, magneticSnapThreshold)
       self.minimumContentHeight = minimumContentHeight
       self.maximumContentHeight = maximumContentHeight
+      self.widthPolicy = widthPolicy
       self.multiStageBackdrop = multiStageBackdrop
     }
   }
@@ -157,46 +196,25 @@ public struct FKPresentationConfiguration {
     /// Minimum margins against container edges (useful for iPad / large screens).
     public var minimumMargins: NSDirectionalEdgeInsets
     /// Enables swipe-to-dismiss for center mode.
-    public var allowsSwipeToDismiss: Bool
+    public var dismissEnabled: Bool
+    /// Progress threshold for center interactive dismissal.
+    public var dismissProgressThreshold: CGFloat
+    /// Velocity threshold for center interactive dismissal.
+    public var dismissVelocityThreshold: CGFloat
 
     /// Creates a center configuration.
     public init(
       size: Size = .fitted(maxSize: .init(width: 460, height: 640)),
       minimumMargins: NSDirectionalEdgeInsets = .init(top: 24, leading: 24, bottom: 24, trailing: 24),
-      allowsSwipeToDismiss: Bool = false
+      dismissEnabled: Bool = false,
+      dismissProgressThreshold: CGFloat = 0.35,
+      dismissVelocityThreshold: CGFloat = 900
     ) {
       self.size = size
       self.minimumMargins = minimumMargins
-      self.allowsSwipeToDismiss = allowsSwipeToDismiss
-    }
-  }
-
-  /// Anchor rules for popover-like layouts.
-  public struct AnchorConfiguration {
-    /// Geometry source used to position content.
-    public enum Source {
-      /// Anchors to a specific view.
-      case view(UIView)
-      /// Anchors to a rect in window coordinates.
-      case rect(CGRect)
-    }
-
-    /// Preferred edges used to expand from the source.
-    public var preferredEdges: [UIRectEdge]
-    /// Spacing between source and presented content.
-    public var offset: UIOffset
-    /// Anchor source.
-    public var source: Source
-
-    /// Creates an anchor configuration.
-    public init(
-      source: Source,
-      preferredEdges: [UIRectEdge] = [.bottom],
-      offset: UIOffset = .zero
-    ) {
-      self.source = source
-      self.preferredEdges = preferredEdges
-      self.offset = offset
+      self.dismissEnabled = dismissEnabled
+      self.dismissProgressThreshold = min(max(dismissProgressThreshold, 0.05), 0.95)
+      self.dismissVelocityThreshold = max(0, dismissVelocityThreshold)
     }
   }
 
@@ -208,16 +226,20 @@ public struct FKPresentationConfiguration {
     public var strategy: FKKeyboardAvoidanceStrategy
     /// Extra spacing above keyboard.
     public var additionalBottomInset: CGFloat
+    /// Optional explicit scroll view target for `.adjustContentInsets`.
+    public var targetScrollView: FKWeakReference<UIScrollView>?
 
     /// Creates keyboard avoidance behavior.
     public init(
       isEnabled: Bool = true,
       strategy: FKKeyboardAvoidanceStrategy = .interactive,
-      additionalBottomInset: CGFloat = 8
+      additionalBottomInset: CGFloat = 8,
+      targetScrollView: FKWeakReference<UIScrollView>? = nil
     ) {
       self.isEnabled = isEnabled
       self.strategy = strategy
       self.additionalBottomInset = additionalBottomInset
+      self.targetScrollView = targetScrollView
     }
   }
 
@@ -261,11 +283,30 @@ public struct FKPresentationConfiguration {
     public var announcesScreenChange: Bool
     /// Optional label announced when content appears.
     public var announcement: String?
+    /// Backdrop accessibility label.
+    public var dismissLabel: String
+    /// Backdrop accessibility action title.
+    public var dismissActionName: String
+    /// Grabber accessibility label.
+    public var grabberLabel: String
+    /// Grabber accessibility hint.
+    public var grabberHint: String
 
     /// Creates accessibility behavior.
-    public init(announcesScreenChange: Bool = true, announcement: String? = nil) {
+    public init(
+      announcesScreenChange: Bool = true,
+      announcement: String? = nil,
+      dismissLabel: String = "Dismiss",
+      dismissActionName: String = "Dismiss",
+      grabberLabel: String = "Handle",
+      grabberHint: String = "Swipe up or down to adjust."
+    ) {
       self.announcesScreenChange = announcesScreenChange
       self.announcement = announcement
+      self.dismissLabel = dismissLabel
+      self.dismissActionName = dismissActionName
+      self.grabberLabel = grabberLabel
+      self.grabberHint = grabberHint
     }
   }
 
@@ -279,16 +320,14 @@ public struct FKPresentationConfiguration {
   public var shadow: ShadowConfiguration
   /// Container border appearance.
   public var border: BorderConfiguration
-  /// Backdrop style and behavior.
-  public var backdrop: BackdropConfiguration
+  /// Backdrop visual style.
+  public var backdropStyle: FKBackdropStyle
   /// Background interaction policy.
   public var backgroundInteraction: BackgroundInteractionConfiguration
   /// Optional effects applied to the presenting view.
   public var presentingViewEffect: PresentingViewEffectConfiguration
-  /// Enables tap-to-dismiss behavior.
-  public var allowsTapToDismiss: Bool
-  /// Enables swipe-to-dismiss behavior.
-  public var allowsSwipeToDismiss: Bool
+  /// Dismiss behavior toggles for taps and gestures.
+  public var dismissBehavior: DismissBehavior
   /// Keyboard avoidance strategy.
   public var keyboardAvoidance: KeyboardAvoidanceConfiguration
   /// Rotation handling strategy.
@@ -299,8 +338,6 @@ public struct FKPresentationConfiguration {
   public var sheet: SheetConfiguration
   /// Center behavior.
   public var center: CenterConfiguration
-  /// Optional anchor behavior for anchor modes.
-  public var anchor: AnchorConfiguration?
   /// Animation behavior.
   public var animation: FKAnimationConfiguration
   /// Insets applied around the presented content view inside the container.
@@ -323,17 +360,15 @@ public struct FKPresentationConfiguration {
     cornerRadius: CGFloat = 16,
     shadow: ShadowConfiguration = .init(),
     border: BorderConfiguration = .init(),
-    backdrop: BackdropConfiguration = .init(),
+    backdropStyle: FKBackdropStyle = .dim(alpha: 0.35),
     backgroundInteraction: BackgroundInteractionConfiguration = .init(),
     presentingViewEffect: PresentingViewEffectConfiguration = .init(),
-    allowsTapToDismiss: Bool = true,
-    allowsSwipeToDismiss: Bool = true,
+    dismissBehavior: DismissBehavior = .init(),
     keyboardAvoidance: KeyboardAvoidanceConfiguration = .init(),
     rotationHandling: RotationHandling = .relayoutAnimated,
     preferredContentSizePolicy: PreferredContentSizePolicy = .automatic,
     sheet: SheetConfiguration = .init(),
     center: CenterConfiguration = .init(),
-    anchor: AnchorConfiguration? = nil,
     animation: FKAnimationConfiguration = .init(),
     contentInsets: NSDirectionalEdgeInsets = .zero,
     haptics: HapticsConfiguration = .init(),
@@ -344,17 +379,15 @@ public struct FKPresentationConfiguration {
     self.cornerRadius = max(0, cornerRadius)
     self.shadow = shadow
     self.border = border
-    self.backdrop = backdrop
+    self.backdropStyle = backdropStyle
     self.backgroundInteraction = backgroundInteraction
     self.presentingViewEffect = presentingViewEffect
-    self.allowsTapToDismiss = allowsTapToDismiss
-    self.allowsSwipeToDismiss = allowsSwipeToDismiss
+    self.dismissBehavior = dismissBehavior
     self.keyboardAvoidance = keyboardAvoidance
     self.rotationHandling = rotationHandling
     self.preferredContentSizePolicy = preferredContentSizePolicy
     self.sheet = sheet
     self.center = center
-    self.anchor = anchor
     self.animation = animation
     self.contentInsets = contentInsets
     self.haptics = haptics

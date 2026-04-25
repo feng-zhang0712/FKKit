@@ -4,7 +4,7 @@ import FKUIKit
 /// Shows swipe-to-dismiss toggling and how thresholds change the “cancellation feel”.
 ///
 /// Key highlights:
-/// - Toggle `allowsSwipeToDismiss`.
+/// - Toggle `dismissBehavior.allowsSwipe`.
 /// - Tune `sheet.dismissThreshold` and `sheet.dismissVelocityThreshold`.
 /// Caveat:
 /// - Thresholds are UX-sensitive. Tune with real content, not placeholder views.
@@ -53,7 +53,7 @@ final class SwipeToDismissExampleViewController: FKPresentationExamplePageViewCo
       guard let self else { return }
       var configuration = FKPresentationConfiguration.default
       configuration.mode = .bottomSheet
-      configuration.allowsSwipeToDismiss = self.swipeToDismiss
+      configuration.dismissBehavior.allowsSwipe = self.swipeToDismiss
       configuration.sheet.dismissThreshold = CGFloat(self.dismissThreshold)
       configuration.sheet.dismissVelocityThreshold = CGFloat(self.velocityThreshold)
       configuration.sheet.detents = [.fixed(260), .full]

@@ -41,14 +41,14 @@ final class BackgroundInteractionPolicyExampleViewController: FKPresentationExam
       guard let self else { return }
       var configuration = FKPresentationConfiguration.default
       configuration.mode = .center
-      configuration.center.allowsSwipeToDismiss = true
+      configuration.center.dismissEnabled = true
 
       configuration.backgroundInteraction.isEnabled = self.allowsBackgroundInteraction
       configuration.backgroundInteraction.showsBackdropWhenEnabled = self.showsBackdropWhenEnabled
 
       // When allowing background interaction, consider disabling tap-to-dismiss to avoid surprising dismissal.
-      configuration.allowsTapToDismiss = !self.allowsBackgroundInteraction
-      configuration.backdrop.style = .dim(alpha: 0.25)
+      configuration.dismissBehavior.allowsTapOutside = !self.allowsBackgroundInteraction
+      configuration.backdropStyle = .dim(alpha: 0.25)
 
       _ = FKPresentationExampleHelpers.present(from: self, title: "Background interaction", configuration: configuration)
     }

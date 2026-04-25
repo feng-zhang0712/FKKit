@@ -20,7 +20,7 @@ final class SafeAreaContainerRespectsSafeAreaExampleViewController: FKPresentati
       var configuration = FKPresentationConfiguration.default
       configuration.mode = .center
       configuration.safeAreaPolicy = .containerRespectsSafeArea
-      configuration.center.allowsSwipeToDismiss = true
+      configuration.center.dismissEnabled = true
       _ = FKPresentationExampleHelpers.present(from: self, title: "containerRespectsSafeArea", configuration: configuration)
     }
   }

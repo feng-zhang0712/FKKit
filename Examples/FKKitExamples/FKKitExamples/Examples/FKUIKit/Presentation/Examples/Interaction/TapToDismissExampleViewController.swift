@@ -4,7 +4,7 @@ import FKUIKit
 /// Shows tap-to-dismiss behavior and when you might disable it.
 ///
 /// Key highlights:
-/// - Toggle `allowsTapToDismiss`.
+/// - Toggle `dismissBehavior.allowsTapOutside`.
 /// Caveat:
 /// - If your sheet contains destructive actions, consider disabling tap-to-dismiss to reduce accidental loss.
 final class TapToDismissExampleViewController: FKPresentationExamplePageViewController {
@@ -28,7 +28,7 @@ final class TapToDismissExampleViewController: FKPresentationExamplePageViewCont
       guard let self else { return }
       var configuration = FKPresentationConfiguration.default
       configuration.mode = .bottomSheet
-      configuration.allowsTapToDismiss = self.tapToDismiss
+      configuration.dismissBehavior.allowsTapOutside = self.tapToDismiss
       configuration.sheet.detents = [.fixed(260), .full]
       _ = FKPresentationExampleHelpers.present(from: self, title: "Tap outside backdrop", configuration: configuration)
     }

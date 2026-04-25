@@ -14,5 +14,10 @@ public enum FKSheetScrollTrackingStrategy {
   ///
   /// Recommended when multiple scroll views exist and you need deterministic handoff.
   case explicit(FKWeakReference<UIScrollView>)
+
+  /// Convenience helper that wraps the scroll view in a weak reference.
+  public static func explicit(_ scrollView: UIScrollView) -> FKSheetScrollTrackingStrategy {
+    .explicit(FKWeakReference(scrollView))
+  }
 }
 

@@ -56,14 +56,16 @@ final class FKContainerPresentationController: UIPresentationController {
     switch configuration.mode {
     case .bottomSheet:
       let height = resolvedSheetHeight(in: containerView, bounds: bounds, safeInsets: safeInsets)
-      let x: CGFloat = 0
-      let width = bounds.width
+      let width = resolvedSheetWidth(in: bounds, safeInsets: safeInsets)
+      let x = (bounds.width - width) / 2
       let y = bounds.height - height - (configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0)
       return CGRect(x: x, y: y, width: width, height: height)
     case .topSheet:
       let height = resolvedSheetHeight(in: containerView, bounds: bounds, safeInsets: safeInsets)
+      let width = resolvedSheetWidth(in: bounds, safeInsets: safeInsets)
+      let x = (bounds.width - width) / 2
       let y: CGFloat = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
-      return CGRect(x: 0, y: y, width: bounds.width, height: height)
+      return CGRect(x: x, y: y, width: width, height: height)
     case .center:
       return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
     case let .anchor(anchor):
@@ -81,7 +83,7 @@ final class FKContainerPresentationController: UIPresentationController {
     guard let containerView else { return }
 
     backdropView.frame = containerView.bounds
-    backdropView.configure(with: configuration.backdrop)
+    backdropView.configure(with: configuration.backdropStyle)
     backdropView.alpha = 0
     containerView.insertSubview(backdropView, at: 0)
 
@@ -184,19 +186,16 @@ final class FKContainerPresentationController: UIPresentationController {
       backdropView.isHidden = false
     }
 
-    if !allowsPassthrough, (configuration.allowsTapToDismiss || configuration.backdrop.allowsTapToDismiss) {
+    if !allowsPassthrough, configuration.dismissBehavior.allowsTapOutside, configuration.dismissBehavior.allowsBackdropTap {
       backdropView.addGestureRecognizer(tapToDismissGesture)
     } else {
       backdropView.removeGestureRecognizer(tapToDismissGesture)
     }
 
-    let allowsSwipe: Bool
-    switch configuration.mode {
-    case .center:
-      allowsSwipe = configuration.center.allowsSwipeToDismiss
-    default:
-      allowsSwipe = configuration.allowsSwipeToDismiss
-    }
+    let allowsSwipe: Bool = {
+      if case .center = configuration.mode { return configuration.center.dismissEnabled }
+      return configuration.dismissBehavior.allowsSwipe
+    }()
 
     if allowsSwipe {
       panToDismissGesture.maximumNumberOfTouches = 1
@@ -359,7 +358,7 @@ final class FKContainerPresentationController: UIPresentationController {
     case .disabled:
       return
     case .adjustContentInsets:
-      guard let scroll = findPrimaryScrollView(in: presentedViewController.view) else { return }
+      guard let scroll = resolveKeyboardTargetScrollView() else { return }
       if originalScrollInsets == nil {
         originalScrollInsets = (scroll.contentInset, scroll.scrollIndicatorInsets)
       }
@@ -404,9 +403,9 @@ final class FKContainerPresentationController: UIPresentationController {
     // Backdrop as a dismissible button (when enabled).
     backdropView.isAccessibilityElement = true
     backdropView.accessibilityTraits = [.button]
-    backdropView.accessibilityLabel = "Dismiss"
+    backdropView.accessibilityLabel = configuration.accessibility.dismissLabel
 
-    let dismissAction = UIAccessibilityCustomAction(name: "Dismiss") { [weak self] _ in
+    let dismissAction = UIAccessibilityCustomAction(name: configuration.accessibility.dismissActionName) { [weak self] _ in
       guard let self else { return false }
       self.presentedViewController.dismiss(animated: true)
       return true
@@ -418,8 +417,8 @@ final class FKContainerPresentationController: UIPresentationController {
     if grabberView.superview != nil, !grabberView.isHidden {
       grabberView.isAccessibilityElement = true
       grabberView.accessibilityTraits = [.adjustable]
-      grabberView.accessibilityLabel = "Handle"
-      grabberView.accessibilityHint = "Swipe up or down to adjust."
+      grabberView.accessibilityLabel = configuration.accessibility.grabberLabel
+      grabberView.accessibilityHint = configuration.accessibility.grabberHint
     }
   }
 
@@ -517,7 +516,7 @@ final class FKContainerPresentationController: UIPresentationController {
 
   @objc private func handleTapToDismiss(_ recognizer: UITapGestureRecognizer) {
     guard recognizer.state == .ended else { return }
-    guard configuration.allowsTapToDismiss || configuration.backdrop.allowsTapToDismiss else { return }
+    guard configuration.dismissBehavior.allowsTapOutside else { return }
     presentedViewController.dismiss(animated: true)
   }
 
@@ -535,13 +534,14 @@ final class FKContainerPresentationController: UIPresentationController {
   }
 
   private func handleCenterPan(_ recognizer: UIPanGestureRecognizer, in containerView: UIView) {
-    guard configuration.center.allowsSwipeToDismiss else { return }
+    guard configuration.center.dismissEnabled else { return }
     let translation = recognizer.translation(in: containerView)
     let progress = min(max(abs(translation.y) / max(1, containerView.bounds.height * 0.4), 0), 1)
     notifyProgress(progress)
+    let velocityY = abs(recognizer.velocity(in: containerView).y)
 
     if recognizer.state == .ended || recognizer.state == .cancelled {
-      if progress > 0.35 {
+      if progress > configuration.center.dismissProgressThreshold || velocityY > configuration.center.dismissVelocityThreshold {
         presentedViewController.dismiss(animated: true)
       } else {
         notifyProgress(0)
@@ -650,7 +650,8 @@ final class FKContainerPresentationController: UIPresentationController {
 
       if isInteractiveDismissing {
         let progress = interactiveDismissProgress(translationY: translation.y - dismissPanStartTranslationY, in: containerView)
-        let shouldFinish = progress > 0.38 || abs(velocity.y) > configuration.sheet.dismissVelocityThreshold
+        let shouldFinish = progress > configuration.sheet.interactiveDismissProgressThreshold
+          || abs(velocity.y) > configuration.sheet.dismissVelocityThreshold
         if shouldFinish {
           interactionController.finishDismissal()
           notifyProgress(1)
@@ -722,7 +723,7 @@ final class FKContainerPresentationController: UIPresentationController {
   }
 
   private func sheetShouldDismiss(translationY: CGFloat, velocityY: CGFloat, in containerView: UIView) -> Bool {
-    guard configuration.allowsSwipeToDismiss else { return false }
+    guard configuration.dismissBehavior.allowsSwipe else { return false }
     switch configuration.mode {
     case .bottomSheet:
       // Pulling downward dismisses.
@@ -833,6 +834,18 @@ final class FKContainerPresentationController: UIPresentationController {
     owner?.notifyDetentDidChange(detent, index: index)
   }
 
+  private func resolvedSheetWidth(in bounds: CGRect, safeInsets: UIEdgeInsets) -> CGFloat {
+    let availableWidth = bounds.width - safeInsets.left - safeInsets.right
+    switch configuration.sheet.widthPolicy {
+    case .fill:
+      return bounds.width
+    case let .fraction(value):
+      return min(availableWidth, max(220, availableWidth * min(max(value, 0.2), 1)))
+    case let .max(value):
+      return min(availableWidth, max(220, value))
+    }
+  }
+
   private func findPrimaryScrollView(in root: UIView?) -> UIScrollView? {
     guard let root else { return nil }
     if let scroll = root as? UIScrollView { return scroll }
@@ -840,6 +853,13 @@ final class FKContainerPresentationController: UIPresentationController {
       if let found = findPrimaryScrollView(in: sub) { return found }
     }
     return nil
+  }
+
+  private func resolveKeyboardTargetScrollView() -> UIScrollView? {
+    if let explicit = configuration.keyboardAvoidance.targetScrollView?.object {
+      return explicit
+    }
+    return findPrimaryScrollView(in: presentedViewController.view)
   }
 
   private func resolvedTrackedScrollView() -> UIScrollView? {
@@ -916,7 +936,7 @@ final class FKContainerPresentationController: UIPresentationController {
     guard configuration.sheet.multiStageBackdrop.isEnabled else {
       // Respect the configured backdrop intensity. `FKPresentationBackdropView` also uses internal alpha
       // for blur effects, so we keep the container-level alpha as the primary dimming channel only.
-      switch configuration.backdrop.style {
+      switch configuration.backdropStyle {
       case let .dim(_, alpha):
         backdropView.alpha = alpha
       default:

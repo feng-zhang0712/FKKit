@@ -33,7 +33,7 @@ final class DimBackdropExampleViewController: FKPresentationExamplePageViewContr
       var configuration = FKPresentationConfiguration.default
       configuration.mode = .bottomSheet
       configuration.sheet.detents = [.fixed(300), .full]
-      configuration.backdrop.style = .dim(alpha: CGFloat(self.alpha))
+      configuration.backdropStyle = .dim(alpha: CGFloat(self.alpha))
       _ = FKPresentationExampleHelpers.present(from: self, title: "Dim backdrop", configuration: configuration)
     }
   }

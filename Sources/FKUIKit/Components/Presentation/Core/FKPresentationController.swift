@@ -12,9 +12,18 @@ public final class FKPresentationController: NSObject {
   public weak var delegate: FKPresentationControllerDelegate?
   /// Closure-based callbacks.
   public var callbacks: FKPresentationLifecycleCallbacks
+  /// Whether content is currently visible.
+  public private(set) var isPresented: Bool = false
+  /// Whether a transition is running.
+  public private(set) var isTransitioning: Bool = false
+  /// Current active detent when sheet modes are used.
+  public private(set) var currentDetent: FKPresentationDetent?
+  /// Current detent index when sheet modes are used.
+  public private(set) var currentDetentIndex: Int?
+  /// Available detents for sheet modes.
+  public var availableDetents: [FKPresentationDetent] { configuration.sheet.detents }
 
   private var host: (any FKPresentationHosting)!
-  private var isTransitionInFlight = false
 
   /// Creates a presentation controller without presenting it immediately.
   public init(
@@ -53,7 +62,7 @@ public final class FKPresentationController: NSObject {
       completion?()
       return
     }
-    guard !isTransitionInFlight else {
+    guard !isTransitioning else {
       completion?()
       return
     }
@@ -61,10 +70,11 @@ public final class FKPresentationController: NSObject {
       completion?()
       return
     }
-    isTransitionInFlight = true
+    isTransitioning = true
     notifyWillPresent()
     host.present(from: presentingViewController, animated: animated) { [weak self] in
-      self?.isTransitionInFlight = false
+      self?.isTransitioning = false
+      self?.isPresented = true
       self?.notifyDidPresent()
       completion?()
     }
@@ -77,7 +87,7 @@ public final class FKPresentationController: NSObject {
       completion?()
       return
     }
-    guard !isTransitionInFlight else {
+    guard !isTransitioning else {
       completion?()
       return
     }
@@ -85,10 +95,11 @@ public final class FKPresentationController: NSObject {
       completion?()
       return
     }
-    isTransitionInFlight = true
+    isTransitioning = true
     notifyWillDismiss()
     host.dismiss(animated: animated) { [weak self] in
-      self?.isTransitionInFlight = false
+      self?.isTransitioning = false
+      self?.isPresented = false
       self?.notifyDidDismiss()
       completion?()
     }
@@ -100,11 +111,23 @@ public final class FKPresentationController: NSObject {
       assertionFailure("FKPresentationController.setDetent must be called on the main thread.")
       return
     }
-    // Only modal presentations support sheet detents.
+    if let index = configuration.sheet.detents.firstIndex(of: detent) {
+      setDetent(index: index, animated: animated)
+    }
+  }
+
+  /// Programmatically switches to a detent index when sheet modes are active.
+  public func setDetent(index: Int, animated: Bool = true) {
+    guard Thread.isMainThread else {
+      assertionFailure("FKPresentationController.setDetent(index:) must be called on the main thread.")
+      return
+    }
     guard host is FKModalPresentationHost else { return }
+    let clamped = max(0, min(index, max(0, configuration.sheet.detents.count - 1)))
+    guard configuration.sheet.detents.indices.contains(clamped) else { return }
     (contentController.transitioningDelegate as? FKPresentationTransitioningDelegate)?
       .activeContainerController?
-      .setDetent(detent, animated: animated)
+      .setDetent(configuration.sheet.detents[clamped], animated: animated)
   }
 
   /// Convenience API for one-line presentation.
@@ -134,6 +157,8 @@ public final class FKPresentationController: NSObject {
   }
 
   func notifyDetentDidChange(_ detent: FKPresentationDetent, index: Int) {
+    currentDetent = detent
+    currentDetentIndex = index
     delegate?.presentationController(self, didChangeDetent: detent, index: index)
     callbacks.detentDidChange?(detent, index)
   }

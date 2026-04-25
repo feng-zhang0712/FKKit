@@ -24,7 +24,6 @@ final class FKEmbeddedHostViewController: UIViewController {
   var onProgress: ((CGFloat) -> Void)?
 
   private let configuration: FKPresentationConfiguration
-  private let embeddedConfiguration: FKEmbeddedAnchorConfiguration
 
   let contentContainerView = UIView()
   let chromeView = UIView()
@@ -46,9 +45,8 @@ final class FKEmbeddedHostViewController: UIViewController {
     view as! FKEmbeddedRootView
   }
 
-  init(configuration: FKPresentationConfiguration, embeddedConfiguration: FKEmbeddedAnchorConfiguration) {
+  init(configuration: FKPresentationConfiguration) {
     self.configuration = configuration
-    self.embeddedConfiguration = embeddedConfiguration
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -103,14 +101,14 @@ final class FKEmbeddedHostViewController: UIViewController {
     view.addSubview(wrapperView)
 
     // Gestures
-    if embeddedConfiguration.dismissBehavior.allowsTapToDismiss {
+    if configuration.dismissBehavior.allowsTapOutside {
       maskView.isUserInteractionEnabled = true
       maskView.addGestureRecognizer(tapToDismiss)
     } else {
       maskView.isUserInteractionEnabled = false
     }
 
-    if embeddedConfiguration.dismissBehavior.allowsSwipeToDismiss {
+    if configuration.dismissBehavior.allowsSwipe {
       panToDismiss.maximumNumberOfTouches = 1
       wrapperView.addGestureRecognizer(panToDismiss)
     }
@@ -161,7 +159,7 @@ final class FKEmbeddedHostViewController: UIViewController {
 
   private func maskColor() -> UIColor {
     // Keep embedded mask aligned with the configured backdrop dim when possible.
-    switch configuration.backdrop.style {
+    switch configuration.backdropStyle {
     case let .dim(color, alpha):
       return color.withAlphaComponent(alpha)
     default:
@@ -194,12 +192,12 @@ final class FKEmbeddedHostViewController: UIViewController {
   }
 
   @objc private func handleTapMask(_ recognizer: UITapGestureRecognizer) {
-    guard embeddedConfiguration.dismissBehavior.allowsTapToDismiss else { return }
+    guard configuration.dismissBehavior.allowsTapOutside else { return }
     onRequestDismiss?()
   }
 
   @objc private func handlePan(_ recognizer: UIPanGestureRecognizer) {
-    guard embeddedConfiguration.dismissBehavior.allowsSwipeToDismiss else { return }
+    guard configuration.dismissBehavior.allowsSwipe else { return }
     guard let currentLayout else { return }
     let translation = recognizer.translation(in: view)
 

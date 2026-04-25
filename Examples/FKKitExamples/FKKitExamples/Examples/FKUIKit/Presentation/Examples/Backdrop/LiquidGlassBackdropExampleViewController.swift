@@ -30,7 +30,7 @@ final class LiquidGlassBackdropExampleViewController: FKPresentationExamplePageV
       var configuration = FKPresentationConfiguration.default
       configuration.mode = .bottomSheet
       configuration.sheet.detents = [.fixed(300), .full]
-      configuration.backdrop.style = self.resolvedBackdropStyle()
+      configuration.backdropStyle = self.resolvedBackdropStyle()
       _ = FKPresentationExampleHelpers.present(from: self, title: "Backdrop style", configuration: configuration)
     }
   }

@@ -39,7 +39,7 @@ final class InteractiveDismissProgressExampleViewController: FKPresentationExamp
       var configuration = FKPresentationConfiguration.default
       configuration.mode = .bottomSheet
       configuration.sheet.detents = [.fixed(320), .full]
-      configuration.backdrop.style = .dim(alpha: 0.4)
+      configuration.backdropStyle = .dim(alpha: 0.4)
 
       _ = FKPresentationExampleHelpers.present(from: self, title: "Drag to dismiss", configuration: configuration, callbacks: callbacks)
     }

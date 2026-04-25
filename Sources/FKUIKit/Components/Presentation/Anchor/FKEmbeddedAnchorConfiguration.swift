@@ -25,9 +25,6 @@ public struct FKEmbeddedAnchorConfiguration {
   /// Policy controlling how much of the host is covered by the interaction mask.
   public var maskCoveragePolicy: MaskCoveragePolicy
 
-  /// Dismiss behavior controls.
-  public var dismissBehavior: DismissBehavior
-
   /// Reposition behavior when host or anchor geometry changes.
   public var repositionPolicy: RepositionPolicy
 
@@ -37,14 +34,12 @@ public struct FKEmbeddedAnchorConfiguration {
     hostStrategy: HostStrategy = .inSameSuperviewBelowAnchor,
     zOrderPolicy: ZOrderPolicy = .keepAnchorAbovePresentation,
     maskCoveragePolicy: MaskCoveragePolicy = .belowAnchorOnly,
-    dismissBehavior: DismissBehavior = .init(),
     repositionPolicy: RepositionPolicy = .init()
   ) {
     self.anchor = anchor
     self.hostStrategy = hostStrategy
     self.zOrderPolicy = zOrderPolicy
     self.maskCoveragePolicy = maskCoveragePolicy
-    self.dismissBehavior = dismissBehavior
     self.repositionPolicy = repositionPolicy
   }
 }
@@ -91,19 +86,6 @@ public extension FKEmbeddedAnchorConfiguration {
 
     /// Covers the full host bounds.
     case fullScreen
-  }
-
-  /// Dismiss behavior for embedded overlays.
-  struct DismissBehavior {
-    /// Whether tapping the mask dismisses the overlay.
-    public var allowsTapToDismiss: Bool
-    /// Whether dragging the overlay dismisses it.
-    public var allowsSwipeToDismiss: Bool
-
-    public init(allowsTapToDismiss: Bool = true, allowsSwipeToDismiss: Bool = true) {
-      self.allowsTapToDismiss = allowsTapToDismiss
-      self.allowsSwipeToDismiss = allowsSwipeToDismiss
-    }
   }
 
   /// Reposition policy for embedded overlays.

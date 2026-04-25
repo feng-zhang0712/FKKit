@@ -18,7 +18,7 @@ final class FKPresentationBackdropView: UIView {
   }
 
   /// Applies style for dim, blur, or liquid-glass-like backdrop appearances.
-  func configure(with configuration: FKPresentationConfiguration.BackdropConfiguration) {
+  func configure(with style: FKBackdropStyle) {
     visualEffectView?.removeFromSuperview()
     visualEffectView = nil
     vibrancyView?.removeFromSuperview()
@@ -28,7 +28,7 @@ final class FKPresentationBackdropView: UIView {
     noiseLayer?.removeFromSuperlayer()
     noiseLayer = nil
 
-    switch configuration.style {
+    switch style {
     case .none:
       backgroundColor = .clear
       alpha = 1
@@ -55,7 +55,7 @@ final class FKPresentationBackdropView: UIView {
       let shouldDowngrade = (liquidGlassConfiguration.downgradeWhenReduceTransparencyEnabled && UIAccessibility.isReduceTransparencyEnabled)
         || (liquidGlassConfiguration.simplifyInLowPowerMode && ProcessInfo.processInfo.isLowPowerModeEnabled)
       if shouldDowngrade {
-        configure(with: .init(style: .blur(effect: .systemUltraThinMaterial, alpha: 1, vibrancy: nil), allowsTapToDismiss: configuration.allowsTapToDismiss))
+        configure(with: .blur(effect: .systemUltraThinMaterial, alpha: 1, vibrancy: nil))
         return
       }
 

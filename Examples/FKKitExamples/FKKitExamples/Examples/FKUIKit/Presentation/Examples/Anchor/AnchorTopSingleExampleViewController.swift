@@ -124,13 +124,13 @@ final class AnchorTopSingleExampleViewController: UIViewController {
       anchor: anchor,
       hostStrategy: .inSameSuperviewBelowAnchor,
       zOrderPolicy: .keepAnchorAbovePresentation,
-      maskCoveragePolicy: .belowAnchorOnly,
-      dismissBehavior: .init(allowsTapToDismiss: true, allowsSwipeToDismiss: true)
+      maskCoveragePolicy: .belowAnchorOnly
     )
 
     var configuration = FKPresentationConfiguration()
     configuration.mode = .anchorEmbedded(embedded)
-    configuration.backdrop.style = .dim(color: .black, alpha: CGFloat(maskAlpha))
+    configuration.dismissBehavior = .init(allowsTapOutside: true, allowsSwipe: true, allowsBackdropTap: true)
+    configuration.backdropStyle = .dim(color: .black, alpha: CGFloat(maskAlpha))
     configuration.cornerRadius = CGFloat(cornerRadius)
     if !showsShadow {
       configuration.shadow.opacity = 0

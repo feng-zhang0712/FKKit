@@ -80,13 +80,11 @@ final class FKEmbeddedAnchorHost: NSObject, FKPresentationHosting {
     updateLayout()
     applyZOrderPolicy()
 
-    owner.notifyWillPresent()
     isPresented = true
 
     let animator = makeAnimator(isPresentation: true, animated: animated)
     animator.addCompletion { [weak self] _ in
       guard let self else { return }
-      self.owner.notifyDidPresent()
       completion?()
     }
     animator.startAnimation()
@@ -97,7 +95,6 @@ final class FKEmbeddedAnchorHost: NSObject, FKPresentationHosting {
 
   func dismiss(animated: Bool, completion: (() -> Void)?) {
     guard isPresented else { completion?(); return }
-    owner.notifyWillDismiss()
     isPresented = false
     stopRepositionObservation()
     stopKeyboardTracking()
@@ -106,7 +103,6 @@ final class FKEmbeddedAnchorHost: NSObject, FKPresentationHosting {
     animator.addCompletion { [weak self] _ in
       guard let self else { return }
       self.cleanup()
-      self.owner.notifyDidDismiss()
       completion?()
     }
     animator.startAnimation()
@@ -204,7 +200,7 @@ final class FKEmbeddedAnchorHost: NSObject, FKPresentationHosting {
       return existing
     }
 
-    let vc = FKEmbeddedHostViewController(configuration: configuration, embeddedConfiguration: embeddedConfiguration)
+    let vc = FKEmbeddedHostViewController(configuration: configuration)
     vc.onRequestDismiss = { [weak self] in
       self?.dismiss(animated: true, completion: nil)
     }
