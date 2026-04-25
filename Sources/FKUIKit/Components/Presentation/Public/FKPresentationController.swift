@@ -4,8 +4,6 @@ import UIKit
 /// Entry point that wires content, configuration, and transition components together.
 @MainActor
 public final class FKPresentationController: NSObject {
-  private static var associationKey: UInt8 = 0
-
   /// Content controller that will be presented.
   public let contentController: UIViewController
   /// Configuration describing the desired presentation behavior.
@@ -15,7 +13,7 @@ public final class FKPresentationController: NSObject {
   /// Closure-based callbacks.
   public var callbacks: FKPresentationLifecycleCallbacks
 
-  private let transitioningDelegateBox: FKPresentationTransitioningDelegate
+  private var host: (any FKPresentationHosting)!
   private var isTransitionInFlight = false
 
   /// Creates a presentation controller without presenting it immediately.
@@ -29,19 +27,18 @@ public final class FKPresentationController: NSObject {
     self.configuration = configuration
     self.delegate = delegate
     self.callbacks = callbacks
-    self.transitioningDelegateBox = FKPresentationTransitioningDelegate(configuration: configuration)
     super.init()
 
-    transitioningDelegateBox.owner = self
-    contentController.modalPresentationStyle = .custom
-    contentController.transitioningDelegate = transitioningDelegateBox
-    // Keep transitioning delegate alive for the full transition lifecycle.
-    objc_setAssociatedObject(
-      contentController,
-      &Self.associationKey,
-      transitioningDelegateBox,
-      .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-    )
+    if case let .anchorEmbedded(embedded) = configuration.mode {
+      self.host = FKEmbeddedAnchorHost(
+        owner: self,
+        contentController: contentController,
+        configuration: configuration,
+        embeddedConfig: embedded
+      )
+    } else {
+      self.host = FKModalPresentationHost(owner: self, contentController: contentController, configuration: configuration)
+    }
   }
 
   /// Presents content from a source view controller.
@@ -55,13 +52,13 @@ public final class FKPresentationController: NSObject {
       completion?()
       return
     }
-    guard contentController.presentingViewController == nil else {
+    guard !host.isPresented else {
       completion?()
       return
     }
     isTransitionInFlight = true
     notifyWillPresent()
-    presentingViewController.present(contentController, animated: animated) { [weak self] in
+    host.present(from: presentingViewController, animated: animated) { [weak self] in
       self?.isTransitionInFlight = false
       self?.notifyDidPresent()
       completion?()
@@ -79,13 +76,13 @@ public final class FKPresentationController: NSObject {
       completion?()
       return
     }
-    guard contentController.presentingViewController != nil else {
+    guard host.isPresented else {
       completion?()
       return
     }
     isTransitionInFlight = true
     notifyWillDismiss()
-    contentController.dismiss(animated: animated) { [weak self] in
+    host.dismiss(animated: animated) { [weak self] in
       self?.isTransitionInFlight = false
       self?.notifyDidDismiss()
       completion?()
@@ -98,7 +95,11 @@ public final class FKPresentationController: NSObject {
       assertionFailure("FKPresentationController.setDetent must be called on the main thread.")
       return
     }
-    transitioningDelegateBox.activeContainerController?.setDetent(detent, animated: animated)
+    // Only modal presentations support sheet detents.
+    guard host is FKModalPresentationHost else { return }
+    (contentController.transitioningDelegate as? FKPresentationTransitioningDelegate)?
+      .activeContainerController?
+      .setDetent(detent, animated: animated)
   }
 
   /// Convenience API for one-line presentation.

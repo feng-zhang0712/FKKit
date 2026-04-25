@@ -76,6 +76,9 @@ final class FKPresentationDefaultAnimator: NSObject, UIViewControllerAnimatedTra
       return finalFrame.insetBy(dx: finalFrame.width * 0.06, dy: finalFrame.height * 0.06)
     case .anchor:
       return finalFrame.offsetBy(dx: 0, dy: 8)
+    case .anchorEmbedded:
+      // Embedded anchors behave like anchors for default animation.
+      return finalFrame.offsetBy(dx: 0, dy: 8)
     case let .edge(edge):
       if edge.contains(.left) { return finalFrame.offsetBy(dx: -finalFrame.width, dy: 0) }
       if edge.contains(.right) { return finalFrame.offsetBy(dx: finalFrame.width, dy: 0) }

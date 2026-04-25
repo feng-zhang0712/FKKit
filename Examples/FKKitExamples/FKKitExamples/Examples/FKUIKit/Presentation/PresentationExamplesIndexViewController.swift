@@ -35,20 +35,15 @@ final class PresentationExamplesIndexViewController: UITableViewController {
           subtitle: "Fixed vs fitted sizing with max constraints for large screens.",
           make: { CenterModalBasicsExampleViewController() }
         ),
+      ]
+    ),
+    Section(
+      title: "Anchor",
+      rows: [
         Row(
-          title: "Anchor — From a view",
-          subtitle: "Expand up/down from a full-width anchor view with `.auto` direction.",
-          make: { AnchorFromViewExampleViewController() }
-        ),
-        Row(
-          title: "Anchor — Under navigation bar",
-          subtitle: "Simulates expanding under the navigation bar (common menus).",
-          make: { AnchorUnderNavigationBarExampleViewController() }
-        ),
-        Row(
-          title: "Anchor — Above tab bar",
-          subtitle: "Simulates expanding above a tab bar (tool trays).",
-          make: { AnchorAboveTabBarExampleViewController() }
+          title: "Top anchor popup",
+          subtitle: "Single anchor view at the top; tap it to present and tap again/mask to dismiss.",
+          make: { AnchorTopSingleExampleViewController() }
         ),
       ]
     ),

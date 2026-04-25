@@ -179,11 +179,31 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
           return baseFrame.offsetBy(dx: 0, dy: delta)
         }
       }
+    case let .anchorEmbedded(config):
+      // Embedded anchors use the same motion baseline as modal anchors.
+      return initialFrame(for: baseFrame, anchor: config.anchor)
     case let .edge(edge):
       if edge.contains(.left) { return baseFrame.offsetBy(dx: -baseFrame.width, dy: 0) }
       if edge.contains(.right) { return baseFrame.offsetBy(dx: baseFrame.width, dy: 0) }
       if edge.contains(.top) { return baseFrame.offsetBy(dx: 0, dy: -baseFrame.height) }
       return baseFrame.offsetBy(dx: 0, dy: baseFrame.height)
+    }
+  }
+
+  private func initialFrame(for baseFrame: CGRect, anchor: FKAnchor) -> CGRect {
+    let delta: CGFloat = 12
+    switch anchor.direction {
+    case .up:
+      return baseFrame.offsetBy(dx: 0, dy: delta)
+    case .down:
+      return baseFrame.offsetBy(dx: 0, dy: -delta)
+    case .auto:
+      switch anchor.edge {
+      case .top:
+        return baseFrame.offsetBy(dx: 0, dy: -delta)
+      case .bottom:
+        return baseFrame.offsetBy(dx: 0, dy: delta)
+      }
     }
   }
 

@@ -68,6 +68,10 @@ final class FKContainerPresentationController: UIPresentationController {
       return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
     case let .anchor(anchor):
       return anchoredFrame(in: containerView, bounds: bounds, safeInsets: safeInsets, anchor: anchor)
+    case .anchorEmbedded:
+      // Embedded anchors are not presented via UIPresentationController.
+      // Fall back to center frame for safety if misconfigured.
+      return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
     case let .edge(edge):
       return edgeFrame(in: bounds, edge: edge)
     }
@@ -249,7 +253,7 @@ final class FKContainerPresentationController: UIPresentationController {
           return .init(top: safe.top, left: 0, bottom: 0, right: 0)
         case .center:
           return safe
-        case .anchor:
+        case .anchor, .anchorEmbedded:
           // Anchors are typically popover-like; keep content away from unsafe regions.
           return safe
         case let .edge(edge):
@@ -978,12 +982,75 @@ final class FKContainerPresentationController: UIPresentationController {
   }
 
   private func anchoredFrame(in containerView: UIView, bounds: CGRect, safeInsets: UIEdgeInsets, anchor: FKAnchor) -> CGRect {
-    // Resolve source rect in container coordinates. If unavailable, fall back to a reasonable center frame.
+    let result = FKPresentationAnchorLayout.anchoredFrame(
+      in: containerView,
+      bounds: bounds,
+      safeInsets: safeInsets,
+      anchor: anchor,
+      measuredContentHeight: { [weak self] in
+        guard let self, let containerView = self.containerView else { return 320 }
+        return self.measuredFitContentHeight(in: containerView)
+      }
+    )
+    return result.frame
+  }
+
+  private func resolveSourceRect(in containerView: UIView, anchor: FKAnchor) -> CGRect? {
+    FKPresentationAnchorLayout.resolveSourceRect(in: containerView, anchor: anchor)
+  }
+
+  private func edgeFrame(in bounds: CGRect, edge: UIRectEdge) -> CGRect {
+    let width = min(bounds.width * 0.85, 420)
+    let height = min(bounds.height * 0.85, 640)
+    if edge.contains(.left) {
+      return CGRect(x: 0, y: 0, width: width, height: bounds.height)
+    }
+    if edge.contains(.right) {
+      return CGRect(x: bounds.width - width, y: 0, width: width, height: bounds.height)
+    }
+    if edge.contains(.top) {
+      return CGRect(x: 0, y: 0, width: bounds.width, height: height)
+    }
+    return CGRect(x: 0, y: bounds.height - height, width: bounds.width, height: height)
+  }
+}
+
+// MARK: - Shared anchor layout (modal + embedded)
+
+/// Shared anchor frame resolver used by both modal and embedded anchor modes.
+@MainActor
+enum FKPresentationAnchorLayout {
+  struct Result {
+    var frame: CGRect
+    var sourceRect: CGRect?
+    var resolvedDirection: FKAnchor.Direction
+  }
+
+  static func resolveSourceRect(in containerView: UIView, anchor: FKAnchor) -> CGRect? {
+    switch anchor.source {
+    case let .view(box):
+      guard let view = box.object else { return nil }
+      guard view.window != nil else { return nil }
+      return view.convert(view.bounds, to: containerView)
+    case let .rect(provider):
+      return provider()
+    }
+  }
+
+  static func anchoredFrame(
+    in containerView: UIView,
+    bounds: CGRect,
+    safeInsets: UIEdgeInsets,
+    anchor: FKAnchor,
+    measuredContentHeight: () -> CGFloat
+  ) -> Result {
     guard let sourceRect = resolveSourceRect(in: containerView, anchor: anchor) else {
-      return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
+      let width = min(bounds.width - safeInsets.left - safeInsets.right, 460)
+      let height = min(bounds.height - safeInsets.top - safeInsets.bottom, max(180, measuredContentHeight()))
+      let frame = CGRect(x: (bounds.width - width) / 2, y: (bounds.height - height) / 2, width: width, height: height)
+      return .init(frame: frame, sourceRect: nil, resolvedDirection: .down)
     }
 
-    // Resolve direction.
     let direction: FKAnchor.Direction = {
       switch anchor.direction {
       case .up, .down:
@@ -991,12 +1058,10 @@ final class FKContainerPresentationController: UIPresentationController {
       case .auto:
         let upSpace = max(0, sourceRect.minY - (safeInsets.top + 8))
         let downSpace = max(0, (bounds.height - safeInsets.bottom - 8) - sourceRect.maxY)
-        // Use the side with more space; break ties in favor of down (common menus).
         return downSpace >= upSpace ? .down : .up
       }
     }()
 
-    // Available height depends on edge + direction.
     let attachmentY: CGFloat = (anchor.edge == .top) ? sourceRect.minY : sourceRect.maxY
     let availableHeight: CGFloat = {
       switch direction {
@@ -1009,11 +1074,9 @@ final class FKContainerPresentationController: UIPresentationController {
       }
     }()
 
-    // Height: best-effort content fit, clamped by available height.
-    let measured = measuredFitContentHeight(in: containerView)
+    let measured = measuredContentHeight()
     let height = min(availableHeight, max(180, measured))
 
-    // Width.
     let width: CGFloat = {
       switch anchor.widthPolicy {
       case .matchAnchor:
@@ -1025,7 +1088,6 @@ final class FKContainerPresentationController: UIPresentationController {
       }
     }()
 
-    // X origin based on alignment.
     let x: CGFloat = {
       let raw: CGFloat
       switch anchor.alignment {
@@ -1054,33 +1116,6 @@ final class FKContainerPresentationController: UIPresentationController {
       }
     }()
 
-    return CGRect(x: x, y: y, width: width, height: height)
-  }
-
-  private func resolveSourceRect(in containerView: UIView, anchor: FKAnchor) -> CGRect? {
-    switch anchor.source {
-    case let .view(box):
-      guard let view = box.object else { return nil }
-      // Ensure the view is in a window; if not, we consider it unresolved.
-      guard view.window != nil else { return nil }
-      return view.convert(view.bounds, to: containerView)
-    case let .rect(provider):
-      return provider()
-    }
-  }
-
-  private func edgeFrame(in bounds: CGRect, edge: UIRectEdge) -> CGRect {
-    let width = min(bounds.width * 0.85, 420)
-    let height = min(bounds.height * 0.85, 640)
-    if edge.contains(.left) {
-      return CGRect(x: 0, y: 0, width: width, height: bounds.height)
-    }
-    if edge.contains(.right) {
-      return CGRect(x: bounds.width - width, y: 0, width: width, height: bounds.height)
-    }
-    if edge.contains(.top) {
-      return CGRect(x: 0, y: 0, width: bounds.width, height: height)
-    }
-    return CGRect(x: 0, y: bounds.height - height, width: bounds.width, height: height)
+    return .init(frame: CGRect(x: x, y: y, width: width, height: height), sourceRect: sourceRect, resolvedDirection: direction)
   }
 }
