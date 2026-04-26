@@ -202,7 +202,8 @@ final class FKEmbeddedAnchorHost: NSObject, FKPresentationHosting {
 
     let vc = FKEmbeddedHostViewController(configuration: configuration)
     vc.onRequestDismiss = { [weak self] in
-      self?.dismiss(animated: true, completion: nil)
+      // Route dismiss through owner to keep lifecycle callbacks/state in sync.
+      self?.owner.dismiss(animated: true, completion: nil)
     }
     vc.onProgress = { [weak self] progress in
       self?.owner.notifyProgress(progress)
