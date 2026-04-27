@@ -96,7 +96,7 @@ public final class FKTabBar: UIView {
     didSet {
       invalidateIntrinsicContentSize()
       applyAppearance()
-      invalidateLayoutAndRelayout(reason: "configuration changed", animatedScroll: false)
+      invalidateLayoutAndRelayout(animatedScroll: false)
     }
   }
 
@@ -257,7 +257,6 @@ public final class FKTabBar: UIView {
   private var progressSnapshotFromFrame: CGRect?
   private var progressSnapshotToFrame: CGRect?
   private let selectionFeedbackGenerator = UISelectionFeedbackGenerator()
-  private var isRelayoutInProgress = false
 
   // MARK: - Lifecycle / Overrides
 
@@ -328,7 +327,7 @@ public final class FKTabBar: UIView {
       // Size changes (rotation, split view, parent relayout) are funneled into one relayout path
       // to keep item geometry, selected visibility, and indicator position in sync.
       lastLayoutSize = bounds.size
-      invalidateLayoutAndRelayout(reason: "bounds changed", animatedScroll: false)
+      invalidateLayoutAndRelayout(animatedScroll: false)
     }
     updateIndicatorFrame(animated: false)
   }
@@ -338,14 +337,14 @@ public final class FKTabBar: UIView {
     super.traitCollectionDidChange(previousTraitCollection)
     if traitCollection.layoutDirection != previousTraitCollection?.layoutDirection {
       applySemanticDirection()
-      invalidateLayoutAndRelayout(reason: "layout direction changed", animatedScroll: false)
+      invalidateLayoutAndRelayout(animatedScroll: false)
     }
     if traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory {
       // Dynamic Type changes affect text measurement and thus intrinsic item widths/heights.
       // Invalidate layout and reload to keep item sizing and indicator geometry stable.
       invalidateIntrinsicContentSize()
       collectionView.reloadData()
-      invalidateLayoutAndRelayout(reason: "content size category changed", animatedScroll: false)
+      invalidateLayoutAndRelayout(animatedScroll: false)
     }
   }
 
@@ -353,7 +352,7 @@ public final class FKTabBar: UIView {
     assertMainThreadInDebug()
     super.safeAreaInsetsDidChange()
     invalidateIntrinsicContentSize()
-    invalidateLayoutAndRelayout(reason: "safe area changed", animatedScroll: false)
+    invalidateLayoutAndRelayout(animatedScroll: false)
   }
 
   public override var intrinsicContentSize: CGSize {
@@ -418,7 +417,6 @@ public final class FKTabBar: UIView {
 
   private func applyReload(items: [FKTabBarItem], updatePolicy: ItemsUpdatePolicy) {
     assertMainThreadInDebug()
-    cancelInFlightCollectionAnimations()
     let previousID = visibleItems[safe: selectedIndex]?.id
     self.items = items
     self.visibleItems = items.filter { !$0.isHidden }
@@ -437,7 +435,7 @@ public final class FKTabBar: UIView {
     clearProgressSnapshot()
 
     collectionView.reloadData()
-    invalidateLayoutAndRelayout(reason: "items reloaded", animatedScroll: false)
+    invalidateLayoutAndRelayout(animatedScroll: false)
     updateIndicatorFrame(animated: false)
     delegate?.tabBar(self, didReloadItems: self.items, visibleItems: visibleItems, selectedIndex: selectedIndex)
   }
@@ -549,7 +547,7 @@ public final class FKTabBar: UIView {
   /// Use this after container rotation or major bounds/safe-area changes.
   public func realignSelection(animated: Bool = false) {
     assertMainThreadInDebug()
-    invalidateLayoutAndRelayout(reason: "manual realignSelection", animatedScroll: animated)
+    invalidateLayoutAndRelayout(animatedScroll: animated)
     updateIndicatorFrame(animated: false)
   }
 
@@ -638,8 +636,6 @@ public final class FKTabBar: UIView {
     setBadge(badge, at: visibleIndex, animated: animated, accessibilityValue: accessibilityValue)
   }
 
-  deinit {}
-
   // MARK: - Configuration / Appearance
 
   private func commonInit() {
@@ -713,15 +709,10 @@ public final class FKTabBar: UIView {
       layout: layout,
       scrollView: collectionView
     )
-    let config = layout.selectionScrollAnimation
-    let shouldAnimate = animated && config.isEnabled
-    if shouldAnimate {
-      UIView.animate(withDuration: config.duration, delay: 0, options: [animationOption(for: config.curve), .beginFromCurrentState, .allowUserInteraction]) {
-        self.collectionView.setContentOffset(targetOffset, animated: false)
-      }
-    } else {
-      collectionView.setContentOffset(targetOffset, animated: false)
-    }
+    let shouldAnimate = animated && layout.isSelectionScrollAnimationEnabled
+    // Prefer UIScrollView's own offset animation. Wrapping contentOffset in UIView.animate can
+    // interact poorly with concurrent reload/layout updates and cause unexpected cell appearances.
+    collectionView.setContentOffset(targetOffset, animated: shouldAnimate)
   }
 
   private func modelForCell(at index: Int, selectionProgress: CGFloat) -> FKTabBarItemCell.Model {
@@ -1094,7 +1085,7 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
     }
   }
 
-  private func invalidateLayoutAndRelayout(reason: String, animatedScroll: Bool) {
+  private func invalidateLayoutAndRelayout(animatedScroll: Bool) {
     guard !visibleItems.isEmpty else {
       return
     }
@@ -1104,26 +1095,6 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
     collectionView.layoutIfNeeded()
     clearProgressSnapshot()
     scrollSelectedIntoView(animated: animatedScroll)
-  }
-
-  private func cancelInFlightCollectionAnimations() {
-    // If a selection scroll animation is mid-flight, freeze at the currently visible position
-    // before reloading data to avoid cells appearing from an unexpected corner.
-    if let presentationBounds = collectionView.layer.presentation()?.bounds {
-      collectionView.layer.removeAllAnimations()
-      collectionView.setContentOffset(presentationBounds.origin, animated: false)
-      return
-    }
-    collectionView.layer.removeAllAnimations()
-  }
-
-  private func animationOption(for curve: FKTabBarScrollAnimationCurve) -> UIView.AnimationOptions {
-    switch curve {
-    case .easeInOut: return .curveEaseInOut
-    case .easeIn: return .curveEaseIn
-    case .easeOut: return .curveEaseOut
-    case .linear: return .curveLinear
-    }
   }
 
   private struct ContentDistribution {
