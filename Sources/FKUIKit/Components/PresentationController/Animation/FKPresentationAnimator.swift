@@ -183,7 +183,7 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
           return baseFrame.offsetBy(dx: 0, dy: delta)
         }
       }
-    case let .anchorEmbedded(configuration):
+    case let .embeddedAnchor(configuration):
       // Embedded anchors use the same motion baseline as modal anchors.
       return initialFrame(for: baseFrame, anchor: configuration.anchor)
     case let .edge(edge):
@@ -425,7 +425,7 @@ enum FKAnimationStyleResolver {
 
   private static func anchorLikeMode(_ mode: FKPresentationMode) -> Bool {
     switch mode {
-    case .anchor, .anchorEmbedded:
+    case .anchor, .embeddedAnchor:
       // Anchor-attached surfaces should feel "edge-locked" to the source view.
       // Spring rebound can briefly expose a gap between anchor and panel, which reads as a visual seam.
       return true

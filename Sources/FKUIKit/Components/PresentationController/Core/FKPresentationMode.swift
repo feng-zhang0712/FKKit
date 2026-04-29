@@ -18,7 +18,7 @@ public enum FKPresentationMode {
   ///
   /// - Important: This is a separate capability from `.anchor(_:)` and does not change the semantics of
   ///   modal anchor presentation.
-  case anchorEmbedded(FKEmbeddedAnchorConfiguration)
+  case embeddedAnchor(FKEmbeddedAnchorConfiguration)
   /// Presents from a custom edge for non-standard menu or tray patterns.
   case edge(UIRectEdge)
 }

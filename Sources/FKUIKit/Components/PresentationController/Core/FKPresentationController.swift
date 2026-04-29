@@ -39,11 +39,11 @@ public final class FKPresentationController: NSObject {
     super.init()
 
     // Host routing:
-    // - `.anchorEmbedded` stays inside the existing hierarchy because it must preserve local z-order,
+    // - `.embeddedAnchor` stays inside the existing hierarchy because it must preserve local z-order,
     //   touch passthrough boundaries, and anchor attachment semantics that `UIPresentationController`
     //   cannot guarantee.
     // - All other modes use UIKit custom modal presentation for system-like transitions and lifecycle.
-    if case let .anchorEmbedded(embedded) = configuration.mode {
+    if case let .embeddedAnchor(embedded) = configuration.mode {
       self.host = FKEmbeddedAnchorHost(
         owner: self,
         contentController: contentController,

@@ -1,6 +1,6 @@
 import UIKit
 
-/// Configuration for `FKPresentationMode.anchorEmbedded(_:)`.
+/// Configuration for `FKPresentationMode.embeddedAnchor(_:)`.
 ///
 /// Embedded anchor presentations are hosted inside an existing view hierarchy (instead of a modal
 /// `UIPresentationController` container). This enables "menu-like" overlays that appear attached
@@ -13,7 +13,7 @@ import UIKit
 public struct FKEmbeddedAnchorConfiguration {
   /// Anchor geometry and expansion direction.
   ///
-  /// This reuses `FKAnchor` so the mental model stays consistent across `.anchor` and `.anchorEmbedded`.
+  /// This reuses `FKAnchor` so the mental model stays consistent across `.anchor` and `.embeddedAnchor`.
   public var anchor: FKAnchor
 
   /// Where the embedded overlay is inserted.

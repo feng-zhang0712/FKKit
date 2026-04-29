@@ -70,7 +70,7 @@ final class FKContainerPresentationController: UIPresentationController {
       return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
     case let .anchor(anchor):
       return anchoredFrame(in: containerView, bounds: bounds, safeInsets: safeInsets, anchor: anchor)
-    case .anchorEmbedded:
+    case .embeddedAnchor:
       // Embedded anchors are not presented via UIPresentationController.
       // Fall back to center frame for safety if misconfigured.
       return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
@@ -265,7 +265,7 @@ final class FKContainerPresentationController: UIPresentationController {
           return .init(top: safe.top, left: 0, bottom: 0, right: 0)
         case .center:
           return safe
-        case .anchor, .anchorEmbedded:
+        case .anchor, .embeddedAnchor:
           // Anchors are typically popover-like; keep content away from unsafe regions.
           return safe
         case let .edge(edge):
