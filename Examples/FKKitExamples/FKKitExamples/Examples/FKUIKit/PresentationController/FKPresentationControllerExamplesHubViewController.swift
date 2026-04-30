@@ -45,6 +45,16 @@ final class FKPresentationControllerExamplesHubViewController: UITableViewContro
           subtitle: "Single anchor view at the top; tap it to present and tap again/mask to dismiss.",
           make: { AnchorTopSingleExampleViewController() }
         ),
+        Row(
+          title: "Bottom anchor popup",
+          subtitle: "Single anchor view at the bottom; popup expands upward from the anchor.",
+          make: { AnchorBottomSingleExampleViewController() }
+        ),
+        Row(
+          title: "Auto direction anchor popup",
+          subtitle: "Uses `.auto` direction to choose upward/downward expansion based on available space.",
+          make: { AnchorAutoDirectionExampleViewController() }
+        ),
       ]
     ),
     Section(
