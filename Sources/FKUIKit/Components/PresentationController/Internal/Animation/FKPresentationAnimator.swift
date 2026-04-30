@@ -1,26 +1,26 @@
 import UIKit
 
-/// Animator that drives presentation and dismissal transitions based on `FKPresentationMode`.
+/// Animator that drives presentation and dismissal transitions based on `FKPresentationConfiguration.Layout`.
 final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransitioning {
   private let isPresentation: Bool
-  private let mode: FKPresentationMode
+  private let layout: FKPresentationConfiguration.Layout
   private let animationConfiguration: FKAnimationConfiguration
   private var cachedAnimator: UIViewImplicitlyAnimating?
 
   init(
     isPresentation: Bool,
-    mode: FKPresentationMode,
+    layout: FKPresentationConfiguration.Layout,
     animationConfiguration: FKAnimationConfiguration
   ) {
     self.isPresentation = isPresentation
-    self.mode = mode
+    self.layout = layout
     self.animationConfiguration = animationConfiguration
     super.init()
   }
 
   func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
     let style = FKAnimationStyleResolver.resolveTransitionStyle(
-      mode: mode,
+      layout: layout,
       animationConfiguration: animationConfiguration,
       isPresentation: isPresentation,
       reduceMotionEnabled: UIAccessibility.isReduceMotionEnabled,
@@ -75,7 +75,7 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
       : transitionContext.initialFrame(for: controller)
 
     let style = FKAnimationStyleResolver.resolveTransitionStyle(
-      mode: mode,
+      layout: layout,
       animationConfiguration: animationConfiguration,
       isPresentation: isPresentation,
       reduceMotionEnabled: UIAccessibility.isReduceMotionEnabled,
@@ -98,7 +98,7 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
 
     let context = FKAnimationContext(
       isPresentation: isPresentation,
-      mode: mode,
+      layout: layout,
       animatingView: animatingView,
       startFrame: start.frame,
       endFrame: end.frame
@@ -159,32 +159,15 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
   }
 
   private func initialFrame(for baseFrame: CGRect) -> CGRect {
-    switch mode {
-    case .bottomSheet:
+    switch layout {
+    case .bottomSheet(_):
       return baseFrame.offsetBy(dx: 0, dy: baseFrame.height)
-    case .topSheet:
+    case .topSheet(_):
       return baseFrame.offsetBy(dx: 0, dy: -baseFrame.height)
-    case .center:
+    case .center(_):
       return baseFrame
-    case let .anchor(anchor):
-      // Anchor animations should follow the expansion direction to avoid “always from bottom” awkwardness.
-      let delta: CGFloat = 12
-      switch anchor.direction {
-      case .up:
-        return baseFrame.offsetBy(dx: 0, dy: delta)
-      case .down:
-        return baseFrame.offsetBy(dx: 0, dy: -delta)
-      case .auto:
-        // When auto, use attachment edge as a reasonable hint.
-        switch anchor.edge {
-        case .top:
-          return baseFrame.offsetBy(dx: 0, dy: -delta)
-        case .bottom:
-          return baseFrame.offsetBy(dx: 0, dy: delta)
-        }
-      }
-    case let .anchorEmbedded(configuration):
-      // Embedded anchors use the same motion baseline as modal anchors.
+    case let .anchor(configuration):
+      // Anchor mode uses anchor-hosted hosting and follows anchor geometry for motion direction hints.
       return initialFrame(for: baseFrame, anchor: configuration.anchor)
     case let .edge(edge):
       if edge.contains(.left) { return baseFrame.offsetBy(dx: -baseFrame.width, dy: 0) }
@@ -274,7 +257,7 @@ enum FKAnimationStyleResolver {
   }
 
   static func resolveTransitionStyle(
-    mode: FKPresentationMode,
+    layout: FKPresentationConfiguration.Layout,
     animationConfiguration: FKAnimationConfiguration,
     isPresentation: Bool,
     reduceMotionEnabled: Bool,
@@ -282,7 +265,7 @@ enum FKAnimationStyleResolver {
   ) -> TransitionStyle {
     if animationConfiguration.preset == .none {
       return .init(
-        family: family(for: mode),
+        family: family(for: layout),
         duration: 0,
         timing: .curve(.linear),
         initialAlpha: 1,
@@ -292,7 +275,7 @@ enum FKAnimationStyleResolver {
       )
     }
 
-    let family = family(for: mode)
+    let family = family(for: layout)
 
     if reduceMotionEnabled {
       // Reduce Motion: keep movement minimal; fade is the primary signal.
@@ -322,7 +305,7 @@ enum FKAnimationStyleResolver {
       )
     case .sheetLike:
       return resolveSheetLikeStyle(
-        mode: mode,
+        layout: layout,
         animationConfiguration: animationConfiguration,
         isPresentation: isPresentation,
         interactionState: interactionState
@@ -378,7 +361,7 @@ enum FKAnimationStyleResolver {
   }
 
   private static func resolveSheetLikeStyle(
-    mode: FKPresentationMode,
+    layout: FKPresentationConfiguration.Layout,
     animationConfiguration: FKAnimationConfiguration,
     isPresentation: Bool,
     interactionState: InteractionState
@@ -390,11 +373,11 @@ enum FKAnimationStyleResolver {
     switch animationConfiguration.preset {
     case .systemLike:
       duration = isPresentation ? 0.36 : 0.28
-      timing = anchorLikeMode(mode) ? .curve(.easeInOut) : .spring(dampingRatio: 0.9)
+      timing = anchorLikeLayout(layout) ? .curve(.easeInOut) : .spring(dampingRatio: 0.9)
     case .spring:
       let clamped = max(0.3, min(0.42, animationConfiguration.duration))
       duration = isPresentation ? clamped : max(0.22, clamped * 0.82)
-      if anchorLikeMode(mode) {
+      if anchorLikeLayout(layout) {
         timing = .curve(.easeInOut)
       } else {
         timing = .spring(dampingRatio: min(max(animationConfiguration.dampingRatio, 0.8), 0.95))
@@ -423,9 +406,9 @@ enum FKAnimationStyleResolver {
     )
   }
 
-  private static func anchorLikeMode(_ mode: FKPresentationMode) -> Bool {
-    switch mode {
-    case .anchor, .anchorEmbedded:
+  private static func anchorLikeLayout(_ layout: FKPresentationConfiguration.Layout) -> Bool {
+    switch layout {
+    case .anchor:
       // Anchor-attached surfaces should feel "edge-locked" to the source view.
       // Spring rebound can briefly expose a gap between anchor and panel, which reads as a visual seam.
       return true
@@ -434,8 +417,8 @@ enum FKAnimationStyleResolver {
     }
   }
 
-  private static func family(for mode: FKPresentationMode) -> Family {
-    if case .center = mode { return .alertLikeCenter }
+  private static func family(for layout: FKPresentationConfiguration.Layout) -> Family {
+    if case .center(_) = layout { return .alertLikeCenter }
     return .sheetLike
   }
 }
