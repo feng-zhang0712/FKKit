@@ -64,22 +64,17 @@ FKKit/
 │  │     ├─ Badge/
 │  │     ├─ BlurView/
 │  │     ├─ Button/
-│  │     ├─ Carousel/
 │  │     ├─ CornerShadow/
 │  │     ├─ Divider/
 │  │     ├─ EmptyState/
 │  │     ├─ ExpandableText/
-│  │     ├─ LoadingAnimator/
 │  │     ├─ MultiPicker/
-│  │     ├─ Presentation/
+│  │     ├─ PresentationController/
 │  │     ├─ Refresh/
 │  │     ├─ Skeleton/
-│  │     ├─ StarRating/
-│  │     ├─ StickyHeader/
-│  │     ├─ SwipeAction/
-  │  │     ├─ TabBar/
-│  │     ├─ Toast/
-│  │     └─ TextField/
+│  │     ├─ TabBar/
+│  │     ├─ TextField/
+│  │     └─ Toast/
 │  └─ FKCompositeKit/
 │     └─ Components/
 │        ├─ Base/
@@ -106,25 +101,20 @@ FKKit/
 ### FKUIKit
 `FKUIKit` contains reusable UIKit components for modern iOS interfaces:
 
-- `Button`: configurable button system with style/content/loading behavior.
-- `Presentation`: presentation container and positioning utilities.
+- `Badge`: flexible badge display for views, bar items, and tab items, with corner/center anchoring and customizable styles/animations.
 - `BlurView`: high-performance blur component with system/custom pipelines, UIKit/SwiftUI adapters, image/view snapshot blur APIs, and IB/global-configuration support.
-- `Carousel`: reusable carousel component with configurable direction/looping, item models, page control support, and extension points for image/custom view rendering.
-- `EmptyState`: loading/empty/error state overlay system.
-- `Divider`: lightweight reusable divider for UIKit/SwiftUI with dashed, gradient, and edge-pinning support.
-- `ExpandableText`: configurable long-text expand/collapse component with reusable-list state cache and pre-measurement support.
-- `LoadingAnimator`: multi-style loading animation component with fullscreen/embedded modes, determinate progress ring, dynamic style switching, and protocol-based custom animator extension.
-- `MultiPicker`: native multi-level cascading picker with built-in region data and custom provider support.
+- `Button`: configurable button system with style/content/loading behavior.
 - `CornerShadow`: arbitrary-corner radius + high-performance shadow rendering with explicit path control.
-- `Refresh`: pull-to-refresh and load-more controls.
-- `Badge`: flexible badge display for views, bar items, and tab items, with corner/center anchoring, global visibility control, and customizable animations/styles.
-- `TabBar`: high-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only).
+- `Divider`: lightweight reusable divider for UIKit/SwiftUI with dashed, gradient, and edge-pinning support.
+- `EmptyState`: loading/empty/error state overlay system.
+- `ExpandableText`: configurable long-text expand/collapse component with reusable-list state cache and pre-measurement support.
+- `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
+- `PresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
+- `Refresh`: pull-to-refresh and load-more controls for scroll views.
 - `Skeleton`: skeleton loading system for views/lists/containers with animation options.
-- `StarRating`: configurable star-rating component supporting full/half/precise modes, image/color rendering, gestures, callbacks, global defaults, and reuse-safe integration.
-- `StickyHeader`: high-performance sticky section header coordinator for UIKit lists (UITableView/UICollectionView/UIScrollView), with push-off interaction, lifecycle callbacks, safe-area-aware offsets, and SwiftUI bridging.
-- `SwipeAction`: native left/right swipe action system for `UITableViewCell` and `UICollectionViewCell` with multi-button actions and global/per-cell configuration.
-- `Toast`: unified Toast / HUD / Snackbar presenter with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, per-instance progress updates, presentation sound policy, and SwiftUI hosting support.
+- `TabBar`: high-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only).
 - `TextField`: one-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback.
+- `Toast`: unified Toast / HUD / Snackbar presenter with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, per-instance progress updates, presentation sound policy, and SwiftUI hosting support.
 
 ### FKCompositeKit
 `FKCompositeKit` builds business-facing composite components on top of `FKCoreKit` + `FKUIKit`:

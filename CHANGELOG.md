@@ -8,6 +8,27 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.43.4] - 2026-05-01
+
+### Added (FKUIKit PresentationController)
+- Added new sheet detents aligned with system semantics:
+  - `FKPresentationDetent.medium` (half-height style detent)
+  - `FKPresentationDetent.large` (near-full detent that preserves a visible edge gap)
+- Applied detent resolution support in both modal container host and overlay passthrough host, so `medium/large/full` behavior is consistent across interaction modes.
+- Updated top/bottom basics examples to demonstrate the new detent ladder (`fitContent`, `medium`, `large`, `full`).
+
+### Fixed (FKUIKit PresentationController)
+- Fixed sheet shadow rendering in container and overlay hosts by avoiding clipping on the shadow-rendering wrapper layer and preserving content clipping in the inner content container.
+- Fixed Fit-to-content example initial toggle state mismatch when launched with extra blocks enabled.
+- Removed a non-functional toggle from the points-detent example to avoid misleading interaction.
+- Corrected basic bottom-sheet example narrative to match actual configuration behavior.
+
+### Changed (Documentation)
+- Updated `Sources/FKUIKit/Components/PresentationController/README.md` with zero-dim backdrop behavior and overlay host architecture notes.
+- Updated root `README.md` FKUIKit module structure/component list to match current on-disk components:
+  - removed stale references to deleted modules (`Carousel`, `LoadingAnimator`, `StarRating`, `StickyHeader`, `SwipeAction`)
+  - renamed `Presentation` references to `PresentationController`.
+
 ## [0.41.0] - 2026-04-24
 
 ### Added (FKUIKit TabBar)
@@ -1440,7 +1461,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.40.1...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.4...HEAD
+[0.43.4]: https://github.com/feng-zhang0712/FKKit/compare/0.43.3...0.43.4
 [0.40.1]: https://github.com/feng-zhang0712/FKKit/compare/0.40.0...0.40.1
 [0.40.0]: https://github.com/feng-zhang0712/FKKit/compare/0.39.0...0.40.0
 [0.39.0]: https://github.com/feng-zhang0712/FKKit/compare/0.38.0...0.39.0

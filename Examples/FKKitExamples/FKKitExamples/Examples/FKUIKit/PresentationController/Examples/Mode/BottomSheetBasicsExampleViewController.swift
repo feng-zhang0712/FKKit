@@ -1,30 +1,30 @@
 import UIKit
 import FKUIKit
 
-/// Shows the simplest bottom sheet presentation using `FKPresentationController` defaults.
+/// Shows a basic bottom sheet setup with a practical detent ladder.
 ///
 /// Key highlights:
-/// - Uses `.bottomSheet` + `.default` configuration.
+/// - Uses `.bottomSheet` mode with commonly used detents.
 /// - Shows the “copy/paste” entry point for most apps.
-/// - Notes when defaults are a good fit (and when you should customize).
+/// - Includes both `.large` (near-full) and `.full` (true full-screen).
 final class BottomSheetBasicsExampleViewController: FKPresentationExamplePageViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     setHeader(
       title: "Bottom sheet — Basics",
-      subtitle: "The fastest way to present a bottom sheet with FK defaults.",
+      subtitle: "A practical bottom sheet setup with near-full and full detents.",
       notes: """
-      Why this is a good default:
+      Why this setup is useful:
       - Tap-to-dismiss and swipe-to-dismiss are enabled for a system-like feel.
-      - Detents default to fitContent + full.
-      - Safe area policy defaults to content-respects-safe-area (edge-attached look).
+      - `.large` keeps a visible top gap (system-sheet-like), while `.full` is true full-screen.
+      - Safe area policy still follows the selected configuration defaults.
       """
     )
 
     addPrimaryButton(title: "Present") { [weak self] in
       guard let self else { return }
       var configuration = FKPresentationExampleHelpers.bottomSheetConfiguration()
-      configuration.sheet.detents = [.fitContent, .fraction(0.5), .full]
+      configuration.sheet.detents = [.fitContent, .medium, .large, .full]
       _ = FKPresentationExampleHelpers.present(from: self, title: "Bottom sheet", configuration: configuration)
     }
   }

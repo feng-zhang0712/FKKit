@@ -50,6 +50,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     wrapperView.addSubview(chromeView)
 
     contentContainerView.backgroundColor = .clear
+    contentContainerView.clipsToBounds = true
     chromeView.backgroundColor = .clear
     chromeView.isUserInteractionEnabled = false
 
@@ -260,7 +261,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private func applyAppearance() {
     wrapperView.layer.cornerRadius = configuration.cornerRadius
-    wrapperView.layer.masksToBounds = true
+    wrapperView.layer.masksToBounds = false
     wrapperView.layer.shadowColor = configuration.shadow.color.cgColor
     wrapperView.layer.shadowOpacity = configuration.shadow.opacity
     wrapperView.layer.shadowRadius = configuration.shadow.radius
@@ -310,10 +311,27 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       value = min(availableHeight, max(0, points))
     case let .fraction(fraction):
       value = min(availableHeight, max(0, fraction) * availableHeight)
+    case .medium:
+      value = availableHeight * 0.5
+    case .large:
+      value = max(0, availableHeight - largeDetentEdgeGap())
     case .full:
       value = availableHeight
     }
     return value
+  }
+
+  /// System-sheet-like "large" detent that keeps a visible edge gap instead of true full-screen.
+  private func largeDetentEdgeGap() -> CGFloat {
+    let extraGap: CGFloat = 8
+    switch configuration.layout {
+    case .topSheet(_):
+      let safeBottom = configuration.safeAreaPolicy == .containerRespectsSafeArea ? 0 : view.safeAreaInsets.bottom
+      return safeBottom + extraGap
+    default:
+      let safeTop = configuration.safeAreaPolicy == .containerRespectsSafeArea ? 0 : view.safeAreaInsets.top
+      return safeTop + extraGap
+    }
   }
 
   private func contentPreferredHeight() -> CGFloat {

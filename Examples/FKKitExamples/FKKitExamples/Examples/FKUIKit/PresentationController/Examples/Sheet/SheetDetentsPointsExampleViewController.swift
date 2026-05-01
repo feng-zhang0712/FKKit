@@ -25,13 +25,6 @@ final class SheetDetentsPointsExampleViewController: FKPresentationExamplePageVi
       self.currentController = FKPresentationExampleHelpers.present(from: self, title: "Points detents", configuration: configuration)
     }
 
-    addView(
-      FKExampleControls.toggle(
-        title: "Keep a reference to call setDetent",
-        isOn: true
-      ) { _ in }
-    )
-
     addPrimaryButton(title: "Switch to 240pt") { [weak self] in
       self?.currentController?.setDetent(.fixed(240), animated: true)
     }

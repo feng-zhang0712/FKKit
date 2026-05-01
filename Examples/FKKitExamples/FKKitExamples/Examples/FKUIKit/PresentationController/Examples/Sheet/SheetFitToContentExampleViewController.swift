@@ -78,6 +78,7 @@ private final class DynamicBlocksContentViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
+    isExpanded = includesExtraBlocks
 
     stack.axis = .vertical
     stack.spacing = 12
@@ -112,11 +113,7 @@ private final class DynamicBlocksContentViewController: UIViewController {
     }, for: .touchUpInside)
     stack.addArrangedSubview(toggleButton)
 
-    if includesExtraBlocks {
-      rebuildBlocks(extra: true)
-    } else {
-      rebuildBlocks(extra: false)
-    }
+    rebuildBlocks(extra: includesExtraBlocks)
   }
 
   private var isExpanded = false
