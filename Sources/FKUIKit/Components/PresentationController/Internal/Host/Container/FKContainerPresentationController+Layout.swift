@@ -9,7 +9,7 @@ extension FKContainerPresentationController {
     containerBlurView.frame = wrapperView.bounds
     containerBlurView.maskedCornerRadius = configuration.cornerRadius
     wrapperView.layer.cornerRadius = configuration.cornerRadius
-    wrapperView.layer.masksToBounds = true
+    wrapperView.layer.masksToBounds = false
     wrapperView.layer.shadowColor = configuration.shadow.color.cgColor
     wrapperView.layer.shadowOpacity = configuration.shadow.opacity
     wrapperView.layer.shadowRadius = configuration.shadow.radius
@@ -183,10 +183,27 @@ extension FKContainerPresentationController {
       value = min(availableHeight, max(0, points))
     case let .fraction(fraction):
       value = min(availableHeight, max(0, fraction) * availableHeight)
+    case .medium:
+      value = availableHeight * 0.5
+    case .large:
+      value = max(0, availableHeight - largeDetentEdgeGap(in: containerView))
     case .full:
       value = availableHeight
     }
     return clampedContentHeight(value, containerView: containerView)
+  }
+
+  /// System-sheet-like "large" detent that keeps a visible edge gap instead of true full-screen.
+  func largeDetentEdgeGap(in containerView: UIView) -> CGFloat {
+    let extraGap: CGFloat = 8
+    switch configuration.layout {
+    case .topSheet(_):
+      let safeBottom = configuration.safeAreaPolicy == .containerRespectsSafeArea ? 0 : containerView.safeAreaInsets.bottom
+      return safeBottom + extraGap
+    default:
+      let safeTop = configuration.safeAreaPolicy == .containerRespectsSafeArea ? 0 : containerView.safeAreaInsets.top
+      return safeTop + extraGap
+    }
   }
 
   /// Measures fit-content height using preferredContentSize then Auto Layout fitting.

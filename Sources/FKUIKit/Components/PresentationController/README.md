@@ -18,6 +18,7 @@
 - [Advanced Usage](#advanced-usage)
   - [Sheet Detents and Programmatic Switching](#sheet-detents-and-programmatic-switching)
   - [Backdrop Styles](#backdrop-styles)
+  - [Zero-dim Backdrop Behavior](#zero-dim-backdrop-behavior)
   - [Safe Area Policy](#safe-area-policy)
   - [Keyboard Avoidance](#keyboard-avoidance)
   - [Animation Control](#animation-control)
@@ -217,6 +218,25 @@ configuration.containerBlur = .init(
 )
 ```
 
+### Zero-dim Backdrop Behavior
+
+```swift
+var configuration = FKPresentationConfiguration()
+configuration.backdropStyle = .dim(alpha: 0)
+
+// Default: still allow tap-outside dismissal behavior.
+configuration.zeroDimBackdropBehavior = .dismissable
+
+// Alternatives:
+// configuration.zeroDimBackdropBehavior = .disabled
+// configuration.zeroDimBackdropBehavior = .passthrough
+```
+
+Behavior notes:
+- `.dismissable` (default): keeps outside-tap dismissal semantics even when dim is visually zero.
+- `.disabled`: disables backdrop interaction at zero-dim.
+- `.passthrough`: enables true background interaction outside popup bounds.
+
 ### Safe Area Policy
 
 ```swift
@@ -326,6 +346,7 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 
 - `Public/`: stable API surface (`Core`, `Configuration`, `Animation`, `Anchor`, `Model`, `Support`)
 - `Internal/Host/Container`: modal `UIPresentationController` pipeline split by concern (`+Layout`, `+Gesture`, `+Keyboard`, `+Backdrop`, `+Scroll`, `+Callbacks`)
+- `Internal/Host/Overlay`: in-hierarchy passthrough host for zero-dim/background interaction scenarios
 - `Internal/Host/Anchor`: in-hierarchy anchor hosting (`FKAnchorHost`, host view controller, reposition coordinator)
 - `Internal/Core`: routing contracts and shared resolvers (`FKPresentationHost`, transitioning delegate, anchor layout resolver)
 - `Internal/Support`: shared internal utilities (for example responder-chain lookup)
@@ -335,6 +356,7 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - `anchor` layout uses anchor hosting and does not go through the modal `UIPresentationController` path.
 - Detent APIs are meaningful for sheet modes; non-sheet modes ignore detent switching.
 - `backgroundInteraction.isEnabled` is an advanced setting; enable only when passthrough behavior is intentional.
+- When `zeroDimBackdropBehavior == .passthrough` (or background interaction is enabled), FK routes through the overlay host so popup-external touches can reach the presenting UI.
 - In anchor-hosted layout, choose `maskCoveragePolicy` carefully (`fullScreen` vs `belowAnchorOnly`) based on expected touch interception.
 
 ## License

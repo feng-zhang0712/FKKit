@@ -5,6 +5,7 @@ import FKUIKit
 ///
 /// Key highlights:
 /// - Uses `.topSheet` mode.
+/// - Includes both `.large` (near-full) and `.full` (true full-screen).
 /// - Good for transient top menus, banners with actions, or filter trays.
 /// Caveat:
 /// - Consider safe area when presenting under the notch/status bar.
@@ -20,7 +21,7 @@ final class TopSheetBasicsExampleViewController: FKPresentationExamplePageViewCo
     addPrimaryButton(title: "Present") { [weak self] in
       guard let self else { return }
       var configuration = FKPresentationExampleHelpers.topSheetConfiguration()
-      configuration.sheet.detents = [.fitContent, .fraction(0.5), .full]
+      configuration.sheet.detents = [.fitContent, .medium, .large, .full]
       _ = FKPresentationExampleHelpers.present(from: self, title: "Top sheet", configuration: configuration)
     }
   }

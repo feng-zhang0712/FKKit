@@ -10,7 +10,6 @@ class FKPresentationExamplePageViewController: UIViewController {
   let stack = UIStackView()
 
   private let headerView = FKExampleHeaderView()
-  private var pinnedTopViewBottomConstraint: NSLayoutConstraint?
 
   /// Optional view pinned to the top (below safe area) above the scroll content.
   ///
