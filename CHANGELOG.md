@@ -9,6 +9,44 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.43.12] - 2026-05-02
+
+### Changed (FKUIKit FKMultiPicker)
+
+**Breaking**
+
+- Reorganized `Sources/FKUIKit/Components/MultiPicker/` into `Public/`, `Internal/`, and `Extension/` to match other FKUIKit components (e.g. `Badge`).
+- Removed `FKMultiPickerManager`; application-wide defaults are `FKMultiPicker.defaultConfiguration`.
+- Renamed `FKMultiPickerConfiguration.componentCount` to `numberOfColumns`.
+- Renamed `bindDataProvider(_:)` to `setDataProvider(_:)`.
+- Renamed `present(in:nodes:...)` to `present(in:roots:...)` and `present(in:provider:...)` to `present(in:dataProvider:...)`.
+- Renamed `presentRegionPicker(...)` to `presentSampleAddressPicker(...)` to reflect that bundled geography is **sample data**, not a production dataset.
+- Replaced `FKMultiPickerBuiltInRegionDataProvider` and `standardRegionNodes` with `FKMultiPickerSampleAddressData.tree` and `FKMultiPickerSampleAddressDataProvider`.
+- Replaced `fk_presentMultiPicker` / `fk_presentRegionPicker` with `fk_presentFKMultiPicker(roots:configuration:onConfirmed:)`, `fk_presentFKMultiPicker(dataProvider:configuration:onConfirmed:)`, and `fk_presentFKMultiPickerSampleAddress(configuration:onConfirmed:)`.
+
+**Non-breaking**
+
+- Refined sheet behavior: wheel bottom aligns to the host safe area, fullscreen sheet height tracks bounds changes, the confirm control is disabled when the selection snapshot is empty, and basic VoiceOver support covers modal presentation and mask dismissal when enabled.
+
+### Added (FKUIKit FKMultiPicker)
+
+- `restoreSelection(from:animated:)` to align wheels with a previous `FKMultiPickerSelectionResult`.
+- `FKMultiPickerSelectionResult.selectionKeys` to populate `defaultSelectionKeys` from a prior result without manual id collection.
+
+### Fixed (FKUIKit FKMultiPicker)
+
+- `reloadData()` retains level-0 nodes supplied by `updateNodes(_:)` when no `dataSource` is set, so `show()` no longer clears in-memory trees before presentation.
+- Marked `FKMultiPickerNode` as `Sendable` so static sample trees meet Swift 6 concurrency checking.
+
+### Changed (Documentation)
+
+- Rewrote `Sources/FKUIKit/Components/MultiPicker/README.md` and refreshed the MultiPicker lines in the root `README.md` module map.
+
+### Changed (Examples)
+
+- Moved MultiPicker demo fixtures into `Examples/.../FKUIKit/MultiPicker/Support/` (`FKMultiPickerDemoSampleData`, `FKMultiPickerDemoCatalogProvider`) and removed `FKMultiPickerCustomDataProvider.swift`.
+- Updated `ExampleMenuViewController` copy for the MultiPicker entry.
+
 ## [0.43.11] - 2026-05-02
 
 ### Changed (FKUIKit FKExpandableText)

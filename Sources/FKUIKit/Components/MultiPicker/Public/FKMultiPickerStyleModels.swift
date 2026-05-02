@@ -1,50 +1,23 @@
 //
-// FKMultiPickerAppearance.swift
-//
-// Appearance models for FKMultiPicker.
+// FKMultiPickerStyleModels.swift
 //
 
 import UIKit
 
-/// Visual appearance for picker toolbar.
+/// Toolbar appearance for `FKMultiPicker`.
 public struct FKMultiPickerToolbarStyle: Hashable {
-  /// Title displayed at the center of the toolbar.
   public var title: String
-  /// Text color of the title label.
   public var titleColor: UIColor
-  /// Font of the title label.
   public var titleFont: UIFont
-  /// Text shown in the cancel button.
   public var cancelTitle: String
-  /// Text color of the cancel button.
   public var cancelTitleColor: UIColor
-  /// Font used by the cancel button.
   public var cancelTitleFont: UIFont
-  /// Text shown in the confirm button.
   public var confirmTitle: String
-  /// Text color of the confirm button.
   public var confirmTitleColor: UIColor
-  /// Font used by the confirm button.
   public var confirmTitleFont: UIFont
-  /// Color of the toolbar bottom separator.
   public var separatorColor: UIColor
-  /// Whether the toolbar separator line is visible.
   public var showsSeparator: Bool
 
-  /// Creates a toolbar style object.
-  ///
-  /// - Parameters:
-  ///   - title: Title displayed at the center.
-  ///   - titleColor: Title text color.
-  ///   - titleFont: Title font.
-  ///   - cancelTitle: Cancel button text.
-  ///   - cancelTitleColor: Cancel button text color.
-  ///   - cancelTitleFont: Cancel button font.
-  ///   - confirmTitle: Confirm button text.
-  ///   - confirmTitleColor: Confirm button text color.
-  ///   - confirmTitleFont: Confirm button font.
-  ///   - separatorColor: Toolbar separator color.
-  ///   - showsSeparator: Whether separator is displayed.
   public init(
     title: String = "Please Select",
     titleColor: UIColor = .label,
@@ -72,27 +45,14 @@ public struct FKMultiPickerToolbarStyle: Hashable {
   }
 }
 
-/// Visual appearance for picker rows.
+/// Wheel row appearance for `FKMultiPicker`.
 public struct FKMultiPickerRowStyle: Hashable {
-  /// Text color for unselected rows.
   public var textColor: UIColor
-  /// Text color for the selected row.
   public var selectedTextColor: UIColor
-  /// Font for unselected rows.
   public var font: UIFont
-  /// Font for the selected row.
   public var selectedFont: UIFont
-  /// Height of each picker row.
   public var rowHeight: CGFloat
 
-  /// Creates a row style object.
-  ///
-  /// - Parameters:
-  ///   - textColor: Color for unselected rows.
-  ///   - selectedTextColor: Color for selected rows.
-  ///   - font: Font for unselected rows.
-  ///   - selectedFont: Font for selected rows.
-  ///   - rowHeight: Row height. The value is clamped to a minimum safe height.
   public init(
     textColor: UIColor = .label,
     selectedTextColor: UIColor = .systemBlue,
@@ -108,33 +68,16 @@ public struct FKMultiPickerRowStyle: Hashable {
   }
 }
 
-/// Visual appearance for modal container.
+/// Bottom sheet container appearance for `FKMultiPicker`.
 public struct FKMultiPickerContainerStyle: Hashable {
-  /// Background color of the sheet container.
   public var backgroundColor: UIColor
-  /// Color of the fullscreen dimming overlay.
   public var maskColor: UIColor
-  /// Corner radius applied to the sheet container.
   public var cornerRadius: CGFloat
-  /// Shadow color of the sheet container.
   public var shadowColor: UIColor
-  /// Shadow opacity of the sheet container.
   public var shadowOpacity: Float
-  /// Shadow blur radius of the sheet container.
   public var shadowRadius: CGFloat
-  /// Shadow offset of the sheet container.
   public var shadowOffset: CGSize
 
-  /// Creates a container style object.
-  ///
-  /// - Parameters:
-  ///   - backgroundColor: Sheet background color.
-  ///   - maskColor: Dimming overlay color.
-  ///   - cornerRadius: Sheet corner radius.
-  ///   - shadowColor: Shadow color.
-  ///   - shadowOpacity: Shadow opacity.
-  ///   - shadowRadius: Shadow blur radius.
-  ///   - shadowOffset: Shadow offset.
   public init(
     backgroundColor: UIColor = .systemBackground,
     maskColor: UIColor = UIColor.black.withAlphaComponent(0.35),

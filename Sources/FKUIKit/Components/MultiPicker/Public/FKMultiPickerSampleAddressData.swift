@@ -1,34 +1,12 @@
 //
-// FKMultiPickerBuiltInRegionData.swift
-//
-// Built-in China region data source for FKMultiPicker.
+// FKMultiPickerSampleAddressData.swift
 //
 
 import Foundation
 
-/// Built-in sample region provider for province-city-district-street selection.
-///
-/// The data is intentionally lightweight for UI components and can be replaced by business data.
-@MainActor
-public final class FKMultiPickerBuiltInRegionDataProvider: FKMultiPickerDataProviding {
-  /// Creates the built-in region data provider.
-  public init() {}
-
-  /// Returns built-in root nodes.
-  ///
-  /// - Returns: Province-level nodes.
-  public func rootNodes() -> [FKMultiPickerNode] {
-    Self.standardRegionNodes
-  }
-}
-
-public extension FKMultiPickerBuiltInRegionDataProvider {
-  /// Built-in standard region tree.
-  ///
-  /// The dataset is organized as:
-  /// province -> city -> district -> street.
-  /// It can be used directly in demos or as a template for app-specific datasets.
-  static let standardRegionNodes: [FKMultiPickerNode] = [
+/// Sample province → city → district → street hierarchy for demos and UI tests (not production geodata).
+public enum FKMultiPickerSampleAddressData {
+  public static let tree: [FKMultiPickerNode] = [
     FKMultiPickerNode(
       id: "110000",
       title: "Beijing",
@@ -164,4 +142,14 @@ public extension FKMultiPickerBuiltInRegionDataProvider {
       ]
     ),
   ]
+}
+
+/// `FKMultiPickerDataProviding` that exposes `FKMultiPickerSampleAddressData.tree` as roots.
+@MainActor
+public final class FKMultiPickerSampleAddressDataProvider: FKMultiPickerDataProviding {
+  public init() {}
+
+  public func rootNodes() -> [FKMultiPickerNode] {
+    FKMultiPickerSampleAddressData.tree
+  }
 }

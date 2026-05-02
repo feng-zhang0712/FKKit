@@ -1,21 +1,17 @@
 //
 // FKMultiPickerSelection.swift
 //
-// Selection result models for FKMultiPicker.
-//
 
 import Foundation
 
-/// One selected row in a specific level.
+/// One selected wheel position at a given depth.
 public struct FKMultiPickerSelectionItem: Hashable {
-  /// Level index in picker components.
+  /// Column index (0 = leftmost / root column).
   public let level: Int
-  /// Selected row index in the level.
+  /// Row index in that column.
   public let row: Int
-  /// Selected node.
   public let node: FKMultiPickerNode
 
-  /// Creates a selected item.
   public init(level: Int, row: Int, node: FKMultiPickerNode) {
     self.level = level
     self.row = row
@@ -23,20 +19,23 @@ public struct FKMultiPickerSelectionItem: Hashable {
   }
 }
 
-/// Full selection result for the current picker state.
+/// Snapshot of the current or confirmed path through the tree.
 public struct FKMultiPickerSelectionResult: Hashable {
-  /// Ordered selected items from level 0 to deepest level.
-  ///
-  /// The array only includes levels with valid rows and data.
   public let items: [FKMultiPickerSelectionItem]
 
-  /// Convenience joined text for quick display.
+  /// Titles from root to leaf, space-separated.
   public var joinedTitle: String {
     items.map(\.node.title).joined(separator: " ")
   }
 
-  /// Creates a selection result.
   public init(items: [FKMultiPickerSelectionItem]) {
     self.items = items
+  }
+}
+
+public extension FKMultiPickerSelectionResult {
+  /// Node ids ordered by `level`, suitable for `FKMultiPickerConfiguration.defaultSelectionKeys`.
+  var selectionKeys: [String] {
+    items.sorted { $0.level < $1.level }.map(\.node.id)
   }
 }

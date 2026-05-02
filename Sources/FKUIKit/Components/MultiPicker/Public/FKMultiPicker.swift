@@ -1,77 +1,50 @@
 //
 // FKMultiPicker.swift
 //
-// Native cascading multi-level picker component.
-//
 
 import UIKit
 
-/// Native UIKit cascading picker that supports unlimited level data trees.
+/// Multi-column `UIPickerView` in a bottom sheet, with linked data between columns.
 @MainActor
 public final class FKMultiPicker: UIView {
-  /// Instance configuration.
+  /// Default configuration for new instances and `present` helpers when no configuration is passed.
+  public static var defaultConfiguration = FKMultiPickerConfiguration()
+
   public private(set) var configuration: FKMultiPickerConfiguration
-  /// Picker data source.
   public weak var dataSource: FKMultiPickerDataSource?
-  /// Picker delegate.
   public weak var delegate: FKMultiPickerDelegate?
 
-  /// Realtime callback for selection changes.
   public var onSelectionChanged: ((FKMultiPickerSelectionResult) -> Void)?
-  /// Confirmation callback.
   public var onConfirmed: ((FKMultiPickerSelectionResult) -> Void)?
-  /// Cancel callback.
   public var onCancelled: (() -> Void)?
 
-  /// Fullscreen overlay used for dimming and tap-to-dismiss interaction.
   private let overlayView = UIControl()
-  /// Bottom sheet container that hosts toolbar and picker view.
   private let containerView = UIView()
-  /// Top toolbar section that contains title and actions.
   private let toolbarView = UIView()
-  /// Center title label displayed in toolbar.
   private let titleLabel = UILabel()
-  /// Cancel action button on the leading side.
   private let cancelButton = UIButton(type: .system)
-  /// Confirm action button on the trailing side.
   private let confirmButton = UIButton(type: .system)
-  /// Optional separator under toolbar.
   private let separatorView = UIView()
-  /// UIKit wheel picker used for multi-column linkage display.
   private let pickerView = UIPickerView()
 
-  /// Reserved bottom constraint placeholder for future layout adjustments.
-  private var containerBottomConstraint: NSLayoutConstraint?
-  /// Height constraint of the sheet container.
   private var containerHeightConstraint: NSLayoutConstraint?
-  /// Data cache per visible level. Each nested array represents one component.
   private var dataByLevel: [[FKMultiPickerNode]] = []
-  /// Selected row index per visible level.
   private var selectedIndexByLevel: [Int] = []
-  /// Host view where picker is presented.
   private weak var hostView: UIView?
-  /// Internal bridge retaining provider-style data source.
-  private var providerBridge: FKMultiPickerProviderBridge?
+  private var providerBridge: FKMultiPickerDataProviderBridge?
 
-  /// Creates picker with custom configuration.
-  public init(configuration: FKMultiPickerConfiguration = FKMultiPickerManager.shared.defaultConfiguration) {
+  public init(configuration: FKMultiPickerConfiguration = FKMultiPicker.defaultConfiguration) {
     self.configuration = configuration
     super.init(frame: .zero)
     setupUI()
   }
 
-  /// Interface Builder initializer.
   public required init?(coder: NSCoder) {
-    configuration = FKMultiPickerManager.shared.defaultConfiguration
+    configuration = FKMultiPicker.defaultConfiguration
     super.init(coder: coder)
     setupUI()
   }
 
-  /// Applies a full configuration and refreshes styles.
-  ///
-  /// This API updates visual style and layout-related configuration for the current instance.
-  ///
-  /// - Parameter configuration: New picker configuration.
   public func configure(_ configuration: FKMultiPickerConfiguration) {
     self.configuration = configuration
     applyAppearance()
@@ -80,9 +53,6 @@ public final class FKMultiPicker: UIView {
     applyDefaultSelection(animated: false)
   }
 
-  /// Presents picker in a host view.
-  ///
-  /// - Parameter hostView: Target container view. When omitted, the key window is used.
   public func show(in hostView: UIView? = nil) {
     guard superview == nil else { return }
     let targetView = hostView ?? Self.defaultHostView()
@@ -101,6 +71,7 @@ public final class FKMultiPicker: UIView {
     reloadData()
     updateContainerHeight()
     layoutIfNeeded()
+    containerView.accessibilityViewIsModal = true
     FKMultiPickerAnimator.present(
       maskView: overlayView,
       containerView: containerView,
@@ -108,9 +79,6 @@ public final class FKMultiPicker: UIView {
     )
   }
 
-  /// Dismisses picker.
-  ///
-  /// - Parameter completion: Optional callback executed after dismiss animation completes.
   public func dismiss(completion: (() -> Void)? = nil) {
     guard superview != nil else {
       completion?()
@@ -122,17 +90,21 @@ public final class FKMultiPicker: UIView {
       containerView: containerView,
       duration: configuration.animationDuration
     ) { [weak self] in
+      self?.containerView.accessibilityViewIsModal = false
       self?.removeFromSuperview()
       completion?()
     }
   }
 
-  /// Reloads root and dependent levels from data source.
-  ///
-  /// This method resets selection state to first rows, rebuilds cascade data, and notifies
-  /// realtime selection callback with the reconstructed default result.
   public func reloadData() {
-    let roots = dataSource?.rootNodes(for: self) ?? []
+    let roots: [FKMultiPickerNode]
+    if let dataSource {
+      roots = dataSource.rootNodes(for: self)
+    } else if let existing = dataByLevel.first, !existing.isEmpty {
+      roots = existing
+    } else {
+      roots = []
+    }
     dataByLevel = [roots]
     selectedIndexByLevel = [0]
     rebuildCascade(from: 0)
@@ -141,9 +113,6 @@ public final class FKMultiPicker: UIView {
     notifySelectionChanged()
   }
 
-  /// Resets current selected rows to first valid item.
-  ///
-  /// - Parameter animated: Whether picker wheel movement is animated.
   public func resetSelection(animated: Bool = true) {
     selectedIndexByLevel = Array(repeating: 0, count: max(1, dataByLevel.count))
     rebuildCascade(from: 0)
@@ -152,9 +121,29 @@ public final class FKMultiPicker: UIView {
     notifySelectionChanged()
   }
 
-  /// Updates root nodes directly for business scenarios without delegate object.
-  ///
-  /// - Parameter nodes: Root nodes for level 0.
+  public func restoreSelection(from result: FKMultiPickerSelectionResult, animated: Bool = false) {
+    guard !result.items.isEmpty else { return }
+    guard !dataByLevel.isEmpty, !dataByLevel[0].isEmpty else { return }
+    let sorted = result.items.sorted { $0.level < $1.level }
+    for item in sorted {
+      guard item.level < dataByLevel.count else { break }
+      let nodes = dataByLevel[item.level]
+      if nodes.isEmpty { break }
+      guard let row = nodes.firstIndex(where: { $0.id == item.node.id || $0.title == item.node.title }) else {
+        break
+      }
+      while selectedIndexByLevel.count <= item.level {
+        selectedIndexByLevel.append(0)
+      }
+      selectedIndexByLevel[item.level] = row
+      rebuildCascade(from: item.level)
+    }
+    pickerView.reloadAllComponents()
+    applySelectionToPicker(animated: animated)
+    notifySelectionChanged()
+  }
+
+  /// Replaces level-0 data and clears the selection (embedded `children` drive deeper levels unless a `dataSource` supplies children).
   public func updateNodes(_ nodes: [FKMultiPickerNode]) {
     dataByLevel = [nodes]
     selectedIndexByLevel = [0]
@@ -164,21 +153,23 @@ public final class FKMultiPicker: UIView {
     notifySelectionChanged()
   }
 
-  /// Binds a standalone provider object to this picker.
-  ///
-  /// This API keeps provider retained internally and bridges it to `FKMultiPickerDataSource`.
-  ///
-  /// - Parameter provider: Provider that resolves root and child nodes.
-  public func bindDataProvider(_ provider: FKMultiPickerDataProviding) {
-    let bridge = FKMultiPickerProviderBridge(provider: provider)
+  /// Attaches a `FKMultiPickerDataProviding` instance and reloads from it (replaces `dataSource` with an internal bridge).
+  public func setDataProvider(_ provider: FKMultiPickerDataProviding) {
+    let bridge = FKMultiPickerDataProviderBridge(provider: provider)
     providerBridge = bridge
     dataSource = bridge
     reloadData()
   }
+
+  public override func layoutSubviews() {
+    super.layoutSubviews()
+    if case .fullScreen = configuration.presentationStyle {
+      updateContainerHeight()
+    }
+  }
 }
 
 private extension FKMultiPicker {
-  /// Builds and constraints all UIKit subviews.
   func setupUI() {
     translatesAutoresizingMaskIntoConstraints = false
     backgroundColor = .clear
@@ -213,7 +204,6 @@ private extension FKMultiPicker {
     pickerView.delegate = self
     containerView.addSubview(pickerView)
 
-    // Overlay always covers the full host area to support dimming and tap dismissal.
     NSLayoutConstraint.activate([
       overlayView.leadingAnchor.constraint(equalTo: leadingAnchor),
       overlayView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -222,7 +212,6 @@ private extension FKMultiPicker {
 
       containerView.leadingAnchor.constraint(equalTo: leadingAnchor),
       containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
-      // The sheet is pinned to the very bottom edge to avoid visual gaps.
       containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
       toolbarView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
@@ -238,7 +227,6 @@ private extension FKMultiPicker {
       confirmButton.centerYAnchor.constraint(equalTo: toolbarView.centerYAnchor),
       confirmButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 56),
 
-      // Keep title truly centered in the toolbar while respecting button occupancy.
       titleLabel.centerXAnchor.constraint(equalTo: toolbarView.centerXAnchor),
       titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: cancelButton.trailingAnchor, constant: 8),
       titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: confirmButton.leadingAnchor, constant: -8),
@@ -252,7 +240,7 @@ private extension FKMultiPicker {
       pickerView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
       pickerView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
       pickerView.topAnchor.constraint(equalTo: toolbarView.bottomAnchor),
-      pickerView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+      pickerView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor),
     ])
 
     containerHeightConstraint = containerView.heightAnchor.constraint(equalToConstant: 300)
@@ -260,7 +248,6 @@ private extension FKMultiPicker {
     applyAppearance()
   }
 
-  /// Applies all style values from the current configuration.
   func applyAppearance() {
     let toolbarStyle = configuration.toolbarStyle
     let rowStyle = configuration.rowStyle
@@ -290,19 +277,25 @@ private extension FKMultiPicker {
 
     separatorView.isHidden = !toolbarStyle.showsSeparator
     separatorView.backgroundColor = toolbarStyle.separatorColor
-    // Hide native selection lines when caller disables separator style.
     pickerView.subviews.forEach { view in
       if view.frame.height <= 1 {
         view.isHidden = !toolbarStyle.showsSeparator
       }
     }
 
-    // Touching row metrics forces picker layout update for new row style values.
+    if configuration.dismissOnMaskTap {
+      overlayView.isAccessibilityElement = true
+      overlayView.accessibilityTraits = .button
+      overlayView.accessibilityLabel = "Dismiss picker"
+    } else {
+      overlayView.isAccessibilityElement = false
+      overlayView.accessibilityLabel = nil
+    }
+
     pickerView.rowSize(forComponent: 0)
     _ = rowStyle
   }
 
-  /// Recomputes container height based on selected presentation style.
   func updateContainerHeight() {
     let fullHeight = configuration.toolbarHeight + configuration.pickerHeight
     switch configuration.presentationStyle {
@@ -317,22 +310,13 @@ private extension FKMultiPicker {
     layoutIfNeeded()
   }
 
-  /// Rebuilds all levels after a specific level changed.
-  ///
-  /// The linkage rule is:
-  /// 1. Keep current level selection.
-  /// 2. Recompute child list of the selected node.
-  /// 3. Replace all deeper levels with refreshed children.
-  /// 4. Clamp selected rows to valid ranges.
-  ///
-  /// - Parameter level: Level where selection has changed.
   func rebuildCascade(from level: Int) {
     guard !dataByLevel.isEmpty else { return }
     if level == 0 {
       normalizeSelectionIndex(for: 0)
     }
 
-    let targetComponents = max(1, configuration.componentCount)
+    let targetComponents = max(1, configuration.numberOfColumns)
     if dataByLevel.count > targetComponents {
       dataByLevel = Array(dataByLevel.prefix(targetComponents))
       selectedIndexByLevel = Array(selectedIndexByLevel.prefix(targetComponents))
@@ -345,7 +329,6 @@ private extension FKMultiPicker {
         trimFromLevel(currentLevel + 1)
         break
       }
-      // Resolve next-level data through external source first, fallback to embedded children.
       let children = dataSource?.multiPicker(self, childrenOf: selectedNode, atLevel: currentLevel) ?? selectedNode.children
       if children.isEmpty {
         trimFromLevel(currentLevel + 1)
@@ -367,9 +350,6 @@ private extension FKMultiPicker {
     }
   }
 
-  /// Drops all data and selected indices from the given level to the end.
-  ///
-  /// - Parameter level: First level to remove.
   func trimFromLevel(_ level: Int) {
     guard level < dataByLevel.count else { return }
     dataByLevel = Array(dataByLevel.prefix(level))
@@ -380,9 +360,6 @@ private extension FKMultiPicker {
     }
   }
 
-  /// Clamps selected row index to safe bounds for a level.
-  ///
-  /// - Parameter level: Level whose selected index should be normalized.
   func normalizeSelectionIndex(for level: Int) {
     guard level < dataByLevel.count else { return }
     guard !dataByLevel[level].isEmpty else {
@@ -392,10 +369,6 @@ private extension FKMultiPicker {
     selectedIndexByLevel[level] = min(selectedIndexByLevel[level], dataByLevel[level].count - 1)
   }
 
-  /// Returns currently selected node at a level if available.
-  ///
-  /// - Parameter level: Component level.
-  /// - Returns: Selected node or `nil` when level has no data.
   func selectedNode(at level: Int) -> FKMultiPickerNode? {
     guard level < dataByLevel.count else { return nil }
     let nodes = dataByLevel[level]
@@ -404,9 +377,6 @@ private extension FKMultiPicker {
     return nodes[row]
   }
 
-  /// Builds a snapshot result from current selected rows.
-  ///
-  /// - Returns: Selection result across all active levels.
   func currentSelectionResult() -> FKMultiPickerSelectionResult {
     let items = dataByLevel.enumerated().compactMap { level, nodes -> FKMultiPickerSelectionItem? in
       guard !nodes.isEmpty, level < selectedIndexByLevel.count else { return nil }
@@ -416,27 +386,19 @@ private extension FKMultiPicker {
     return FKMultiPickerSelectionResult(items: items)
   }
 
-  /// Dispatches realtime selection callback to closures and delegate.
   func notifySelectionChanged() {
     let result = currentSelectionResult()
+    confirmButton.isEnabled = !result.items.isEmpty
     onSelectionChanged?(result)
     delegate?.multiPicker(self, didChange: result)
   }
 
-  /// Applies default selection keys from configuration.
-  ///
-  /// Matching strategy:
-  /// - Prefer node `id`.
-  /// - Fallback to node `title`.
-  ///
-  /// - Parameter animated: Whether picker wheel movement is animated.
   func applyDefaultSelection(animated: Bool) {
     guard !configuration.defaultSelectionKeys.isEmpty else {
       applySelectionToPicker(animated: animated)
       return
     }
 
-    // Try restoring each level by matching id first, then title fallback.
     for level in 0..<min(configuration.defaultSelectionKeys.count, dataByLevel.count) {
       let key = configuration.defaultSelectionKeys[level]
       let nodes = dataByLevel[level]
@@ -451,9 +413,6 @@ private extension FKMultiPicker {
     applySelectionToPicker(animated: animated)
   }
 
-  /// Scrolls each picker component to current selected indices.
-  ///
-  /// - Parameter animated: Whether picker wheel movement is animated.
   func applySelectionToPicker(animated: Bool) {
     for level in 0..<dataByLevel.count {
       let row = min(selectedIndexByLevel[level], max(0, dataByLevel[level].count - 1))
@@ -464,7 +423,6 @@ private extension FKMultiPicker {
   }
 
   @objc
-  /// Handles overlay tap dismissal.
   func maskTapped() {
     guard configuration.dismissOnMaskTap else { return }
     onCancelled?()
@@ -473,7 +431,6 @@ private extension FKMultiPicker {
   }
 
   @objc
-  /// Handles cancel button action.
   func cancelTapped() {
     onCancelled?()
     delegate?.multiPickerDidCancel(self)
@@ -481,17 +438,14 @@ private extension FKMultiPicker {
   }
 
   @objc
-  /// Handles confirm button action.
   func confirmTapped() {
     let result = currentSelectionResult()
+    guard !result.items.isEmpty else { return }
     onConfirmed?(result)
     delegate?.multiPicker(self, didConfirm: result)
     dismiss()
   }
 
-  /// Resolves a default host view from the current key window.
-  ///
-  /// - Returns: Best-effort key window for picker presentation.
   static func defaultHostView() -> UIView? {
     if #available(iOS 13.0, *) {
       return UIApplication.shared.connectedScenes
@@ -504,47 +458,16 @@ private extension FKMultiPicker {
   }
 }
 
-@MainActor
-/// Internal adapter that converts provider-based API into data-source callbacks.
-private final class FKMultiPickerProviderBridge: FKMultiPickerDataSource {
-  /// Wrapped provider retained by picker.
-  private let provider: FKMultiPickerDataProviding
-
-  /// Creates a bridge object.
-  ///
-  /// - Parameter provider: Provider to bridge.
-  init(provider: FKMultiPickerDataProviding) {
-    self.provider = provider
-  }
-
-  /// Returns root nodes from wrapped provider.
-  func rootNodes(for picker: FKMultiPicker) -> [FKMultiPickerNode] {
-    provider.rootNodes()
-  }
-
-  /// Returns child nodes from wrapped provider.
-  func multiPicker(
-    _ picker: FKMultiPicker,
-    childrenOf node: FKMultiPickerNode,
-    atLevel level: Int
-  ) -> [FKMultiPickerNode] {
-    provider.children(of: node, atLevel: level)
-  }
-}
-
 extension FKMultiPicker: UIPickerViewDataSource, UIPickerViewDelegate {
-  /// Returns the number of visible picker components.
   public func numberOfComponents(in pickerView: UIPickerView) -> Int {
-    min(configuration.componentCount, max(1, dataByLevel.count))
+    min(configuration.numberOfColumns, max(1, dataByLevel.count))
   }
 
-  /// Returns row count for a component.
   public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
     guard component < dataByLevel.count else { return 0 }
     return dataByLevel[component].count
   }
 
-  /// Returns row height for a component.
   public func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
     configuration.rowStyle.rowHeight
   }
@@ -555,7 +478,6 @@ extension FKMultiPicker: UIPickerViewDataSource, UIPickerViewDelegate {
     forComponent component: Int,
     reusing view: UIView?
   ) -> UIView {
-    // Build or reuse labels to avoid repeated view allocations while scrolling.
     let label = FKMultiPickerRowFactory.makeLabel(reusing: view)
     guard component < dataByLevel.count, row < dataByLevel[component].count else {
       label.text = nil
@@ -563,22 +485,16 @@ extension FKMultiPicker: UIPickerViewDataSource, UIPickerViewDelegate {
     }
     let node = dataByLevel[component][row]
     label.text = node.title
+    label.accessibilityLabel = node.title
     let isSelected = selectedIndexByLevel.indices.contains(component) && selectedIndexByLevel[component] == row
     label.textColor = isSelected ? configuration.rowStyle.selectedTextColor : configuration.rowStyle.textColor
     label.font = isSelected ? configuration.rowStyle.selectedFont : configuration.rowStyle.font
     return label
   }
 
-  /// Handles user selection and triggers cascade refresh.
-  ///
-  /// - Parameters:
-  ///   - pickerView: Source picker view.
-  ///   - row: Newly selected row index.
-  ///   - component: Component index where selection changed.
   public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
     guard component < selectedIndexByLevel.count else { return }
     selectedIndexByLevel[component] = row
-    // Cascade refresh from the changed level to all deeper levels.
     rebuildCascade(from: component)
     pickerView.reloadAllComponents()
     applySelectionToPicker(animated: false)
@@ -587,66 +503,43 @@ extension FKMultiPicker: UIPickerViewDataSource, UIPickerViewDelegate {
 }
 
 public extension FKMultiPicker {
-  /// One-line helper for showing picker with array tree data.
-  ///
-  /// - Parameters:
-  ///   - hostView: Target container view.
-  ///   - nodes: Root nodes at level 0.
-  ///   - configuration: Picker configuration.
-  ///   - onConfirmed: Confirmation callback.
-  /// - Returns: Presented picker instance for further operations.
   @discardableResult
   static func present(
     in hostView: UIView? = nil,
-    nodes: [FKMultiPickerNode],
-    configuration: FKMultiPickerConfiguration = FKMultiPickerManager.shared.defaultConfiguration,
+    roots: [FKMultiPickerNode],
+    configuration: FKMultiPickerConfiguration = FKMultiPicker.defaultConfiguration,
     onConfirmed: ((FKMultiPickerSelectionResult) -> Void)? = nil
   ) -> FKMultiPicker {
     let picker = FKMultiPicker(configuration: configuration)
-    picker.updateNodes(nodes)
+    picker.updateNodes(roots)
     picker.onConfirmed = onConfirmed
     picker.show(in: hostView)
     return picker
   }
 
-  /// One-line helper for showing picker with a provider object.
-  ///
-  /// - Parameters:
-  ///   - hostView: Target container view.
-  ///   - provider: Provider responsible for resolving linkage data.
-  ///   - configuration: Picker configuration.
-  ///   - onConfirmed: Confirmation callback.
-  /// - Returns: Presented picker instance for further operations.
   @discardableResult
   static func present(
     in hostView: UIView? = nil,
-    provider: FKMultiPickerDataProviding,
-    configuration: FKMultiPickerConfiguration = FKMultiPickerManager.shared.defaultConfiguration,
+    dataProvider: FKMultiPickerDataProviding,
+    configuration: FKMultiPickerConfiguration = FKMultiPicker.defaultConfiguration,
     onConfirmed: ((FKMultiPickerSelectionResult) -> Void)? = nil
   ) -> FKMultiPicker {
     let picker = FKMultiPicker(configuration: configuration)
-    picker.bindDataProvider(provider)
+    picker.setDataProvider(dataProvider)
     picker.onConfirmed = onConfirmed
     picker.show(in: hostView)
     return picker
   }
 
-  /// One-line helper for showing built-in region picker.
-  ///
-  /// - Parameters:
-  ///   - hostView: Target container view.
-  ///   - configuration: Picker configuration.
-  ///   - onConfirmed: Confirmation callback.
-  /// - Returns: Presented picker instance for further operations.
   @discardableResult
-  static func presentRegionPicker(
+  static func presentSampleAddressPicker(
     in hostView: UIView? = nil,
-    configuration: FKMultiPickerConfiguration = FKMultiPickerManager.shared.defaultConfiguration,
+    configuration: FKMultiPickerConfiguration = FKMultiPicker.defaultConfiguration,
     onConfirmed: ((FKMultiPickerSelectionResult) -> Void)? = nil
   ) -> FKMultiPicker {
     present(
       in: hostView,
-      nodes: FKMultiPickerBuiltInRegionDataProvider.standardRegionNodes,
+      roots: FKMultiPickerSampleAddressData.tree,
       configuration: configuration,
       onConfirmed: onConfirmed
     )

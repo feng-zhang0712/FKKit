@@ -1,24 +1,11 @@
 //
 // FKMultiPickerAnimator.swift
 //
-// Presentation animation helper for FKMultiPicker.
-//
 
 import UIKit
 
-/// Animation helper that encapsulates picker presentation transitions.
-///
-/// This type centralizes fade and slide animations so the core view logic can remain focused
-/// on data linkage and layout responsibilities.
 @MainActor
 enum FKMultiPickerAnimator {
-  /// Plays present animation.
-  ///
-  /// - Parameters:
-  ///   - maskView: The dimming overlay view behind the sheet.
-  ///   - containerView: The bottom sheet container to animate.
-  ///   - duration: Animation duration in seconds.
-  ///   - completion: Called after animation finishes.
   static func present(
     maskView: UIView,
     containerView: UIView,
@@ -39,13 +26,6 @@ enum FKMultiPickerAnimator {
     }
   }
 
-  /// Plays dismiss animation.
-  ///
-  /// - Parameters:
-  ///   - maskView: The dimming overlay view behind the sheet.
-  ///   - containerView: The bottom sheet container to animate.
-  ///   - duration: Animation duration in seconds.
-  ///   - completion: Called after animation finishes.
   static func dismiss(
     maskView: UIView,
     containerView: UIView,

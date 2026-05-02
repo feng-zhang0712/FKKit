@@ -65,7 +65,7 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "MultiPicker",
-          subtitle: "Multi-level cascading picker with built-in region and custom data linkage",
+          subtitle: "Cascading picker: Public/Internal layout, sample address tree, Support/ demo data",
           make: { FKMultiPickerExampleViewController() }
         ),
         ExampleMenuItem(
