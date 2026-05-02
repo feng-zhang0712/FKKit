@@ -1,15 +1,11 @@
 import ObjectiveC
 import UIKit
 
-/// Hosts a badge as a **sibling** of the target view (never inserted into the target), with constraints tied to the target’s anchors.
+/// Hosts a badge as a **sibling** of the target view (never inserted into the target), with constraints tied to the target's anchors.
 @MainActor
 public final class FKBadgeController: NSObject {
-  /// Weak reference to the view this badge decorates.
-  ///
-  /// `weak` avoids retain cycles because the controller is often associated to the same view.
   public private(set) weak var targetView: UIView?
 
-  /// Visual styling; updates apply immediately to the badge view.
   public var configuration: FKBadgeConfiguration {
     didSet {
       perform {
@@ -21,8 +17,8 @@ public final class FKBadgeController: NSObject {
 
   /// Which anchor of `targetView` the badge aligns to (uses leading/trailing for RTL).
   ///
-  /// - Important: Alignment is **center-based**. For corner anchors, the target’s corner is aligned to the
-  ///   badge view’s **center** (not the badge view’s corner). Use `offset` to fine-tune placement.
+  /// - Important: Alignment is **center-based**. For corner anchors, the target's corner is aligned to the
+  ///   badge view's **center** (not the badge view's corner). Use `offset` to fine-tune placement.
   public var anchor: FKBadgeAnchor {
     didSet {
       perform { self.rebuildLayoutConstraints() }
@@ -30,38 +26,47 @@ public final class FKBadgeController: NSObject {
   }
 
   /// Extra shift from the anchor point along horizontal and vertical axes.
-  ///
-  /// Positive/negative direction follows Auto Layout constant semantics for the selected anchor constraints.
   public var offset: UIOffset {
     didSet {
       perform { self.rebuildLayoutConstraints() }
     }
   }
 
-  /// Overrides automatic hide/show rules (e.g. force-hide badges during onboarding).
+  /// Overrides automatic hide/show rules (for example force-hide badges during onboarding).
   public var visibilityPolicy: FKBadgeVisibilityPolicy = .automatic {
     didSet {
       perform { self.applyResolvedContent(animated: false) }
     }
   }
 
-  /// Called when the badge view is tapped.
-  ///
-  /// Keep captures weak when referencing owning objects to avoid retain cycles.
+  /// Called when the badge view is tapped. Use `[weak self]` in the closure to avoid retain cycles.
   public var onTap: ((FKBadgeController) -> Void)? {
+    didSet {
+      perform {
+        self.updateTapGestureState()
+        self.syncAccessibilityFromResolved()
+      }
+    }
+  }
+
+  /// Optional VoiceOver label. When `nil`, text and numeric badges use the visible string; pure dot badges are not a separate accessibility element until you set a label (or augment the decorated view).
+  public var accessibilityBadgeLabel: String? {
+    didSet {
+      perform { self.syncAccessibilityFromResolved() }
+    }
+  }
+
+  /// When non-`nil` and `onTap` is set, hit testing uses a square at least this wide and tall, centered on the badge. Typical value: `44`. Default is `nil` (visual bounds only).
+  public var minimumTouchTargetSide: CGFloat? {
     didSet {
       perform { self.updateTapGestureState() }
     }
   }
 
-  // Rendering host reused for all payload transitions.
   private let badgeView = FKBadgeContentView()
-  // Gesture is attached only when `onTap` is non-nil.
   private lazy var tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleBadgeTap))
-  // Active constraints between badge and target; rebuilt when anchor/offset/parent changes.
   private var layoutConstraints: [NSLayoutConstraint] = []
 
-  // Internal normalized content source before visibility resolution.
   private enum Payload: Equatable {
     case none
     case dot
@@ -71,23 +76,20 @@ public final class FKBadgeController: NSObject {
 
   private var payload: Payload = .none
 
-  /// Creates a controller; prefer `UIView.fk_badge` so the instance is associated with the target view.
-  ///
   /// - Parameters:
-  ///   - target: Decorated view. Badge is attached to `target.superview`, not into `target`.
-  ///   - configuration: Optional initial style. Uses global manager defaults when `nil`.
+  ///   - target: Decorated view. The badge is attached to `target.superview`, not inside `target`.
+  ///   - configuration: Optional initial style. Uses `FKBadge.defaultConfiguration` when `nil`.
   public init(target: UIView, configuration: FKBadgeConfiguration? = nil) {
     self.targetView = target
-    self.configuration = configuration ?? FKBadgeManager.shared.defaultConfiguration
+    self.configuration = configuration ?? FKBadge.defaultConfiguration
     self.anchor = .topTrailing
     self.offset = .zero
     super.init()
     commonInit()
   }
 
-  // Shared setup for all constructors.
   private func commonInit() {
-    FKBadgeUIViewSwizzling.installIfNeeded()
+    FKBadgeHierarchyObserver.installIfNeeded()
     badgeView.translatesAutoresizingMaskIntoConstraints = false
     badgeView.configuration = configuration
     FKBadgeRegistry.shared.register(self)
@@ -113,34 +115,14 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  /// Updates hidden state without changing current payload.
-  public func setHidden(_ hidden: Bool, animated: Bool = false) {
+  /// When `true`, sets `visibilityPolicy` to `.forcedHidden`. When `false`, sets `.automatic` (not `.forcedVisible`).
+  public func setForcedHidden(_ hidden: Bool, animated: Bool = false) {
     perform {
       self.visibilityPolicy = hidden ? .forcedHidden : .automatic
       self.applyResolvedContent(animated: animated)
     }
   }
 
-  /// Convenience alias for updating numeric content.
-  ///
-  /// - Parameters:
-  ///   - count: New count value.
-  ///   - animated: Whether to fade when transitioning from hidden to visible.
-  ///   - animation: Optional entrance/replay animation.
-  public func updateCount(_ count: Int, animated: Bool = false, animation: FKBadgeAnimation = .none) {
-    showCount(count, animated: animated, animation: animation)
-  }
-
-  /// Convenience API to clear numeric badge (count to zero).
-  public func clearCount(animated: Bool = false) {
-    showCount(0, animated: animated, animation: .none)
-  }
-
-  /// Pure red dot (no text).
-  ///
-  /// - Parameters:
-  ///   - animated: Whether to fade-in from hidden state.
-  ///   - animation: Optional emphasis animation after showing.
   public func showDot(animated: Bool = false, animation: FKBadgeAnimation = .none) {
     perform {
       self.payload = .dot
@@ -148,12 +130,7 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  /// Numeric badge with overflow rules from `configuration`.
-  ///
-  /// - Parameters:
-  ///   - count: Raw count. Values `<= 0` are hidden under `.automatic`.
-  ///   - animated: Whether to fade-in from hidden state.
-  ///   - animation: Optional emphasis animation after showing.
+  /// Numeric badge with overflow rules from `configuration`. Values `<= 0` hide the badge under `.automatic`.
   public func showCount(_ count: Int, animated: Bool = false, animation: FKBadgeAnimation = .none) {
     perform {
       self.payload = .count(count)
@@ -162,11 +139,6 @@ public final class FKBadgeController: NSObject {
   }
 
   /// Empty or whitespace-only string shows a dot; otherwise shows trimmed text.
-  ///
-  /// - Parameters:
-  ///   - text: Raw text input; whitespace-only input is normalized to dot mode.
-  ///   - animated: Whether to fade-in from hidden state.
-  ///   - animation: Optional emphasis animation after showing.
   public func showText(_ text: String, animated: Bool = false, animation: FKBadgeAnimation = .none) {
     perform {
       let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -175,13 +147,8 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  /// Parses a decimal string; invalid values hide the badge.
-  ///
-  /// - Parameters:
-  ///   - string: User/server string input.
-  ///   - animated: Whether to animate show/hide transition.
-  ///   - animation: Animation used when parsing succeeds.
-  public func showCountString(_ string: String, animated: Bool = false, animation: FKBadgeAnimation = .none) {
+  /// Parses a digits-only non-negative integer string. Invalid input clears the badge (same as `clear(animated:)` semantics for payload).
+  public func setCount(parsing string: String, animated: Bool = false, animation: FKBadgeAnimation = .none) {
     perform {
       guard let parsed = FKBadgeFormatter.parseNonNegativeCount(string) else {
         self.payload = .none
@@ -193,11 +160,6 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  /// Updates anchor and offset together.
-  ///
-  /// - Parameters:
-  ///   - anchor: Layout anchor in target coordinates.
-  ///   - offset: Additional x/y shift from the anchor point.
   public func setAnchor(_ anchor: FKBadgeAnchor, offset: UIOffset = .zero) {
     perform {
       self.anchor = anchor
@@ -205,18 +167,18 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  /// Removes the badge from the hierarchy and detaches the associated object from the target.
+  /// Removes the badge from the hierarchy and clears the associated object on the target.
   public func removeFromTarget() {
     perform {
       FKBadgeRegistry.shared.unregister(self)
       self.payload = .none
+      self.syncAccessibilityFromResolved()
       self.badgeView.prepareForReuse()
       self.badgeView.removeFromSuperview()
       self.detachAssociatedObject()
     }
   }
 
-  /// Re-runs layout attachment (for example after manually changing the target’s superview).
   public func reattachIfNeeded() {
     perform {
       self.attachBadgeToParentOfTarget()
@@ -224,9 +186,7 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  /// Replays an animation on the currently visible badge.
-  ///
-  /// - Note: No-op when badge is hidden or detached from hierarchy.
+  /// No-op when the badge is hidden or not in the hierarchy.
   public func playAnimation(_ animation: FKBadgeAnimation) {
     perform {
       guard !self.badgeView.isHidden, self.badgeView.superview != nil else { return }
@@ -248,14 +208,12 @@ public final class FKBadgeController: NSObject {
 
   // MARK: - Internal
 
-  // Called by registry on global hide/restore broadcasts.
   func refreshFromRegistry(animated: Bool) {
     perform {
       self.applyResolvedContent(animated: animated)
     }
   }
 
-  /// `UIView.didMoveToSuperview` always runs on the main thread; keep this path nonisolated for the ObjC runtime hook.
   nonisolated static func handleTargetViewMoved(_ view: UIView) {
     guard let controller = objc_getAssociatedObject(view, &FKBadgeAssociatedKeys.controller) as? FKBadgeController else {
       return
@@ -267,7 +225,6 @@ public final class FKBadgeController: NSObject {
 
   // MARK: - Private
 
-  // Resolves final visual mode and visibility using payload + policies.
   private func resolve() -> (mode: FKBadgeContentView.Mode, shouldShow: Bool) {
     if FKBadgeRegistry.shared.globalSuppressed {
       return (.dot, false)
@@ -303,21 +260,22 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  // Pushes style changes into the render view.
   private func applyConfigurationToBadge() {
     badgeView.configuration = configuration
   }
 
-  // Applies resolved payload to view state and performs show/hide transitions.
   private func applyResolvedContent(animated: Bool, entranceAnimation: FKBadgeAnimation = .none) {
     let wasHidden = badgeView.isHidden || badgeView.alpha < 0.01
     let (mode, shouldShow) = resolve()
+    let motionAllowed = !UIAccessibility.isReduceMotionEnabled
+    let shouldAnimateVisibility = animated && motionAllowed
 
     if !shouldShow {
       stopRepeatingAnimations()
       badgeView.prepareForReuse()
       badgeView.isHidden = true
-      if animated {
+      syncAccessibilityFromResolved()
+      if shouldAnimateVisibility {
         UIView.animate(withDuration: 0.2) {
           self.badgeView.alpha = 0
         }
@@ -334,7 +292,7 @@ public final class FKBadgeController: NSObject {
     attachBadgeToParentOfTarget()
     rebuildLayoutConstraints()
 
-    if animated, wasHidden {
+    if shouldAnimateVisibility, wasHidden {
       badgeView.alpha = 0
       UIView.animate(withDuration: 0.2) {
         self.badgeView.alpha = 1
@@ -349,9 +307,9 @@ public final class FKBadgeController: NSObject {
         runEntranceAnimation(entranceAnimation)
       }
     }
+    syncAccessibilityFromResolved()
   }
 
-  // Ensures badge is attached to target's parent so target's own clipping/hit-testing remain unchanged.
   private func attachBadgeToParentOfTarget() {
     guard let target = targetView else {
       badgeView.removeFromSuperview()
@@ -374,7 +332,6 @@ public final class FKBadgeController: NSObject {
     badgeView.layer.zPosition = 10_000
   }
 
-  // Rebuilds geometric attachment constraints from current anchor + offset.
   private func rebuildLayoutConstraints() {
     NSLayoutConstraint.deactivate(layoutConstraints)
     layoutConstraints.removeAll()
@@ -417,10 +374,13 @@ public final class FKBadgeController: NSObject {
     NSLayoutConstraint.activate(layoutConstraints)
   }
 
-  // Runs one-shot or repeating visual emphasis.
   private func runEntranceAnimation(_ animation: FKBadgeAnimation) {
     stopRepeatingAnimations()
     badgeView.layer.removeAllAnimations()
+
+    if animation != .none, UIAccessibility.isReduceMotionEnabled {
+      return
+    }
 
     switch animation {
     case .none:
@@ -460,23 +420,23 @@ public final class FKBadgeController: NSObject {
       pulse.autoreverses = true
       pulse.repeatCount = .greatestFiniteMagnitude
       pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-      badgeView.layer.add(pulse, forKey: "fk_badge_pulse")
+      badgeView.layer.add(pulse, forKey: "fkbadge_pulse")
     }
   }
 
-  // Stops any repeating layer/view animations before mode changes.
   private func stopRepeatingAnimations() {
     badgeView.layer.removeAllAnimations()
   }
 
-  // Installs or removes tap recognizer based on callback presence.
   private func updateTapGestureState() {
     if onTap != nil {
+      badgeView.minimumTouchTargetSide = minimumTouchTargetSide
       if badgeView.gestureRecognizers?.contains(tapGestureRecognizer) != true {
         badgeView.addGestureRecognizer(tapGestureRecognizer)
       }
       badgeView.isUserInteractionEnabled = true
     } else {
+      badgeView.minimumTouchTargetSide = nil
       if badgeView.gestureRecognizers?.contains(tapGestureRecognizer) == true {
         badgeView.removeGestureRecognizer(tapGestureRecognizer)
       }
@@ -484,18 +444,60 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  // Forwards tap events to the public callback.
+  private func syncAccessibilityFromResolved() {
+    let (mode, shouldShow) = resolve()
+    guard shouldShow else {
+      badgeView.isAccessibilityElement = false
+      badgeView.accessibilityLabel = nil
+      badgeView.accessibilityTraits = []
+      badgeView.accessibilityRespondsToUserInteraction = false
+      return
+    }
+
+    let trimmed = accessibilityBadgeLabel?.trimmingCharacters(in: .whitespacesAndNewlines)
+    let overrideText = (trimmed?.isEmpty == false) ? trimmed : nil
+
+    let effectiveLabel: String?
+    if let overrideText {
+      effectiveLabel = overrideText
+    } else {
+      switch mode {
+      case .text(let s): effectiveLabel = s
+      case .dot: effectiveLabel = nil
+      }
+    }
+
+    if let effectiveLabel {
+      badgeView.isAccessibilityElement = true
+      badgeView.accessibilityLabel = effectiveLabel
+      var traits = UIAccessibilityTraits()
+      if shouldAnnounceNumericUpdatesFrequently(mode: mode) {
+        traits.insert(.updatesFrequently)
+      }
+      badgeView.accessibilityTraits = traits
+    } else {
+      badgeView.isAccessibilityElement = false
+      badgeView.accessibilityLabel = nil
+      badgeView.accessibilityTraits = []
+    }
+    badgeView.accessibilityRespondsToUserInteraction = (onTap != nil)
+  }
+
+  private func shouldAnnounceNumericUpdatesFrequently(mode: FKBadgeContentView.Mode) -> Bool {
+    guard case .text(let s) = mode else { return false }
+    guard !s.isEmpty else { return false }
+    return s.allSatisfy { $0.isNumber || $0 == "+" }
+  }
+
   @objc private func handleBadgeTap() {
     onTap?(self)
   }
 
-  // Clears associated object reference when controller is explicitly removed.
   private func detachAssociatedObject() {
     guard let target = targetView else { return }
     objc_setAssociatedObject(target, &FKBadgeAssociatedKeys.controller, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
   }
 
-  // Main-thread trampoline for APIs that might be called off-main.
   private nonisolated func perform(_ work: @escaping @MainActor () -> Void) {
     if Thread.isMainThread {
       MainActor.assumeIsolated {
@@ -509,9 +511,6 @@ public final class FKBadgeController: NSObject {
   }
 }
 
-// MARK: - Associated object
-
 enum FKBadgeAssociatedKeys {
-  // ObjC runtime key for `UIView` associated `FKBadgeController`.
   nonisolated(unsafe) static var controller: UInt8 = 0
 }

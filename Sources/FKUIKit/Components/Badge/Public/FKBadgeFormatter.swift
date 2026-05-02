@@ -7,7 +7,7 @@ public enum FKBadgeFormatter {
   /// - Parameters:
   ///   - count: Raw numeric value.
   ///   - configuration: Overflow-related configuration.
-  /// - Returns: Display text or `nil` when badge should be hidden in numeric mode.
+  /// - Returns: Display text or `nil` when the badge should be hidden in numeric mode.
   public static func displayString(count: Int, configuration: FKBadgeConfiguration) -> String? {
     guard count > 0 else { return nil }
     if count <= configuration.maxDisplayCount {
@@ -16,7 +16,7 @@ public enum FKBadgeFormatter {
     return "\(configuration.maxDisplayCount)\(configuration.overflowSuffix)"
   }
 
-  /// Parses a decimal string; rejects non-numeric junk and negatives.
+  /// Parses a string of decimal digits; rejects non-numeric junk and negatives.
   ///
   /// - Parameter string: Raw external input string.
   /// - Returns: Parsed non-negative integer, or `nil` when invalid.

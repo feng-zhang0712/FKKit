@@ -1,10 +1,10 @@
 import UIKit
 
-/// Visual defaults for a badge instance. Copy-on-write style: assign into `FKBadgeController` to update appearance.
+/// Visual defaults for a badge instance. Assign into `FKBadgeController.configuration` to update appearance.
 public struct FKBadgeConfiguration: Equatable {
   /// Fill behind the label (or dot).
   public var backgroundColor: UIColor
-  /// Title color for numeric / text badges.
+  /// Foreground color for numeric / text badges.
   public var titleColor: UIColor
   /// Font for numeric and text badges (ignored for dot-only mode).
   public var font: UIFont
@@ -35,21 +35,6 @@ public struct FKBadgeConfiguration: Equatable {
   public var minimumContentWidth: CGFloat?
 
   /// Creates a configuration; defaults match typical iOS numeric badges (system red, white label, 99+ overflow).
-  ///
-  /// - Parameters:
-  ///   - backgroundColor: Badge fill color. Default is `.systemRed`.
-  ///   - titleColor: Foreground text color. Default is `.white`.
-  ///   - font: Text font used for numeric/text mode.
-  ///   - borderWidth: Border width in points. `0` disables border.
-  ///   - borderColor: Border color.
-  ///   - horizontalPadding: Horizontal content inset for text mode.
-  ///   - verticalPadding: Vertical content inset for text mode.
-  ///   - textKerning: Character spacing for text mode.
-  ///   - dotDiameter: Fixed size for dot mode.
-  ///   - textCornerRadius: Optional explicit corner radius for text mode; `nil` means pill radius.
-  ///   - maxDisplayCount: Overflow threshold (inclusive). Values below `0` are clamped to `0`.
-  ///   - overflowSuffix: Overflow suffix appended after `maxDisplayCount` (for example `"+"`).
-  ///   - minimumContentWidth: Optional lower bound width for text/number mode.
   public init(
     backgroundColor: UIColor = .systemRed,
     titleColor: UIColor = .white,
@@ -81,26 +66,24 @@ public struct FKBadgeConfiguration: Equatable {
   }
 }
 
-// MARK: - Global defaults
+// MARK: - Defaults & global batch visibility
 
-/// Namespace for shared badge defaults and batch visibility helpers.
+/// Namespace for shared defaults and batch visibility helpers.
 @MainActor
 public enum FKBadge {
-  /// Shared defaults applied when creating a `FKBadgeController` without an explicit configuration.
-  ///
-  /// Update this at app launch to define project-wide badge baseline style.
+  /// Baseline style for new `FKBadgeController` instances when no configuration is passed. Set at launch for app-wide defaults.
   public static var defaultConfiguration = FKBadgeConfiguration()
 
-  /// Hides every badge currently tracked by the registry (see `FKBadgeRegistry`).
+  /// Hides every badge currently tracked by the registry.
   ///
-  /// - Parameter animated: Whether each badge should animate hide transition.
+  /// - Parameter animated: Whether each badge should animate its hide transition.
   public static func hideAllBadges(animated: Bool = false) {
     FKBadgeRegistry.shared.setGlobalSuppressed(true, animated: animated)
   }
 
   /// Reverses `hideAllBadges()` so each badge reapplies its own visibility rules.
   ///
-  /// - Parameter animated: Whether each badge should animate restore transition.
+  /// - Parameter animated: Whether each badge should animate its restore transition.
   public static func restoreAllBadges(animated: Bool = false) {
     FKBadgeRegistry.shared.setGlobalSuppressed(false, animated: animated)
   }
