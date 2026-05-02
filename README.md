@@ -1,5 +1,11 @@
 # FKKit
 
+[![iOS](https://img.shields.io/badge/iOS-13.0%2B-blue.svg)](https://developer.apple.com/ios/)
+[![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](https://swift.org/)
+[![SPM](https://img.shields.io/badge/SPM-supported-brightgreen.svg)](https://swift.org/package-manager/)
+[![CocoaPods](https://img.shields.io/badge/CocoaPods-supported-ee3322.svg)](https://cocoapods.org/)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
+
 ## Table of Contents
 - [Overview](#overview)
 - [Features](#features)
@@ -25,6 +31,9 @@ The repository is organized into three product modules:
 - `FKCompositeKit`
 
 Each module focuses on a different layer of app development, from infrastructure and utilities to UI components and composite business widgets.
+
+In addition, the package exposes a small Foundation-only product for EmptyState core logic:
+- `FKEmptyStateCoreLite` (resolver + i18n interpolation, no UIKit dependency)
 
 ## Features
 - Pure Swift implementation (Swift 6 language mode in package settings).
@@ -53,22 +62,19 @@ FKKit/
 │  ├─ FKUIKit/
 │  │  └─ Components/
 │  │     ├─ Badge/
-│  │     ├─ Bar/
-│  │     ├─ BarPresentation/
+│  │     ├─ BlurView/
 │  │     ├─ Button/
-│  │     ├─ Carousel/
 │  │     ├─ CornerShadow/
+│  │     ├─ Divider/
 │  │     ├─ EmptyState/
 │  │     ├─ ExpandableText/
-│  │     ├─ LoadingAnimator/
 │  │     ├─ MultiPicker/
-│  │     ├─ Presentation/
+│  │     ├─ PresentationController/
 │  │     ├─ Refresh/
 │  │     ├─ Skeleton/
-│  │     ├─ StarRating/
-│  │     ├─ Sticky/
-│  │     ├─ SwipeAction/
-│  │     └─ TextField/
+│  │     ├─ TabBar/
+│  │     ├─ TextField/
+│  │     └─ Toast/
 │  └─ FKCompositeKit/
 │     └─ Components/
 │        ├─ Base/
@@ -92,52 +98,23 @@ FKKit/
 - `BusinessKit`: app/business infrastructure (version, deeplink, lifecycle, analytics, i18n helpers).
 - `Utils`: high-frequency utility APIs for date/string/number/device/UI/collection/common operations.
 
-Module docs:
-- `Sources/FKCoreKit/Network/README.md`
-- `Sources/FKCoreKit/Storage/README.md`
-- `Sources/FKCoreKit/Logger/README.md`
-- `Sources/FKCoreKit/Permissions/README.md`
-- `Sources/FKCoreKit/Security/README.md`
-- `Sources/FKCoreKit/FileManager/README.md`
-- `Sources/FKCoreKit/Async/README.md`
-- `Sources/FKCoreKit/BusinessKit/README.md`
-- `Sources/FKCoreKit/Utils/README.md`
-
 ### FKUIKit
 `FKUIKit` contains reusable UIKit components for modern iOS interfaces:
 
+- `Badge`: flexible badge display for views, bar items, and tab items, with corner/center anchoring and customizable styles/animations.
+- `BlurView`: high-performance blur component with system/custom pipelines, UIKit/SwiftUI adapters, image/view snapshot blur APIs, and IB/global-configuration support.
 - `Button`: configurable button system with style/content/loading behavior.
-- `Bar`: composable horizontal bar/tab-like navigation container.
-- `Presentation`: presentation container and positioning utilities.
-- `BarPresentation`: bar-driven presentation coordinator.
-- `Carousel`: reusable carousel component with configurable direction/looping, item models, page control support, and extension points for image/custom view rendering.
+- `CornerShadow`: arbitrary-corner radius + high-performance shadow rendering with explicit path control.
+- `Divider`: lightweight reusable divider for UIKit/SwiftUI with dashed, gradient, and edge-pinning support.
 - `EmptyState`: loading/empty/error state overlay system.
 - `ExpandableText`: configurable long-text expand/collapse component with reusable-list state cache and pre-measurement support.
-- `LoadingAnimator`: multi-style loading animation component with fullscreen/embedded modes, determinate progress ring, dynamic style switching, and protocol-based custom animator extension.
-- `MultiPicker`: native multi-level cascading picker with built-in region data and custom provider support.
-- `CornerShadow`: arbitrary-corner radius + high-performance shadow rendering with explicit path control.
-- `Refresh`: pull-to-refresh and load-more controls.
-- `Badge`: flexible badge display for views, bar items, and tab items, with corner/center anchoring, global visibility control, and customizable animations/styles.
+- `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
+- `PresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
+- `Refresh`: pull-to-refresh and load-more controls for scroll views.
 - `Skeleton`: skeleton loading system for views/lists/containers with animation options.
-- `StarRating`: configurable star-rating component supporting full/half/precise modes, image/color rendering, gestures, callbacks, global defaults, and reuse-safe integration.
-- `Sticky`: high-performance sticky coordinator for generic views and list section headers with multi-target chaining, lifecycle callbacks, and safe-area-aware offsets.
-- `SwipeAction`: native left/right swipe action system for `UITableViewCell` and `UICollectionViewCell` with multi-button actions and global/per-cell configuration.
+- `TabBar`: high-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only).
 - `TextField`: one-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback.
-
-Module docs:
-- `Sources/FKUIKit/Components/Badge/README.md`
-- `Sources/FKUIKit/Components/Carousel/README.md`
-- `Sources/FKUIKit/Components/CornerShadow/README.md`
-- `Sources/FKUIKit/Components/EmptyState/README.md`
-- `Sources/FKUIKit/Components/ExpandableText/README.md`
-- `Sources/FKUIKit/Components/LoadingAnimator/README.md`
-- `Sources/FKUIKit/Components/MultiPicker/README.md`
-- `Sources/FKUIKit/Components/Refresh/README.md`
-- `Sources/FKUIKit/Components/Skeleton/README.md`
-- `Sources/FKUIKit/Components/StarRating/README.md`
-- `Sources/FKUIKit/Components/Sticky/README.md`
-- `Sources/FKUIKit/Components/SwipeAction/README.md`
-- `Sources/FKUIKit/Components/TextField/README.md`
+- `Toast`: unified Toast / HUD / Snackbar presenter with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, per-instance progress updates, presentation sound policy, and SwiftUI hosting support.
 
 ### FKCompositeKit
 `FKCompositeKit` builds business-facing composite components on top of `FKCoreKit` + `FKUIKit`:
@@ -161,19 +138,21 @@ This module currently focuses on source-level composable components; add interna
    - `https://github.com/feng-zhang0712/FKKit.git`
 3. Select one or more products:
    - `FKCoreKit`
+   - `FKEmptyStateCoreLite`
    - `FKUIKit`
    - `FKCompositeKit`
 
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.33.1")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.41.0")
 ],
 targets: [
   .target(
     name: "YourTarget",
     dependencies: [
       .product(name: "FKCoreKit", package: "FKKit"),
+      .product(name: "FKEmptyStateCoreLite", package: "FKKit"),
       .product(name: "FKUIKit", package: "FKKit"),
       .product(name: "FKCompositeKit", package: "FKKit")
     ]

@@ -29,23 +29,18 @@ final class ExampleMenuViewController: UITableViewController {
       subtitle: "Foundational UI components and presentation infrastructure",
       items: [
         ExampleMenuItem(
-          title: "Bar",
-          subtitle: "Horizontal item bar with selection callbacks",
-          make: { FKBarExampleViewController() }
-        ),
-        ExampleMenuItem(
-          title: "BarPresentation",
-          subtitle: "Bar + anchored panel composite",
-          make: { FKBarPresentationExampleViewController() }
-        ),
-        ExampleMenuItem(
           title: "Badge",
           subtitle: "Dot, numeric & text badges, anchors, animations, TabBarItem",
           make: { FKBadgeExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "BlurView",
+          subtitle: "High-performance blur view examples (UIKit / SwiftUI / IB)",
+          make: { FKBlurViewExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Button",
-          subtitle: "Split demos: basics, layout, interaction, appearance, loading",
+          subtitle: "Split deexmos: basics, layout, interaction, appearance, loading",
           make: { FKButtonExamplesHubViewController() }
         ),
         ExampleMenuItem(
@@ -54,9 +49,9 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKCornerShadowExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          title: "Carousel",
-          subtitle: "Hub: infinite loop, auto-play, custom content, callbacks, and list adaptation",
-          make: { FKCarouselExamplesHubViewController() }
+          title: "Divider",
+          subtitle: "Horizontal/vertical, dashed/gradient, auto pin, IB and SwiftUI divider examples",
+          make: { FKDividerExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "EmptyState",
@@ -65,13 +60,8 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "ExpandableText",
-          subtitle: "Hub: basic, table and collection expandable text demos",
+          subtitle: "Hub: basic, table and collection expandable text examples",
           make: { FKExpandableTextExamplesHubViewController() }
-        ),
-        ExampleMenuItem(
-          title: "LoadingAnimator",
-          subtitle: "Hub: fullscreen/embedded loading, progress ring, style switching, list reuse",
-          make: { FKLoadingAnimatorExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "MultiPicker",
@@ -79,9 +69,9 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKMultiPickerExampleViewController() }
         ),
         ExampleMenuItem(
-          title: "Presentation",
-          subtitle: "Anchored panel with mask",
-          make: { FKPresentationExampleViewController() }
+          title: "PresentationController",
+          subtitle: "Custom PresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
+          make: { FKPresentationControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Refresh",
@@ -94,24 +84,19 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKSkeletonExampleViewController() }
         ),
         ExampleMenuItem(
-          title: "StarRating",
-          subtitle: "5-star, half-star, precise decimal, image/color styles, callbacks, and table reuse demos",
-          make: { FKStarRatingExamplesHubViewController() }
-        ),
-        ExampleMenuItem(
-          title: "Sticky",
-          subtitle: "Hub: multi-target sticky, table/collection headers, callbacks, offsets, and runtime control",
-          make: { FKStickyExamplesHubViewController() }
-        ),
-        ExampleMenuItem(
-          title: "SwipeAction",
-          subtitle: "Native left/right multi-button swipe actions for table and collection lists",
-          make: { FKSwipeActionExamplesHubViewController() }
+          title: "TabBar",
+          subtitle: "Segmented tab bar with indicators, dynamic data, width policies, and a11y/i18n examples",
+          make: { FKTabBarExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "TextField",
           subtitle: "Formatted input, validation, style customization, callbacks, and global defaults",
           make: { FKTextFieldExampleViewController() }
+        ),
+        ExampleMenuItem(
+          title: "Toast",
+          subtitle: "Global Toast/HUD/Snackbar hints with queueing, styles, positions, custom view, and SwiftUI support",
+          make: { FKToastExamplesHubViewController() }
         ),
       ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),
@@ -172,13 +157,13 @@ final class ExampleMenuViewController: UITableViewController {
       items: [
         ExampleMenuItem(
           title: "Base",
-          subtitle: "Controller foundation demos: lifecycle, navigation and tab bar infrastructure",
+          subtitle: "Controller foundation examples: lifecycle, navigation and tab bar infrastructure",
           make: { FKBaseExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          title: "Filter",
-          subtitle: "Composite dropdown filters (top bar + panels)",
-          make: { FKFilterExampleViewController() }
+          title: "Anchored Dropdown",
+          subtitle: "TabBar + anchorEmbedded dropdown: toggle/switch, replace-in-place, keyboard, dynamic height",
+          make: { FKAnchoredDropdownExampleViewController() }
         ),
         ExampleMenuItem(
           title: "ListKit",

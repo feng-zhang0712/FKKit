@@ -1,9 +1,3 @@
-//
-// FKTextFieldManager.swift
-//
-// Global style manager for FKTextField.
-//
-
 import UIKit
 
 /// Global manager for default `FKTextField` configuration.
@@ -20,6 +14,8 @@ public final class FKTextFieldManager {
   /// This value is copied before mutation when configuring individual fields so local
   /// overrides do not affect the global state.
   public var defaultStyle: FKTextFieldStyle = .default
+  /// Global default localization.
+  public var defaultLocalization: FKTextFieldLocalization = FKTextFieldLocalization()
 
   /// Creates the singleton instance.
   ///
@@ -38,6 +34,13 @@ public final class FKTextFieldManager {
   /// Restores the global default style.
   public func resetDefaultStyle() {
     defaultStyle = .default
+  }
+
+  /// Updates global localization bundle.
+  public func configureDefaultLocalization(_ block: (inout FKTextFieldLocalization) -> Void) {
+    var value = defaultLocalization
+    block(&value)
+    defaultLocalization = value
   }
 }
 

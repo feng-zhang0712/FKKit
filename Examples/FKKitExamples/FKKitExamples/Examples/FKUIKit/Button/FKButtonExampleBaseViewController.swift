@@ -1,10 +1,3 @@
-//
-//  FKButtonExampleBaseViewController.swift
-//  FKKitExamples
-//
-//  Shared scroll layout and appearance helpers for split FKButton demos.
-//
-
 import UIKit
 import FKUIKit
 
@@ -25,13 +18,33 @@ class FKButtonExampleBaseViewController: UIViewController {
     return stack
   }()
 
-  func recordDemoTap(_ name: String) {
+  /// Optional explanatory text shown at the top of the page.
+  /// Subclasses can override to describe what this page demonstrates.
+  var pageExplanationText: String? {
+    "These pages contain FKButton examples. Tap buttons to see state changes and update the navigation title."
+  }
+
+  func recordExampleTap(_ name: String) {
     title = "FKButton · \(name)"
   }
 
-  func addDemoSection(title: String, content: UIView) {
+  func addExampleSection(title: String, content: UIView) {
     rootStackView.addArrangedSubview(sectionTitleLabel(title))
     rootStackView.addArrangedSubview(content)
+  }
+
+  func addExampleCategory(title: String, description: String? = nil) {
+    let categoryTitle = UILabel()
+    categoryTitle.text = title
+    categoryTitle.font = .preferredFont(forTextStyle: .title3)
+    categoryTitle.textColor = .label
+    categoryTitle.numberOfLines = 0
+    categoryTitle.textAlignment = .left
+    rootStackView.addArrangedSubview(fullWidthLayoutWrapping(categoryTitle))
+
+    if let description, !description.isEmpty {
+      rootStackView.addArrangedSubview(fullWidthLayoutWrapping(captionLabel(description)))
+    }
   }
 
   /// Pins `view` to the container’s leading/trailing so multiline labels wrap to the scroll view width.
@@ -86,18 +99,22 @@ class FKButtonExampleBaseViewController: UIViewController {
       rootStackView.bottomAnchor.constraint(equalTo: contentGuide.bottomAnchor),
       rootStackView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -2 * inset),
     ])
+
+    if let text = pageExplanationText {
+      rootStackView.insertArrangedSubview(fullWidthLayoutWrapping(captionLabel(text)), at: 0)
+    }
   }
 
   func addTap(_ button: FKButton, name: String) {
     button.addAction(UIAction { [weak self] _ in
-      self?.recordDemoTap(name)
+      self?.recordExampleTap(name)
     }, for: .touchUpInside)
   }
 
   func addTapToggleSelected(_ button: FKButton, name: String) {
     button.addAction(UIAction { [weak self] _ in
       button.isSelected.toggle()
-      self?.recordDemoTap(name)
+      self?.recordExampleTap(name)
     }, for: .touchUpInside)
   }
 
@@ -108,6 +125,17 @@ class FKButtonExampleBaseViewController: UIViewController {
     label.textAlignment = .center
     label.textColor = .label
     label.numberOfLines = 0
+    label.lineBreakMode = .byWordWrapping
+    return label
+  }
+
+  func captionLabel(_ text: String) -> UIView {
+    let label = UILabel()
+    label.text = text
+    label.font = .preferredFont(forTextStyle: .subheadline)
+    label.textColor = .secondaryLabel
+    label.numberOfLines = 0
+    label.textAlignment = .natural
     label.lineBreakMode = .byWordWrapping
     return label
   }

@@ -1,9 +1,3 @@
-//
-// FKCountTextView.swift
-//
-// TextView with placeholder + realtime counter + max length enforcement.
-//
-
 import UIKit
 
 /// A native `UITextView` subclass with built-in:
@@ -255,6 +249,19 @@ extension FKCountTextView: UITextViewDelegate {
       if decision == false { return false }
     }
     return true
+  }
+}
+
+extension FKCountTextView: FKTextInputComponent {
+  public var fk_rawText: String { text ?? "" }
+  public func fk_setText(_ text: String) {
+    self.text = text
+    enforceMaxLengthIfNeeded()
+    updateUI()
+  }
+  public func fk_clear() {
+    text = ""
+    updateUI()
   }
 }
 

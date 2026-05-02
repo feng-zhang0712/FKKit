@@ -8,6 +8,334 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.43.4] - 2026-05-01
+
+### Added (FKUIKit PresentationController)
+- Added new sheet detents aligned with system semantics:
+  - `FKPresentationDetent.medium` (half-height style detent)
+  - `FKPresentationDetent.large` (near-full detent that preserves a visible edge gap)
+- Applied detent resolution support in both modal container host and overlay passthrough host, so `medium/large/full` behavior is consistent across interaction modes.
+- Updated top/bottom basics examples to demonstrate the new detent ladder (`fitContent`, `medium`, `large`, `full`).
+
+### Fixed (FKUIKit PresentationController)
+- Fixed sheet shadow rendering in container and overlay hosts by avoiding clipping on the shadow-rendering wrapper layer and preserving content clipping in the inner content container.
+- Fixed Fit-to-content example initial toggle state mismatch when launched with extra blocks enabled.
+- Removed a non-functional toggle from the points-detent example to avoid misleading interaction.
+- Corrected basic bottom-sheet example narrative to match actual configuration behavior.
+
+### Changed (Documentation)
+- Updated `Sources/FKUIKit/Components/PresentationController/README.md` with zero-dim backdrop behavior and overlay host architecture notes.
+- Updated root `README.md` FKUIKit module structure/component list to match current on-disk components:
+  - removed stale references to deleted modules (`Carousel`, `LoadingAnimator`, `StarRating`, `StickyHeader`, `SwipeAction`)
+  - renamed `Presentation` references to `PresentationController`.
+
+## [0.41.0] - 2026-04-24
+
+### Added (FKUIKit TabBar)
+- Added a new `FKTabBar` module under `Sources/FKUIKit/Components/TabBar/`:
+  - `FKTabBar` (UICollectionView-based, UI-only tab header)
+  - `FKTabBarItem` with structured `title/subtitle/image/badge` configuration models
+  - `FKTabBarConfiguration` as the single configuration entry point (layout + appearance + animation)
+  - indicator styles + interactive paging linkage via `setSelectionProgress(from:to:progress:)`
+  - per-item badges via `FKBadge` integration (anchor + offset, local updates via `setBadge`)
+  - delegate + closure callback pipeline (deterministic ordering) and a lightweight `FKTabBarDataSource`
+- Added TabBar examples under `Examples/FKKitExamples/.../TabBar/` covering:
+  - basics, scrollable vs fixed-equal, dynamic data, RTL, Dynamic Type, accessibility
+  - indicator styles and interactive progress driving
+  - badge updates + badge placement controls (horizontal + vertical item layout)
+  - replace-`UITabBar` style page (UIView only)
+
+### Removed (FKUIKit Bar / BarPresentation)
+- Removed legacy `FKBar` and `FKBarPresentation` sources and corresponding example pages after migrating relevant use cases to `FKTabBar` + `FKPresentation` composition.
+
+### Changed (Documentation)
+- Added `Sources/FKUIKit/Components/TabBar/README.md` aligned with other component module guides.
+- Updated root `README.md` module structure and SPM reference version to `0.41.0`.
+
+## [0.40.2] - 2026-04-23
+
+### Changed (FKUIKit Refresh)
+- Added token-safe context handlers (`FKRefreshActionContext`) and completion APIs that accept `token:` to prevent stale-end races.
+- Added pair-level policy model (`FKRefreshPolicy`) for concurrency coordination and auto-fill behavior.
+- Added a SwiftUI bridge (`FKRefreshSwiftUIBridge`) for hosting UIKit scroll views in SwiftUI wrappers.
+- Refined global defaults plumbing via `FKRefreshManager` / `FKRefreshSettings`.
+
+### Changed (Examples)
+- Refreshed FKRefresh example hub and renamed example sources from `Demo` to `Example`.
+- Added i18n + accessibility focused example.
+
+### Changed (Documentation)
+- Rewrote `Sources/FKUIKit/Components/Refresh/README.md` as an English, open-source ready guide aligned with current APIs.
+
+## [0.40.1] - 2026-04-23
+
+### Changed (FKUIKit TextField)
+- Upgraded `FKTextField` into a more complete input module with:
+  - explicit status model (`normal` / `focused` / `filled` / `error` / `success` / `disabled` / `readOnly`)
+  - configurable validation trigger strategy (`onChange` / `onBlur` / `onSubmit`)
+  - async validation support with cancellation and latest-result-wins race handling
+  - helper/success/error message channels and floating-title presentation
+  - improved cursor restoration after formatting and stronger IME-friendly behavior
+  - expanded accessibility and localization configuration
+  - SwiftUI bridge via `FKTextFieldRepresentable`
+- Extended TextField style/token and behavior models with success/filled/read-only states, motion policy, accessibility policy, and localization bundle.
+- Added composable validation building blocks:
+  - `FKTextFieldAsyncValidating` / `FKTextFieldAnyAsyncValidator`
+  - `FKTextFieldCompositeValidator`
+  - `FKTextFieldValidationRule`
+- Added a shared text-input abstraction (`FKTextInputComponent`) and aligned single-line/multi-line input usage paths.
+
+### Changed (Examples)
+- Expanded `FKTextField` examples into a high-coverage scenario hub:
+  - basics, common types/formatting, status gallery, validation strategies, form orchestration
+  - i18n/accessibility, theme tokens, OTP/counter, XIB/Storyboard, SwiftUI
+- Added explicit per-field input-rule hints (allowed/blocked characters) to reduce ambiguity for integrators.
+- Added unrestricted “any-character” input example.
+- Unified naming in TextField example sources from `Demo` to `Example`.
+
+### Fixed (FKUIKit TextField)
+- Fixed state-message carryover where error feedback could still show success text after toggling from success to error state.
+- Improved inline helper-message spacing in read-only example scenarios.
+
+## [0.40.0] - 2026-04-23
+
+### Changed (FKUIKit Toast)
+- Merged `TopNotification`-specific capabilities into the unified Toast module:
+  - request handle API via `FKToastHandle`
+  - per-instance progress update API (`FKToast.updateProgress`)
+  - optional presentation sound policy (`FKToastSound` + `FKToastConfiguration.sound`)
+- Refined migration ergonomics for top-banner style usage while keeping Toast/HUD/Snackbar as the single global overlay entry.
+
+### Removed (FKUIKit TopNotification)
+- Removed `Sources/FKUIKit/Components/TopNotification/` after feature parity migration to Toast.
+- Removed TopNotification example hub:
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/TopNotification/FKTopNotificationExamplesHubViewController.swift`
+- Removed TopNotification menu entry from:
+  - `Examples/FKKitExamples/FKKitExamples/Main/ExampleMenuViewController.swift`
+
+### Changed (Documentation)
+- Updated root `README.md` and `CHANGELOG.md` to remove TopNotification references and reflect Toast as the unified overlay solution.
+
+## [0.39.0] - 2026-04-23
+
+### Added (FKEmptyState CoreLite)
+- Added a Foundation-only EmptyState core library product: `FKEmptyStateCoreLite`
+  - UI-agnostic types (`FKEmptyStateType`, `FKEmptyStateInputs`)
+  - severity-first resolver (`FKEmptyStateResolver`)
+  - lightweight i18n interpolation + dictionary translator
+- `Package.swift`: added a dedicated target for CoreLite and excluded it from `FKUIKit` to avoid symbol collisions.
+
+### Changed (FKUIKit FKEmptyState)
+- **Breaking**: Unified action callbacks to a typed action payload:
+  - `actionHandler` is now `((FKEmptyStateAction) -> Void)?` across `UIView` / `UIScrollView` entry points.
+  - All action buttons (primary/secondary/tertiary) emit a single typed callback; route by `action.id`.
+- Added `FKEmptyStateNotificationKeys` and enriched `.fkEmptyStateActionInvoked` payload (`id`, `kind`, `payload`) for coordinator-style routing.
+- Improved open-source documentation comments across core EmptyState files (resolver, i18n, view behavior, and host extensions).
+
+## [0.38.0] - 2026-04-23
+
+### Added (FKUIKit Toast)
+- Added a unified `Toast / HUD / Snackbar` solution under `Sources/FKUIKit/Components/Toast/`:
+  - `FKToast` (global entry point), `FKHUD`, `FKSnackbar` convenience APIs
+  - `FKToastConfiguration` (theme, layout, accessibility, queue policy, blur policy)
+  - `FKToastQueueActor` (thread-safe queue orchestration with dedupe/coalesce and priority preemption)
+  - SwiftUI bridging via `UIHostingController`
+- Added accessibility support:
+  - optional VoiceOver announcement
+  - action accessibility labels
+  - Dynamic Type friendly typography defaults
+- Added container-aware positioning:
+  - navigation bar aware top placement
+  - tab bar + safe area + keyboard aware bottom placement
+- Added optional material blur and liquid-glass-preferred visual effect with fallback policies.
+
+### Added (Examples)
+- Added a full demo hub at `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Toast/` covering:
+  - toast placement, multiline text, icons, custom views
+  - queue strategies (burst, coalesce/dedupe, priority interruption)
+  - HUD loading/progress/success/failure, blocking vs passthrough, manual dismiss, timeout
+  - snackbar actions, swipe dismiss, accessibility toggles
+  - keyboard avoidance and appearance (light/dark) verification
+  - SwiftUI trigger surface sharing the same playbook with UIKit pages
+
+### Changed (Documentation)
+- Rewrote `Sources/FKUIKit/Components/Toast/README.md` as an open-source ready English guide (overview, install, usage, accessibility, threading, FAQ, contributing).
+
+## [0.37.1] - 2026-04-22
+
+### Added (FKUIKit FKStickyHeader)
+- Added `FKStickyHeader` module under `Sources/FKUIKit/Components/StickyHeader/`:
+  - `FKStickyEngine` (sticky computation and lifecycle dispatch)
+  - `FKStickyConfiguration` (type-safe configuration: sticky offset, transition curve/distance, enable toggles)
+  - `FKStickyTarget` (target model with progress/state/style callbacks)
+  - `UIScrollView+FKStickyView` (one-line enable APIs for `UITableView` / `UICollectionView`, global defaults integration)
+  - `FKStickyHeaderSwiftUIView` (SwiftUI bridge)
+- Supported sticky behavior coverage:
+  - multi-section push-off interaction (next header pushes current sticky header)
+  - custom sticky reference offset to avoid navigation bars/top overlays
+  - progress-driven transition animation callback (alpha/scale/background, etc.)
+  - lifecycle callbacks (`willSticky` / `didSticky` / `didUnsticky`)
+  - runtime controls (enable/disable, force active sticky target)
+
+### Changed (FKUIKit FKStickyHeader)
+- Improved integration stability for lazy header creation and reuse in table/collection lists.
+- Optimized scrolling performance by avoiding per-frame target rebuild while keeping layout updates stable at 60fps.
+
+### Added (Examples)
+- Added a full `FKStickyHeader` scenario hub under:
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/StickyHeader/`
+- Added coverage including:
+  - UITableView single/multi-section sticky
+  - UICollectionView multi-section sticky
+  - waterfall layout sticky
+  - custom offset, animations, state callbacks, runtime toggle
+  - dark mode, rotation, and performance (FPS indicator)
+
+### Changed (Examples)
+- Replaced legacy `Sticky` examples with `StickyHeader` examples and updated navigation entry.
+
+## [0.37.0] - 2026-04-22
+
+### Added (FKUIKit FKBlurView)
+- Added a new high-performance blur module under `Sources/FKUIKit/Components/BlurView/`:
+  - `FKBlurView` (UIKit blur view with system/custom backends)
+  - `FKBlurConfiguration` (type-safe blur model with system styles, custom parameters, mode/backend selection)
+  - `FKBlurGlobalDefaults` (global baseline configuration)
+  - `FKSwiftUIBlurView` (SwiftUI adapter)
+- Added full blur capability coverage:
+  - system material styles (`light` / `dark` / `extraLight` / `systemMaterial` family, etc.)
+  - custom blur parameters (`blurRadius`, `saturation`, `brightness`, `tintColor`, `tintOpacity`)
+  - static and dynamic blur modes
+  - mask support (`maskPath`, rounded mask convenience)
+  - opacity control and Interface Builder bridges (`@IBDesignable`, `@IBInspectable`)
+- Added image and view blur extensions:
+  - `UIImage.fk_blurred(...)`
+  - `UIView.fk_blurredSnapshot(...)`
+  - `UIView.fk_blurredSnapshotAsync(...)`
+- Added shared processing core `FKBlurImageProcessor` to reuse Core Image/Metal blur pipeline across `UIImage+Blur` and `UIView+Blur`.
+
+### Changed (FKUIKit FKBlurView)
+- Added complete English API documentation comments for public APIs and key internal flows across blur sources.
+- Optimized custom image blur memory behavior by removing expensive pixel upsampling after downsample processing and restoring logical display size via `UIImage.scale`.
+
+### Added (Examples)
+- Added full FKBlurView example hub at:
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/BlurView/FKBlurViewExamplesHubViewController.swift`
+- Added scenario coverage including:
+  - basic/system/custom blur demos
+  - static vs dynamic blur
+  - image blur and UIView snapshot blur (sync/async)
+  - rounded/circle/custom-mask blur
+  - opacity, global defaults, dark mode, rotation, and scroll performance
+  - SwiftUI integration and XIB/Storyboard demo path
+- Added `BlurView` entry to `Examples/.../Main/ExampleMenuViewController.swift`.
+- Fixed XIB/Storyboard demo crash when nib resource is missing by adding safe nib existence guard and fallback path.
+
+## [0.35.1] - 2026-04-22
+
+### Fixed (FKUIKit FKTextField)
+- Fixed emoji filtering regression that incorrectly removed ASCII digits (`0-9`) in formatted input flows.
+- Updated emoji-sanitization logic to preserve ASCII text while still removing emoji scalars when emoji input is disabled.
+
+### Changed (FKUIKit FKTextField)
+- Added accessory icon presentation controls in `FKTextFieldAccessoryConfiguration`:
+  - `iconSize`
+  - `horizontalPadding`
+  - `tintBehavior` (`.fixed` / `.followsBorderState`)
+- Updated built-in clear/toggle accessory rendering to:
+  - support configurable icon size and touch target sizing,
+  - increase horizontal inset from field borders,
+  - optionally follow border state color in normal/focused/error/disabled states.
+
+### Changed (Examples)
+- Refined `FKTextField` example hub with clearer character-allowance descriptions for each input type.
+- Added an explicit "any-character" input demo field.
+- Improved accessory icon demo spacing/sizing and added state-tint follow-up behavior showcase.
+- Fixed `XIB / Storyboard` demo crash by removing invalid runtime `NSCoder()` instantiation path.
+
+### Changed (Documentation)
+- Updated root `README.md` package reference from `0.35.0` to `0.35.1`.
+- Updated `Sources/FKUIKit/Components/TextField/README.md` with improved ToC transition copy and overview wording.
+
+## [0.35.0] - 2026-04-21
+
+### Added (FKUIKit FKDivider)
+- Added a new lightweight divider module under `Sources/FKUIKit/Components/Divider/` with UIKit and SwiftUI support:
+  - `FKDivider`
+  - `FKDividerConfiguration`
+  - `FKDividerManager`
+  - `FKDividerView` (SwiftUI adapter)
+  - `UIView.fk_addDivider(...)` convenience API
+- Added support for horizontal/vertical directions, solid/dashed styles, dash pattern customization, gradient rendering, and 1-physical-pixel adaptation.
+- Added Interface Builder support via `@IBDesignable` and `@IBInspectable` bridge properties for visual setup in XIB/Storyboard.
+- Added global default configuration support through `FKDividerManager.shared.defaultConfiguration`.
+
+### Added (Examples)
+- Added complete FKDivider examples hub at:
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Divider/FKDividerExamplesHubViewController.swift`
+- Added full scenario coverage including:
+  - horizontal/vertical solid dividers
+  - pixel-perfect rendering
+  - insets, thickness, color, dashed and dash-pattern variants
+  - gradient and auto-pinned edge dividers
+  - global configuration, IB simulation, SwiftUI integration
+  - dark mode and rotation adaptation demos
+- Added `Divider` entry in `ExampleMenuViewController` under `FKUIKit`.
+
+### Added (Documentation)
+- Added module-level documentation:
+  - `Sources/FKUIKit/Components/Divider/README.md`
+
+### Changed (Documentation)
+- Moved status badges from component READMEs to the root `README.md` for unified repository-level status display.
+- Updated root `README.md` to include `Divider` in module structure, FKUIKit component list, and module docs navigation.
+- Updated SPM reference version in root `README.md` from `0.34.0` to `0.35.0`.
+
+## [0.34.0] - 2026-04-21
+
+### Added (FKUIKit FKToast)
+- Added a new lightweight global toast/snackbar module under `Sources/FKUIKit/Components/Toast/` with pure Swift UIKit implementation and SwiftUI interoperability.
+- Added core toast architecture with queue-safe global presenter:
+  - `FKToast`
+  - `FKToastConfiguration`
+  - `FKToastStyle`
+  - `FKToastAnimator`
+  - `FKToastView`
+- Added built-in dual presentation modes:
+  - classic floating toast
+  - snackbar-style action hint
+- Added five preset styles with default icon and adaptive color semantics:
+  - `normal`
+  - `success`
+  - `error`
+  - `warning`
+  - `info`
+- Added configurable placement (`top` / `center` / `bottom`), animation (`fade` / `slide`), interactions (tap/swipe dismiss), action button support, and custom UIView/SwiftUI content hosting.
+- Added thread-safe invocation path with main-actor UI rendering, sequential queue presentation, and cancellable auto-dismiss scheduling.
+
+### Added (Examples)
+- Added comprehensive FKToast demo hub at:
+  - `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Toast/FKToastExamplesHubViewController.swift`
+- Added full scenario coverage including:
+  - presets, positions, animations, interaction controls, durations
+  - custom style and custom content (UIKit + SwiftUI)
+  - queue behavior and global configuration
+  - dark/light appearance preview and standalone SwiftUI demo page
+- Added `Toast` entry in `ExampleMenuViewController` under `FKUIKit`.
+
+### Changed (FKUIKit FKToast)
+- Refined top-position layout behavior:
+  - when a navigation bar is visible, top toast appears below the navigation bar with configured spacing
+  - otherwise, top toast appears below the safe-area top inset with configured spacing
+- Aligned internal concurrency annotations and callback sendability for Swift 6 diagnostics in toast queue/animation paths.
+
+### Added (Documentation)
+- Added module-level documentation:
+  - `Sources/FKUIKit/Components/Toast/README.md`
+
+### Changed (Documentation)
+- Updated root `README.md` to include `Toast` in FKUIKit component list, module docs navigation, and SPM reference version (`0.34.0`).
+
 ## [0.33.1] - 2026-04-21
 
 ### Changed (FKUIKit FKBadge)
@@ -1133,7 +1461,17 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.33.1...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.4...HEAD
+[0.43.4]: https://github.com/feng-zhang0712/FKKit/compare/0.43.3...0.43.4
+[0.40.1]: https://github.com/feng-zhang0712/FKKit/compare/0.40.0...0.40.1
+[0.40.0]: https://github.com/feng-zhang0712/FKKit/compare/0.39.0...0.40.0
+[0.39.0]: https://github.com/feng-zhang0712/FKKit/compare/0.38.0...0.39.0
+[0.38.0]: https://github.com/feng-zhang0712/FKKit/compare/0.37.3...0.38.0
+[0.37.0]: https://github.com/feng-zhang0712/FKKit/compare/0.36.0...0.37.0
+[0.36.0]: https://github.com/feng-zhang0712/FKKit/compare/0.35.1...0.36.0
+[0.35.1]: https://github.com/feng-zhang0712/FKKit/compare/0.35.0...0.35.1
+[0.35.0]: https://github.com/feng-zhang0712/FKKit/compare/0.34.0...0.35.0
+[0.34.0]: https://github.com/feng-zhang0712/FKKit/compare/0.33.1...0.34.0
 [0.33.1]: https://github.com/feng-zhang0712/FKKit/compare/0.33.0...0.33.1
 [0.33.0]: https://github.com/feng-zhang0712/FKKit/compare/0.32.0...0.33.0
 [0.32.0]: https://github.com/feng-zhang0712/FKKit/compare/0.31.0...0.32.0
