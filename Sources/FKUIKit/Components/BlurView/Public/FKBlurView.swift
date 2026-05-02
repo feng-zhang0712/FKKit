@@ -14,7 +14,7 @@ public final class FKBlurView: UIView {
   /// Current blur configuration.
   ///
   /// Thread-safe: may be set from any thread; UI updates are dispatched to the main thread.
-  public var configuration: FKBlurConfiguration = FKBlurGlobalDefaults.configuration {
+  public var configuration: FKBlurConfiguration = FKBlur.defaultConfiguration {
     didSet { applyConfigurationAsync() }
   }
 
@@ -38,6 +38,20 @@ public final class FKBlurView: UIView {
   /// Sets a rounded-rect mask (in addition to `layer.cornerRadius`), avoiding edge artifacts when using `.custom`.
   @IBInspectable public var maskedCornerRadius: CGFloat = 0 {
     didSet { updateMask() }
+  }
+
+  /// Invalidates cached custom-blur output and schedules a new snapshot when source pixels change without layout
+  /// (for example after updating an image or label behind a `.static` blur).
+  ///
+  /// No-op for `.system` backend.
+  public func invalidateBlurContent() {
+    guard case .custom = configuration.backend else { return }
+    imageView.image = nil
+    if UIAccessibility.isReduceTransparencyEnabled {
+      applyReduceTransparencyOpaqueFill()
+    } else {
+      scheduleRefresh()
+    }
   }
 
   // MARK: Interface Builder
@@ -92,6 +106,11 @@ public final class FKBlurView: UIView {
     didSet { syncFromIB() }
   }
 
+  /// IB-only: custom fill when *Reduce Transparency* is on and backend is custom (`nil` = system secondary background).
+  @IBInspectable public var ibReduceTransparencyFallbackColor: UIColor? {
+    didSet { syncFromIB() }
+  }
+
   // MARK: - Lifecycle
 
   /// Creates a blur view with the given frame.
@@ -108,6 +127,12 @@ public final class FKBlurView: UIView {
   public required init?(coder: NSCoder) {
     super.init(coder: coder)
     commonInit()
+  }
+
+  deinit {
+    if let reduceTransparencyObserver {
+      NotificationCenter.default.removeObserver(reduceTransparencyObserver)
+    }
   }
 
   /// Prepares the view for rendering inside Interface Builder.
@@ -142,6 +167,8 @@ public final class FKBlurView: UIView {
     // Re-apply system effect to react to light/dark changes.
     if case .system = configuration.backend {
       applyConfigurationAsync()
+    } else if UIAccessibility.isReduceTransparencyEnabled {
+      applyReduceTransparencyOpaqueFill()
     } else {
       scheduleRefresh()
     }
@@ -166,6 +193,11 @@ public final class FKBlurView: UIView {
 
   private var displayLink: CADisplayLink?
   private var pendingRefresh = false
+  /// NotificationCenter token; stored as `nonisolated(unsafe)` so it can be removed from `deinit` under Swift 6 isolation rules.
+  nonisolated(unsafe) private var reduceTransparencyObserver: NSObjectProtocol?
+
+  /// Tracks custom-blur pipeline inputs so `.static` mode can invalidate snapshots only when radius/material inputs change (not when only `opacity` / `preferredFramesPerSecond` change).
+  private var lastAppliedCustomPipelineKey: (FKBlurConfiguration.Mode, FKBlurConfiguration.Backend, CGFloat)?
 
   private func commonInit() {
     isUserInteractionEnabled = false
@@ -177,6 +209,14 @@ public final class FKBlurView: UIView {
 
     systemEffectView.isUserInteractionEnabled = false
     imageView.isUserInteractionEnabled = false
+
+    reduceTransparencyObserver = NotificationCenter.default.addObserver(
+      forName: UIAccessibility.reduceTransparencyStatusDidChangeNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      self?.handleReduceTransparencyStatusChanged()
+    }
 
     // Default: show system path until config applied.
     applyConfigurationAsync()
@@ -197,6 +237,7 @@ public final class FKBlurView: UIView {
 
     switch configuration.backend {
     case .system(let style):
+      lastAppliedCustomPipelineKey = nil
       // Hardware path: always best for dynamic performance.
       systemEffectView.effect = UIBlurEffect(style: style.uiBlurEffectStyle)
       systemEffectView.isHidden = false
@@ -210,6 +251,13 @@ public final class FKBlurView: UIView {
       systemEffectView.isHidden = true
       imageView.isHidden = false
       tintOverlayView.isHidden = true
+      let pipelineKey = (configuration.mode, configuration.backend, configuration.downsampleFactor)
+      if configuration.mode == .static {
+        if lastAppliedCustomPipelineKey.map({ $0 != pipelineKey }) ?? true {
+          imageView.image = nil
+        }
+      }
+      lastAppliedCustomPipelineKey = pipelineKey
       updateRefreshLoop()
       scheduleRefresh()
     }
@@ -219,6 +267,7 @@ public final class FKBlurView: UIView {
     let needsLink: Bool = {
       guard window != nil else { return false }
       guard case .custom = configuration.backend else { return false }
+      if UIAccessibility.isReduceTransparencyEnabled { return false }
       return configuration.mode == .dynamic
     }()
 
@@ -247,6 +296,13 @@ public final class FKBlurView: UIView {
     guard case .custom = configuration.backend else { return }
     guard window != nil else { return }
 
+    if UIAccessibility.isReduceTransparencyEnabled {
+      applyReduceTransparencyOpaqueFill()
+      return
+    }
+
+    imageView.backgroundColor = nil
+
     if configuration.mode == .static {
       // Static mode: render once and keep the image forever.
       if imageView.image == nil {
@@ -267,6 +323,13 @@ public final class FKBlurView: UIView {
   private func refreshCustomBlur() {
     guard case .custom(let parameters) = configuration.backend else { return }
 
+    if UIAccessibility.isReduceTransparencyEnabled {
+      applyReduceTransparencyOpaqueFill()
+      return
+    }
+
+    imageView.backgroundColor = nil
+
     let src = blurSourceView ?? superview
     guard let sourceView = src else { return }
     guard bounds.width > 1, bounds.height > 1 else { return }
@@ -281,6 +344,23 @@ public final class FKBlurView: UIView {
     let downsample = max(1, configuration.downsampleFactor)
     let blurred = cropped?.fk_blurred(parameters: parameters, downsampleFactor: downsample)
     imageView.image = blurred
+  }
+
+  private func applyReduceTransparencyOpaqueFill() {
+    imageView.image = nil
+    let base = configuration.reduceTransparencyFallbackColor ?? .secondarySystemBackground
+    imageView.backgroundColor = base.resolvedColor(with: traitCollection)
+  }
+
+  private func handleReduceTransparencyStatusChanged() {
+    updateRefreshLoop()
+    guard case .custom = configuration.backend else { return }
+    if UIAccessibility.isReduceTransparencyEnabled {
+      applyReduceTransparencyOpaqueFill()
+    } else {
+      imageView.backgroundColor = nil
+      scheduleRefresh()
+    }
   }
 
   private func snapshotImage(from view: UIView) -> UIImage? {
@@ -335,7 +415,8 @@ public final class FKBlurView: UIView {
         backend: .system(style: styles[idx]),
         opacity: opacity,
         downsampleFactor: downsample,
-        preferredFramesPerSecond: configuration.preferredFramesPerSecond
+        preferredFramesPerSecond: configuration.preferredFramesPerSecond,
+        reduceTransparencyFallbackColor: ibReduceTransparencyFallbackColor
       )
     } else {
       let params = FKBlurConfiguration.CustomParameters(
@@ -350,7 +431,8 @@ public final class FKBlurView: UIView {
         backend: .custom(parameters: params),
         opacity: opacity,
         downsampleFactor: downsample,
-        preferredFramesPerSecond: configuration.preferredFramesPerSecond
+        preferredFramesPerSecond: configuration.preferredFramesPerSecond,
+        reduceTransparencyFallbackColor: ibReduceTransparencyFallbackColor
       )
     }
   }

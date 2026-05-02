@@ -8,6 +8,32 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.43.6] - 2026-05-02
+
+### Added (FKUIKit BlurView)
+- Added `FKBlur` namespace with `defaultConfiguration` as the single global baseline for new `FKBlurView` instances and `FKSwiftUIBlurView` default parameters.
+- Added `blurSourceProvider` on `FKSwiftUIBlurView` so SwiftUI callers can supply a snapshot source for the `.custom` backend beyond `superview`.
+- Added `reduceTransparencyFallbackColor` on `FKBlurConfiguration` and `ibReduceTransparencyFallbackColor` on `FKBlurView` so the opaque fill used under **Reduce Transparency** + `.custom` can match brand or surface colors (default remains system secondary background when unset).
+- Added `invalidateBlurContent()` on `FKBlurView` to force regeneration when underlying pixels change without a layout pass (especially for `.static` custom blur).
+
+### Changed (FKUIKit BlurView)
+- **Breaking:** Removed `FKBlurGlobalDefaults`; use `FKBlur.defaultConfiguration` instead.
+- **Breaking:** Reorganized the module to mirror other FKUIKit components (`Public/`, `Internal/`, `Extension/`).
+- **Breaking:** Renamed extension sources to `UIView+FKBlur.swift` and `UIImage+FKBlur.swift` (public `fk_*` APIs unchanged).
+- Refined custom blur behavior: pipeline-aware invalidation for `.static` + `.custom` when blur inputs change; Reduce Transparency now short-circuits the custom snapshot loop and uses an opaque fill.
+- Updated `FKSwiftUIBlurView` default configuration wiring to `FKBlur.defaultConfiguration`.
+- Rewrote `Sources/FKUIKit/Components/BlurView/README.md` as an English module guide (layout tables, quick start, accessibility notes, examples pointer).
+
+### Changed (Examples)
+- Split the monolithic BlurView example hub into multiple scenario files plus `FKBlurExampleSupport.swift`, aligned with the Badge examples layout.
+- Renamed shared demo helpers to `FKBlurExampleUI` / `FKBlurExampleBaseViewController` and updated copy to reference `FKBlur.defaultConfiguration`.
+
+### Fixed (FKUIKit BlurView)
+- Fixed `.static` + `.custom` blur not updating when `FKBlurConfiguration` blur-relevant fields changed while a cached image was still present.
+
+### Removed (FKUIKit BlurView)
+- Removed unused `import CoreImage.CIFilterBuiltins` from `UIImage+FKBlur.swift`.
+
 ## [0.43.4] - 2026-05-01
 
 ### Added (FKUIKit PresentationController)
@@ -200,7 +226,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Added a new high-performance blur module under `Sources/FKUIKit/Components/BlurView/`:
   - `FKBlurView` (UIKit blur view with system/custom backends)
   - `FKBlurConfiguration` (type-safe blur model with system styles, custom parameters, mode/backend selection)
-  - `FKBlurGlobalDefaults` (global baseline configuration)
+  - `FKBlur.defaultConfiguration` (global baseline configuration)
   - `FKSwiftUIBlurView` (SwiftUI adapter)
 - Added full blur capability coverage:
   - system material styles (`light` / `dark` / `extraLight` / `systemMaterial` family, etc.)

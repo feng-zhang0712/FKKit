@@ -1,6 +1,5 @@
 import UIKit
 import CoreImage
-import CoreImage.CIFilterBuiltins
 
 extension UIImage {
   /// Returns a blurred image using Core Image with fully custom parameters.

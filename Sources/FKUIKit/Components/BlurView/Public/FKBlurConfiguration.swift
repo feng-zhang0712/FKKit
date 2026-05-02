@@ -137,33 +137,43 @@ public struct FKBlurConfiguration: Sendable, Equatable {
   /// - Important: System backend ignores this because it is already hardware-accelerated.
   public var preferredFramesPerSecond: Int
 
+  /// Opaque fill for the **`.custom`** backend when the user enables *Reduce Transparency*
+  /// (Settings → Accessibility → Display & Text Size).
+  ///
+  /// `nil` means `UIColor.secondarySystemBackground` (resolved with the host view’s `traitCollection`).
+  /// Set a brand or surface color when the default system gray does not match your chrome.
+  ///
+  /// - Note: Ignored for `.system` backend; `UIVisualEffectView` is handled by the system.
+  public var reduceTransparencyFallbackColor: UIColor?
+
   /// Creates a blur configuration.
   public init(
     mode: Mode = .dynamic,
     backend: Backend = .system(style: .systemMaterial),
     opacity: CGFloat = 1.0,
     downsampleFactor: CGFloat = 4,
-    preferredFramesPerSecond: Int = 60
+    preferredFramesPerSecond: Int = 60,
+    reduceTransparencyFallbackColor: UIColor? = nil
   ) {
     self.mode = mode
     self.backend = backend
     self.opacity = opacity
     self.downsampleFactor = downsampleFactor
     self.preferredFramesPerSecond = preferredFramesPerSecond
+    self.reduceTransparencyFallbackColor = reduceTransparencyFallbackColor
   }
 
   /// A sensible default matching iOS materials.
   public static let `default` = FKBlurConfiguration()
 }
 
-/// Namespace for app-wide defaults used as a baseline by `FKBlurView`.
+/// Namespace for blur-wide defaults (parallel to `FKBadge` using static configuration entry points).
 ///
-/// Typical pattern: configure once at launch; per-view configs override.
-public enum FKBlurGlobalDefaults {
-  /// Baseline configuration template used by new `FKBlurView` instances.
-  ///
-  /// - Important: Mutate only on the main thread (UIKit). Existing views will not automatically update unless you reassign
-  ///   their `FKBlurView.configuration` (this is by design to keep updates explicit and predictable).
-  public nonisolated(unsafe) static var configuration: FKBlurConfiguration = .default
+/// Mutate `defaultConfiguration` once at launch to unify appearance; set `FKBlurView.configuration` per instance to override.
+///
+/// - Important: Mutate only on the main thread (UIKit). Existing `FKBlurView` instances do not observe changes automatically—reassign `FKBlurView.configuration` when needed.
+public enum FKBlur {
+  /// Baseline configuration used by new `FKBlurView` instances and by `FKSwiftUIBlurView` when no value is passed.
+  public nonisolated(unsafe) static var defaultConfiguration: FKBlurConfiguration = .default
 }
 

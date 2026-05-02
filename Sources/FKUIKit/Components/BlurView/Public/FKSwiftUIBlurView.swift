@@ -10,11 +10,20 @@ public struct FKSwiftUIBlurView: UIViewRepresentable {
   /// Blur configuration.
   public var configuration: FKBlurConfiguration
 
+  /// Snapshot source for `.custom` backend; when `nil`, `FKBlurView` falls back to `superview` (UIKit default).
+  public var blurSourceProvider: (() -> UIView?)?
+
   /// Creates a SwiftUI blur view.
   ///
-  /// - Parameter configuration: Blur configuration.
-  public init(configuration: FKBlurConfiguration = FKBlurGlobalDefaults.configuration) {
+  /// - Parameters:
+  ///   - configuration: Blur configuration.
+  ///   - blurSourceProvider: Optional closure returning the view to blur (evaluated on the main thread from `updateUIView`).
+  public init(
+    configuration: FKBlurConfiguration = FKBlur.defaultConfiguration,
+    blurSourceProvider: (() -> UIView?)? = nil
+  ) {
     self.configuration = configuration
+    self.blurSourceProvider = blurSourceProvider
   }
 
   /// Creates and configures the underlying UIKit view.
@@ -34,6 +43,7 @@ public struct FKSwiftUIBlurView: UIViewRepresentable {
   ///   - context: A context structure containing information about the current state of the system.
   public func updateUIView(_ uiView: FKBlurView, context: Context) {
     uiView.configuration = configuration
+    uiView.blurSourceView = blurSourceProvider?()
   }
 }
 #endif

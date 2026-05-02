@@ -5,8 +5,7 @@ import Metal
 
 /// Internal image-processing utilities shared by blur extensions.
 ///
-/// This namespace centralizes Core Image blur pipeline code so `UIImage+Blur` and `UIView+Blur`
-/// can reuse the same implementation and stay behaviorally consistent.
+/// Centralizes the Core Image blur pipeline so `UIImage.fk_blurred` and `UIView.fk_blurredSnapshot` stay consistent.
 enum FKBlurImageProcessor {
   /// Shared CI context used when no custom context is provided by the caller.
   ///
