@@ -43,3 +43,13 @@ public protocol FKTextFieldConfigurable: AnyObject {
   func configure(_ configuration: FKTextFieldConfiguration)
 }
 
+/// Unified raw-text API for ``FKTextField`` and ``FKCountTextView``.
+///
+/// The `fk_` prefix matches other FKUIKit extensions and avoids clashing with UIKit selectors.
+@MainActor
+public protocol FKTextInputComponent: AnyObject {
+  var fk_rawText: String { get }
+  func fk_setText(_ text: String)
+  func fk_clear()
+}
+

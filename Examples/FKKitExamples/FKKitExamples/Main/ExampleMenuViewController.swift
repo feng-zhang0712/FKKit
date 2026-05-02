@@ -91,7 +91,7 @@ final class ExampleMenuViewController: UITableViewController {
         ExampleMenuItem(
           title: "TextField",
           subtitle: "Formatted input, validation, style customization, callbacks, and global defaults",
-          make: { FKTextFieldExampleViewController() }
+          make: { FKTextFieldExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Toast",

@@ -1,17 +1,9 @@
 import UIKit
 
-/// A native, protocol-driven, zero-dependency formatted text field for UIKit.
+/// Formatted `UITextField` subclass: filtering, raw/display formatting, validation, and styling.
 ///
-/// `FKTextField` is a drop-in replacement for `UITextField` that provides a unified solution for:
-/// - input filtering (emoji/whitespace/special character control),
-/// - automatic formatting (raw vs formatted display),
-/// - realtime validation and error feedback,
-/// - global style defaults with per-instance overrides,
-/// - reusable-list friendly behavior (no extra dependencies, deterministic formatting).
-///
-/// The component is designed to be configured in one line through `FKTextFieldInputRule` and
-/// `FKTextFieldConfiguration`, while remaining extensible via `FKTextFieldFormatting` and
-/// `FKTextFieldValidating` protocols.
+/// Configure with ``FKTextFieldInputRule`` and ``FKTextFieldConfiguration``; plug in custom types via
+/// ``FKTextFieldFormatting`` and ``FKTextFieldValidating``.
 @MainActor
 public final class FKTextField: UITextField, FKTextFieldConfigurable {
   /// Current full configuration.
@@ -228,6 +220,25 @@ public final class FKTextField: UITextField, FKTextFieldConfigurable {
     applyStateStyle()
   }
 
+  /// Validates the current value immediately and refreshes messages and visual state.
+  ///
+  /// Use this for form-level submit when individual fields use `.onBlur` or `.onChange` triggers
+  /// and you still need a single synchronous validation pass across all fields.
+  /// Async validation, if configured, runs after sync validation when the sync result is valid.
+  public func validateNow() {
+    validationDebounceTask?.cancel()
+    asyncValidationTask?.cancel()
+    let result = FKTextFieldFormattingResult(
+      rawText: textState.rawText,
+      formattedText: textState.formattedText,
+      isTruncated: false,
+      removedIllegalCharacters: false
+    )
+    applySyncValidation(for: result)
+    updateInlineErrorLabel()
+    applyStateStyle()
+  }
+
   /// Installs or replaces async validator at runtime.
   public func setAsyncValidator(_ validator: FKTextFieldAsyncValidating?) {
     asyncValidator = validator
@@ -301,7 +312,19 @@ private extension FKTextField {
 
   /// Applies the current configuration to UIKit properties and internal subviews.
   func applyConfiguration() {
-    keyboardType = configuration.inputRule.formatType.keyboardType
+    let formatType = configuration.inputRule.formatType
+    let traits = configuration.textInputTraits
+    keyboardType = formatType.keyboardType
+    textContentType = traits.textContentType ?? Self.inferredTextContentType(for: formatType)
+    returnKeyType = traits.returnKeyType ?? Self.inferredReturnKeyType(for: configuration.inputRule.returnKeyBehavior)
+    autocapitalizationType = traits.autocapitalizationType ?? Self.inferredAutocapitalization(for: formatType)
+    keyboardAppearance = traits.keyboardAppearance ?? .default
+    switch formatType {
+    case .password:
+      passwordRules = traits.passwordRules
+    default:
+      passwordRules = nil
+    }
     font = configuration.style.font
     textColor = configuration.style.textColor
     borderStyle = .none
@@ -605,31 +628,71 @@ private extension FKTextField {
     checkCompletion()
   }
 
-  func performValidation(for result: FKTextFieldFormattingResult, source: FKTextFieldValidationTrigger) {
-    guard configuration.validationPolicy.trigger == source else { return }
+  func applySyncValidation(for result: FKTextFieldFormattingResult) {
     if configuration.validationPolicy.ignoresEmptyInput, result.rawText.isEmpty {
       validationResult = .valid
       textState.errorMessage = nil
       return
     }
-    let validateSync: () -> Void = { [self] in
-      validationResult = validator.validate(rawText: result.rawText, formattedText: result.formattedText, rule: configuration.inputRule)
-      textState.errorMessage = validationResult.isValid ? nil : (validationResult.message ?? configuration.messages.error)
-      if !validationResult.isValid {
-        onDidFailValidation?(validationResult)
-      }
-      onValidationResult?(validationResult)
-      runAsyncValidationIfNeeded(result: result)
+    validationResult = validator.validate(rawText: result.rawText, formattedText: result.formattedText, rule: configuration.inputRule)
+    textState.errorMessage = validationResult.isValid ? nil : (validationResult.message ?? configuration.messages.error)
+    if !validationResult.isValid {
+      onDidFailValidation?(validationResult)
     }
+    onValidationResult?(validationResult)
+    runAsyncValidationIfNeeded(result: result)
+  }
+
+  func performValidation(for result: FKTextFieldFormattingResult, source: FKTextFieldValidationTrigger) {
+    guard configuration.validationPolicy.trigger == source else { return }
     validationDebounceTask?.cancel()
     let debounce = configuration.validationPolicy.debounceInterval
     guard debounce > 0 else {
-      validateSync()
+      applySyncValidation(for: result)
       return
     }
-    let task = DispatchWorkItem(block: validateSync)
+    let task = DispatchWorkItem(block: { [self] in
+      self.applySyncValidation(for: result)
+    })
     validationDebounceTask = task
     DispatchQueue.main.asyncAfter(deadline: .now() + debounce, execute: task)
+  }
+
+  static func inferredTextContentType(for formatType: FKTextFieldFormatType) -> UITextContentType? {
+    switch formatType {
+    case .phoneNumber:
+      return .telephoneNumber
+    case .email:
+      return .emailAddress
+    case .password:
+      return .password
+    case .verificationCode:
+      return .oneTimeCode
+    case .bankCard:
+      return .creditCardNumber
+    case .idCard, .amount, .numeric, .alphabetic, .alphaNumeric, .custom:
+      return nil
+    }
+  }
+
+  static func inferredReturnKeyType(for behavior: FKTextFieldInputRule.ReturnKeyBehavior) -> UIReturnKeyType {
+    switch behavior {
+    case .next:
+      return .next
+    case .dismiss:
+      return .done
+    case .system:
+      return .default
+    }
+  }
+
+  static func inferredAutocapitalization(for formatType: FKTextFieldFormatType) -> UITextAutocapitalizationType {
+    switch formatType {
+    case .alphabetic:
+      return .words
+    case .email, .password, .phoneNumber, .numeric, .bankCard, .verificationCode, .amount, .idCard, .alphaNumeric, .custom:
+      return .none
+    }
   }
 
   func runAsyncValidationIfNeeded(result: FKTextFieldFormattingResult) {

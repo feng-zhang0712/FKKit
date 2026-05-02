@@ -186,6 +186,209 @@ public struct FKTextFieldMotionConfiguration: Sendable, Equatable {
   }
 }
 
+// MARK: - Layout & chrome
+
+/// Layout metrics for `FKTextField` (text rect, intrinsic height, inline message spacing).
+public struct FKTextFieldLayoutConfiguration {
+  /// Base height for the text input area. Values below `28` are clamped.
+  public var textAreaHeight: CGFloat
+  /// Insets applied to text and placeholder rects (additive to `UITextField` defaults).
+  public var contentInsets: UIEdgeInsets
+  /// Vertical gap between the text area and the inline message label.
+  public var inlineMessageSpacing: CGFloat
+
+  public init(
+    textAreaHeight: CGFloat = 44,
+    contentInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12),
+    inlineMessageSpacing: CGFloat = 6
+  ) {
+    self.textAreaHeight = max(28, textAreaHeight)
+    self.contentInsets = contentInsets
+    self.inlineMessageSpacing = max(0, inlineMessageSpacing)
+  }
+}
+
+/// Inline helper / error / success label under the field.
+public struct FKTextFieldInlineMessageConfiguration {
+  public var showsErrorMessage: Bool
+  public var errorFont: UIFont
+  public var errorColor: UIColor
+  public var helperFont: UIFont
+  public var helperColor: UIColor
+  public var successColor: UIColor
+
+  public init(
+    showsErrorMessage: Bool = false,
+    errorFont: UIFont = .preferredFont(forTextStyle: .caption1),
+    errorColor: UIColor = .systemRed,
+    helperFont: UIFont = .preferredFont(forTextStyle: .caption1),
+    helperColor: UIColor = .secondaryLabel,
+    successColor: UIColor = .systemGreen
+  ) {
+    self.showsErrorMessage = showsErrorMessage
+    self.errorFont = errorFont
+    self.errorColor = errorColor
+    self.helperFont = helperFont
+    self.helperColor = helperColor
+    self.successColor = successColor
+  }
+}
+
+/// Trailing character counter (`current` / `max`).
+public struct FKTextFieldCounterConfiguration {
+  /// When enabled, shows a counter in the trailing accessory stack (see README for `rightView` interaction).
+  public var isEnabled: Bool
+  public var maxCount: Int?
+  public var font: UIFont
+  public var color: UIColor
+
+  public init(
+    isEnabled: Bool = false,
+    maxCount: Int? = nil,
+    font: UIFont = .preferredFont(forTextStyle: .caption2),
+    color: UIColor = .secondaryLabel
+  ) {
+    self.isEnabled = isEnabled
+    self.maxCount = maxCount
+    self.font = font
+    self.color = color
+  }
+}
+
+/// Visual-only feedback when validation fails (e.g. shake).
+public struct FKTextFieldValidationFeedbackConfiguration {
+  public var shakesOnInvalid: Bool
+  public var shakeAmplitude: CGFloat
+  public var shakeCount: Int
+  public var shakeDuration: TimeInterval
+
+  public init(
+    shakesOnInvalid: Bool = false,
+    shakeAmplitude: CGFloat = 10,
+    shakeCount: Int = 4,
+    shakeDuration: TimeInterval = 0.35
+  ) {
+    self.shakesOnInvalid = shakesOnInvalid
+    self.shakeAmplitude = shakeAmplitude
+    self.shakeCount = shakeCount
+    self.shakeDuration = shakeDuration
+  }
+}
+
+/// Border versus underline decoration.
+public struct FKTextFieldDecorationConfiguration: @unchecked Sendable {
+  public enum Mode: @unchecked Sendable, Equatable {
+    case border
+    case underline(thickness: CGFloat, insets: UIEdgeInsets)
+  }
+
+  public var mode: Mode
+
+  public init(mode: Mode = .border) {
+    self.mode = mode
+  }
+}
+
+/// Built-in clear control (trailing accessory).
+public struct FKTextFieldClearButtonConfiguration: @unchecked Sendable {
+  public var isEnabled: Bool
+  public var image: UIImage?
+  public var accessibilityLabel: String
+  public var resignsFirstResponderOnTap: Bool
+
+  public init(
+    isEnabled: Bool = true,
+    image: UIImage? = nil,
+    accessibilityLabel: String = "Clear text",
+    resignsFirstResponderOnTap: Bool = false
+  ) {
+    self.isEnabled = isEnabled
+    self.image = image
+    self.accessibilityLabel = accessibilityLabel
+    self.resignsFirstResponderOnTap = resignsFirstResponderOnTap
+  }
+}
+
+/// Built-in password visibility toggle (password format only).
+public struct FKTextFieldPasswordToggleConfiguration: @unchecked Sendable {
+  public var isEnabled: Bool
+  public var hiddenImage: UIImage?
+  public var visibleImage: UIImage?
+  public var accessibilityLabel: String
+
+  public init(
+    isEnabled: Bool = true,
+    hiddenImage: UIImage? = nil,
+    visibleImage: UIImage? = nil,
+    accessibilityLabel: String = "Toggle password visibility"
+  ) {
+    self.isEnabled = isEnabled
+    self.hiddenImage = hiddenImage
+    self.visibleImage = visibleImage
+    self.accessibilityLabel = accessibilityLabel
+  }
+}
+
+public enum FKTextFieldAccessoryTintBehavior: Sendable, Equatable {
+  case fixed
+  case followsBorderState
+}
+
+/// AutoFill, keyboard return key, capitalization, and optional password rules.
+///
+/// When fields are `nil`, defaults are inferred from `FKTextFieldInputRule.formatType` and
+/// `returnKeyBehavior`. Override for sign-up (`.newPassword`, `passwordRules`) or paired
+/// `.username` / `.password` AutoFill.
+public struct FKTextFieldTextInputTraitsConfiguration: @unchecked Sendable {
+  public var textContentType: UITextContentType?
+  public var returnKeyType: UIReturnKeyType?
+  public var autocapitalizationType: UITextAutocapitalizationType?
+  public var keyboardAppearance: UIKeyboardAppearance?
+  public var passwordRules: UITextInputPasswordRules?
+
+  public init(
+    textContentType: UITextContentType? = nil,
+    returnKeyType: UIReturnKeyType? = nil,
+    autocapitalizationType: UITextAutocapitalizationType? = nil,
+    keyboardAppearance: UIKeyboardAppearance? = nil,
+    passwordRules: UITextInputPasswordRules? = nil
+  ) {
+    self.textContentType = textContentType
+    self.returnKeyType = returnKeyType
+    self.autocapitalizationType = autocapitalizationType
+    self.keyboardAppearance = keyboardAppearance
+    self.passwordRules = passwordRules
+  }
+}
+
+/// Trailing accessories: clear, counter, password toggle.
+public struct FKTextFieldAccessoryConfiguration: @unchecked Sendable {
+  public var clearButton: FKTextFieldClearButtonConfiguration
+  public var passwordToggle: FKTextFieldPasswordToggleConfiguration
+  public var spacing: CGFloat
+  public var iconSize: CGFloat
+  public var horizontalPadding: CGFloat
+  public var tintBehavior: FKTextFieldAccessoryTintBehavior
+
+  public init(
+    clearButton: FKTextFieldClearButtonConfiguration = FKTextFieldClearButtonConfiguration(),
+    passwordToggle: FKTextFieldPasswordToggleConfiguration = FKTextFieldPasswordToggleConfiguration(),
+    spacing: CGFloat = 6,
+    iconSize: CGFloat = 14,
+    horizontalPadding: CGFloat = 8,
+    tintBehavior: FKTextFieldAccessoryTintBehavior = .fixed
+  ) {
+    self.clearButton = clearButton
+    self.passwordToggle = passwordToggle
+    self.spacing = max(0, spacing)
+    self.iconSize = max(10, iconSize)
+    self.horizontalPadding = max(0, horizontalPadding)
+    self.tintBehavior = tintBehavior
+  }
+}
+
+// MARK: - Aggregate configuration
+
 /// Full configuration for a text field instance.
 ///
 /// This object bundles all style and behavior options needed to construct a text field
@@ -223,6 +426,8 @@ public struct FKTextFieldConfiguration {
   public var localization: FKTextFieldLocalization
   /// Motion policy.
   public var motion: FKTextFieldMotionConfiguration
+  /// System text input traits (AutoFill, return key, capitalization, password rules).
+  public var textInputTraits: FKTextFieldTextInputTraitsConfiguration
   /// Helper/success/error message channels.
   public var messages: FKTextFieldMessages
   /// Floating label title.
@@ -250,6 +455,7 @@ public struct FKTextFieldConfiguration {
     accessibility: FKTextFieldAccessibilityConfiguration = FKTextFieldAccessibilityConfiguration(),
     localization: FKTextFieldLocalization = FKTextFieldLocalization(),
     motion: FKTextFieldMotionConfiguration = FKTextFieldMotionConfiguration(),
+    textInputTraits: FKTextFieldTextInputTraitsConfiguration = FKTextFieldTextInputTraitsConfiguration(),
     messages: FKTextFieldMessages = FKTextFieldMessages(),
     floatingTitle: String? = nil,
     isReadOnly: Bool = false,
@@ -268,6 +474,7 @@ public struct FKTextFieldConfiguration {
     self.accessibility = accessibility
     self.localization = localization
     self.motion = motion
+    self.textInputTraits = textInputTraits
     self.messages = messages
     self.floatingTitle = floatingTitle
     self.isReadOnly = isReadOnly

@@ -1,10 +1,7 @@
 import Foundation
 
-/// String utilities used by `FKTextField` formatters and validators.
-///
-/// These helpers are intentionally lightweight and allocation-friendly to keep input
-/// processing fast in list-heavy UIs.
-extension String {
+/// Internal helpers for formatters and validators (module-visible only).
+internal extension String {
   /// Returns whether a scalar should be treated as an emoji character for filtering.
   ///
   /// This intentionally excludes ASCII scalars (e.g. digits `0-9`) because some of them

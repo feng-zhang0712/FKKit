@@ -9,6 +9,36 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.43.14] - 2026-05-02
+
+### Changed (FKUIKit FKTextField)
+
+**Breaking**
+
+- Reorganized sources under `Sources/FKUIKit/Components/TextField/` into **`Public/`** (role-based subfolders), **`Internal/`**, and **`Extension/`**, removing the previous top-level folders (`Core/`, `Configuration/`, `Model/`, `Protocol/`, `Formatter/`, `Validator/`, `Animation/`, `CodeInput/`, `CountInput/`).
+- **`Public/`** is further partitioned into `Core/`, `Configuration/`, `Types/`, `Protocols/`, `Pipeline/`, `Inputs/`, `SwiftUI/`, and `Convenience/` so integrations map cleanly to responsibilities.
+- Folded **`FKTextFieldBehaviorConfiguration.swift`** into **`FKTextFieldConfiguration.swift`** (layout, inline messaging, counter, decoration, accessories, and text-input traits live alongside the aggregate configuration type).
+- Folded **`FKTextInputProtocols.swift`** into **`FKTextFieldProtocols.swift`** (`FKTextInputComponent` and `fk_*` APIs remain on that file).
+- Renamed **`FKTextField+SwiftUI.swift`** to **`Public/SwiftUI/FKTextFieldRepresentable.swift`** (the `FKTextFieldRepresentable` symbol is unchanged).
+
+**Non-breaking**
+
+- Added **`FKTextFieldTextInputTraitsConfiguration`** (`FKTextFieldConfiguration.textInputTraits`) for `textContentType`, `returnKeyType`, `autocapitalizationType`, `keyboardAppearance`, and `passwordRules` (password mode); when fields are `nil`, defaults are inferred from `FKTextFieldFormatType` and return-key behavior.
+- Added **`FKTextField.validateNow()`** to run synchronous validation immediately regardless of `FKTextFieldValidationPolicy.trigger`, refreshing inline messaging and visual state (async validation still follows when applicable).
+
+### Changed (Documentation)
+
+- Rewrote **`Sources/FKUIKit/Components/TextField/README.md`** for the new directory map, traits overview, and `validateNow()` guidance.
+
+### Changed (Examples)
+
+- Replaced **`FKTextFieldExampleViewController.swift`** with **`FKTextFieldExamplesHubViewController.swift`**, **`FKTextFieldExampleSupport.swift`**, and topic screens under **`Examples/.../FKUIKit/TextField/Scenarios/`**.
+- Updated **`ExampleMenuViewController`** to push **`FKTextFieldExamplesHubViewController`**.
+
+### Fixed (Examples)
+
+- Keyboard inset scenario registers **`keyboardWillChangeFrame`** via a block-based **`NotificationCenter`** token and tears it down in **`viewWillDisappear`**, avoiding Swift 6 isolation issues around **`deinit`**.
+
 ## [0.43.13] - 2026-05-02
 
 ### Changed (FKUIKit FKToast)
@@ -1702,7 +1732,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.8...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.14...HEAD
+[0.43.14]: https://github.com/feng-zhang0712/FKKit/compare/0.43.13...0.43.14
 [0.43.8]: https://github.com/feng-zhang0712/FKKit/compare/0.43.7...0.43.8
 [0.43.7]: https://github.com/feng-zhang0712/FKKit/compare/0.43.6...0.43.7
 [0.43.6]: https://github.com/feng-zhang0712/FKKit/compare/0.43.4...0.43.6
