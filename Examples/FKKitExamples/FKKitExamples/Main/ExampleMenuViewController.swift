@@ -50,7 +50,7 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "Divider",
-          subtitle: "Horizontal/vertical, dashed/gradient, auto pin, IB and SwiftUI divider examples",
+          subtitle: "Hub: basics, line styles, edge pinning, defaults, SwiftUI",
           make: { FKDividerExamplesHubViewController() }
         ),
         ExampleMenuItem(

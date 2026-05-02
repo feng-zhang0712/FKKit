@@ -65,7 +65,7 @@ FKKit/
 │  │     ├─ BlurView/
 │  │     ├─ Button/
 │  │     ├─ CornerShadow/
-│  │     ├─ Divider/
+│  │     ├─ Divider/          (Public, Internal, Extension)
 │  │     ├─ EmptyState/
 │  │     ├─ ExpandableText/
 │  │     ├─ MultiPicker/
@@ -105,7 +105,7 @@ FKKit/
 - `BlurView`: high-performance blur component with system/custom pipelines, UIKit/SwiftUI adapters, image/view snapshot blur APIs, and IB/global-configuration support.
 - `Button`: configurable button system with style/content/loading behavior.
 - `CornerShadow`: rounded-rect masks, borders, gradient fill/stroke, and explicit-path shadows (`Public` / `Internal` / `Extension`); see `Sources/FKUIKit/Components/CornerShadow/README.md`.
-- `Divider`: lightweight reusable divider for UIKit/SwiftUI with dashed, gradient, and edge-pinning support.
+- `Divider`: hairline separator (`FKDivider` / `FKDividerView`); dashed & gradient strokes; `FKDivider.defaultConfiguration`; layout under `Public/`, `Internal/`, `Extension/` (see module README).
 - `EmptyState`: loading/empty/error state overlay system.
 - `ExpandableText`: configurable long-text expand/collapse component with reusable-list state cache and pre-measurement support.
 - `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.

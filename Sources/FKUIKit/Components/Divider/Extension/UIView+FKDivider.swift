@@ -1,33 +1,30 @@
 import UIKit
 
 public extension UIView {
-  /// Adds and pins a divider to one edge of the current view.
+  /// Pins a new ``FKDivider`` to one edge of `self`.
   ///
   /// - Parameters:
-  ///   - edge: Target edge to pin (`top`/`bottom`/`left`/`right`).
-  ///   - configuration: Divider configuration. Defaults to global manager configuration.
-  ///   - margin: Outer margin along the non-thickness axis.
-  /// - Returns: The created `FKDivider` instance.
+  ///   - edge: ``FKDividerPinnedEdge/top``, ``/bottom``, or vertical pins on **semantic** ``/leading`` and ``/trailing``.
+  ///   - configuration: Style; defaults to ``FKDivider/defaultConfiguration``.
+  ///   - margin: Inset from the orthogonal edges (e.g. leading/trailing inset when pinning to top/bottom).
+  /// - Returns: The divider instance (already added as a subview).
   @discardableResult
   @MainActor
   func fk_addDivider(
     at edge: FKDividerPinnedEdge,
-    configuration: FKDividerConfiguration = FKDividerConfiguration(),
+    configuration: FKDividerConfiguration = FKDivider.defaultConfiguration,
     margin: CGFloat = 0
   ) -> FKDivider {
-    // Create and pin a divider in one step to reduce repetitive layout code.
     let divider = FKDivider(configuration: configuration)
     divider.translatesAutoresizingMaskIntoConstraints = false
     addSubview(divider)
 
-    // Keep visual thickness consistent with divider rendering mode.
     let thickness = configuration.isPixelPerfect
       ? (1 / (window?.screen.scale ?? UIScreen.main.scale))
       : configuration.thickness
 
     switch edge {
     case .top:
-      // Top/bottom edges use horizontal direction.
       divider.configuration.direction = .horizontal
       NSLayoutConstraint.activate([
         divider.topAnchor.constraint(equalTo: topAnchor),
@@ -43,8 +40,7 @@ public extension UIView {
         divider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
         divider.heightAnchor.constraint(equalToConstant: max(0.5, thickness)),
       ])
-    case .left:
-      // Left/right edges use vertical direction.
+    case .leading:
       divider.configuration.direction = .vertical
       NSLayoutConstraint.activate([
         divider.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -52,7 +48,7 @@ public extension UIView {
         divider.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -margin),
         divider.widthAnchor.constraint(equalToConstant: max(0.5, thickness)),
       ])
-    case .right:
+    case .trailing:
       divider.configuration.direction = .vertical
       NSLayoutConstraint.activate([
         divider.trailingAnchor.constraint(equalTo: trailingAnchor),

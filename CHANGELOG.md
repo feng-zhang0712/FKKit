@@ -8,6 +8,42 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.43.9] - 2026-05-02
+
+### Added (FKUIKit FKDivider)
+
+- `intrinsicContentSize` on `FKDivider` so `UIStackView` and similar layouts can resolve hairline thickness without an extra height/width constraint on the short axis.
+- `Internal/FKDividerGeometry.swift`: shared horizontal/vertical stroke math for `FKDivider` and `FKDividerView`, keeping UIKit and SwiftUI rendering aligned.
+
+### Changed (FKUIKit FKDivider)
+
+**Breaking:** The Divider module public API and repository layout were refactored to match other FKUIKit components (`Badge`, `BlurView`, `CornerShadow`).
+
+- Reorganized sources under **`Public/`** (`FKDivider`, `FKDividerConfiguration`, `FKDivider+InterfaceBuilder`, `FKDividerView`), **`Internal/`** (`FKDividerGeometry`), and **`Extension/`** (`UIView+FKDivider.swift`). The SwiftUI file is now `Public/FKDividerView.swift` (replaces `FKDividerSwiftUIView.swift`).
+- Replaced **`FKDividerManager.shared.defaultConfiguration`** with **`FKDivider.defaultConfiguration`** (single static baseline, consistent with `FKBlur` / `FKBadge` patterns).
+- Renamed **`FKDividerPinnedEdge.left`** and **`.right`** to **`.leading`** and **`.trailing`**; pinning still uses `leadingAnchor` / `trailingAnchor` for RTL-correct layout.
+- Changed **`FKDividerConfiguration.dashPattern`** from **`[NSNumber]`** to **`[CGFloat]`**; `CAShapeLayer` bridging is handled internally.
+- Removed **`FKDivider.apply(configuration:)`**; assign **`configuration`** directly to refresh layout and colors.
+
+### Fixed (FKUIKit FKDivider)
+
+- Horizontal gradient strokes under RTL now flip `CAGradientLayer` endpoints so the visual direction matches SwiftUI’s leading→trailing `LinearGradient`.
+- Stroke geometry no longer produces inverted segments when `contentInsets` are larger than the available width or height (degenerate cases yield an empty path).
+
+### Changed (Documentation)
+
+- Rewrote `Sources/FKUIKit/Components/Divider/README.md` (module layout table, quick start, defaults, RTL, `dashPattern`, Interface Builder, SwiftUI, examples pointer).
+- Root `README.md`: clarified the Divider tree line and the feature blurb for the new layout.
+
+### Changed (Examples)
+
+- Replaced the single large Divider demo file with **`FKDividerExampleSupport`**, a compact **`FKDividerExamplesHubViewController`**, and scenario screens under **`Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Divider/Scenarios/`**.
+- Updated the Divider entry subtitle in **`ExampleMenuViewController`**.
+
+### Removed (FKUIKit FKDivider)
+
+- **`FKDividerManager`** (superseded by **`FKDivider.defaultConfiguration`**).
+
 ## [0.43.8] - 2026-05-02
 
 ### Changed (FKUIKit FKCornerShadow)
