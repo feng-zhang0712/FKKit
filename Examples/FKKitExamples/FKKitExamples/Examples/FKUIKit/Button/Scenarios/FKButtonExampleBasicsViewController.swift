@@ -1,8 +1,9 @@
 import UIKit
 import FKUIKit
 
-final class FKButtonExampleBasicsViewController: FKButtonExampleBaseViewController {
-  override var pageExplanationText: String? {
+final class FKButtonExampleBasicsViewController: FKButtonExampleScrollViewController {
+
+  override var pageIntroduction: String? {
     "Basics examples focus on content kinds (text only / image only / text+image) and stateful styling."
   }
 
@@ -22,7 +23,7 @@ final class FKButtonExampleBasicsViewController: FKButtonExampleBaseViewControll
     addExampleSection(title: "Icon only", content: makeIconOnlyExample())
   }
 
-  private func makeTextOnlyStatefulAppearances(highlightedForegroundColor: UIColor) -> StatefulAppearances {
+  private func makeTextOnlyStatefulAppearances(highlightedForegroundColor: UIColor) -> FKButtonExampleSupport.StatefulAppearances {
     makeStatefulAppearance(
       normal: .init(foregroundColor: .label, backgroundColor: .clear, borderColor: .clear, shadow: nil),
       selected: .init(foregroundColor: .systemBlue, backgroundColor: .clear, borderColor: .clear, shadow: nil),
@@ -54,13 +55,13 @@ final class FKButtonExampleBasicsViewController: FKButtonExampleBaseViewControll
     }, for: .touchUpInside)
     addTap(highlightedBtn, name: "TextOnly: Highlighted")
     [normalBtn, selectedBtn, highlightedBtn, disabledBtn].forEach {
-      $0.heightAnchor.constraint(equalToConstant: Metrics.buttonHeight).isActive = true
+      $0.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       stack.addArrangedSubview($0)
     }
     return stack
   }
 
-  private func makeTextButton(title: String, appearances: StatefulAppearances) -> FKButton {
+  private func makeTextButton(title: String, appearances: FKButtonExampleSupport.StatefulAppearances) -> FKButton {
     let button = FKButton()
     button.content = .init(kind: .textOnly)
     [UIControl.State.normal, .selected, .highlighted, .disabled].forEach { state in
@@ -95,13 +96,13 @@ final class FKButtonExampleBasicsViewController: FKButtonExampleBaseViewControll
       self?.recordExampleTap("IconOnly: Selected")
     }, for: .touchUpInside)
     [normalBtn, selectedBtn, disabledBtn].forEach {
-      $0.heightAnchor.constraint(equalToConstant: Metrics.buttonHeight).isActive = true
+      $0.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       stack.addArrangedSubview($0)
     }
     return stack
   }
 
-  private func makeIconButton(systemName: String, appearances: StatefulAppearances) -> FKButton {
+  private func makeIconButton(systemName: String, appearances: FKButtonExampleSupport.StatefulAppearances) -> FKButton {
     let button = FKButton()
     button.content = .init(kind: .imageOnly)
     [UIControl.State.normal, .selected, .highlighted, .disabled].forEach { state in
@@ -136,7 +137,7 @@ final class FKButtonExampleBasicsViewController: FKButtonExampleBaseViewControll
     addTapToggleSelected(both, name: "Composition: Both")
     addTap(trailing, name: "Composition: Trailing")
     [leading, both, trailing, disabled].forEach {
-      $0.heightAnchor.constraint(equalToConstant: Metrics.buttonHeight).isActive = true
+      $0.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       stack.addArrangedSubview($0)
     }
     return stack
@@ -147,7 +148,7 @@ final class FKButtonExampleBasicsViewController: FKButtonExampleBaseViewControll
     kind: FKButton.Content.Kind,
     leading: String?,
     trailing: String?,
-    appearances: StatefulAppearances
+    appearances: FKButtonExampleSupport.StatefulAppearances
   ) -> FKButton {
     let button = FKButton()
     button.content = .init(kind: kind)

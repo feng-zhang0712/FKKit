@@ -1,8 +1,9 @@
 import UIKit
 import FKUIKit
 
-final class FKButtonExampleInteractionViewController: FKButtonExampleBaseViewController {
-  override var pageExplanationText: String? {
+final class FKButtonExampleInteractionViewController: FKButtonExampleScrollViewController {
+
+  override var pageIntroduction: String? {
     "Interaction examples cover primary-action throttling, hit testing, long press callbacks, haptics/sound feedback, and fluent configuration."
   }
 
@@ -31,7 +32,7 @@ final class FKButtonExampleInteractionViewController: FKButtonExampleBaseViewCon
       b.setTitle(.init(text: title, font: .systemFont(ofSize: 14, weight: .semibold), color: .white), for: .normal)
       b.setAppearances(.init(normal: .filled(backgroundColor: color, cornerStyle: .init(corner: .fixed(10)))))
       b.minimumTapInterval = interval
-      b.heightAnchor.constraint(equalToConstant: 44).isActive = true
+      b.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       b.widthAnchor.constraint(equalToConstant: 220).isActive = true
       b.addAction(UIAction { _ in tap() }, for: .touchUpInside)
       return b

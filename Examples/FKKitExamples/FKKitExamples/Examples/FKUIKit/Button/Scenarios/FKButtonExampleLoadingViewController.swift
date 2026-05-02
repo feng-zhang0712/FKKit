@@ -1,8 +1,9 @@
 import UIKit
 import FKUIKit
 
-final class FKButtonExampleLoadingViewController: FKButtonExampleBaseViewController {
-  override var pageExplanationText: String? {
+final class FKButtonExampleLoadingViewController: FKButtonExampleScrollViewController {
+
+  override var pageIntroduction: String? {
     "Loading examples cover overlay vs replace-content presentations and async helpers."
   }
 

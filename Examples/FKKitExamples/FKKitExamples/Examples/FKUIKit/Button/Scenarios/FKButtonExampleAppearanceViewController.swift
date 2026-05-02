@@ -1,8 +1,9 @@
 import UIKit
 import FKUIKit
 
-final class FKButtonExampleAppearanceViewController: FKButtonExampleBaseViewController {
-  override var pageExplanationText: String? {
+final class FKButtonExampleAppearanceViewController: FKButtonExampleScrollViewController {
+
+  override var pageIntroduction: String? {
     "Appearance examples cover gradients, highlight feedback tuning, disabled dimming, and image/title spacing."
   }
 
@@ -45,7 +46,7 @@ final class FKButtonExampleAppearanceViewController: FKButtonExampleBaseViewCont
     raw.automaticallyDimsWhenDisabled = false
 
     [dimmed, raw].forEach {
-      $0.heightAnchor.constraint(equalToConstant: 44).isActive = true
+      $0.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       $0.widthAnchor.constraint(equalToConstant: 220).isActive = true
     }
     let stack = UIStackView(arrangedSubviews: [captionLabel("`automaticallyDimsWhenDisabled` controls disabled alpha behavior."), horizontallyCentered(dimmed), horizontallyCentered(raw)])
@@ -61,7 +62,7 @@ final class FKButtonExampleAppearanceViewController: FKButtonExampleBaseViewCont
       b.setTitle(.init(text: label, font: .systemFont(ofSize: 14, weight: .semibold), color: .label), for: .normal)
       b.setImage(.init(systemName: "star.fill", tintColor: .systemYellow, fixedSize: CGSize(width: 22, height: 22), spacingToTitle: spacing), slot: .leading, for: .normal)
       b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(10)), border: .init(width: 1, color: .separator), backgroundColor: .tertiarySystemBackground)))
-      b.heightAnchor.constraint(equalToConstant: 44).isActive = true
+      b.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       b.widthAnchor.constraint(equalToConstant: 260).isActive = true
       return b
     }

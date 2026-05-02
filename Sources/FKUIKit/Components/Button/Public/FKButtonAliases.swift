@@ -1,5 +1,9 @@
 import UIKit
 
+/// Shorter names nested under `FKButton` for call-site readability.
+///
+/// The canonical types remain `FKButton*` structs/enums at module scope (stable for documentation
+/// and cross-module APIs). Use either style consistently within a project.
 public extension FKButton {
   typealias Content = FKButtonContentConfiguration
   typealias LabelAttributes = FKButtonLabelConfiguration

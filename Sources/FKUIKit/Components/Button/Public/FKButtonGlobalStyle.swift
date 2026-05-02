@@ -1,6 +1,6 @@
 import UIKit
 
-/// Factory-wide defaults copied into each new `FKButton`.
+/// Process-wide defaults applied when each `FKButton` initializes (`commonInit`).
 public enum FKButtonGlobalStyle {
   /// Minimum accepted interval between primary actions.
   /// Default is `0` (no throttling) to avoid surprising behavior in global integrations.

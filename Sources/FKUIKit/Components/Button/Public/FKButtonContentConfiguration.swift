@@ -1,6 +1,6 @@
 import UIKit
 
-/// Describes what visual content `FKButton` presents.
+/// Layout shape for `FKButton` (`textOnly`, `imageOnly`, `textAndImage`, `custom`).
 public struct FKButtonContentConfiguration: Equatable, Sendable {
   /// Describes the primary composition mode.
   public enum Kind: Equatable, Sendable {

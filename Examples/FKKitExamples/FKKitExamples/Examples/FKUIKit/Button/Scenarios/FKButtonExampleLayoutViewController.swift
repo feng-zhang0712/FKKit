@@ -1,8 +1,9 @@
 import UIKit
 import FKUIKit
 
-final class FKButtonExampleLayoutViewController: FKButtonExampleBaseViewController {
-  override var pageExplanationText: String? {
+final class FKButtonExampleLayoutViewController: FKButtonExampleScrollViewController {
+
+  override var pageIntroduction: String? {
     "Layout examples focus on axis, corner style, subtitle, and content insets."
   }
 
@@ -52,7 +53,7 @@ final class FKButtonExampleLayoutViewController: FKButtonExampleBaseViewControll
     b.content = .init(kind: .textOnly)
     b.setTitle(.init(text: "Capsule corner", font: .systemFont(ofSize: 15, weight: .semibold), color: .white), for: .normal)
     b.setAppearances(.init(normal: .filled(backgroundColor: .systemBlue, cornerStyle: .init(corner: .capsule))))
-    b.heightAnchor.constraint(equalToConstant: 44).isActive = true
+    b.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
     b.widthAnchor.constraint(equalToConstant: 220).isActive = true
     addTap(b, name: "Layout capsule")
     let stack = UIStackView(arrangedSubviews: [captionLabel("Capsule corner auto tracks current height."), horizontallyCentered(b)])
@@ -70,7 +71,7 @@ final class FKButtonExampleLayoutViewController: FKButtonExampleBaseViewControll
       b.content = .init(kind: .textOnly)
       b.setTitle(.init(text: text, font: .systemFont(ofSize: 14, weight: .medium), color: .label), for: .normal)
       b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(10)), border: .init(width: 1, color: .separator), backgroundColor: .tertiarySystemBackground)))
-      b.heightAnchor.constraint(equalToConstant: 44).isActive = true
+      b.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       addTap(b, name: "Layout width")
       stack.addArrangedSubview(horizontallyCentered(b))
     }

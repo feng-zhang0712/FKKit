@@ -1,6 +1,6 @@
 import UIKit
 
-/// Custom content host: a single subview pinned to fill, reporting fitting/intrinsic size to `UIStackView`.
+/// Internal stack cell for `FKButton.Content.kind == .custom`; forwards fitting / intrinsic size.
 final class FKButtonCustomContentHostView: UIView {
   override init(frame: CGRect) {
     super.init(frame: frame)

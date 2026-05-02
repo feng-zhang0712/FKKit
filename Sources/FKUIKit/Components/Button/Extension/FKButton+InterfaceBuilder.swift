@@ -1,5 +1,6 @@
 import UIKit
 
+/// Interface Builder–friendly mirrors of selected properties (`fk_` prefix avoids collisions with Objective-C selectors).
 public extension FKButton {
   /// Mirrors `minimumTapInterval` for Interface Builder.
   @IBInspectable var fk_minimumTapInterval: CGFloat {

@@ -1,6 +1,8 @@
 import UIKit
 
-/// Typography and metadata for one button text element.
+// MARK: - Label
+
+/// Typography and accessibility metadata for title or subtitle lines.
 public struct FKButtonLabelConfiguration {
   /// Plain-string case transformation rule.
   public enum TextTransform: Equatable, Sendable {
@@ -84,7 +86,9 @@ public struct FKButtonLabelConfiguration {
   public nonisolated(unsafe) static let `default` = FKButtonLabelConfiguration()
 }
 
-/// Image payload rendered by `FKButton`.
+// MARK: - Image
+
+/// Image slot payload (SF Symbols, tint, sizing, RTL, hit-test outsets).
 public struct FKButtonImageConfiguration {
   public var image: UIImage?
   public var systemName: String?
@@ -150,7 +154,9 @@ public struct FKButtonImageConfiguration {
   public nonisolated(unsafe) static let `default` = FKButtonImageConfiguration()
 }
 
-/// Custom view content for `FKButton`.
+// MARK: - Custom
+
+/// Hosts an arbitrary `UIView` when `FKButton.Content.kind == .custom`.
 public struct FKButtonCustomContentConfiguration {
   public var view: UIView?
   public var spacingToAdjacentContent: CGFloat

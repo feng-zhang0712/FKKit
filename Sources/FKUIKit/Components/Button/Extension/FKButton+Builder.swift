@@ -1,5 +1,6 @@
 import UIKit
 
+/// Fluent configuration (`with*` methods returning `Self`). Prefer this or imperative setters; do not mix patterns in one hotspot without reason.
 public extension FKButton {
   @discardableResult
   func withMinimumTapInterval(_ value: TimeInterval) -> Self {

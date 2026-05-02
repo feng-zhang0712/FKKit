@@ -1,8 +1,9 @@
 import UIKit
 import FKUIKit
 
-final class FKButtonExampleAdvancedViewController: FKButtonExampleBaseViewController {
-  override var pageExplanationText: String? {
+final class FKButtonExampleAdvancedViewController: FKButtonExampleScrollViewController {
+
+  override var pageIntroduction: String? {
     "Advanced examples cover global defaults and Interface Builder attributes."
   }
 
@@ -32,7 +33,7 @@ final class FKButtonExampleAdvancedViewController: FKButtonExampleBaseViewContro
       b.content = .init(kind: .textOnly)
       b.setTitle(.init(text: "From GlobalStyle", font: .systemFont(ofSize: 14, weight: .semibold), color: .white), for: .normal)
       FKButton.GlobalStyle.defaultAppearances = previous
-      b.heightAnchor.constraint(equalToConstant: 44).isActive = true
+      b.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       b.widthAnchor.constraint(equalToConstant: 220).isActive = true
       self?.addTap(b, name: "GlobalStyle snapshot")
       host.arrangedSubviews.forEach { if $0 is FKButton { $0.removeFromSuperview() } }

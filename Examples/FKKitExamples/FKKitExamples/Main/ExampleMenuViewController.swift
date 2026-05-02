@@ -40,7 +40,7 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "Button",
-          subtitle: "Split deexmos: basics, layout, interaction, appearance, loading",
+          subtitle: "Basics, layout, interaction, appearance, loading, global style & IB",
           make: { FKButtonExamplesHubViewController() }
         ),
         ExampleMenuItem(

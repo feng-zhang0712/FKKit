@@ -1,6 +1,6 @@
 import UIKit
 
-/// Loading rendering strategy for `FKButton`.
+/// Loading chrome: dim content behind a spinner, or replace content with spinner + optional message.
 public enum FKButtonLoadingPresentation {
   /// Shows indicator above dimmed content.
   case overlay(dimmedContentAlpha: CGFloat)

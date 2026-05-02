@@ -8,6 +8,28 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.43.7] - 2026-05-02
+
+### Added (FKUIKit Button)
+- Added `Sources/FKUIKit/Components/Button/README.md` as the English module guide (directory layout, naming, quick start, state resolution, examples pointer).
+- Pointer interaction is re-evaluated when `userInterfaceIdiom` changes during `traitCollectionDidChange(_:)`.
+
+### Changed (FKUIKit Button)
+- Reorganized on-disk layout to align with other FKUIKit components: shared types stay under `Public/`, implementation-specific code under `Public/FKButton/`, glue under `Extension/`, and hosting views under `Internal/`.
+- Split the control implementation across `Public/FKButton/FKButton.swift` (core state + initializers) and focused `FKButton+*.swift` extensions (setup, public API, layout, event dispatch, loading, gestures, stack/content layout, appearance rendering, content rendering, accessibility, feedback, pointer delegate, Interface Builder preview hook).
+- Consolidated haptics, sound, and pointer settings into `FKButtonFeedbackConfigurations.swift`.
+- Renamed `FKButton+Namespace.swift` to `FKButtonAliases.swift`; relocated `FKButton+Builder.swift` and `FKButton+InterfaceBuilder.swift` into `Extension/`.
+- Renamed `FKButtonAccessibility.swift` to `FKButtonAccessibilityConfiguration.swift` (the `FKButtonAccessibilityConfiguration` type is unchanged).
+- **Behavior:** `setModel(nil, for:)` now clears **all** registrations for that exact `UIControl.State` key—appearance, title, subtitle, every image slot, and custom content—so resolution falls back (for example to `.normal`). Non-`nil` partial models still omit unchanged fields.
+- For split compilation only, promoted write visibility of select `public private(set)` members to `public internal(set)` for `titleLabel`, `subtitleLabel`, `imageView`, `leadingImageView`, `trailingImageView`, and `isLoading`. External modules remain read-only; only FKUIKit may assign.
+
+### Changed (Examples)
+- Refactored Button samples to mirror Badge/BlurView: `FKButtonExampleSupport`, `FKButtonExampleScrollViewController`, and topic screens under `Examples/.../Button/Scenarios/`.
+- Updated the catalog subtitle for the Button entry in `ExampleMenuViewController`.
+
+### Fixed (FKUIKit Button)
+- Removed unused temporary bindings in `applyTextForCurrentState()` for `.imageOnly` / `.custom` (no intended visual or interaction change).
+
 ## [0.43.6] - 2026-05-02
 
 ### Added (FKUIKit BlurView)
@@ -1487,7 +1509,9 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.4...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.7...HEAD
+[0.43.7]: https://github.com/feng-zhang0712/FKKit/compare/0.43.6...0.43.7
+[0.43.6]: https://github.com/feng-zhang0712/FKKit/compare/0.43.4...0.43.6
 [0.43.4]: https://github.com/feng-zhang0712/FKKit/compare/0.43.3...0.43.4
 [0.40.1]: https://github.com/feng-zhang0712/FKKit/compare/0.40.0...0.40.1
 [0.40.0]: https://github.com/feng-zhang0712/FKKit/compare/0.39.0...0.40.0

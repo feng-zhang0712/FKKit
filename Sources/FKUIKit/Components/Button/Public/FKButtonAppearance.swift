@@ -1,6 +1,8 @@
 import UIKit
 
-/// Linear gradient fill for button background rendering.
+// MARK: - Gradient
+
+/// Linear gradient fill for `FKButton` backgrounds (`FKButtonAppearance.backgroundGradient`).
 public struct FKButtonLinearGradient: Equatable, Sendable {
   public var colors: [UIColor]
   public var locations: [CGFloat]?

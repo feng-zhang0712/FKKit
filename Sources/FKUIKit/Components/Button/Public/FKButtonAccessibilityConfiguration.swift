@@ -1,6 +1,6 @@
 import UIKit
 
-/// Accessibility customization for `FKButton`.
+/// VoiceOver overrides for `FKButton` when defaults (title → label, subtitle / loading → value) are not enough.
 public struct FKButtonAccessibilityConfiguration: Sendable {
   /// Produces a label for the button.
   ///

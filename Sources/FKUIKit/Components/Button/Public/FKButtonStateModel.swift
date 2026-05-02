@@ -1,8 +1,9 @@
 import UIKit
 
-/// Describes the full visual/content model for a single `UIControl.State` registration.
+/// Bundles appearance, labels, images, and custom content for one **exact** `UIControl.State` key.
 ///
-/// Use this when you want to configure a button state in one place (appearance + labels + images + custom content).
+/// Pass this to `FKButton.setModel(_:for:)`. For a non-`nil` model, omitted properties leave existing registrations untouched.
+/// Pass `nil` for the whole model to clear every registration for that state (see `FKButton.setModel` documentation).
 public struct FKButtonStateModel {
   /// Optional container appearance for this state.
   public var appearance: FKButtonAppearance?
