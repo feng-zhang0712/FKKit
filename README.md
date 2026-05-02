@@ -65,8 +65,8 @@ FKKit/
 │  │     ├─ BlurView/
 │  │     ├─ Button/
 │  │     ├─ CornerShadow/
-│  │     ├─ Divider/          (Public, Internal, Extension)
-│  │     ├─ EmptyState/        (Public, Internal, Extension, CoreLite SPM slice)
+│  │     ├─ Divider/
+│  │     ├─ EmptyState/
 │  │     ├─ ExpandableText/
 │  │     ├─ MultiPicker/
 │  │     ├─ PresentationController/
@@ -107,7 +107,7 @@ FKKit/
 - `CornerShadow`: rounded-rect masks, borders, gradient fill/stroke, and explicit-path shadows (`Public` / `Internal` / `Extension`); see `Sources/FKUIKit/Components/CornerShadow/README.md`.
 - `Divider`: hairline separator (`FKDivider` / `FKDividerView`); dashed & gradient strokes; `FKDivider.defaultConfiguration`; layout under `Public/`, `Internal/`, `Extension/` (see module README).
 - `EmptyState`: loading/empty/error overlay (`Public` / `Internal` / `Extension`) plus **`FKEmptyStateCoreLite`** (resolver + i18n); `import FKUIKit` re-exports CoreLite.
-- `ExpandableText`: configurable long-text expand/collapse component with reusable-list state cache and pre-measurement support.
+- `ExpandableText`: long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; sources under `Public/`, `Internal/`, `Extension/` with `FKExpandableText.defaultConfiguration` and layout cache (see component README).
 - `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
 - `PresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
 - `Refresh`: pull-to-refresh and load-more controls for scroll views.

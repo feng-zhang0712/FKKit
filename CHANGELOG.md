@@ -5,8 +5,43 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 ## [Unreleased]
 
 ### Planned
+
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
+
+## [0.43.11] - 2026-05-02
+
+### Changed (FKUIKit FKExpandableText)
+
+**Breaking**
+
+- Reorganized the module to match other FKUIKit components: exported API under `Public/`, implementation under `Internal/`, and `UILabel` / `UITextView` entry points under `Extension/` (removed the old `Core/`, `Configuration/`, and top-level `SwiftUI/` folder; `FKExpandableTextView` now lives in `Public/`).
+- Replaced `FKExpandableTextGlobalConfiguration` with `FKExpandableText.defaultConfiguration` (same pattern as `FKBadge.defaultConfiguration`).
+- Renamed `FKExpandableText.apply(to:text:...)` to `FKExpandableText.attach(to:attributedText:...)` (parameter label `attributedText`).
+- Renamed `FKExpandableTextTextViewController` to `FKExpandableTextLinkedTextViewController`.
+- Renamed `onStateChanged` to `onExpansionChange` on controllers, `UILabel` / `UITextView` helpers, and `FKExpandableTextView`.
+- Renamed `fk_expandableTextController` to `fk_expandableText`.
+- SwiftUI `FKExpandableTextView`: the stored property and initializer parameter `text` are now `attributedText`; availability is aligned with the package’s **iOS 15** minimum.
+- Removed `FKExpandableTextConfiguration.Animation` and the `animation` configuration field. Expand and collapse always apply the new `NSAttributedString` and run layout synchronously; `setExpanded(_:animated:)` still accepts `animated` for call-site compatibility, but layout is no longer driven by `UIView` animation curves.
+
+### Fixed (FKUIKit FKExpandableText)
+
+- `buttonPlacement: .trailingBottom` now truncates the body (including the truncation token) to the configured line budget and places the action on the following line; the previous implementation appended the action without truncating the body, so toggling had little or no visible effect.
+- Removed `UIView.transition` cross-dissolve around full-string swaps, which read as a flash on long copy.
+- Width resolution before the first layout pass no longer falls back to the full screen when `bounds.width` is still zero; measurement prefers `UILabel.preferredMaxLayoutWidth`, then resolved ancestor widths, and schedules a deferred `refreshLayout()` when needed so “Read more” appears correctly in nested stacks (e.g. card layouts).
+- Line-budget measurement treats non-wrapping `NSLineBreakMode` values as word-wrapped for Text Kit; hosts default to word wrapping. `render` runs `window.layoutIfNeeded()` before measuring.
+- `setText` schedules an extra `refreshLayout()` on the next run loop when the host had no `superview` yet (common when binding in `viewDidLoad` before `addSubview`).
+- `FKExpandableText.attach(to:)` reuses `fk_expandableText` on the host so the controller stays retained even if the return value is discarded.
+
+### Changed (Examples)
+
+- ExpandableText demos use `FKExpandableTextExampleSupport`, a hub controller, and per-topic screens under `ExpandableText/Examples/` (types and files use the `Example` prefix).
+- SwiftUI bridge sample: `FKExpandableTextSizingTextView`, `.fixedSize(horizontal: false, vertical: true)`, and vertical compression resistance so the text view is not collapsed to a single line.
+- Example catalog subtitle for ExpandableText updated to describe the hub layout.
+
+### Changed (Documentation)
+
+- Rewrote `Sources/FKUIKit/Components/ExpandableText/README.md` and refreshed the ExpandableText line in the root `README.md`.
 
 ## [0.43.10] - 2026-05-02
 

@@ -60,7 +60,7 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "ExpandableText",
-          subtitle: "Hub: basic, table and collection expandable text examples",
+          subtitle: "Hub: UILabel / UITextView / SwiftUI (shared support + Examples/)",
           make: { FKExpandableTextExamplesHubViewController() }
         ),
         ExampleMenuItem(
