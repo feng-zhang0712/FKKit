@@ -21,5 +21,9 @@ DerivedData/
 Pods/
 Carthage/Build/
 
+# Cursor / Claude 本地配置（勿提交）
+.cursor/
+.claude/
+
 # 其他
 .netrc
