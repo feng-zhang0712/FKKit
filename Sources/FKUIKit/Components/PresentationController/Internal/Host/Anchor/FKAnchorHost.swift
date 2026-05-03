@@ -464,8 +464,11 @@ final class FKAnchorHost: NSObject, FKPresentationHost {
         object: nil,
         queue: .main
       ) { [weak self] _ in
-        self?.refreshAnchorHierarchy()
-        self?.updateLayout(animated: false, duration: 0, options: .curveLinear)
+        Task { @MainActor [weak self] in
+          guard let self else { return }
+          self.refreshAnchorHierarchy()
+          self.updateLayout(animated: false, duration: 0, options: .curveLinear)
+        }
       }
       UIDevice.current.beginGeneratingDeviceOrientationNotifications()
     }
@@ -527,12 +530,14 @@ final class FKAnchorHost: NSObject, FKPresentationHost {
 
     let center = NotificationCenter.default
     let handler: (Notification) -> Void = { [weak self] note in
-      guard let self else { return }
       let userInfo = note.userInfo ?? [:]
       let endFrameScreen = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .zero
       let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
       let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
-      self.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        self.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
+      }
     }
 
     keyboardObservers.append(center.addObserver(

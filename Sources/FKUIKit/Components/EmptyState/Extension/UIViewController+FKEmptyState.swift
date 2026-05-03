@@ -5,6 +5,11 @@ private enum FKEmptyStateActionObserverKeys {
   nonisolated(unsafe) static var token: UInt8 = 0
 }
 
+private final class FKEmptyStateActionHandlerBox: @unchecked Sendable {
+  let handler: (FKEmptyStateAction) -> Void
+  init(_ handler: @escaping (FKEmptyStateAction) -> Void) { self.handler = handler }
+}
+
 // MARK: - NotificationCenter routing
 
 public extension UIViewController {
@@ -19,6 +24,7 @@ public extension UIViewController {
   ) {
     fk_clearEmptyStateActionObservers()
     guard let source = hostView.fk_emptyStateView else { return }
+    let handlerBox = FKEmptyStateActionHandlerBox(handler)
     let token = NotificationCenter.default.addObserver(
       forName: .fkEmptyStateActionInvoked,
       object: source,
@@ -29,7 +35,7 @@ public extension UIViewController {
       let kind = FKEmptyStateActionKind(rawValue: kindRaw) ?? .primary
       let title = (note.userInfo?[FKEmptyStateNotificationKeys.title] as? String) ?? ""
       let payload = (note.userInfo?[FKEmptyStateNotificationKeys.payload] as? [String: String]) ?? [:]
-      handler(FKEmptyStateAction(id: id, title: title, kind: kind, payload: payload))
+      handlerBox.handler(FKEmptyStateAction(id: id, title: title, kind: kind, payload: payload))
     }
     objc_setAssociatedObject(self, &FKEmptyStateActionObserverKeys.token, token, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
   }

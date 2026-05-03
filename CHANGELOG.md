@@ -4,6 +4,20 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Added (Tooling)
+
+- **`scripts/bump-version.sh`**: bumps **`s.version`** in all four root **`*.podspec`** files to one SemVer argument (prints manual **CHANGELOG** / **README** / **git tag** follow-up).
+- **`scripts/verify-podspec-versions.sh`**: fails if any podspec **`s.version`** differs; **CI** runs it after checkout.
+- **`.githooks/pre-push`** + **`scripts/install-git-hooks.sh`**: optional local **`git push`** gate that runs **`verify-podspec-versions.sh`** when **`git config core.hooksPath .githooks`** is set; documented in **`docs/GIT_HOOKS.md`**.
+
+### Changed (CI)
+
+- **`.github/workflows/ci.yml`**: runs **`scripts/verify-podspec-versions.sh`** before the Xcode build so podspec version drift fails fast.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: normalized spacing (**`s.attr = value`**); no version or dependency behavior change at **0.45.0**.
+
 ### Changed (Package)
 
 **Breaking**
@@ -12,7 +26,19 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ### Changed (Documentation)
 
+- Removed **`docs/REFACTOR_PLAN.md`** now that the sustainability refactor backlog (R1–R11) is complete; **`docs/EXTENSION_VS_UTILS.md`** no longer links to it.
 - **`README.md`**: iOS / Swift badges and **Requirements** updated for **iOS-only** distribution and **Swift 6.3+**.
+- **`README.md`**: **FKCoreKit: Extension vs Utils** subsection and Table of Contents link; points to **`docs/EXTENSION_VS_UTILS.md`** for contributor policy (`fk_*` extensions vs **`FKUtils.*`** static helpers).
+- **`README.md`**: **Module Structure** and **FKCompositeKit** sections now include **`AnchoredDropdownController/`** and link to the new component READMEs; clarifies that a standalone **Filter** component is **not** present in the package today (root tree stays minimal until something ships).
+- **`README.md`**: **Installation (CocoaPods)** links maintainers to **`docs/RELEASING.md`** and the **`scripts/bump-version.sh`** / **`scripts/verify-podspec-versions.sh`** workflow.
+- **`docs/GIT_HOOKS.md`**: documentation is now in English (same content as before); **`README.md`** no longer labels the guide as Chinese-only.
+
+### Added (Documentation)
+
+- **`docs/EXTENSION_VS_UTILS.md`**: governance rules for **`Sources/FKCoreKit/Extension/`** vs **`Sources/FKCoreKit/Utils/`** (when to add APIs, avoiding new duplicates, concurrency note for UI helpers, semver guidance).
+- **`docs/RELEASING.md`**: maintainer checklist for aligning **Git tags**, **podspec** versions, **CHANGELOG**, and **`pod spec lint`**.
+- **`docs/GIT_HOOKS.md`**: how to enable **`.githooks/pre-push`** (runs **`verify-podspec-versions.sh`** before **`git push`**).
+- **`FKCompositeKit`**: English **`README.md`** files under **`Sources/FKCompositeKit/Components/Base/`**, **`…/ListKit/`**, and **`…/AnchoredDropdownController/`** (integrator-oriented module docs next to sources); **`Package.swift`** lists these paths in **`exclude`** so SwiftPM does not treat them as unhandled resources.
 
 ### Added (Distribution)
 
@@ -28,7 +54,20 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ### Changed (SwiftPM)
 
-- **`Package.swift`**: **`exclude`** lists on **`FKUIKit`** and **`FKCoreKit`** targets now list component **`README.md`** paths explicitly so SwiftPM does not report them as unhandled resources during builds.
+- **`Package.swift`**: **`exclude`** lists on **`FKUIKit`**, **`FKCoreKit`**, and **`FKCompositeKit`** targets list component **`README.md`** paths explicitly so SwiftPM does not report them as unhandled resources during builds.
+
+### Changed (Concurrency / Swift 6)
+
+- **`FKNetworkClient`**: conforms to **`@unchecked Sendable`** (mutable **`URLSession`** + callback queues are guarded by existing locking); clears strict-concurrency errors on the client type itself.
+- **`NetworkSession`**: **`DataTaskCompletion`** / **`DownloadTaskCompletion`** are now **`@Sendable`** (matches **`URLSession`** task callbacks).
+- **`FKSecurityExecutor`**: cryptographic **`run`** work is boxed for **`DispatchQueue`** submission without changing the public **`FKSecurityExecuting`** signature (supports non-**`Sendable`** results such as **`SecKey`**).
+- **`FKMainActorUIKitBridge`** (**`FKCoreKit`**): centralizes Main-thread reads of **`UIDevice`** / **`UIScreen`** used by **`FKUtilsDevice`** and **`FKBusinessInfoProvider`** so nonisolated helpers stay strict-concurrency-clean.
+- **`FKBusinessAlertManager`** / **`FKBusinessVersionManager`**: UI presentation hops via **`Task { @MainActor … }`** instead of non-**`Sendable`** **`DispatchQueue.main.async`** closures.
+- **`FKBusinessAnalyticsTracker`**: **`@unchecked Sendable`** boxes for optional analytics provider/uploader references passed through the serial queue.
+- **`FKTopViewControllerResolver`**: annotated **`@MainActor`** (UIKit scene/window traversal).
+- **`FKUtilsCommon.openURL`** / **`FKUtilsUI.runOnMain`**: main-queue hops aligned with **`Sendable`** / **`MainActor`** rules (**`runOnMain`** now takes a **`@Sendable`** closure).
+- **`FKUIKit`**: Presentation keyboard/orientation notifications forward through **`Task { @MainActor … }`**; **`FKRefreshControl`** is **`@MainActor`** with **`nonisolated(unsafe)`** KVO handles and **`deinit`** teardown that invalidates them directly; **`FKSkeletonDispatch`** uses an **`@unchecked Sendable`** thunk for main-queue marshaling; **`FKSkeletonPresets`** is **`@MainActor`**; **`UIViewController+FKEmptyState`** uses a handler box for **`NotificationCenter`** callbacks; **`fk_blurredSnapshotAsync`** **`completion`** is **`@Sendable`**.
+- **Note:** **`SWIFT_STRICT_CONCURRENCY=complete`** still reports warnings in some untouched files; maintainer builds can use that flag to prioritize further cleanup.
 
 ### Planned
 

@@ -12,6 +12,7 @@
 - [Module Structure](#module-structure)
 - [Core Components](#core-components)
   - [FKCoreKit](#fkcorekit)
+  - [FKCoreKit: Extension vs Utils](#fkcorekit-extension-vs-utils)
   - [FKUIKit](#fkuikit)
   - [FKCompositeKit](#fkcompositekit)
 - [Requirements](#requirements)
@@ -82,6 +83,7 @@ FKKit/
 │  │     └─ Toast/
 │  └─ FKCompositeKit/
 │     └─ Components/
+│        ├─ AnchoredDropdownController/
 │        ├─ Base/
 │        └─ ListKit/
 └─ Examples/
@@ -102,6 +104,10 @@ FKKit/
 - `BusinessKit`: app/business infrastructure (version, deeplink, lifecycle, analytics, i18n helpers).
 - `Extension`: cross-cutting `public` extensions for **Foundation**, **CoreGraphics**, and **UIKit** (UIKit files use `#if canImport(UIKit)`); members use an `fk_` prefix to reduce name clashes with app and SDK code.
 - `Utils`: high-frequency utility APIs for date/string/number/device/UI/collection/common operations.
+
+### FKCoreKit: Extension vs Utils
+
+Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: **`docs/EXTENSION_VS_UTILS.md`**.
 
 ### FKUIKit
 `FKUIKit` contains reusable UIKit components for modern iOS interfaces:
@@ -124,10 +130,13 @@ FKKit/
 ### FKCompositeKit
 `FKCompositeKit` builds business-facing composite components on top of `FKCoreKit` + `FKUIKit`:
 
-- `Base`: reusable base foundation for cells and controllers.
-- `ListKit`: list state/pagination coordination and plugin-style list assembly.
+- `Base`: reusable base foundation for cells and controllers — see `Sources/FKCompositeKit/Components/Base/README.md`.
+- `ListKit`: list state/pagination coordination and plugin-style list assembly — see `Sources/FKCompositeKit/Components/ListKit/README.md`.
+- `AnchoredDropdownController`: tab bar + anchor-embedded dropdown panels (e.g. filter UIs) built on `FKPresentationController` — see `Sources/FKCompositeKit/Components/AnchoredDropdownController/README.md`.
 
-This module currently focuses on source-level composable components; add internal docs in each directory as your team standard evolves.
+**Filter:** there is no standalone **Filter** component folder in this package today; the root module tree intentionally does not list **Filter** until a feature ships as source in `FKCompositeKit` (or elsewhere) with its own README.
+
+This module keeps **deep docs next to sources** (`README.md` per major folder); the root `README` stays a high-level map only.
 
 ## Requirements
 - **iOS 15.0+** (declared in `Package.swift`; all package products are **iOS-only**)
@@ -166,6 +175,8 @@ targets: [
 ## Installation (CocoaPods)
 
 The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKEmptyStateCoreLite`, `FKUIKit`, `FKCompositeKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.45.0`).
+
+**Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — **`docs/RELEASING.md`**.
 
 ### Podfile (Git tag)
 
@@ -230,6 +241,7 @@ For complete usage and advanced APIs, refer to each module README in `Sources/..
 
 ## Branching & Collaboration (Recommended)
 
+- **Optional Git hooks:** after cloning, run `./scripts/install-git-hooks.sh` so **`git push`** runs **`scripts/verify-podspec-versions.sh`** first (podspec version alignment). See **`docs/GIT_HOOKS.md`**.
 - Use `develop` as the integration branch.
 - Create feature branches from `develop` (for example: `feature/skeleton-auto-mode`).
 - Keep commits focused and use clear conventional-style messages.

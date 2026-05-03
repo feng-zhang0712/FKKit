@@ -60,7 +60,13 @@ let package = Package(
     .target(
       name: "FKCompositeKit",
       dependencies: ["FKUIKit", "FKCoreKit"],
-      path: "Sources/FKCompositeKit"
+      path: "Sources/FKCompositeKit",
+      exclude: [
+        // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
+        "Components/AnchoredDropdownController/README.md",
+        "Components/Base/README.md",
+        "Components/ListKit/README.md",
+      ]
     ),
     .testTarget(
       name: "FKCoreKitTests",

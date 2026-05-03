@@ -101,10 +101,10 @@ public extension UIView {
       FKSkeletonManager.shared.show(on: self, configuration: configuration, options: options, animated: animated)
       loadingAction { [weak self] in
         FKSkeletonDispatch.runOnMain {
-          guard let self else { return }
-          let current = objc_getAssociatedObject(self, &FKSkeletonAssociatedKeys.loadingToken) as? String
+          guard let view = self else { return }
+          let current = objc_getAssociatedObject(view, &FKSkeletonAssociatedKeys.loadingToken) as? String
           guard current == token else { return }
-          FKSkeletonManager.shared.hide(on: self, animated: animated, completion: nil)
+          FKSkeletonManager.shared.hide(on: view, animated: animated, completion: nil)
         }
       }
     }

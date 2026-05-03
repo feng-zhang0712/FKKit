@@ -19,7 +19,9 @@ extension FKContainerPresentationController {
       let endFrameScreen = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .zero
       let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
       let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
-      self?.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
+      Task { @MainActor [weak self] in
+        self?.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
+      }
     })
 
     keyboardObservers.append(center.addObserver(
@@ -31,7 +33,9 @@ extension FKContainerPresentationController {
       let endFrameScreen = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .zero
       let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
       let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
-      self?.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
+      Task { @MainActor [weak self] in
+        self?.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
+      }
     })
   }
 

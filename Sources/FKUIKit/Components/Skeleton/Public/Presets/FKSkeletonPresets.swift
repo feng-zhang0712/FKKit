@@ -1,6 +1,7 @@
 import UIKit
 
 /// Factory methods returning fully constrained ``FKSkeletonContainerView`` layouts.
+@MainActor
 public enum FKSkeletonPresets {
 
   public static func listRow(

@@ -37,7 +37,7 @@ public final class FKBusinessInfoProvider: FKBusinessInfoProviding, @unchecked S
   /// Current iOS system version.
   public var systemVersion: String {
     #if canImport(UIKit)
-    return UIDevice.current.systemVersion
+    return FKMainActorUIKitBridge.systemVersion()
     #else
     return ProcessInfo.processInfo.operatingSystemVersionString
     #endif
@@ -51,7 +51,7 @@ public final class FKBusinessInfoProvider: FKBusinessInfoProviding, @unchecked S
   /// Current main screen size in points.
   public var screenSize: CGSize {
     #if canImport(UIKit)
-    return UIScreen.main.bounds.size
+    return FKMainActorUIKitBridge.screenBoundsSize()
     #elseif canImport(AppKit)
     return NSScreen.main?.frame.size ?? .zero
     #else

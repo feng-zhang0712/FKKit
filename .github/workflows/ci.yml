@@ -29,6 +29,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify podspec s.version alignment
+        run: bash scripts/verify-podspec-versions.sh
+
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:

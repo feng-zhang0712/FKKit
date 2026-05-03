@@ -10,6 +10,7 @@ public enum FKRefreshKind: Sendable {
 ///
 /// Attach only through ``UIScrollView`` helpers (``UIScrollView/fk_addPullToRefresh(configuration:action:)`` /
 /// ``UIScrollView/fk_addLoadMore(configuration:action:)``). Do not insert this view into the hierarchy yourself.
+@MainActor
 public final class FKRefreshControl: UIView {
 
   // MARK: - Public
@@ -60,11 +61,11 @@ public final class FKRefreshControl: UIView {
   // MARK: - Private
 
   private weak var scrollView: UIScrollView?
-  private var scrollOffsetObservation: NSKeyValueObservation?
-  private var panGestureObservation: NSKeyValueObservation?
-  private var contentSizeObservation: NSKeyValueObservation?
-  private var contentInsetObservation: NSKeyValueObservation?
-  private var boundsObservation: NSKeyValueObservation?
+  nonisolated(unsafe) private var scrollOffsetObservation: NSKeyValueObservation?
+  nonisolated(unsafe) private var panGestureObservation: NSKeyValueObservation?
+  nonisolated(unsafe) private var contentSizeObservation: NSKeyValueObservation?
+  nonisolated(unsafe) private var contentInsetObservation: NSKeyValueObservation?
+  nonisolated(unsafe) private var boundsObservation: NSKeyValueObservation?
 
   /// Baseline insets captured while the control is not mutating `contentInset` / indicators.
   private var baselineContentInset: UIEdgeInsets = .zero
@@ -117,7 +118,16 @@ public final class FKRefreshControl: UIView {
   }
 
   deinit {
-    stopObserving()
+    scrollOffsetObservation?.invalidate()
+    scrollOffsetObservation = nil
+    panGestureObservation?.invalidate()
+    panGestureObservation = nil
+    contentSizeObservation?.invalidate()
+    contentSizeObservation = nil
+    boundsObservation?.invalidate()
+    boundsObservation = nil
+    contentInsetObservation?.invalidate()
+    contentInsetObservation = nil
   }
 
   // MARK: - Attachment
@@ -216,11 +226,15 @@ public final class FKRefreshControl: UIView {
 
   // MARK: - Main queue
 
-  private func ensureMain(_ work: @escaping () -> Void) {
+  private func ensureMain(_ work: @escaping @MainActor () -> Void) {
     if Thread.isMainThread {
-      work()
+      MainActor.assumeIsolated {
+        work()
+      }
     } else {
-      DispatchQueue.main.async(execute: work)
+      Task { @MainActor in
+        work()
+      }
     }
   }
 

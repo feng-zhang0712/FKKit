@@ -53,7 +53,9 @@ final class FKAnchorRepositionCoordinator {
     if debounceInterval > 0 {
       pendingWorkItem?.cancel()
       let item = DispatchWorkItem { [weak self] in
-        self?.onReposition?()
+        Task { @MainActor [weak self] in
+          self?.onReposition?()
+        }
       }
       pendingWorkItem = item
       DispatchQueue.main.asyncAfter(deadline: .now() + debounceInterval, execute: item)
@@ -63,9 +65,11 @@ final class FKAnchorRepositionCoordinator {
     guard !isScheduled else { return }
     isScheduled = true
     DispatchQueue.main.async { [weak self] in
-      guard let self else { return }
-      self.isScheduled = false
-      self.onReposition?()
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        self.isScheduled = false
+        self.onReposition?()
+      }
     }
   }
 }

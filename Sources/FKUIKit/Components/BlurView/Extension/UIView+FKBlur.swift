@@ -48,7 +48,7 @@ extension UIView {
     scale: CGFloat? = nil,
     context: CIContext? = nil,
     callbackQueue: DispatchQueue = .main,
-    completion: @escaping (UIImage?) -> Void
+    completion: @escaping @Sendable (UIImage?) -> Void
   ) {
     let captureOnMain: () -> Void = { [weak self] in
       guard let self else {
@@ -83,7 +83,9 @@ extension UIView {
     if Thread.isMainThread {
       captureOnMain()
     } else {
-      DispatchQueue.main.async(execute: captureOnMain)
+      Task { @MainActor in
+        captureOnMain()
+      }
     }
   }
 
