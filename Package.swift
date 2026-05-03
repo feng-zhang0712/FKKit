@@ -62,6 +62,11 @@ let package = Package(
       dependencies: ["FKUIKit", "FKCoreKit"],
       path: "Sources/FKCompositeKit"
     ),
+    .testTarget(
+      name: "FKCoreKitTests",
+      dependencies: ["FKCoreKit"],
+      path: "Tests/FKCoreKitTests"
+    ),
   ],
   swiftLanguageModes: [.v6]
 )

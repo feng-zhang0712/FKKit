@@ -20,7 +20,11 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ### Added (CI)
 
-- **GitHub Actions**: **`.github/workflows/ci.yml`** builds the **`FKKit-Package`** Xcode scheme for **`generic/platform=iOS Simulator`** on pushes to **`main`**, **`develop`**, and **`refactor/**`** branches and on pull requests targeting **`main`** or **`develop`** (uses **`maxim-lobanov/setup-xcode`** with **`latest-stable`**; signing disabled for the build step).
+- **GitHub Actions**: **`.github/workflows/ci.yml`** builds and **tests** the **`FKKit-Package`** Xcode scheme on an **available iPhone iOS Simulator** (UDID from **`.github/scripts/pick_iphone_simulator_udid.py`**) on pushes to **`main`**, **`develop`**, and **`refactor/**`** branches and on pull requests targeting **`main`** or **`develop`** (uses **`maxim-lobanov/setup-xcode`** with **`latest-stable`**; signing disabled).
+
+### Added (Tests)
+
+- **SwiftPM**: **`FKCoreKitTests`** target at **`Tests/FKCoreKitTests/`** with smoke coverage for selected **`FKCoreKit`** extension helpers (`String`, `Optional`, `Dictionary`, `Result`, `UUID`) without UIKit.
 
 ### Changed (SwiftPM)
 
@@ -28,7 +32,6 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ### Planned
 
-- Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
 ## [0.45.0] - 2026-05-03

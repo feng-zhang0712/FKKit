@@ -1,4 +1,4 @@
-# Builds the Swift package for iOS Simulator using Xcode (SPM).
+# Builds and tests the Swift package for iOS Simulator using Xcode (SPM).
 # Does not require committing `.swiftpm/` — Xcode resolves `Package.swift` directly.
 
 name: CI
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   ios-spm:
-    name: Build (iOS Simulator / SPM)
+    name: Build & test (iOS Simulator / SPM)
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -34,12 +34,14 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Build FKKit-Package for iOS Simulator
+      - name: Build and test FKKit-Package (iOS Simulator)
         run: |
           set -eo pipefail
+          UDID="$(python3 "${GITHUB_WORKSPACE}/.github/scripts/pick_iphone_simulator_udid.py")"
+          echo "Selected simulator UDID=${UDID}"
           xcodebuild \
             -scheme FKKit-Package \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination "platform=iOS Simulator,id=${UDID}" \
             -derivedDataPath "${RUNNER_TEMP}/DerivedData-FKKit" \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            test

@@ -40,7 +40,7 @@ In addition, the package exposes a small Foundation-only product for EmptyState 
 - Pure Swift implementation (Swift 6 language mode in package settings).
 - No third-party dependencies.
 - Swift Package Manager and CocoaPods integration (four published pod names mirror SPM products).
-- Continuous integration via **GitHub Actions**: builds the Swift package for **iOS Simulator** on selected branches and PRs (see `.github/workflows/ci.yml`).
+- Continuous integration via **GitHub Actions**: builds and runs **unit tests** for the Swift package on **iOS Simulator** on selected branches and PRs (see `.github/workflows/ci.yml`).
 - Modular architecture with clear package products.
 - Protocol-oriented design in multiple components for extensibility and testability.
 - Example project included for direct integration reference.
@@ -50,6 +50,8 @@ In addition, the package exposes a small Foundation-only product for EmptyState 
 ```text
 FKKit/
 ├─ Package.swift
+├─ Tests/
+│  └─ FKCoreKitTests/
 ├─ Sources/
 │  ├─ FKCoreKit/
 │  │  ├─ Async/

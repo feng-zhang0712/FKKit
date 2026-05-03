@@ -21,28 +21,13 @@ This document captures the **architecture review outcomes** (see repository disc
 | R2 | **README: requirements & badges** | iOS **15+**, Swift **6.3+**; requirements text matches `Package.swift`. |
 | R3 | **CocoaPods** | Root **`FKCoreKit.podspec`**, **`FKEmptyStateCoreLite.podspec`**, **`FKUIKit.podspec`**, **`FKCompositeKit.podspec`**; README **Installation (CocoaPods)**. |
 | R4 | **README: CompositeKit tree cleanup** | Removed **Filter** from the module tree and bullet list (no separate **AnchoredDropdown** prose existed in README). |
-| R5 | **CI: GitHub Actions (iOS Simulator)** | **`.github/workflows/ci.yml`**: `xcodebuild -scheme FKKit-Package` + `generic/platform=iOS Simulator`; triggers on **`main`**, **`develop`**, **`refactor/**`**, and PRs to **`main`/`develop`**. No secrets required. |
+| R5 | **CI: GitHub Actions (iOS Simulator)** | **`.github/workflows/ci.yml`**: `xcodebuild -scheme FKKit-Package` for **iOS Simulator**; triggers on **`main`**, **`develop`**, **`refactor/**`**, and PRs to **`main`/`develop`**. **R7** switched the step to **`test`** and a **concrete Simulator UDID** (see **R7**). No secrets required. |
 | R6 | **SPM: exclude component README.md** | **`Package.swift`** lists every **`README.md`** under **`FKUIKit`** / **`FKCoreKit`** target roots in **`exclude`** (no glob support). **`FKEmptyStateCoreLite`** / **`FKCompositeKit`** had none to exclude. |
+| R7 | **SwiftPM test target + smoke tests** | **`Tests/FKCoreKitTests/`** + **`Package.swift`** `testTarget`; CI runs **`xcodebuild test`** with **`.github/scripts/pick_iphone_simulator_udid.py`** (concrete Simulator `id=`). |
 
 ---
 
 ## Backlog (ordered by recommended execution)
-
-### R7 — Tests: SwiftPM test target (smoke first)
-
-**Goal:** Establish `Tests/` and a **minimal** test bundle before growing coverage.
-
-**Scope (single PR):**
-
-- Add `testTarget` in `Package.swift` (e.g. `FKCoreKitTests`).
-- First tests: pure Swift, no UIKit if possible (e.g. **Extension** `String` / `URL` helpers, or **Utils** pure functions).
-- Document how to run: `swift test` with iOS destination / Xcode test action.
-
-**Acceptance:** `swift test` passes in CI (can be combined with R5 once both exist).
-
-**Risk:** Medium (tooling + time).
-
----
 
 ### R8 — Swift 6 concurrency: systematic pass
 
@@ -121,10 +106,11 @@ This document captures the **architecture review outcomes** (see repository disc
 | 2026-05-03 | R1–R4 | Landed on `refactor/fkkit-sustainability` | iOS-only SPM, README, CocoaPods podspecs, Composite README trim |
 | 2026-05-03 | R5 | `.github/workflows/ci.yml` | iOS Simulator `xcodebuild` CI; README + CHANGELOG updated |
 | 2026-05-03 | R6 | `Package.swift` excludes | Component README paths excluded per target |
-| | R7–R12 | Pending | Continue with **R7** unless priorities change |
+| 2026-05-03 | R7 | `Tests/FKCoreKitTests`, CI `test` | Smoke tests for Extension / Result / UUID helpers; Simulator UDID picker script |
+| | R8–R12 | Pending | Continue with **R8** unless priorities change |
 
 ---
 
 ## Next action (single step)
 
-Proceed with **R7 (SwiftPM test target + smoke tests)**. After each merge, update the **Progress log** table above.
+Proceed with **R8 (Swift 6 concurrency pass)**. After each merge, update the **Progress log** table above.
