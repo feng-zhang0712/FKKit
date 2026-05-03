@@ -74,6 +74,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKPresentationControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "ProgressBar",
+          subtitle: "Hub: interactive playground, preset gallery, delegate log, SwiftUI bridge, RTL & accessibility",
+          make: { FKProgressBarExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Refresh",
           subtitle: "Hub: default, GIF, hosted, delegate, settings, collection, scroll view, …",
           make: { FKRefreshExamplesHubViewController() }

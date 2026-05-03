@@ -9,6 +9,21 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.44.0] - 2026-05-03
+
+### Added (FKUIKit FKProgressBar)
+
+- **`FKProgressBar`**: public UIKit control for determinate and indeterminate **linear** and **ring** progress, optional **buffer**, **segmented** tracks, **gradient** fills, **spring** or timing-function animation, **value labels**, **accessibility** overrides, **`FKProgressBarDelegate`**, **`@IBDesignable`** helpers, and **`FKProgressBarView`** (`UIViewRepresentable`) when SwiftUI is available.
+- Module layout under **`Sources/FKUIKit/Components/ProgressBar/`** (`Public/`, `Internal/`, `Extension/`) with geometry and Core Animation implementation kept internal.
+
+### Added (Documentation)
+
+- **`Sources/FKUIKit/Components/ProgressBar/README.md`**: English component documentation (overview, layout map, API surface, SwiftUI, Interface Builder, accessibility, examples pointer, license).
+
+### Added (Examples)
+
+- **FKKitExamples** ProgressBar entry: hub, preset **gallery**, playground, delegate log, environment (RTL / accessibility), and SwiftUI host (`Examples/FKKitExamples/…/ProgressBar/`).
+
 ## [0.43.17] - 2026-05-03
 
 ### Changed (FKUIKit FKRefresh)
