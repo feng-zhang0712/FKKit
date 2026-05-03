@@ -9,6 +9,29 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.43.17] - 2026-05-03
+
+### Changed (FKUIKit FKRefresh)
+
+**Non-breaking**
+
+- Reorganized `Sources/FKUIKit/Components/Refresh/` into **`Public/`** (control, models, policy, services, views, `FKLoadMoreTriggerMode`), **`Internal/`** (coordinator, manager, clock, action context), and **`Extension/`** (`UIScrollView+FKRefresh`); public symbols and `import FKUIKit` usage are unchanged.
+- Centralized `FKLoadMoreTriggerMode` in its own file; `UIScrollView` / `FKRefreshSwiftUIBridge` retain overloads for async and context-based handlers.
+
+### Fixed (FKUIKit FKRefresh)
+
+- After a successful load-more, the footer returns to `.idle` while `loadMoreAutoTriggerArmed` stayed `false` from the in-flight load, so another automatic load at the bottom required scrolling up past the release slack first. **`applyFooterIdleTransitionIfNeeded`** now sets `loadMoreAutoTriggerArmed = true` on the **success** path only (`.finished` / `.listEmpty` → `.idle`); **`.failed`** is unchanged and still does not pass through this branch.
+
+### Changed (Documentation)
+
+- Updated **`Sources/FKUIKit/Components/Refresh/README.md`** for the new layout and behavior notes.
+
+### Changed (Examples)
+
+- Regrouped Refresh samples under **`Hub/`**, **`Scenarios/`**, **`Shared/`**, **`Support/`**, and **`SwiftUI/`**; updated **`FKRefreshExamplesHubViewController`** routes.
+- **Default** demo: reset header/footer state when the outcome `UISegmentedControl` changes; use **`resetFooterAfterPullToRefresh()`** after a successful pull (instead of **`resetToIdle()`** alone) so bottom auto load-more can re-arm; call **`endRefreshingWithNoMoreData()`** or **`endRefreshing()`** exclusively on the last page (avoid `endRefreshing()` then `endRefreshingWithNoMoreData()` when the control has already left `.loadingMore`).
+- **Collection**, **Async/Await**, **Policy + Boundaries**, and **i18n + Accessibility** demos: segment or policy changes cancel in-flight refresh, reset data or policy as appropriate, and realign load-more / scroll position where needed.
+
 ## [0.43.16] - 2026-05-03
 
 ### Changed (FKUIKit FKSkeleton)
@@ -1783,7 +1806,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.14...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.17...HEAD
+[0.43.17]: https://github.com/feng-zhang0712/FKKit/compare/0.43.16...0.43.17
 [0.43.16]: https://github.com/feng-zhang0712/FKKit/compare/0.43.15...0.43.16
 [0.43.15]: https://github.com/feng-zhang0712/FKKit/compare/0.43.14...0.43.15
 [0.43.14]: https://github.com/feng-zhang0712/FKKit/compare/0.43.13...0.43.14
