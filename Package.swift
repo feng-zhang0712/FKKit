@@ -20,6 +20,22 @@ let package = Package(
       path: "Sources/FKUIKit",
       exclude: [
         "Components/EmptyState/CoreLite",
+        // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
+        "Components/Badge/README.md",
+        "Components/BlurView/README.md",
+        "Components/Button/README.md",
+        "Components/CornerShadow/README.md",
+        "Components/Divider/README.md",
+        "Components/EmptyState/README.md",
+        "Components/ExpandableText/README.md",
+        "Components/MultiPicker/README.md",
+        "Components/PresentationController/README.md",
+        "Components/ProgressBar/README.md",
+        "Components/Refresh/README.md",
+        "Components/Skeleton/README.md",
+        "Components/TabBar/README.md",
+        "Components/TextField/README.md",
+        "Components/Toast/README.md",
       ]
     ),
     .target(
@@ -28,7 +44,18 @@ let package = Package(
     ),
     .target(
       name: "FKCoreKit",
-      path: "Sources/FKCoreKit"
+      path: "Sources/FKCoreKit",
+      exclude: [
+        "Async/README.md",
+        "BusinessKit/README.md",
+        "FileManager/README.md",
+        "Logger/README.md",
+        "Network/README.md",
+        "Permissions/README.md",
+        "Security/README.md",
+        "Storage/README.md",
+        "Utils/README.md",
+      ]
     ),
     .target(
       name: "FKCompositeKit",
@@ -38,4 +65,3 @@ let package = Package(
   ],
   swiftLanguageModes: [.v6]
 )
-

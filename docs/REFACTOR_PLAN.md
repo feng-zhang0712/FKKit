@@ -22,24 +22,11 @@ This document captures the **architecture review outcomes** (see repository disc
 | R3 | **CocoaPods** | Root **`FKCoreKit.podspec`**, **`FKEmptyStateCoreLite.podspec`**, **`FKUIKit.podspec`**, **`FKCompositeKit.podspec`**; README **Installation (CocoaPods)**. |
 | R4 | **README: CompositeKit tree cleanup** | Removed **Filter** from the module tree and bullet list (no separate **AnchoredDropdown** prose existed in README). |
 | R5 | **CI: GitHub Actions (iOS Simulator)** | **`.github/workflows/ci.yml`**: `xcodebuild -scheme FKKit-Package` + `generic/platform=iOS Simulator`; triggers on **`main`**, **`develop`**, **`refactor/**`**, and PRs to **`main`/`develop`**. No secrets required. |
+| R6 | **SPM: exclude component README.md** | **`Package.swift`** lists every **`README.md`** under **`FKUIKit`** / **`FKCoreKit`** target roots in **`exclude`** (no glob support). **`FKEmptyStateCoreLite`** / **`FKCompositeKit`** had none to exclude. |
 
 ---
 
 ## Backlog (ordered by recommended execution)
-
-### R6 — SPM: silence “unhandled README” warnings
-
-**Goal:** Remove SwiftPM warnings about unhandled `README.md` files under `Sources/`.
-
-**Scope (single PR):**
-
-- For each target in `Package.swift`, add an **`exclude:`** list for `**/README.md` (or explicit paths per module), **or** declare them as resources if you intentionally ship them (unlikely).
-
-**Acceptance:** `swift build` log has **no** unhandled-README warnings for FKKit targets.
-
-**Risk:** Low.
-
----
 
 ### R7 — Tests: SwiftPM test target (smoke first)
 
@@ -133,10 +120,11 @@ This document captures the **architecture review outcomes** (see repository disc
 |------|------|-------------|-------------|
 | 2026-05-03 | R1–R4 | Landed on `refactor/fkkit-sustainability` | iOS-only SPM, README, CocoaPods podspecs, Composite README trim |
 | 2026-05-03 | R5 | `.github/workflows/ci.yml` | iOS Simulator `xcodebuild` CI; README + CHANGELOG updated |
-| | R6–R12 | Pending | Continue with **R6** unless priorities change |
+| 2026-05-03 | R6 | `Package.swift` excludes | Component README paths excluded per target |
+| | R7–R12 | Pending | Continue with **R7** unless priorities change |
 
 ---
 
 ## Next action (single step)
 
-Proceed with **R6 (SPM README excludes)** to remove unhandled-README warnings from SwiftPM builds. After each merge, update the **Progress log** table above.
+Proceed with **R7 (SwiftPM test target + smoke tests)**. After each merge, update the **Progress log** table above.

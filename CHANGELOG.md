@@ -22,6 +22,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - **GitHub Actions**: **`.github/workflows/ci.yml`** builds the **`FKKit-Package`** Xcode scheme for **`generic/platform=iOS Simulator`** on pushes to **`main`**, **`develop`**, and **`refactor/**`** branches and on pull requests targeting **`main`** or **`develop`** (uses **`maxim-lobanov/setup-xcode`** with **`latest-stable`**; signing disabled for the build step).
 
+### Changed (SwiftPM)
+
+- **`Package.swift`**: **`exclude`** lists on **`FKUIKit`** and **`FKCoreKit`** targets now list component **`README.md`** paths explicitly so SwiftPM does not report them as unhandled resources during builds.
+
 ### Planned
 
 - Unit test target and `Tests/` directory
