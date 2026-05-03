@@ -21,26 +21,11 @@ This document captures the **architecture review outcomes** (see repository disc
 | R2 | **README: requirements & badges** | iOS **15+**, Swift **6.3+**; requirements text matches `Package.swift`. |
 | R3 | **CocoaPods** | Root **`FKCoreKit.podspec`**, **`FKEmptyStateCoreLite.podspec`**, **`FKUIKit.podspec`**, **`FKCompositeKit.podspec`**; README **Installation (CocoaPods)**. |
 | R4 | **README: CompositeKit tree cleanup** | Removed **Filter** from the module tree and bullet list (no separate **AnchoredDropdown** prose existed in README). |
+| R5 | **CI: GitHub Actions (iOS Simulator)** | **`.github/workflows/ci.yml`**: `xcodebuild -scheme FKKit-Package` + `generic/platform=iOS Simulator`; triggers on **`main`**, **`develop`**, **`refactor/**`**, and PRs to **`main`/`develop`**. No secrets required. |
 
 ---
 
 ## Backlog (ordered by recommended execution)
-
-### R5 — CI: minimal GitHub Actions workflow
-
-**Goal:** Catch compile breaks on every push/PR using an **iOS Simulator** SDK (not macOS host default).
-
-**Scope (single PR):**
-
-- Add `.github/workflows/ci.yml` (name up to you, e.g. `ios-spm-build`).
-- Steps: checkout, select Xcode if needed, `swift build` (or `xcodebuild -scheme` if you add an Xcode workspace later) for **`FKCoreKit`**, **`FKUIKit`**, **`FKCompositeKit`** against **iphonesimulator**.
-- Document required **secrets** (if any) and **Xcode version** in workflow comments or `docs/REFACTOR_PLAN.md` appendix.
-
-**Acceptance:** workflow is green on `develop` / `refactor/fkkit-sustainability` after merge.
-
-**Risk:** Low.
-
----
 
 ### R6 — SPM: silence “unhandled README” warnings
 
@@ -147,10 +132,11 @@ This document captures the **architecture review outcomes** (see repository disc
 | Date | Item | PR / commit | Owner notes |
 |------|------|-------------|-------------|
 | 2026-05-03 | R1–R4 | Landed on `refactor/fkkit-sustainability` | iOS-only SPM, README, CocoaPods podspecs, Composite README trim |
-| | R5–R12 | Pending | Execute in order unless risk assessment changes priority |
+| 2026-05-03 | R5 | `.github/workflows/ci.yml` | iOS Simulator `xcodebuild` CI; README + CHANGELOG updated |
+| | R6–R12 | Pending | Continue with **R6** unless priorities change |
 
 ---
 
 ## Next action (single step)
 
-Start with **R5 (CI)** unless product priorities dictate **R7 (Tests)** first. After each merge, update the **Progress log** table above.
+Proceed with **R6 (SPM README excludes)** to remove unhandled-README warnings from SwiftPM builds. After each merge, update the **Progress log** table above.

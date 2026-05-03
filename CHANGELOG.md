@@ -18,6 +18,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - **CocoaPods**: root **`FKCoreKit.podspec`**, **`FKEmptyStateCoreLite.podspec`**, **`FKUIKit.podspec`**, and **`FKCompositeKit.podspec`** (iOS 15+, Swift 6.0 module language) mirroring SPM products; **`README.md`** adds an **Installation (CocoaPods)** section (Git tag, local path, and `pod spec lint` notes).
 
+### Added (CI)
+
+- **GitHub Actions**: **`.github/workflows/ci.yml`** builds the **`FKKit-Package`** Xcode scheme for **`generic/platform=iOS Simulator`** on pushes to **`main`**, **`develop`**, and **`refactor/**`** branches and on pull requests targeting **`main`** or **`develop`** (uses **`maxim-lobanov/setup-xcode`** with **`latest-stable`**; signing disabled for the build step).
+
 ### Planned
 
 - Unit test target and `Tests/` directory
