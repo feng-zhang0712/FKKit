@@ -18,6 +18,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - **`Package.swift`**: lowered **`swift-tools-version`** from **6.3** to **6.2** so **`xcodebuild`** on GitHub Actions (**Xcode 16.1** / Swift **6.2.4** under **`latest-stable`**) can resolve the manifest (avoids exit code **74** / “installed version is 6.2.4”).
 
+### Fixed (FKCoreKit)
+
+- **`FKSecurityUtils.maskEmail`**: build **`String`** from **`name.prefix(1)`** / **`name.suffix(1)`** before concatenation so CI (Swift **6.2**) does not fail on **`Substring` + `String`** / **`Substring` assignment to `String`** (exit code **65**).
+
 ### Changed (CocoaPods)
 
 - Root **`*.podspec`**: normalized spacing (**`s.attr = value`**); no version or dependency behavior change at **0.45.0**.
