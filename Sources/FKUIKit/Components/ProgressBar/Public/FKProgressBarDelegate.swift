@@ -14,6 +14,12 @@ public protocol FKProgressBarDelegate: AnyObject {
 
   /// Buffer progress changed (same semantics as primary progress for animation).
   func progressBar(_ progressBar: FKProgressBar, didUpdateBufferProgress value: CGFloat)
+
+  /// Called when ``FKProgressBarInteractionConfiguration/interactionMode`` is ``FKProgressBarInteractionMode/button`` and tracking begins.
+  func progressBarDidBeginTracking(_ progressBar: FKProgressBar)
+
+  /// Called when tracking ends (finger lifted inside or cancelled / dragged out).
+  func progressBarDidEndTracking(_ progressBar: FKProgressBar, cancelled: Bool)
 }
 
 public extension FKProgressBarDelegate {
@@ -24,4 +30,8 @@ public extension FKProgressBarDelegate {
   func progressBar(_ progressBar: FKProgressBar, didChangeIndeterminate isIndeterminate: Bool) {}
 
   func progressBar(_ progressBar: FKProgressBar, didUpdateBufferProgress value: CGFloat) {}
+
+  func progressBarDidBeginTracking(_ progressBar: FKProgressBar) {}
+
+  func progressBarDidEndTracking(_ progressBar: FKProgressBar, cancelled: Bool) {}
 }

@@ -34,6 +34,11 @@ final class FKProgressBarExamplesHubViewController: UITableViewController {
         factory: { FKProgressBarPlaygroundDemoViewController() }
       ),
       DemoItem(
+        title: "Progress as button",
+        subtitle: "Goal: tap targets, custom titles, and UIControl actions for download-style flows. Params: interactionMode.button, labelContentMode, touchHaptic, minimumTouchTargetSize. Expect: primaryActionTriggered / touchUpInside and dimming when disabled.",
+        factory: { FKProgressBarProgressButtonDemoViewController() }
+      ),
+      DemoItem(
         title: "Preset gallery",
         subtitle: "Goal: compare common product patterns side-by-side. Params: frozen configurations. Expect: quick visual regression and RTL-friendly layouts.",
         factory: { FKProgressBarGalleryDemoViewController() }

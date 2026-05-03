@@ -69,8 +69,8 @@ final class FKProgressBarLayerStack {
     springVelocity: CGFloat
   ) {
     container.frame = bounds
-    let trackRect = FKProgressBarLayoutEngine.trackRect(in: bounds, contentInsets: configuration.contentInsets)
-    let disableActions = !animated || animationDuration <= 0 || (reducedMotion && configuration.respectsReducedMotion)
+    let trackRect = FKProgressBarLayoutEngine.trackRect(in: bounds, contentInsets: configuration.layout.contentInsets)
+    let disableActions = !animated || animationDuration <= 0 || (reducedMotion && configuration.motion.respectsReducedMotion)
     CATransaction.begin()
     CATransaction.setDisableActions(disableActions)
     if !disableActions {
@@ -78,7 +78,7 @@ final class FKProgressBarLayerStack {
       CATransaction.setAnimationTimingFunction(timing.mediaTimingFunction())
     }
 
-    switch configuration.variant {
+    switch configuration.layout.variant {
     case .linear:
       layoutLinear(
         trackRect: trackRect,
@@ -148,9 +148,9 @@ final class FKProgressBarLayerStack {
     ringMarquee.isHidden = true
 
     trackLayer.isHidden = false
-    bufferHost.isHidden = !configuration.showsBuffer
+    bufferHost.isHidden = !configuration.appearance.showsBuffer
     progressHost.isHidden = false
-    progressBorder.isHidden = configuration.progressBorderWidth <= 0
+    progressBorder.isHidden = configuration.appearance.progressBorderWidth <= 0
     linearMarqueeClipHost.isHidden = false
     linearMarqueeClipHost.frame = trackRect
     linearMarqueeClipHost.masksToBounds = true
@@ -160,9 +160,9 @@ final class FKProgressBarLayerStack {
     bufferHost.opacity = 1
 
     let corner = resolvedCornerRadius(configuration: configuration, track: trackRect)
-    linearMarqueeClipHost.cornerRadius = configuration.segmentCount > 1 ? 0 : (configuration.linearCapStyle == .round ? corner : 0)
+    linearMarqueeClipHost.cornerRadius = configuration.layout.segmentCount > 1 ? 0 : (configuration.layout.linearCapStyle == .round ? corner : 0)
     let pathTrack: CGPath
-    if configuration.segmentCount > 1,
+    if configuration.layout.segmentCount > 1,
        let segPath = FKProgressBarLayoutEngine.linearTrackSegmentedPath(track: trackRect, configuration: configuration, layoutDirection: layoutDirection)
     {
       pathTrack = segPath
@@ -172,14 +172,14 @@ final class FKProgressBarLayerStack {
 
     trackLayer.frame = trackRect
     trackLayer.path = pathTrack
-    trackLayer.fillColor = configuration.trackColor.cgColor
-    let borderW = configuration.trackBorderWidth
+    trackLayer.fillColor = configuration.appearance.trackColor.cgColor
+    let borderW = configuration.appearance.trackBorderWidth
     trackLayer.lineWidth = borderW > 0 ? borderW : 0
-    trackLayer.strokeColor = borderW > 0 ? configuration.trackBorderColor.cgColor : UIColor.clear.cgColor
+    trackLayer.strokeColor = borderW > 0 ? configuration.appearance.trackBorderColor.cgColor : UIColor.clear.cgColor
 
     bufferHost.frame = trackRect
     bufferFill.frame = bufferHost.bounds
-    bufferFill.backgroundColor = configuration.bufferColor.cgColor
+    bufferFill.backgroundColor = configuration.appearance.bufferColor.cgColor
     bufferFill.cornerRadius = corner
 
     progressHost.frame = trackRect
@@ -189,12 +189,12 @@ final class FKProgressBarLayerStack {
     let p = min(max(progress, 0), 1)
     let b = min(max(buffer, 0), 1)
 
-    if configuration.segmentCount <= 1 {
+    if configuration.layout.segmentCount <= 1 {
       progressGradient.mask = progressMask
       bufferFill.mask = bufferMask
     }
 
-    if configuration.segmentCount > 1 {
+    if configuration.layout.segmentCount > 1 {
       applySegmentedMasks(
         track: trackRect,
         configuration: configuration,
@@ -207,7 +207,7 @@ final class FKProgressBarLayerStack {
       applyScaleMask(
         mask: bufferMask,
         fraction: b,
-        axis: configuration.axis,
+        axis: configuration.layout.axis,
         layoutDirection: layoutDirection,
         in: bufferHost.bounds,
         disableActions: disableActions,
@@ -219,7 +219,7 @@ final class FKProgressBarLayerStack {
       applyScaleMask(
         mask: progressMask,
         fraction: p,
-        axis: configuration.axis,
+        axis: configuration.layout.axis,
         layoutDirection: layoutDirection,
         in: progressHost.bounds,
         disableActions: disableActions,
@@ -239,15 +239,16 @@ final class FKProgressBarLayerStack {
       layoutDirection: layoutDirection,
       corner: corner
     )
-    progressBorder.lineWidth = configuration.progressBorderWidth
-    progressBorder.strokeColor = configuration.progressBorderColor.cgColor
+    progressBorder.lineWidth = configuration.appearance.progressBorderWidth
+    progressBorder.strokeColor = configuration.appearance.progressBorderColor.cgColor
 
-    let effectiveReduced = reducedMotion && configuration.respectsReducedMotion
-    let indeterminate = isIndeterminate && configuration.indeterminateStyle != .none
-    if indeterminate, !effectiveReduced {
-      progressHost.opacity = configuration.indeterminateStyle == .marquee ? 0.35 : 1
+    let effectiveReduced = reducedMotion && configuration.motion.respectsReducedMotion
+    let indeterminateState = isIndeterminate && configuration.motion.indeterminateStyle != .none
+    let playsIndeterminateMotion = configuration.motion.playsIndeterminateAnimation
+    if indeterminateState, !effectiveReduced {
+      progressHost.opacity = configuration.motion.indeterminateStyle == .marquee ? 0.35 : 1
       bufferHost.opacity = 0.35
-      trackLayer.opacity = configuration.indeterminateStyle == .breathing ? 1 : 0.9
+      trackLayer.opacity = configuration.motion.indeterminateStyle == .breathing ? 1 : 0.9
     } else {
       progressHost.opacity = 1
       bufferHost.opacity = 1
@@ -257,13 +258,13 @@ final class FKProgressBarLayerStack {
     // Marquee / breathing
     animator.stopAll()
     marqueeCapsule.isHidden = true
-    if indeterminate {
-      switch configuration.indeterminateStyle {
+    if indeterminateState, playsIndeterminateMotion {
+      switch configuration.motion.indeterminateStyle {
       case .none:
         break
       case .marquee:
         marqueeCapsule.isHidden = effectiveReduced
-        marqueeCapsule.backgroundColor = configuration.progressColor.cgColor
+        marqueeCapsule.backgroundColor = configuration.appearance.progressColor.cgColor
         let marqueeTrackLocal = CGRect(
           x: 0,
           y: 0,
@@ -271,17 +272,17 @@ final class FKProgressBarLayerStack {
           height: max(1, trackRect.height)
         )
         animator.startMarqueeLinear(
-          period: configuration.indeterminatePeriod,
+          period: configuration.motion.indeterminatePeriod,
           trackBounds: marqueeTrackLocal,
-          axis: configuration.axis,
+          axis: configuration.layout.axis,
           reducedMotion: effectiveReduced
         )
       case .breathing:
-        animator.startBreathing(layers: [trackLayer], period: configuration.indeterminatePeriod, reducedMotion: effectiveReduced)
+        animator.startBreathing(layers: [trackLayer], period: configuration.motion.indeterminatePeriod, reducedMotion: effectiveReduced)
       }
     }
 
-    if indeterminate && configuration.indeterminateStyle == .marquee {
+    if indeterminateState, configuration.motion.indeterminateStyle == .marquee, playsIndeterminateMotion {
       progressMask.opacity = 0.01
       bufferMask.opacity = 0.01
     } else {
@@ -298,8 +299,8 @@ final class FKProgressBarLayerStack {
     layoutDirection: UIUserInterfaceLayoutDirection,
     corner: CGFloat
   ) {
-    let fp = FKProgressBarLayoutEngine.filledSegmentIndex(progress: progress, segmentCount: configuration.segmentCount)
-    let fb = FKProgressBarLayoutEngine.filledSegmentIndex(progress: buffer, segmentCount: configuration.segmentCount)
+    let fp = FKProgressBarLayoutEngine.filledSegmentIndex(progress: progress, segmentCount: configuration.layout.segmentCount)
+    let fb = FKProgressBarLayoutEngine.filledSegmentIndex(progress: buffer, segmentCount: configuration.layout.segmentCount)
     let maskFrame = CGRect(origin: .zero, size: track.size)
     if let pathP = FKProgressBarLayoutEngine.linearSegmentUnionPath(track: track, configuration: configuration, filledSegments: fp, layoutDirection: layoutDirection) {
       let shape = CAShapeLayer()
@@ -308,7 +309,7 @@ final class FKProgressBarLayerStack {
       shape.fillColor = UIColor.black.cgColor
       progressGradient.mask = shape
     }
-    if configuration.showsBuffer,
+    if configuration.appearance.showsBuffer,
        let pathB = FKProgressBarLayoutEngine.linearSegmentUnionPath(track: track, configuration: configuration, filledSegments: fb, layoutDirection: layoutDirection)
     {
       let shapeB = CAShapeLayer()
@@ -384,14 +385,14 @@ final class FKProgressBarLayerStack {
     layoutDirection: UIUserInterfaceLayoutDirection,
     corner: CGFloat
   ) -> CGPath? {
-    guard configuration.progressBorderWidth > 0 else { return nil }
+    guard configuration.appearance.progressBorderWidth > 0 else { return nil }
     let frame = FKProgressBarLayoutEngine.linearProgressFrameLocal(
       track: track,
       fraction: progress,
-      axis: configuration.axis,
+      axis: configuration.layout.axis,
       layoutDirection: layoutDirection
     )
-    let r = configuration.linearCapStyle == .round ? min(corner, min(frame.width, frame.height) / 2) : 0
+    let r = configuration.layout.linearCapStyle == .round ? min(corner, min(frame.width, frame.height) / 2) : 0
     return UIBezierPath(roundedRect: frame, cornerRadius: r).cgPath
   }
 
@@ -417,7 +418,7 @@ final class FKProgressBarLayerStack {
     ringProgress.frame = trackRect
     ringMarquee.frame = trackRect
 
-    ringBuffer.isHidden = !configuration.showsBuffer
+    ringBuffer.isHidden = !configuration.appearance.showsBuffer
     ringTrack.isHidden = false
     ringProgress.isHidden = false
     ringTrack.opacity = 1
@@ -425,7 +426,7 @@ final class FKProgressBarLayerStack {
     ringProgress.opacity = 1
     ringMarquee.opacity = 1
 
-    let diameter = configuration.ringDiameter ?? 36
+    let diameter = configuration.layout.ringDiameter ?? 36
     let localTrack = CGRect(origin: .zero, size: trackRect.size)
     let side = min(min(localTrack.width, localTrack.height), diameter)
     let ringBox = CGRect(
@@ -434,12 +435,12 @@ final class FKProgressBarLayerStack {
       width: side,
       height: side
     )
-    let lw = configuration.ringLineWidth
+    let lw = configuration.layout.ringLineWidth
     let layout = FKProgressBarLayoutEngine.ringLayout(in: ringBox, lineWidth: lw)
     let path = FKProgressBarLayoutEngine.ringPath(center: layout.center, radius: layout.radius)
 
     ringTrack.path = path
-    ringTrack.strokeColor = configuration.trackColor.cgColor
+    ringTrack.strokeColor = configuration.appearance.trackColor.cgColor
     ringTrack.lineWidth = lw
     ringTrack.strokeEnd = 1
     let baseRot = CATransform3DMakeRotation(FKProgressBarLayoutEngine.ringStartAngle(), 0, 0, 1)
@@ -449,7 +450,7 @@ final class FKProgressBarLayerStack {
     ringMarquee.transform = baseRot
 
     ringBuffer.path = path
-    ringBuffer.strokeColor = configuration.bufferColor.cgColor
+    ringBuffer.strokeColor = configuration.appearance.bufferColor.cgColor
     ringBuffer.lineWidth = lw
     ringBuffer.strokeEnd = min(max(buffer, 0), 1)
 
@@ -459,24 +460,25 @@ final class FKProgressBarLayerStack {
     ringProgress.strokeEnd = min(max(progress, 0), 1)
 
     ringMarquee.path = path
-    ringMarquee.strokeColor = configuration.progressColor.cgColor
+    ringMarquee.strokeColor = configuration.appearance.progressColor.cgColor
     ringMarquee.lineWidth = lw
     ringMarquee.strokeStart = 0
     ringMarquee.strokeEnd = 0.22
     ringMarquee.fillColor = UIColor.clear.cgColor
 
-    let effectiveReduced = reducedMotion && configuration.respectsReducedMotion
-    let indeterminate = isIndeterminate && configuration.indeterminateStyle != .none
+    let effectiveReduced = reducedMotion && configuration.motion.respectsReducedMotion
+    let indeterminateState = isIndeterminate && configuration.motion.indeterminateStyle != .none
+    let playsIndeterminateMotion = configuration.motion.playsIndeterminateAnimation
 
     animator.stopAll()
-    if indeterminate, configuration.indeterminateStyle == .marquee, !effectiveReduced {
+    if indeterminateState, configuration.motion.indeterminateStyle == .marquee, playsIndeterminateMotion, !effectiveReduced {
       ringMarquee.isHidden = false
       ringProgress.opacity = 0.15
-      animator.startMarqueeRing(period: configuration.indeterminatePeriod, reducedMotion: effectiveReduced)
-    } else if indeterminate, configuration.indeterminateStyle == .breathing {
+      animator.startMarqueeRing(period: configuration.motion.indeterminatePeriod, reducedMotion: effectiveReduced)
+    } else if indeterminateState, configuration.motion.indeterminateStyle == .breathing, playsIndeterminateMotion {
       ringMarquee.isHidden = true
       ringProgress.opacity = 1
-      animator.startBreathing(layers: [ringTrack, ringProgress], period: configuration.indeterminatePeriod, reducedMotion: effectiveReduced)
+      animator.startBreathing(layers: [ringTrack, ringProgress], period: configuration.motion.indeterminatePeriod, reducedMotion: effectiveReduced)
     } else {
       ringMarquee.isHidden = true
       ringProgress.opacity = 1
@@ -484,12 +486,12 @@ final class FKProgressBarLayerStack {
   }
 
   private func resolvedRingProgressColor(configuration: FKProgressBarConfiguration, traitCollection: UITraitCollection) -> CGColor {
-    switch configuration.fillStyle {
+    switch configuration.appearance.fillStyle {
     case .solid:
-      return configuration.progressColor.cgColor
+      return configuration.appearance.progressColor.cgColor
     case .gradientAlongProgress:
       // True conic gradients are not modeled here; blend endpoints by midpoint for a stable ring stroke.
-      let blended = averageColor(configuration.progressColor, configuration.progressGradientEndColor, traitCollection: traitCollection)
+      let blended = averageColor(configuration.appearance.progressColor, configuration.appearance.progressGradientEndColor, traitCollection: traitCollection)
       return blended.cgColor
     }
   }
@@ -508,27 +510,27 @@ final class FKProgressBarLayerStack {
   }
 
   private func resolvedCornerRadius(configuration: FKProgressBarConfiguration, track: CGRect) -> CGFloat {
-    if let r = configuration.trackCornerRadius { return max(0, r) }
-    return min(configuration.trackThickness, min(track.width, track.height)) / 2
+    if let r = configuration.layout.trackCornerRadius { return max(0, r) }
+    return min(configuration.layout.trackThickness, min(track.width, track.height)) / 2
   }
 
   private func applyGradient(configuration: FKProgressBarConfiguration, layoutDirection: UIUserInterfaceLayoutDirection, in size: CGSize) {
-    switch configuration.fillStyle {
+    switch configuration.appearance.fillStyle {
     case .solid:
       progressGradient.colors = [
-        configuration.progressColor.cgColor,
-        configuration.progressColor.cgColor,
+        configuration.appearance.progressColor.cgColor,
+        configuration.appearance.progressColor.cgColor,
       ]
     case .gradientAlongProgress:
       progressGradient.colors = [
-        configuration.progressColor.cgColor,
-        configuration.progressGradientEndColor.cgColor,
+        configuration.appearance.progressColor.cgColor,
+        configuration.appearance.progressGradientEndColor.cgColor,
       ]
     }
     let isRTL = layoutDirection == .rightToLeft
     progressGradient.startPoint = CGPoint(x: isRTL ? 1 : 0, y: 0.5)
     progressGradient.endPoint = CGPoint(x: isRTL ? 0 : 1, y: 0.5)
-    switch configuration.axis {
+    switch configuration.layout.axis {
     case .horizontal:
       break
     case .vertical:

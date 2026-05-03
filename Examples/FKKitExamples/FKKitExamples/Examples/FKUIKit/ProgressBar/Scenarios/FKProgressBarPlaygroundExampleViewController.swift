@@ -100,6 +100,13 @@ final class FKProgressBarPlaygroundDemoViewController: UIViewController {
     return s
   }()
 
+  private lazy var playsIndeterminateAnimSwitch: UISwitch = {
+    let s = UISwitch()
+    s.isOn = true
+    s.addTarget(self, action: #selector(syncFromControls), for: .valueChanged)
+    return s
+  }()
+
   private lazy var springSwitch: UISwitch = {
     let s = UISwitch()
     s.addTarget(self, action: #selector(syncFromControls), for: .valueChanged)
@@ -335,6 +342,7 @@ final class FKProgressBarPlaygroundDemoViewController: UIViewController {
     rows.append(FKProgressBarExampleLayoutHelpers.makeLabeledRow(title: "Enabled", control: indeterminateSwitch))
     rows.append(FKProgressBarExampleLayoutHelpers.makeLabeledRow(title: "Style", control: indeterminateStyleControl))
     rows.append(FKProgressBarExampleLayoutHelpers.makeLabeledRow(title: "Period (s)", control: indeterminatePeriodSlider))
+    rows.append(FKProgressBarExampleLayoutHelpers.makeLabeledRow(title: "Animate indeterminate", control: playsIndeterminateAnimSwitch))
 
     rows.append(FKProgressBarExampleLayoutHelpers.makeSectionLabel("Motion"))
     rows.append(FKProgressBarExampleLayoutHelpers.makeLabeledRow(title: "Spring", control: springSwitch))
@@ -410,61 +418,62 @@ final class FKProgressBarPlaygroundDemoViewController: UIViewController {
 
   @objc private func syncFromControls() {
     var c = FKProgressBarConfiguration()
-    c.variant = variantControl.selectedSegmentIndex == 1 ? .ring : .linear
-    c.axis = axisControl.selectedSegmentIndex == 1 ? .vertical : .horizontal
+    c.layout.variant = variantControl.selectedSegmentIndex == 1 ? .ring : .linear
+    c.layout.axis = axisControl.selectedSegmentIndex == 1 ? .vertical : .horizontal
 
     switch themeControl.selectedSegmentIndex {
     case 1:
-      c.trackColor = UIColor(white: 0.25, alpha: 0.35)
-      c.progressColor = .systemMint
-      c.bufferColor = UIColor.systemMint.withAlphaComponent(0.35)
-      c.progressGradientEndColor = .systemTeal
+      c.appearance.trackColor = UIColor(white: 0.25, alpha: 0.35)
+      c.appearance.progressColor = .systemMint
+      c.appearance.bufferColor = UIColor.systemMint.withAlphaComponent(0.35)
+      c.appearance.progressGradientEndColor = .systemTeal
     case 2:
-      c.trackColor = .tertiarySystemFill
-      c.progressColor = .systemOrange
-      c.bufferColor = UIColor.systemYellow.withAlphaComponent(0.45)
-      c.progressGradientEndColor = .systemPink
+      c.appearance.trackColor = .tertiarySystemFill
+      c.appearance.progressColor = .systemOrange
+      c.appearance.bufferColor = UIColor.systemYellow.withAlphaComponent(0.45)
+      c.appearance.progressGradientEndColor = .systemPink
     default:
       break
     }
 
-    c.fillStyle = fillControl.selectedSegmentIndex == 1 ? .gradientAlongProgress : .solid
-    c.showsBuffer = bufferSwitch.isOn
-    c.prefersSpringAnimation = springSwitch.isOn
-    c.animationDuration = TimeInterval(durationSlider.value)
-    c.timing = timingFromSegment(timingControl.selectedSegmentIndex)
-    c.respectsReducedMotion = reducedMotionRespectSwitch.isOn
-    c.completionHaptic = hapticFromSegment(hapticControl.selectedSegmentIndex)
-    c.trackThickness = CGFloat(thicknessSlider.value)
-    c.ringLineWidth = CGFloat(ringWidthSlider.value)
-    c.ringDiameter = CGFloat(ringDiameterSlider.value)
-    c.linearCapStyle = capControl.selectedSegmentIndex == 1 ? .square : .round
-    c.segmentCount = Int(segmentSlider.value.rounded())
-    c.segmentGapFraction = CGFloat(segmentGapSlider.value)
-    c.trackBorderWidth = trackBorderSwitch.isOn ? 1 : 0
-    c.trackBorderColor = .separator
-    c.progressBorderWidth = progressBorderSwitch.isOn ? 1 : 0
-    c.progressBorderColor = .label
-    c.labelPlacement = labelPlacementFromSegment(labelPlacementControl.selectedSegmentIndex)
-    c.labelFormat = labelFormatFromSegment(labelFormatControl.selectedSegmentIndex)
-    c.labelFractionDigits = Int(labelDigitsSlider.value.rounded())
-    c.labelUsesSemanticLabelColor = semanticLabelColorSwitch.isOn
+    c.appearance.fillStyle = fillControl.selectedSegmentIndex == 1 ? .gradientAlongProgress : .solid
+    c.appearance.showsBuffer = bufferSwitch.isOn
+    c.motion.prefersSpringAnimation = springSwitch.isOn
+    c.motion.animationDuration = TimeInterval(durationSlider.value)
+    c.motion.timing = timingFromSegment(timingControl.selectedSegmentIndex)
+    c.motion.respectsReducedMotion = reducedMotionRespectSwitch.isOn
+    c.motion.completionHaptic = hapticFromSegment(hapticControl.selectedSegmentIndex)
+    c.layout.trackThickness = CGFloat(thicknessSlider.value)
+    c.layout.ringLineWidth = CGFloat(ringWidthSlider.value)
+    c.layout.ringDiameter = CGFloat(ringDiameterSlider.value)
+    c.layout.linearCapStyle = capControl.selectedSegmentIndex == 1 ? .square : .round
+    c.layout.segmentCount = Int(segmentSlider.value.rounded())
+    c.layout.segmentGapFraction = CGFloat(segmentGapSlider.value)
+    c.appearance.trackBorderWidth = trackBorderSwitch.isOn ? 1 : 0
+    c.appearance.trackBorderColor = .separator
+    c.appearance.progressBorderWidth = progressBorderSwitch.isOn ? 1 : 0
+    c.appearance.progressBorderColor = .label
+    c.label.labelPlacement = labelPlacementFromSegment(labelPlacementControl.selectedSegmentIndex)
+    c.label.labelFormat = labelFormatFromSegment(labelFormatControl.selectedSegmentIndex)
+    c.label.labelFractionDigits = Int(labelDigitsSlider.value.rounded())
+    c.label.labelUsesSemanticLabelColor = semanticLabelColorSwitch.isOn
     let lo = Double(logicalMinField.text ?? "") ?? 0
     var hi = Double(logicalMaxField.text ?? "") ?? 100
     if hi <= lo { hi = lo + 1 }
-    c.logicalMinimum = lo
-    c.logicalMaximum = hi
-    c.labelPrefix = prefixField.text ?? ""
-    c.labelSuffix = suffixField.text ?? ""
-    c.accessibilityTreatAsFrequentUpdates = a11yFrequentSwitch.isOn
-    c.indeterminateStyle = indeterminateStyleFromSegment(indeterminateStyleControl.selectedSegmentIndex)
-    c.indeterminatePeriod = TimeInterval(indeterminatePeriodSlider.value)
+    c.label.logicalMinimum = lo
+    c.label.logicalMaximum = hi
+    c.label.labelPrefix = prefixField.text ?? ""
+    c.label.labelSuffix = suffixField.text ?? ""
+    c.accessibility.accessibilityTreatAsFrequentUpdates = a11yFrequentSwitch.isOn
+    c.motion.indeterminateStyle = indeterminateStyleFromSegment(indeterminateStyleControl.selectedSegmentIndex)
+    c.motion.indeterminatePeriod = TimeInterval(indeterminatePeriodSlider.value)
+    c.motion.playsIndeterminateAnimation = playsIndeterminateAnimSwitch.isOn
 
-    let isRing = c.variant == .ring
+    let isRing = c.layout.variant == .ring
     axisControl.isEnabled = !isRing
     capControl.isEnabled = !isRing
     segmentSlider.isEnabled = !isRing
-    segmentGapSlider.isEnabled = !isRing && c.segmentCount > 1
+    segmentGapSlider.isEnabled = !isRing && c.layout.segmentCount > 1
 
     previewBar.configuration = c
     previewBar.setProgress(CGFloat(progressSlider.value), buffer: CGFloat(bufferSlider.value), animated: false)

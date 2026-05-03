@@ -6,45 +6,45 @@ public extension FKProgressBar {
   /// `0` linear, `1` ring.
   @IBInspectable
   var ibVariant: Int {
-    get { configuration.variant.rawValue }
-    set { configuration.variant = FKProgressBarVariant(rawValue: newValue) ?? .linear }
+    get { configuration.layout.variant.rawValue }
+    set { configuration.layout.variant = FKProgressBarVariant(rawValue: newValue) ?? .linear }
   }
 
   /// `0` horizontal, `1` vertical (linear only).
   @IBInspectable
   var ibAxis: Int {
-    get { configuration.axis.rawValue }
-    set { configuration.axis = FKProgressBarAxis(rawValue: newValue) ?? .horizontal }
+    get { configuration.layout.axis.rawValue }
+    set { configuration.layout.axis = FKProgressBarAxis(rawValue: newValue) ?? .horizontal }
   }
 
   @IBInspectable
   var ibTrackThickness: CGFloat {
-    get { configuration.trackThickness }
-    set { configuration.trackThickness = max(0.5, newValue) }
+    get { configuration.layout.trackThickness }
+    set { configuration.layout.trackThickness = max(0.5, newValue) }
   }
 
   @IBInspectable
   var ibTrackColor: UIColor {
-    get { configuration.trackColor }
-    set { configuration.trackColor = newValue }
+    get { configuration.appearance.trackColor }
+    set { configuration.appearance.trackColor = newValue }
   }
 
   @IBInspectable
   var ibProgressColor: UIColor {
-    get { configuration.progressColor }
-    set { configuration.progressColor = newValue }
+    get { configuration.appearance.progressColor }
+    set { configuration.appearance.progressColor = newValue }
   }
 
   @IBInspectable
   var ibBufferColor: UIColor {
-    get { configuration.bufferColor }
-    set { configuration.bufferColor = newValue }
+    get { configuration.appearance.bufferColor }
+    set { configuration.appearance.bufferColor = newValue }
   }
 
   @IBInspectable
   var ibShowsBuffer: Bool {
-    get { configuration.showsBuffer }
-    set { configuration.showsBuffer = newValue }
+    get { configuration.appearance.showsBuffer }
+    set { configuration.appearance.showsBuffer = newValue }
   }
 
   @IBInspectable
@@ -67,25 +67,45 @@ public extension FKProgressBar {
 
   @IBInspectable
   var ibRingLineWidth: CGFloat {
-    get { configuration.ringLineWidth }
-    set { configuration.ringLineWidth = max(0.5, newValue) }
+    get { configuration.layout.ringLineWidth }
+    set { configuration.layout.ringLineWidth = max(0.5, newValue) }
   }
 
   @IBInspectable
   var ibAnimationDuration: CGFloat {
-    get { CGFloat(configuration.animationDuration) }
-    set { configuration.animationDuration = TimeInterval(max(0, newValue)) }
+    get { CGFloat(configuration.motion.animationDuration) }
+    set { configuration.motion.animationDuration = TimeInterval(max(0, newValue)) }
   }
 
   @IBInspectable
   var ibSegmentCount: Int {
-    get { configuration.segmentCount }
-    set { configuration.segmentCount = max(0, newValue) }
+    get { configuration.layout.segmentCount }
+    set { configuration.layout.segmentCount = max(0, newValue) }
   }
 
   @IBInspectable
   var ibRespectsReducedMotion: Bool {
-    get { configuration.respectsReducedMotion }
-    set { configuration.respectsReducedMotion = newValue }
+    get { configuration.motion.respectsReducedMotion }
+    set { configuration.motion.respectsReducedMotion = newValue }
+  }
+
+  /// `0` indicator, `1` button (``FKProgressBarInteractionMode`` raw value).
+  @IBInspectable
+  var ibInteractionMode: Int {
+    get { configuration.interaction.interactionMode.rawValue }
+    set { configuration.interaction.interactionMode = FKProgressBarInteractionMode(rawValue: newValue) ?? .indicator }
+  }
+
+  /// ``FKProgressBarLabelContentMode`` raw value (`0` formatted progress … `3` title + progress subtitle).
+  @IBInspectable
+  var ibLabelContentMode: Int {
+    get { configuration.label.labelContentMode.rawValue }
+    set { configuration.label.labelContentMode = FKProgressBarLabelContentMode(rawValue: newValue) ?? .formattedProgress }
+  }
+
+  @IBInspectable
+  var ibCustomTitle: String {
+    get { configuration.label.customTitle }
+    set { configuration.label.customTitle = newValue }
   }
 }

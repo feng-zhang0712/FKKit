@@ -73,10 +73,10 @@ final class FKProgressBarEnvironmentDemoViewController: UIViewController {
 
   private func applyBaseConfiguration() {
     var c = FKProgressBarConfiguration()
-    c.showsBuffer = true
-    c.labelPlacement = .below
-    c.labelFormat = .percentInteger
-    c.accessibilityTreatAsFrequentUpdates = true
+    c.appearance.showsBuffer = true
+    c.label.labelPlacement = .below
+    c.label.labelFormat = .percentInteger
+    c.accessibility.accessibilityTreatAsFrequentUpdates = true
     bar.configuration = c
   }
 
@@ -88,19 +88,19 @@ final class FKProgressBarEnvironmentDemoViewController: UIViewController {
     var c = bar.configuration
     switch copyControl.selectedSegmentIndex {
     case 1:
-      c.accessibilityCustomLabel = "Download progress"
+      c.accessibility.accessibilityCustomLabel = "Download progress"
     case 2:
-      c.accessibilityCustomLabel = "下载进度"
+      c.accessibility.accessibilityCustomLabel = "下载进度"
     default:
-      c.accessibilityCustomLabel = nil
+      c.accessibility.accessibilityCustomLabel = nil
     }
     switch hintControl.selectedSegmentIndex {
     case 1:
-      c.accessibilityCustomHint = "Double-tap and hold for more options in a real app."
+      c.accessibility.accessibilityCustomHint = "Double-tap and hold for more options in a real app."
     case 2:
-      c.accessibilityCustomHint = "可在正式产品中连接自定义操作。"
+      c.accessibility.accessibilityCustomHint = "可在正式产品中连接自定义操作。"
     default:
-      c.accessibilityCustomHint = nil
+      c.accessibility.accessibilityCustomHint = nil
     }
     bar.configuration = c
   }

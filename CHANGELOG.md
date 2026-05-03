@@ -9,6 +9,32 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.44.1] - 2026-05-03
+
+### Changed (FKUIKit FKProgressBar)
+
+**Breaking**
+
+- **`FKProgressBarConfiguration`** is now a **composite** value: all former top-level fields moved into **`layout`**, **`appearance`**, **`motion`**, **`label`**, **`accessibility`**, and **`interaction`** (`FKProgressBarLayoutConfiguration`, `FKProgressBarAppearanceConfiguration`, `FKProgressBarMotionConfiguration`, `FKProgressBarLabelConfiguration`, `FKProgressBarAccessibilityConfiguration`, `FKProgressBarInteractionConfiguration`). Update call sites from `configuration.trackThickness` to `configuration.layout.trackThickness`, `configuration.showsBuffer` to `configuration.appearance.showsBuffer`, and so on. **`FKProgressBar` `@IBInspectable` properties** continue to bridge into the nested structs.
+
+### Added (FKUIKit FKProgressBar)
+
+- **`FKProgressBarMotionConfiguration.playsIndeterminateAnimation`** (default `true`): when `false`, indeterminate **state** still drives label and accessibility, but **marquee**, **breathing**, and **ring** indeterminate **animations** are not started (masks stay determinate-visible).
+- **Progress-as-button** example screen and related **`FKProgressBarInteractionMode`** / **`FKProgressBarLabelContentMode`** / **`FKProgressBarTouchHaptic`** model split in `Public/Models/`.
+
+### Fixed (FKUIKit FKProgressBar)
+
+- **Value label**: wider layout for **`.above`**, **`.below`**, and **`.centeredOnTrack`** so short strings such as `100%` are not truncated; label frame avoids unnecessary `.integral` shrink.
+- **Examples**: **Preset gallery** row height and vertical-bar height heuristics adjusted so subtitles and vertical-axis copy are not clipped in `UITableView` cells.
+
+### Changed (Documentation)
+
+- Expanded **`Sources/FKUIKit/Components/ProgressBar/README.md`**: nested configuration table, **Migrating from 0.44.0**, label and accessibility path clarifications.
+
+### Changed (Examples)
+
+- **FKKitExamples** ProgressBar scenarios and SwiftUI sample updated for nested **`FKProgressBarConfiguration`**; **Playground** adds **Animate indeterminate** toggle.
+
 ## [0.44.0] - 2026-05-03
 
 ### Added (FKUIKit FKProgressBar)
@@ -1821,7 +1847,9 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.43.17...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.44.1...HEAD
+[0.44.1]: https://github.com/feng-zhang0712/FKKit/compare/0.44.0...0.44.1
+[0.44.0]: https://github.com/feng-zhang0712/FKKit/compare/0.43.17...0.44.0
 [0.43.17]: https://github.com/feng-zhang0712/FKKit/compare/0.43.16...0.43.17
 [0.43.16]: https://github.com/feng-zhang0712/FKKit/compare/0.43.15...0.43.16
 [0.43.15]: https://github.com/feng-zhang0712/FKKit/compare/0.43.14...0.43.15

@@ -4,10 +4,10 @@ import UIKit
 enum FKProgressBarLabelFormatting {
   static func displayString(progress: CGFloat, configuration: FKProgressBarConfiguration) -> String {
     let t = min(max(progress, 0), 1)
-    let prefix = configuration.labelPrefix
-    let suffix = configuration.labelSuffix
-    let digits = configuration.labelFractionDigits
-    switch configuration.labelFormat {
+    let prefix = configuration.label.labelPrefix
+    let suffix = configuration.label.labelSuffix
+    let digits = configuration.label.labelFractionDigits
+    switch configuration.label.labelFormat {
     case .percentInteger:
       let p = Int((t * 100).rounded(.toNearestOrAwayFromZero))
       return "\(prefix)\(p)%\(suffix)"
@@ -16,7 +16,7 @@ enum FKProgressBarLabelFormatting {
       fmt.numberStyle = .decimal
       fmt.minimumFractionDigits = digits
       fmt.maximumFractionDigits = digits
-      fmt.locale = configuration.numberFormatter?.locale ?? .current
+      fmt.locale = configuration.label.numberFormatter?.locale ?? .current
       let v = t * 100
       let s = fmt.string(from: NSNumber(value: v)) ?? "\(v)"
       return "\(prefix)\(s)%\(suffix)"
@@ -25,14 +25,14 @@ enum FKProgressBarLabelFormatting {
       fmt.numberStyle = .decimal
       fmt.minimumFractionDigits = digits
       fmt.maximumFractionDigits = digits
-      fmt.locale = configuration.numberFormatter?.locale ?? .current
+      fmt.locale = configuration.label.numberFormatter?.locale ?? .current
       let s = fmt.string(from: NSNumber(value: t)) ?? "\(t)"
       return "\(prefix)\(s)\(suffix)"
     case .logicalRangeValue:
-      let lo = configuration.logicalMinimum
-      let hi = configuration.logicalMaximum
+      let lo = configuration.label.logicalMinimum
+      let hi = configuration.label.logicalMaximum
       let logical = lo + Double(t) * (hi - lo)
-      if let nf = configuration.numberFormatter {
+      if let nf = configuration.label.numberFormatter {
         let copy = nf.copy() as! NumberFormatter
         let s = copy.string(from: NSNumber(value: logical)) ?? "\(logical)"
         return "\(prefix)\(s)\(suffix)"
@@ -51,17 +51,17 @@ enum FKProgressBarLabelFormatting {
       return NSLocalizedString("In progress", comment: "FKProgressBar indeterminate accessibility")
     }
     let t = min(max(progress, 0), 1)
-    let lo = configuration.logicalMinimum
-    let hi = configuration.logicalMaximum
+    let lo = configuration.label.logicalMinimum
+    let hi = configuration.label.logicalMaximum
     let logical = lo + Double(t) * (hi - lo)
-    let nf = configuration.numberFormatter ?? {
+    let nf = configuration.label.numberFormatter ?? {
       let f = NumberFormatter()
       f.numberStyle = .decimal
       f.maximumFractionDigits = 2
       return f
     }()
     let main = nf.string(from: NSNumber(value: logical)) ?? "\(logical)"
-    if configuration.showsBuffer {
+    if configuration.appearance.showsBuffer {
       let bt = min(max(buffer, 0), 1)
       let blogical = lo + Double(bt) * (hi - lo)
       let bstr = nf.string(from: NSNumber(value: blogical)) ?? "\(blogical)"

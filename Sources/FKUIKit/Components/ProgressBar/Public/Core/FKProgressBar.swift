@@ -1,14 +1,16 @@
 import UIKit
 
-/// A highly configurable determinate / indeterminate progress indicator (linear or ring) with optional buffer, labels, and accessibility.
+/// A highly configurable determinate / indeterminate progress indicator (linear or ring) with optional buffer, labels, accessibility, and optional **button** interaction.
 ///
 /// Assign ``configuration`` to change appearance. Use ``setProgress(_:animated:)`` and ``setBufferProgress(_:animated:)`` for animated updates.
-/// Set ``isIndeterminate`` to `true` and choose ``FKProgressBarConfiguration/indeterminateStyle`` for activity modes.
+  /// Set ``isIndeterminate`` to `true` and choose ``FKProgressBarMotionConfiguration/indeterminateStyle`` for indeterminate modes.
+///
+  /// When ``FKProgressBarInteractionConfiguration/interactionMode`` is ``FKProgressBarInteractionMode/button``, use ``UIControl/addTarget(_:action:for:)`` with ``UIControl/Event/touchUpInside`` or ``UIControl/Event/primaryActionTriggered`` (e.g. start a download, then update progress).
 ///
 /// Global defaults: set ``defaultConfiguration`` at launch or use ``FKProgressBarDefaults/configuration``.
 @IBDesignable
 @MainActor
-public final class FKProgressBar: UIView {
+public final class FKProgressBar: UIControl {
   /// Baseline copied by `init(frame:)` until you replace ``configuration``.
   public static var defaultConfiguration: FKProgressBarConfiguration {
     get { FKProgressBarDefaults.configuration }
@@ -19,6 +21,9 @@ public final class FKProgressBar: UIView {
   public var configuration: FKProgressBarConfiguration = FKProgressBar.defaultConfiguration {
     didSet {
       applyConfigurationToLabel()
+      applyInteractionModeFromConfiguration()
+      refreshTouchHapticWiring()
+      updateTouchAppearance()
       invalidateIntrinsicContentSize()
       setNeedsLayout()
       updateAccessibility()
@@ -28,13 +33,14 @@ public final class FKProgressBar: UIView {
   /// Normalized primary progress in `0...1`.
   public private(set) var progress: CGFloat = 0
 
-  /// Normalized buffer progress in `0...1` (shown when ``FKProgressBarConfiguration/showsBuffer`` is `true`).
+  /// Normalized buffer progress in `0...1` (shown when ``FKProgressBarAppearanceConfiguration/showsBuffer`` is `true`).
   public private(set) var bufferProgress: CGFloat = 0
 
-  /// When `true`, determinate fills are de-emphasized and ``FKProgressBarConfiguration/indeterminateStyle`` drives motion.
+  /// When `true`, determinate fills are de-emphasized and ``FKProgressBarMotionConfiguration/indeterminateStyle`` drives motion (when ``FKProgressBarMotionConfiguration/playsIndeterminateAnimation`` is `true`).
   public var isIndeterminate: Bool = false {
     didSet {
       guard isIndeterminate != oldValue else { return }
+      updateLabelText()
       updateAccessibility()
       delegate?.progressBar(self, didChangeIndeterminate: isIndeterminate)
       setNeedsLayout()
@@ -79,6 +85,9 @@ public final class FKProgressBar: UIView {
     valueLabel.isUserInteractionEnabled = false
     addSubview(valueLabel)
     applyConfigurationToLabel()
+    applyInteractionModeFromConfiguration()
+    refreshTouchHapticWiring()
+    updateTouchAppearance()
     updateAccessibility()
   }
 
@@ -132,7 +141,7 @@ public final class FKProgressBar: UIView {
     updateAccessibility()
   }
 
-  /// Begins indeterminate presentation according to ``FKProgressBarConfiguration/indeterminateStyle``.
+  /// Begins indeterminate presentation according to ``FKProgressBarMotionConfiguration/indeterminateStyle`` (animations honor ``FKProgressBarMotionConfiguration/playsIndeterminateAnimation``).
   public func startIndeterminate() {
     isIndeterminate = true
   }
@@ -161,32 +170,33 @@ public final class FKProgressBar: UIView {
       traitCollection: traitCollection,
       reducedMotion: reduced,
       animated: animated,
-      animationDuration: configuration.animationDuration,
-      timing: configuration.timing,
-      prefersSpring: configuration.prefersSpringAnimation,
-      springDamping: configuration.springDampingRatio,
-      springVelocity: configuration.springVelocity
+      animationDuration: configuration.motion.animationDuration,
+      timing: configuration.motion.timing,
+      prefersSpring: configuration.motion.prefersSpringAnimation,
+      springDamping: configuration.motion.springDampingRatio,
+      springVelocity: configuration.motion.springVelocity
     )
     layoutValueLabel()
+    updateTouchAppearance()
   }
 
   public override var intrinsicContentSize: CGSize {
     let c = configuration
-    let insets = c.contentInsets
+    let insets = c.layout.contentInsets
     let labelBlock = labelIntrinsicAxisContribution()
 
-    switch c.variant {
+    switch c.layout.variant {
     case .linear:
-      switch c.axis {
+      switch c.layout.axis {
       case .horizontal:
-        let h = insets.top + insets.bottom + c.trackThickness + labelBlock.vertical
+        let h = insets.top + insets.bottom + c.layout.trackThickness + labelBlock.vertical
         return CGSize(width: UIView.noIntrinsicMetric, height: h)
       case .vertical:
-        let w = insets.left + insets.right + c.trackThickness + labelBlock.horizontal
+        let w = insets.left + insets.right + c.layout.trackThickness + labelBlock.horizontal
         return CGSize(width: w, height: UIView.noIntrinsicMetric)
       }
     case .ring:
-      let d = (c.ringDiameter ?? 36) + labelBlock.bothAxes
+      let d = (c.layout.ringDiameter ?? 36) + labelBlock.bothAxes
       return CGSize(width: d + insets.left + insets.right, height: d + insets.top + insets.bottom)
     }
   }
@@ -196,18 +206,72 @@ public final class FKProgressBar: UIView {
     setNeedsLayout()
   }
 
+  public override var isEnabled: Bool {
+    didSet {
+      if configuration.interaction.interactionMode == .button {
+        isUserInteractionEnabled = isEnabled
+      }
+      updateTouchAppearance()
+      updateAccessibility()
+    }
+  }
+
+  public override var isHighlighted: Bool {
+    didSet {
+      guard configuration.interaction.interactionMode == .button else { return }
+      updateTouchAppearance()
+    }
+  }
+
+  public override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+    guard configuration.interaction.interactionMode == .button else { return false }
+    let ok = super.beginTracking(touch, with: event)
+    if ok {
+      delegate?.progressBarDidBeginTracking(self)
+    }
+    return ok
+  }
+
+  public override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
+    let wasTracking = isTracking
+    super.endTracking(touch, with: event)
+    guard configuration.interaction.interactionMode == .button, wasTracking else { return }
+    let cancelled = touch.map { !bounds.contains($0.location(in: self)) } ?? true
+    delegate?.progressBarDidEndTracking(self, cancelled: cancelled)
+  }
+
+  public override func cancelTracking(with event: UIEvent?) {
+    let wasTracking = isTracking
+    super.cancelTracking(with: event)
+    guard configuration.interaction.interactionMode == .button, wasTracking else { return }
+    delegate?.progressBarDidEndTracking(self, cancelled: true)
+  }
+
+  public override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    guard configuration.interaction.interactionMode == .button,
+          let minSize = configuration.interaction.minimumTouchTargetSize,
+          minSize.width > 0, minSize.height > 0
+    else {
+      return super.point(inside: point, with: event)
+    }
+    let w = max(bounds.width, minSize.width)
+    let h = max(bounds.height, minSize.height)
+    let hit = CGRect(x: bounds.midX - w / 2, y: bounds.midY - h / 2, width: w, height: h)
+    return hit.contains(point)
+  }
+
   // MARK: - Private
 
   private func resolvedAnimationDuration(animated: Bool) -> TimeInterval {
     guard animated else { return 0 }
-    if configuration.respectsReducedMotion, UIAccessibility.isReduceMotionEnabled { return 0 }
-    return configuration.animationDuration
+    if configuration.motion.respectsReducedMotion, UIAccessibility.isReduceMotionEnabled { return 0 }
+    return configuration.motion.animationDuration
   }
 
   private func fireCompletionHapticIfNeeded(from: CGFloat, to: CGFloat) {
     guard from < 1, to >= 1 else { return }
     let style: UIImpactFeedbackGenerator.FeedbackStyle
-    switch configuration.completionHaptic {
+    switch configuration.motion.completionHaptic {
     case .none:
       return
     case .light:
@@ -223,34 +287,106 @@ public final class FKProgressBar: UIView {
   }
 
   private func applyConfigurationToLabel() {
-    valueLabel.font = configuration.labelFont
-    valueLabel.textColor = configuration.labelUsesSemanticLabelColor ? .label : configuration.labelColor
-    valueLabel.isHidden = configuration.labelPlacement == .none
+    valueLabel.font = configuration.label.labelFont
+    valueLabel.textColor = configuration.label.labelUsesSemanticLabelColor ? .label : configuration.label.labelColor
+    valueLabel.isHidden = configuration.label.labelPlacement == .none
+    switch configuration.label.labelContentMode {
+    case .customTitleWithProgressSubtitle:
+      valueLabel.numberOfLines = 2
+    case .customTitleOnly:
+      valueLabel.numberOfLines = 0
+    default:
+      valueLabel.numberOfLines = 1
+    }
     updateLabelText()
   }
 
   private func updateLabelText() {
-    guard configuration.labelPlacement != .none else {
+    guard configuration.label.labelPlacement != .none else {
       valueLabel.text = nil
       return
     }
-    valueLabel.text = FKProgressBarLabelFormatting.displayString(progress: progress, configuration: configuration)
+    let c = configuration
+    let formatted = FKProgressBarLabelFormatting.displayString(progress: progress, configuration: c)
+    switch c.label.labelContentMode {
+    case .formattedProgress:
+      valueLabel.text = formatted
+    case .customTitleOnly:
+      valueLabel.text = c.label.customTitle
+    case .customTitleWhenIdle:
+      let idle = !isIndeterminate && progress < 0.000_001
+      if idle {
+        valueLabel.text = c.label.customTitle
+      } else if isIndeterminate, !c.label.customTitle.isEmpty {
+        valueLabel.text = c.label.customTitle
+      } else {
+        valueLabel.text = formatted
+      }
+    case .customTitleWithProgressSubtitle:
+      if c.label.customTitle.isEmpty {
+        valueLabel.text = formatted
+      } else {
+        valueLabel.text = "\(c.label.customTitle)\n\(formatted)"
+      }
+    }
   }
 
   private func layoutValueLabel() {
-    guard configuration.labelPlacement != .none else {
+    guard configuration.label.labelPlacement != .none else {
       valueLabel.frame = .zero
       return
     }
-    let pad = configuration.labelPadding
+    let pad = configuration.label.labelPadding
     let c = configuration
-    let track = FKProgressBarLayoutEngine.trackRect(in: bounds, contentInsets: c.contentInsets)
-    let size = valueLabel.sizeThatFits(CGSize(width: bounds.width - pad * 2, height: bounds.height))
-    let w = min(bounds.width - pad * 2, size.width)
-    let h = size.height
+    let track = FKProgressBarLayoutEngine.trackRect(in: bounds, contentInsets: c.layout.contentInsets)
+    let maxLabelWidth = max(0, bounds.width - pad * 2)
+    valueLabel.preferredMaxLayoutWidth = maxLabelWidth
+
+    let text = valueLabel.text ?? ""
+    let font = valueLabel.font ?? UIFont.preferredFont(forTextStyle: .footnote)
+    let attrs: [NSAttributedString.Key: Any] = [.font: font]
+
+    let usesFullHorizontalWidth: Bool
+    switch c.label.labelPlacement {
+    case .above, .below, .centeredOnTrack:
+      usesFullHorizontalWidth = true
+    case .none, .leading, .trailing:
+      usesFullHorizontalWidth = false
+    }
+
+    let labelWidth: CGFloat
+    if usesFullHorizontalWidth {
+      // Give the label the full usable width so short strings like "100%" are not ellipsized; long text wraps within `numberOfLines`.
+      labelWidth = maxLabelWidth
+    } else {
+      let singleLineW = text.isEmpty ? 0 : ceil(
+        (text as NSString).boundingRect(
+          with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 200),
+          options: [.usesLineFragmentOrigin, .usesFontLeading],
+          attributes: attrs,
+          context: nil
+        ).width
+      )
+      let fitted = valueLabel.sizeThatFits(CGSize(width: maxLabelWidth, height: CGFloat.greatestFiniteMagnitude))
+      labelWidth = min(maxLabelWidth, max(singleLineW, fitted.width, 1))
+    }
+
+    let labelHeight = text.isEmpty
+      ? 0
+      : ceil(
+        (text as NSString).boundingRect(
+          with: CGSize(width: labelWidth, height: CGFloat.greatestFiniteMagnitude),
+          options: [.usesLineFragmentOrigin, .usesFontLeading],
+          attributes: attrs,
+          context: nil
+        ).height
+      )
+
+    let w = labelWidth
+    let h = max(labelHeight, ceil(font.lineHeight))
     var f = CGRect.zero
     let rtl = effectiveUserInterfaceLayoutDirection == .rightToLeft
-    switch c.labelPlacement {
+    switch c.label.labelPlacement {
     case .none:
       break
     case .above:
@@ -266,7 +402,7 @@ public final class FKProgressBar: UIView {
     case .centeredOnTrack:
       f = CGRect(x: track.midX - w / 2, y: track.midY - h / 2, width: w, height: h)
     }
-    valueLabel.frame = f.integral
+    valueLabel.frame = f
   }
 
   private struct LabelAxisInset {
@@ -276,32 +412,139 @@ public final class FKProgressBar: UIView {
   }
 
   private func labelIntrinsicAxisContribution() -> LabelAxisInset {
-    guard configuration.labelPlacement != .none else { return LabelAxisInset() }
-    let pad = configuration.labelPadding
+    guard configuration.label.labelPlacement != .none else { return LabelAxisInset() }
+    let pad = configuration.label.labelPadding
     let c = configuration
     var o = LabelAxisInset()
-    switch c.labelPlacement {
+    let textHeight = labelMeasurementTextHeight()
+    switch c.label.labelPlacement {
     case .none:
       break
     case .above, .below:
-      let h = ceil(valueLabel.font.lineHeight) + pad
-      o.vertical = h
+      o.vertical = textHeight + pad
     case .leading, .trailing:
-      let w = min(120, max(80, bounds.width > 0 ? bounds.width * 0.35 : 80)) + pad
+      let sample = Self.labelSampleString(for: c)
+      let wText = ceil(
+        (sample as NSString).boundingRect(
+          with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 200),
+          options: [.usesLineFragmentOrigin, .usesFontLeading],
+          attributes: [.font: c.label.labelFont],
+          context: nil
+        ).width
+      )
+      let w = min(200, max(44, wText)) + pad
       o.horizontal = w
     case .centeredOnTrack:
-      o.bothAxes = ceil(valueLabel.font.lineHeight) + pad
+      o.bothAxes = textHeight + pad
     }
     return o
   }
 
+  private func applyInteractionModeFromConfiguration() {
+    switch configuration.interaction.interactionMode {
+    case .indicator:
+      isUserInteractionEnabled = false
+    case .button:
+      isUserInteractionEnabled = isEnabled
+    }
+  }
+
+  private func refreshTouchHapticWiring() {
+    removeTarget(self, action: #selector(fkProgressBarTouchDownHaptic), for: .touchDown)
+    removeTarget(self, action: #selector(fkProgressBarTouchUpHaptic), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragOutside])
+    guard configuration.interaction.interactionMode == .button else { return }
+    guard configuration.interaction.touchHaptic != .none else { return }
+    addTarget(self, action: #selector(fkProgressBarTouchDownHaptic), for: .touchDown)
+    addTarget(self, action: #selector(fkProgressBarTouchUpHaptic), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragOutside])
+  }
+
+  @objc private func fkProgressBarTouchDownHaptic() {
+    switch configuration.interaction.touchHaptic {
+    case .none:
+      break
+    case .lightImpactOnTouchDown:
+      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    case .selectionChangedOnTouchDown:
+      UISelectionFeedbackGenerator().selectionChanged()
+    }
+  }
+
+  @objc private func fkProgressBarTouchUpHaptic() {}
+
+  private func updateTouchAppearance() {
+    let mode = configuration.interaction.interactionMode
+    let baseAlpha: CGFloat = (mode == .button && !isEnabled) ? configuration.interaction.disabledContentAlpha : 1
+    let highlightFactor = (mode == .button && isEnabled && isHighlighted) ? configuration.interaction.buttonHighlightedContentAlphaMultiplier : 1
+    let a = min(1, max(0.05, baseAlpha * highlightFactor))
+    layerStack.container.opacity = Float(a)
+    valueLabel.alpha = a
+  }
+
+  private func labelMeasurementTextHeight() -> CGFloat {
+    let c = configuration
+    let pad = configuration.label.labelPadding
+    let labelWidthProbe = max(80, bounds.width > 0 ? bounds.width - pad * 2 : 240)
+    let font = c.label.labelFont
+    switch c.label.labelContentMode {
+    case .formattedProgress:
+      return ceil(font.lineHeight)
+    case .customTitleOnly:
+      let t = c.label.customTitle.isEmpty ? " " : c.label.customTitle
+      return ceil(
+        (t as NSString).boundingRect(
+          with: CGSize(width: labelWidthProbe, height: CGFloat.greatestFiniteMagnitude),
+          options: [.usesLineFragmentOrigin, .usesFontLeading],
+          attributes: [.font: font],
+          context: nil
+        ).height
+      )
+    case .customTitleWhenIdle:
+      let t = c.label.customTitle.isEmpty ? " " : c.label.customTitle
+      let hTitle = (t as NSString).boundingRect(
+        with: CGSize(width: labelWidthProbe, height: CGFloat.greatestFiniteMagnitude),
+        options: [.usesLineFragmentOrigin, .usesFontLeading],
+        attributes: [.font: font],
+        context: nil
+      ).height
+      let hFmt = ceil(font.lineHeight)
+      return ceil(max(hTitle, hFmt))
+    case .customTitleWithProgressSubtitle:
+      let body = c.label.customTitle.isEmpty ? "100%" : "\(c.label.customTitle)\n100%"
+      return ceil(
+        (body as NSString).boundingRect(
+          with: CGSize(width: labelWidthProbe, height: CGFloat.greatestFiniteMagnitude),
+          options: [.usesLineFragmentOrigin, .usesFontLeading],
+          attributes: [.font: font],
+          context: nil
+        ).height
+      )
+    }
+  }
+
+  private static func labelSampleString(for c: FKProgressBarConfiguration) -> String {
+    switch c.label.labelContentMode {
+    case .formattedProgress:
+      return "100%"
+    case .customTitleOnly, .customTitleWhenIdle:
+      return c.label.customTitle.isEmpty ? "100%" : c.label.customTitle
+    case .customTitleWithProgressSubtitle:
+      let t = c.label.customTitle.isEmpty ? "Title" : c.label.customTitle
+      return "\(t)\n100%"
+    }
+  }
+
   private func updateAccessibility() {
-    if let label = configuration.accessibilityCustomLabel, !label.isEmpty {
+    if let label = configuration.accessibility.accessibilityCustomLabel, !label.isEmpty {
       accessibilityLabel = label
+    } else if !configuration.label.customTitle.isEmpty,
+              configuration.label.labelContentMode != .formattedProgress,
+              configuration.label.labelPlacement != .none
+    {
+      accessibilityLabel = configuration.label.customTitle
     } else {
       accessibilityLabel = nil
     }
-    if let hint = configuration.accessibilityCustomHint, !hint.isEmpty {
+    if let hint = configuration.accessibility.accessibilityCustomHint, !hint.isEmpty {
       accessibilityHint = hint
     } else {
       accessibilityHint = nil
@@ -312,10 +555,15 @@ public final class FKProgressBar: UIView {
       configuration: configuration,
       isIndeterminate: isIndeterminate
     )
-    if configuration.accessibilityTreatAsFrequentUpdates {
+    if configuration.accessibility.accessibilityTreatAsFrequentUpdates {
       accessibilityTraits.insert(.updatesFrequently)
     } else {
       accessibilityTraits.remove(.updatesFrequently)
+    }
+    if configuration.interaction.interactionMode == .button {
+      accessibilityTraits.insert(.button)
+    } else {
+      accessibilityTraits.remove(.button)
     }
   }
 }

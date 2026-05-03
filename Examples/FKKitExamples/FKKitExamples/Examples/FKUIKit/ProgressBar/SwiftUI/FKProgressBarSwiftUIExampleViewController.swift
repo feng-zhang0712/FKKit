@@ -10,11 +10,25 @@ private struct FKProgressBarSwiftUIDemoRoot: View {
   @State private var indeterminate = false
   @State private var configuration: FKProgressBarConfiguration = {
     var c = FKProgressBarConfiguration()
-    c.trackThickness = 8
-    c.showsBuffer = true
-    c.labelPlacement = .below
-    c.labelFormat = .percentInteger
-    c.animationDuration = 0.3
+    c.layout.trackThickness = 8
+    c.appearance.showsBuffer = true
+    c.label.labelPlacement = .below
+    c.label.labelFormat = .percentInteger
+    c.motion.animationDuration = 0.3
+    return c
+  }()
+  @State private var buttonTapCount = 0
+  @State private var buttonBarConfiguration: FKProgressBarConfiguration = {
+    var c = FKProgressBarConfiguration()
+    c.layout.trackThickness = 9
+    c.label.labelPlacement = .centeredOnTrack
+    c.label.labelContentMode = .customTitleWhenIdle
+    c.label.customTitle = "Fetch"
+    c.interaction.interactionMode = .button
+    c.interaction.touchHaptic = .lightImpactOnTouchDown
+    c.interaction.minimumTouchTargetSize = CGSize(width: 44, height: 44)
+    c.label.labelFont = .preferredFont(forTextStyle: .subheadline)
+    c.label.labelUsesSemanticLabelColor = true
     return c
   }()
 
@@ -42,20 +56,38 @@ private struct FKProgressBarSwiftUIDemoRoot: View {
           Toggle("Indeterminate", isOn: $indeterminate)
         }
 
+        Section {
+          FKProgressBarView(
+            progress: $progress,
+            bufferProgress: $buffer,
+            isIndeterminate: $indeterminate,
+            configuration: buttonBarConfiguration,
+            animateChanges: true,
+            onPrimaryAction: {
+              buttonTapCount += 1
+            }
+          )
+          .frame(minHeight: 48)
+        } header: {
+          Text("Progress as button")
+        } footer: {
+          Text("onPrimaryAction increments a counter (\(buttonTapCount)). Configuration uses interactionMode `.button` and a custom idle title.")
+        }
+
         Section("Appearance") {
           Toggle("Gradient fill", isOn: Binding(
-            get: { configuration.fillStyle == .gradientAlongProgress },
+            get: { configuration.appearance.fillStyle == .gradientAlongProgress },
             set: { on in
               var c = configuration
-              c.fillStyle = on ? .gradientAlongProgress : .solid
+              c.appearance.fillStyle = on ? .gradientAlongProgress : .solid
               configuration = c
             }
           ))
           Picker("Variant", selection: Binding(
-            get: { configuration.variant == .ring ? 1 : 0 },
+            get: { configuration.layout.variant == .ring ? 1 : 0 },
             set: { tag in
               var c = configuration
-              c.variant = tag == 1 ? .ring : .linear
+              c.layout.variant = tag == 1 ? .ring : .linear
               configuration = c
             }
           )) {

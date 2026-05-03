@@ -83,20 +83,20 @@ enum FKProgressBarLayoutEngine {
     filledSegments: Int,
     layoutDirection: UIUserInterfaceLayoutDirection
   ) -> CGPath? {
-    let n = configuration.segmentCount
-    guard n > 1, let params = segmentParameters(track: track, segmentCount: n, gapFraction: configuration.segmentGapFraction, axis: configuration.axis) else {
+    let n = configuration.layout.segmentCount
+    guard n > 1, let params = segmentParameters(track: track, segmentCount: n, gapFraction: configuration.layout.segmentGapFraction, axis: configuration.layout.axis) else {
       return nil
     }
     let path = UIBezierPath()
     let cellCount = params.cellCount
     let span = params.cellSpan
     let gap = params.gap
-    let isRTL = configuration.axis == .horizontal && layoutDirection == .rightToLeft
+    let isRTL = configuration.layout.axis == .horizontal && layoutDirection == .rightToLeft
     let th = track.height
     let tw = track.width
     for i in 0 ..< min(filledSegments, cellCount) {
       let rect: CGRect
-      switch configuration.axis {
+      switch configuration.layout.axis {
       case .horizontal:
         let logicalIndex = isRTL ? (cellCount - 1 - i) : i
         let x = CGFloat(logicalIndex) * (span + gap)
@@ -105,14 +105,14 @@ enum FKProgressBarLayoutEngine {
         let y = th - CGFloat(i + 1) * span - CGFloat(i) * gap
         rect = CGRect(x: 0, y: y, width: tw, height: span)
       }
-      let r = configuration.trackCornerRadius ?? min(rect.width, rect.height) / 2
+      let r = configuration.layout.trackCornerRadius ?? min(rect.width, rect.height) / 2
       path.append(UIBezierPath(roundedRect: rect, cornerRadius: r))
     }
     return path.cgPath
   }
 
   static func linearTrackSegmentedPath(track: CGRect, configuration: FKProgressBarConfiguration, layoutDirection: UIUserInterfaceLayoutDirection) -> CGPath? {
-    linearSegmentUnionPath(track: track, configuration: configuration, filledSegments: configuration.segmentCount, layoutDirection: layoutDirection)
+    linearSegmentUnionPath(track: track, configuration: configuration, filledSegments: configuration.layout.segmentCount, layoutDirection: layoutDirection)
   }
 
   /// Single continuous rounded-rect path for the full track (non-segmented), in **track-local** coordinates.
