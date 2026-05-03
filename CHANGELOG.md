@@ -9,6 +9,24 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Unit test target and `Tests/` directory
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+### Changed (FKUIKit FKProgressBar)
+
+**Breaking**
+
+- **`FKProgressBarLabelConfiguration`**: renamed fields for clarity — `labelPlacement` → **`placement`**, `labelFormat` → **`format`**, `labelContentMode` → **`contentMode`**, `labelFont` / `labelColor` / `labelPadding` → **`font`** / **`textColor`** / **`padding`**, `labelFractionDigits` → **`fractionDigits`**, `labelPrefix` / `labelSuffix` → **`valuePrefix`** / **`valueSuffix`**, `labelUsesSemanticLabelColor` → **`usesSemanticTextColor`** (initializer parameter names follow the same mapping).
+- **`FKProgressBarAccessibilityConfiguration`**: **`customLabel`**, **`customHint`**, **`treatAsFrequentUpdates`** (replacing the previous accessibility-prefixed property names).
+- **`FKProgressBarInteractionConfiguration`**: **`highlightedAlphaMultiplier`**, **`disabledAlpha`** (replacing `buttonHighlightedContentAlphaMultiplier`, `disabledContentAlpha`).
+- **`FKProgressBarInteractionMode`**, **`FKProgressBarLabelContentMode`**, **`FKProgressBarTouchHaptic`**: moved into **`FKProgressBarEnums.swift`**; removed standalone **`FKProgressBarProgressButtonModels.swift`**.
+- **File layout**: **`Public/Core/FKProgressBar.swift`** moved to **`Public/FKProgressBar.swift`** (empty **`Public/Core/`** removed).
+
+### Changed (Documentation)
+
+- Rewrote **`Sources/FKUIKit/Components/ProgressBar/README.md`** for the current API and migration notes.
+
+### Changed (Examples)
+
+- ProgressBar example sources updated for the renamed configuration properties.
+
 ## [0.44.1] - 2026-05-03
 
 ### Changed (FKUIKit FKProgressBar)

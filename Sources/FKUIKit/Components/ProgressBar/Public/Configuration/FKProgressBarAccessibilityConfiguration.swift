@@ -1,21 +1,21 @@
 import UIKit
 
-/// VoiceOver strings and “frequent updates” trait for ``FKProgressBar``.
+/// VoiceOver label and hint overrides, and the “frequent updates” trait for ``FKProgressBar``.
 public struct FKProgressBarAccessibilityConfiguration: Sendable {
-  /// When non-empty, overrides the default `accessibilityLabel` for the control.
-  public var accessibilityCustomLabel: String?
-  /// When non-empty, appended as additional hint after system hints.
-  public var accessibilityCustomHint: String?
-  /// When `true`, exposes `UIAccessibilityTraits.updatesFrequently` while indeterminate or animating.
-  public var accessibilityTreatAsFrequentUpdates: Bool
+  /// When non-empty, overrides the default `accessibilityLabel`.
+  public var customLabel: String?
+  /// When non-empty, sets `accessibilityHint`.
+  public var customHint: String?
+  /// When `true`, includes ``UIAccessibilityTraits/updatesFrequently`` while indeterminate or animating.
+  public var treatAsFrequentUpdates: Bool
 
   public init(
-    accessibilityCustomLabel: String? = nil,
-    accessibilityCustomHint: String? = nil,
-    accessibilityTreatAsFrequentUpdates: Bool = true
+    customLabel: String? = nil,
+    customHint: String? = nil,
+    treatAsFrequentUpdates: Bool = true
   ) {
-    self.accessibilityCustomLabel = accessibilityCustomLabel
-    self.accessibilityCustomHint = accessibilityCustomHint
-    self.accessibilityTreatAsFrequentUpdates = accessibilityTreatAsFrequentUpdates
+    self.customLabel = customLabel
+    self.customHint = customHint
+    self.treatAsFrequentUpdates = treatAsFrequentUpdates
   }
 }

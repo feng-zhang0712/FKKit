@@ -1,187 +1,109 @@
 # FKProgressBar
 
-`FKProgressBar` is a **UIKit** `UIControl` subclass: a determinate and indeterminate progress indicator with **linear** and **ring** presentations, optional **buffer** fill, **segmented** tracks, **gradient** fills, built-in **value labels**, optional **button** interaction, **accessibility** support, and an optional **SwiftUI** bridge. It targets toolbars, media controls, download actions, and onboarding flows without third-party dependencies.
+`FKProgressBar` is a **UIKit** `UIControl` subclass: determinate and indeterminate **linear** and **ring** progress, optional **buffer**, **segmented** tracks, **gradient** fills, a **value label**, **VoiceOver** overrides, and optional **button** interaction. A small **SwiftUI** wrapper is available when SwiftUI is linked.
 
-## Table of contents
+## Contents
 
 - [Overview](#overview)
-- [Repository layout](#repository-layout)
-- [Features](#features)
+- [Module layout](#module-layout)
 - [Requirements](#requirements)
-- [Installation](#installation)
 - [Quick start](#quick-start)
-- [Progress-as-button (interactive control)](#progress-as-button-interactive-control)
 - [Configuration](#configuration)
-- [Migrating from 0.44.0](#migrating-from-0440)
-- [Progress and buffer](#progress-and-buffer)
-- [Indeterminate modes](#indeterminate-modes)
-- [Labels and formatting](#labels-and-formatting)
+- [Indeterminate behavior](#indeterminate-behavior)
+- [Labels](#labels)
 - [Accessibility](#accessibility)
+- [Button mode](#button-mode)
 - [Delegate](#delegate)
 - [SwiftUI](#swiftui)
 - [Interface Builder](#interface-builder)
-- [Layout and intrinsic size](#layout-and-intrinsic-size)
+- [Intrinsic size](#intrinsic-size)
 - [Examples](#examples)
-- [API reference](#api-reference)
-- [Best practices](#best-practices)
+- [Migrating from earlier 0.44.x](#migrating-from-earlier-044x)
 - [License](#license)
 
 ## Overview
 
-- **Variants**: `FKProgressBarVariant.linear` (horizontal or vertical axis) and `FKProgressBarVariant.ring` (stroke-based circular progress).
-- **Determinate API**: normalized `0...1` values via `setProgress(_:animated:)`, `setBufferProgress(_:animated:)`, and `setProgress(_:buffer:animated:)`.
-- **Motion**: `CAMediaTimingFunction`-style timing, optional **spring** animation for determinate changes, and **reduced motion** awareness.
-- **Threading**: UI-bound; the view is `@MainActor` and must be updated on the main queue.
+| Topic | Detail |
+|--------|--------|
+| **Variants** | `FKProgressBarVariant.linear` (horizontal or vertical) and `.ring` (stroke progress). |
+| **Progress API** | Normalized `0…1` via `setProgress(_:animated:)`, `setBufferProgress(_:animated:)`, `setProgress(_:buffer:animated:)`. |
+| **Threading** | `@MainActor`; update the view on the main queue only. |
 
-## Repository layout
+## Module layout
 
-Sources under `Sources/FKUIKit/Components/ProgressBar/`:
+Path: `Sources/FKUIKit/Components/ProgressBar/`
 
-| Area | Role |
-|------|------|
-| `Public/Core/` | `FKProgressBar` |
-| `Public/Configuration/` | `FKProgressBarConfiguration` (root snapshot) and **`FKProgressBarLayoutConfiguration`**, **`FKProgressBarAppearanceConfiguration`**, **`FKProgressBarMotionConfiguration`**, **`FKProgressBarLabelConfiguration`**, **`FKProgressBarAccessibilityConfiguration`**, **`FKProgressBarInteractionConfiguration`**; **`FKProgressBarDefaults`** |
-| `Public/Models/` | `FKProgressBarVariant`, `FKProgressBarAxis`, caps, fill style, indeterminate style, label placement/format/content, interaction & touch haptics, timing, completion haptics (`FKProgressBarEnums.swift`, `FKProgressBarProgressButtonModels.swift`) |
-| `Public/` | `FKProgressBarDelegate` |
-| `Public/Bridge/` | `FKProgressBarView` (`UIViewRepresentable`, when SwiftUI is available) |
-| `Extension/` | `FKProgressBar` Interface Builder helpers |
-| `Internal/Layout/` | `FKProgressBarLayoutEngine` (pure geometry; not public API) |
-| `Internal/Rendering/` | `FKProgressBarLayerStack` (Core Animation layers) |
-| `Internal/` | `FKProgressBarIndeterminateAnimator`, `FKProgressBarLabelFormatting` |
-
-## Features
-
-- Linear track with configurable thickness, corners, caps, borders, and **segment count** (chunked installers / stepped UX).
-- Optional **buffer** layer behind primary progress (streaming / download semantics).
-- **Solid** or **gradient-along-progress** fills (ring gradient is approximated on the stroke for stability).
-- **Indeterminate**: linear **marquee** capsule, linear **breathing** opacity, ring **rotating arc** marquee, ring **breathing**.
-- Optional **center / above / below / leading / trailing** value label with percent, fractional percent, normalized `0...1`, or **logical range** mapping (`label.logicalMinimum`…`label.logicalMaximum`).
-- **Completion haptic** when crossing full progress (configurable intensity or none).
-- **Progress-as-button**: `UIControl` target/action, optional touch haptics, minimum hit target, custom title modes (`FKProgressBarLabelContentMode`).
-- **`@IBDesignable`** entry points for Storyboards and XIBs (see `Extension/FKProgressBar+InterfaceBuilder.swift`).
+| Path | Contents |
+|------|-----------|
+| `Public/FKProgressBar.swift` | Main control. |
+| `Public/Configuration/` | `FKProgressBarConfiguration` and nested value types: `FKProgressBarLayoutConfiguration`, `FKProgressBarAppearanceConfiguration`, `FKProgressBarMotionConfiguration`, `FKProgressBarLabelConfiguration`, `FKProgressBarAccessibilityConfiguration`, `FKProgressBarInteractionConfiguration`. |
+| `Public/Models/FKProgressBarEnums.swift` | Variants, axes, caps, fill style, indeterminate style, timing, label placement/format, interaction mode, touch haptics, etc. |
+| `Public/FKProgressBarDelegate.swift` | Optional delegate protocol. |
+| `Public/Bridge/FKProgressBarSwiftUIView.swift` | `UIViewRepresentable` when SwiftUI is available. |
+| `Extension/FKProgressBar+InterfaceBuilder.swift` | `@IBInspectable` shortcuts. |
+| `Internal/` | Layout engine, layer stack, label formatting, indeterminate animator (not public API). |
 
 ## Requirements
 
-- **Swift** 6 language mode (see the `FKKit` package manifest).
-- **iOS 15+** for the current `FKUIKit` product (UIKit).
-- No additional runtime packages.
-
-## Installation
-
-Add the **`FKUIKit`** product from this repository, then:
-
-```swift
-import FKUIKit
-```
+- **Swift** 6 (see package manifest).
+- **iOS 15+** for `FKUIKit`.
 
 ## Quick start
 
 ```swift
+import FKUIKit
+
 let bar = FKProgressBar()
 bar.configuration.layout.trackThickness = 6
 bar.configuration.appearance.showsBuffer = true
 view.addSubview(bar)
-// Layout with Auto Layout or frames, then:
 bar.setProgress(0.42, buffer: 0.78, animated: true)
 ```
 
-## Progress-as-button (interactive control)
-
-`FKProgressBar` subclasses **`UIControl`**, so you can use standard target/action APIs when ``FKProgressBarInteractionConfiguration/interactionMode`` is ``FKProgressBarInteractionMode/button``:
-
-- **`addTarget(_:action:for:)`** — typical events: ``UIControl/Event/touchUpInside`` and ``UIControl/Event/primaryActionTriggered`` (VoiceOver / keyboard activation).
-- **`isEnabled`** — dims track + label using ``FKProgressBarInteractionConfiguration/disabledContentAlpha``.
-- **`isHighlighted`** — brief opacity feedback via ``FKProgressBarInteractionConfiguration/buttonHighlightedContentAlphaMultiplier``.
-- **`FKProgressBarInteractionConfiguration/minimumTouchTargetSize`** — optional minimum hit area (centered), aligned with the **44×pt** HIG minimum.
-- **`FKProgressBarInteractionConfiguration/touchHaptic`** — optional light impact or selection feedback on touch-down.
-
-### Custom label copy (button title)
-
-``FKProgressBarLabelConfiguration/labelContentMode`` selects how the visible label is built while ``FKProgressBarLabelConfiguration/labelPlacement`` remains the layout anchor:
-
-| Mode | Behavior |
-|------|-----------|
-| ``formattedProgress`` | Same as legacy: formatted from ``progress`` / ``label.labelFormat``. |
-| ``customTitleOnly`` | Always shows ``label.customTitle`` (progress only in the fill). |
-| ``customTitleWhenIdle`` | Shows ``label.customTitle`` when idle or indeterminate with a non-empty title; otherwise formatted progress. |
-| ``customTitleWithProgressSubtitle`` | Two lines: ``label.customTitle`` + newline + formatted progress. |
-
-SwiftUI: pass **`onPrimaryAction`** to ``FKProgressBarView`` to mirror ``primaryActionTriggered``.
-
 ## Configuration
 
-Use **`FKProgressBarConfiguration`** on **`bar.configuration`**. It groups related settings into nested structs:
+`bar.configuration` is a **`FKProgressBarConfiguration`** with six grouped structs:
 
-| Property | Type | Notes |
-|----------|------|--------|
-| **`layout`** | `FKProgressBarLayoutConfiguration` | `variant`, `axis`, `trackThickness`, `trackCornerRadius`, `ringLineWidth`, `ringDiameter`, `contentInsets`, `segmentCount`, `segmentGapFraction`, `linearCapStyle`. |
-| **`appearance`** | `FKProgressBarAppearanceConfiguration` | Colors, `fillStyle`, `progressGradientEndColor`, borders, **`showsBuffer`**. |
-| **`motion`** | `FKProgressBarMotionConfiguration` | Determinate timing/spring, **`indeterminateStyle`**, **`indeterminatePeriod`**, **`playsIndeterminateAnimation`** (when `false`, indeterminate state updates label/a11y but does not run marquee/breathing/ring rotation), **`respectsReducedMotion`**, **`completionHaptic`**. |
-| **`label`** | `FKProgressBarLabelConfiguration` | Placement, format, fonts, colors, padding, prefix/suffix, logical range, **`numberFormatter`**. |
-| **`accessibility`** | `FKProgressBarAccessibilityConfiguration` | Custom label/hint, frequent-updates trait. |
-| **`interaction`** | `FKProgressBarInteractionConfiguration` | Indicator vs button, touch target, haptics, disabled/highlight opacity. |
+| Member | Type | Role |
+|--------|------|------|
+| `layout` | `FKProgressBarLayoutConfiguration` | Variant, axis, track/ring geometry, insets, segments, cap style. |
+| `appearance` | `FKProgressBarAppearanceConfiguration` | Colors, borders, fill style, gradient end color, `showsBuffer`. |
+| `motion` | `FKProgressBarMotionConfiguration` | Determinate animation, indeterminate style/period, `playsIndeterminateAnimation`, reduced motion, completion haptic. |
+| `label` | `FKProgressBarLabelConfiguration` | Placement, format, typography, logical range, value prefix/suffix, `numberFormatter`. |
+| `accessibility` | `FKProgressBarAccessibilityConfiguration` | `customLabel`, `customHint`, `treatAsFrequentUpdates`. |
+| `interaction` | `FKProgressBarInteractionConfiguration` | `interactionMode`, `highlightedAlphaMultiplier`, `disabledAlpha`, `minimumTouchTargetSize`, `touchHaptic`. |
 
-Global defaults: **`FKProgressBar.defaultConfiguration`** or **`FKProgressBarDefaults.configuration`**.
+Defaults: **`FKProgressBar.defaultConfiguration`** or **`FKProgressBarDefaults.configuration`**.
 
-### Migrating from 0.44.0
+## Indeterminate behavior
 
-`FKProgressBarConfiguration` no longer exposes a flat list of fields. Map each former property to the nested struct below (examples use `var c = bar.configuration` or a local `var c = FKProgressBarConfiguration()`).
+Set `isIndeterminate = true` (or call `startIndeterminate()`). Choose `configuration.motion.indeterminateStyle` (`.none`, `.marquee`, `.breathing`).
 
-| Former (0.44.0) | Now |
-|-----------------|-----|
-| `c.variant`, `c.axis`, `c.trackThickness`, `c.trackCornerRadius`, `c.ringLineWidth`, `c.ringDiameter`, `c.contentInsets`, `c.linearCapStyle`, `c.segmentCount`, `c.segmentGapFraction` | `c.layout.*` |
-| `c.trackColor`, `c.progressColor`, `c.bufferColor`, borders, `c.fillStyle`, `c.progressGradientEndColor`, `c.showsBuffer` | `c.appearance.*` |
-| `c.animationDuration`, `c.timing`, spring fields, `c.indeterminateStyle`, `c.indeterminatePeriod`, `c.respectsReducedMotion`, `c.completionHaptic` | `c.motion.*` (see **`playsIndeterminateAnimation`** below) |
-| `c.labelContentMode`, `c.customTitle`, label placement/format/font/color/padding, logical range, prefix/suffix, `c.numberFormatter` | `c.label.*` |
-| `c.accessibilityCustomLabel`, `c.accessibilityCustomHint`, `c.accessibilityTreatAsFrequentUpdates` | `c.accessibility.*` |
-| `c.interactionMode`, button/highlight/disabled alpha, `c.minimumTouchTargetSize`, `c.touchHaptic` | `c.interaction.*` |
+Set **`configuration.motion.playsIndeterminateAnimation`** to `false` if you need indeterminate **semantics** (label / VoiceOver) **without** marquee, breathing, or rotating-arc **animations**.
 
-**`@IBInspectable`** properties on **`FKProgressBar`** (`ibVariant`, `ibTrackColor`, …) still work; they read and write the nested configuration.
+## Labels
 
-## Progress and buffer
+Configure **`configuration.label`**:
 
-- **Primary** progress is always clamped to **`0...1`**.
-- **Buffer** progress is clamped the same way; it is shown only when **`appearance.showsBuffer`** is `true`.
-- Use **`setProgress(_:buffer:animated:)`** for a single animated transaction.
-
-## Indeterminate modes
-
-Set **`isIndeterminate = true`** and choose **`motion.indeterminateStyle`**. Set **`motion.playsIndeterminateAnimation`** to `false` if you want the indeterminate *state* (label / VoiceOver) without marquee, breathing, or rotating-arc animations:
-
-| Style | Linear | Ring |
-|--------|--------|------|
-| **`.marquee`** | Capsule travels along the track (clipped to track bounds). | Short arc rotates around the ring. |
-| **`.breathing`** | Opacity pulse on the track. | Pulse on track + progress strokes. |
-| **`.none`** | No automatic animation; host may drive `progress` manually. | Same. |
-
-Call **`startIndeterminate()`** / **`stopIndeterminate()`** for convenience, or toggle **`isIndeterminate`** directly.
-
-## Labels and formatting
-
-- **`label.labelPlacement`**: `.none`, `.above`, `.below`, `.leading`, `.trailing`, `.centeredOnTrack` (typical for rings).
-- **`label.labelFormat`**: `.percentInteger`, `.percentFractional`, `.normalizedValue`, `.logicalRangeValue`.
-- **`label.logicalMinimum` / `label.logicalMaximum`**: map `0...1` to a displayed range for `.logicalRangeValue`.
-
-The visible string is built by **`FKProgressBarLabelFormatting`**; customize digits and **`label.numberFormatter`** as needed. For long titles or percent strings, **`label`** placement **`.above`**, **`.below`**, and **`.centeredOnTrack`** give the text layer the full usable width so values like `100%` are less likely to ellipsize.
+- **`placement`**: `.none`, `.above`, `.below`, `.leading`, `.trailing`, `.centeredOnTrack`.
+- **`format`**: percent (integer or fractional), normalized `0…1`, or logical range.
+- **`contentMode`**: how `customTitle` combines with formatted progress (`FKProgressBarLabelContentMode`).
+- For `.above`, `.below`, and `.centeredOnTrack`, the label uses the full usable width so short strings like `100%` are unlikely to ellipsize.
 
 ## Accessibility
 
-- The control is an accessibility element with **`accessibilityValue`** derived from progress, buffer, and format.
-- Optional **`accessibility.accessibilityCustomLabel`** / **`accessibility.accessibilityCustomHint`** override or extend defaults.
-- **`accessibility.accessibilityTreatAsFrequentUpdates`** controls **`UIAccessibilityTraits.updatesFrequently`** together with indeterminate / animation state.
+- **`accessibility.customLabel`** / **`customHint`** override defaults when non-empty.
+- **`treatAsFrequentUpdates`** toggles `UIAccessibilityTraits.updatesFrequently` with indeterminate/animation state.
+
+## Button mode
+
+When **`interaction.interactionMode`** is **`.button`**, use `addTarget(_:action:for:)` with `.touchUpInside` or `.primaryActionTriggered`. Optional **`touchHaptic`**, **`minimumTouchTargetSize`**, and alpha multipliers apply while highlighted or disabled.
 
 ## Delegate
 
-Implement **`FKProgressBarDelegate`** for analytics or coordination. All methods have **default empty implementations** in a **`public extension`**, so you only override what you need:
-
-- `progressBar(_:willAnimateProgress:to:duration:)`
-- `progressBar(_:didAnimateProgressTo:)`
-- `progressBar(_:didChangeIndeterminate:)`
-- `progressBar(_:didUpdateBufferProgress:)`
+`FKProgressBarDelegate` — all methods have default empty implementations in a `public extension`; implement only what you need.
 
 ## SwiftUI
-
-When SwiftUI is available, use **`FKProgressBarView`**:
 
 ```swift
 FKProgressBarView(
@@ -193,53 +115,47 @@ FKProgressBarView(
 )
 ```
 
-Bindings mirror **`FKProgressBar`** state; **`updateUIView`** applies configuration, indeterminate flag, and progress together. Pass **`onPrimaryAction`** for **`primaryActionTriggered`** when using button interaction mode.
+Use **`onPrimaryAction`** for `.primaryActionTriggered` in button mode.
 
 ## Interface Builder
 
-`FKProgressBar` is **`@IBDesignable`**. Inspectable shortcuts live in **`FKProgressBar+InterfaceBuilder`** (e.g. variant, axis, colors, thickness). Prefer **`configuration`** in code for full control.
+`FKProgressBar` is `@IBDesignable`. Limited knobs are exposed as `ib*` properties; use **`configuration`** in code for full control.
 
-## Layout and intrinsic size
+## Intrinsic size
 
-- **Linear horizontal**: intrinsic **height** combines track thickness, insets, and label band; width is **`noIntrinsicMetric`** (stretch in Auto Layout).
+- **Linear horizontal**: intrinsic **height**; width is `noIntrinsicMetric`.
 - **Linear vertical**: intrinsic **width**; height is flexible.
-- **Ring**: intrinsic **width and height** from diameter, insets, and optional centered-label band.
+- **Ring**: intrinsic width and height from diameter, insets, and optional centered label.
 
-Stroke and shadow may extend slightly outside bounds; **`clipsToBounds`** defaults to **`false`** so rings are not clipped—host containers may set clipping if required.
+`clipsToBounds` is `false` by default so ring strokes are not clipped.
 
 ## Examples
 
-The **FKKitExamples** app (see `Examples/FKKitExamples/…/ProgressBar/`) includes:
+See **`Examples/FKKitExamples/…/ProgressBar/`**: hub, playground, gallery, progress-as-button, delegate log, RTL/accessibility, SwiftUI host.
 
-- Hub and **Preset gallery** (`UITableView`-driven configurations; row heights account for labels and vertical layouts).
-- Playground-style controls, delegate logging, environment (RTL / accessibility), and a **SwiftUI** host screen.
+## Migrating from earlier 0.44.x
 
-These are reference integrations only; they are not required at runtime for **`FKProgressBar`**.
+**0.44.0** used a **flat** `FKProgressBarConfiguration` (all fields on the root). **0.44.1+** nests fields under `layout`, `appearance`, `motion`, `label`, `accessibility`, and `interaction` (see table above).
 
-## API reference
+**After 0.44.1**, label and accessibility property names were shortened (no repeated `label` / `accessibility` prefixes on nested structs):
 
-### Primary types
+| Previous (0.44.1) | Current |
+|-------------------|---------|
+| `label.labelPlacement` | `label.placement` |
+| `label.labelFormat` | `label.format` |
+| `label.labelContentMode` | `label.contentMode` |
+| `label.labelFont` / `labelColor` / `labelPadding` | `label.font` / `textColor` / `padding` |
+| `label.labelFractionDigits` | `label.fractionDigits` |
+| `label.labelPrefix` / `labelSuffix` | `label.valuePrefix` / `valueSuffix` |
+| `label.labelUsesSemanticLabelColor` | `label.usesSemanticTextColor` |
+| `accessibility.accessibilityCustomLabel` | `accessibility.customLabel` |
+| `accessibility.accessibilityCustomHint` | `accessibility.customHint` |
+| `accessibility.accessibilityTreatAsFrequentUpdates` | `accessibility.treatAsFrequentUpdates` |
+| `interaction.buttonHighlightedContentAlphaMultiplier` | `interaction.highlightedAlphaMultiplier` |
+| `interaction.disabledContentAlpha` | `interaction.disabledAlpha` |
 
-- **`FKProgressBar`** — `UIControl` subclass: `setProgress`, `setBufferProgress`, `startIndeterminate` / `stopIndeterminate`, `intrinsicContentSize`, target/action when ``FKProgressBarInteractionMode/button``.
-- **`FKProgressBarConfiguration`** — root snapshot; use **`layout`**, **`appearance`**, **`motion`**, **`label`**, **`accessibility`**, **`interaction`**.
-- **`FKProgressBarLayoutConfiguration`**, **`FKProgressBarAppearanceConfiguration`**, **`FKProgressBarMotionConfiguration`**, **`FKProgressBarLabelConfiguration`**, **`FKProgressBarAccessibilityConfiguration`**, **`FKProgressBarInteractionConfiguration`** — grouped settings (each with a documented memberwise initializer).
-- **`FKProgressBarDelegate`** — optional lifecycle hooks.
-- **`FKProgressBarView`** — SwiftUI `UIViewRepresentable` (conditional compilation).
-
-### Key enums
-
-- **`FKProgressBarVariant`**: `.linear`, `.ring`
-- **`FKProgressBarAxis`**: `.horizontal`, `.vertical` (linear only)
-- **`FKProgressBarIndeterminateStyle`**: `.none`, `.marquee`, `.breathing`
-- **`FKProgressBarLabelPlacement`**, **`FKProgressBarLabelFormat`**, **`FKProgressBarTiming`**, **`FKProgressBarCompletionHaptic`**, etc. (see `Public/Models/FKProgressBarEnums.swift`)
-
-## Best practices
-
-- Mutate **`configuration`** on the **main thread**; the type is documented as a main-thread snapshot (`@unchecked Sendable` only for stored `UIColor` / `UIFont` / `NumberFormatter`).
-- After large **`configuration`** changes, rely on **`invalidateIntrinsicContentSize()`** (handled by the view) before layout passes.
-- For **rings** in stacked layouts, give the view enough **height and width** for `ringDiameter` plus **stroke** slop and optional **centered** label.
-- Respect **`UIAccessibility.isReduceMotionEnabled`** via **`motion.respectsReducedMotion`** for product-consistent motion.
+`FKProgressBarInteractionMode`, `FKProgressBarLabelContentMode`, and `FKProgressBarTouchHaptic` now live in **`FKProgressBarEnums.swift`** (same module, same symbols).
 
 ## License
 
-`FKProgressBar` is part of **FKKit** and is distributed under the **same license** as this repository.
+`FKProgressBar` is part of **FKKit** and uses the **same license** as this repository.

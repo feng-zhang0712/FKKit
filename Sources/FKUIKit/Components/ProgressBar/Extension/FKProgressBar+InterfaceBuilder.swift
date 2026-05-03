@@ -99,8 +99,8 @@ public extension FKProgressBar {
   /// ``FKProgressBarLabelContentMode`` raw value (`0` formatted progress … `3` title + progress subtitle).
   @IBInspectable
   var ibLabelContentMode: Int {
-    get { configuration.label.labelContentMode.rawValue }
-    set { configuration.label.labelContentMode = FKProgressBarLabelContentMode(rawValue: newValue) ?? .formattedProgress }
+    get { configuration.label.contentMode.rawValue }
+    set { configuration.label.contentMode = FKProgressBarLabelContentMode(rawValue: newValue) ?? .formattedProgress }
   }
 
   @IBInspectable

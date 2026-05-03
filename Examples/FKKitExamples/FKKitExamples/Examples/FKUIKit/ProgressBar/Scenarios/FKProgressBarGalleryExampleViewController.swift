@@ -14,8 +14,8 @@ fileprivate struct FKProgressBarGalleryRow {
 fileprivate enum FKProgressBarGalleryBarHeight {
   static func required(for c: FKProgressBarConfiguration) -> CGFloat {
     let ins = c.layout.contentInsets
-    let lh = ceil(c.label.labelFont.lineHeight)
-    let pad = c.label.labelPadding
+    let lh = ceil(c.label.font.lineHeight)
+    let pad = c.label.padding
 
     switch c.layout.variant {
     case .ring:
@@ -23,7 +23,7 @@ fileprivate enum FKProgressBarGalleryBarHeight {
       // Extra vertical room so stroke + optional label are not clipped by the fixed row height.
       let strokeSlop = c.layout.ringLineWidth * 2 + 8
       var labelExtra: CGFloat = 0
-      switch c.label.labelPlacement {
+      switch c.label.placement {
       case .above, .below:
         labelExtra = lh + pad * 2
       case .centeredOnTrack:
@@ -39,7 +39,7 @@ fileprivate enum FKProgressBarGalleryBarHeight {
       if c.layout.axis == .vertical {
         // Height must cover the vertical track and any label that shares the same vertical span (e.g. `.leading`).
         var h = c.layout.trackThickness + ins.top + ins.bottom + 8
-        switch c.label.labelPlacement {
+        switch c.label.placement {
         case .leading, .trailing:
           h = ins.top + ins.bottom + max(c.layout.trackThickness, lh + pad * 2) + 6
         case .above, .below:
@@ -52,7 +52,7 @@ fileprivate enum FKProgressBarGalleryBarHeight {
         return max(120, h)
       }
       var h = c.layout.trackThickness + ins.top + ins.bottom + 6
-      switch c.label.labelPlacement {
+      switch c.label.placement {
       case .above, .below:
         h += lh + pad * 2
       case .leading, .trailing:
@@ -83,8 +83,8 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
     let ins = c.layout.contentInsets
     let strokeSlop = c.layout.ringLineWidth + 8
     var centeredLabel: CGFloat = 0
-    if c.label.labelPlacement == .centeredOnTrack {
-      centeredLabel = ceil(c.label.labelFont.lineHeight) + c.label.labelPadding
+    if c.label.placement == .centeredOnTrack {
+      centeredLabel = ceil(c.label.font.lineHeight) + c.label.padding
     }
     return d + centeredLabel + ins.left + ins.right + strokeSlop
   }
@@ -138,7 +138,7 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
     do {
       var c = FKProgressBarConfiguration()
       c.appearance.showsBuffer = false
-      c.label.labelPlacement = .none
+      c.label.placement = .none
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Default horizontal",
@@ -153,8 +153,8 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
       var c = FKProgressBarConfiguration()
       c.appearance.bufferColor = UIColor.systemBlue.withAlphaComponent(0.28)
       c.appearance.showsBuffer = true
-      c.label.labelPlacement = .below
-      c.label.labelFormat = .percentInteger
+      c.label.placement = .below
+      c.label.format = .percentInteger
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Buffered stream",
@@ -173,9 +173,9 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
       c.appearance.progressGradientEndColor = .systemCyan
       c.motion.prefersSpringAnimation = true
       c.motion.animationDuration = 0.55
-      c.label.labelPlacement = .trailing
-      c.label.labelFormat = .percentFractional
-      c.label.labelFractionDigits = 1
+      c.label.placement = .trailing
+      c.label.format = .percentFractional
+      c.label.fractionDigits = 1
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Gradient + spring",
@@ -192,9 +192,9 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
       c.layout.segmentCount = 10
       c.layout.segmentGapFraction = 0.1
       c.layout.linearCapStyle = .round
-      c.label.labelPlacement = .above
-      c.label.labelFormat = .normalizedValue
-      c.label.labelFractionDigits = 2
+      c.label.placement = .above
+      c.label.format = .normalizedValue
+      c.label.fractionDigits = 2
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Segmented (10)",
@@ -210,8 +210,8 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
       c.layout.axis = .vertical
       c.layout.trackThickness = 10
       c.appearance.showsBuffer = true
-      c.label.labelPlacement = .leading
-      c.label.labelFormat = .percentInteger
+      c.label.placement = .leading
+      c.label.format = .percentInteger
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Vertical axis",
@@ -230,8 +230,8 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
       c.appearance.fillStyle = .gradientAlongProgress
       c.appearance.progressColor = .systemPurple
       c.appearance.progressGradientEndColor = .systemPink
-      c.label.labelPlacement = .centeredOnTrack
-      c.label.labelFormat = .percentInteger
+      c.label.placement = .centeredOnTrack
+      c.label.format = .percentInteger
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Ring determinate",
@@ -251,8 +251,8 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
       c.appearance.bufferColor = UIColor.systemGreen.withAlphaComponent(0.35)
       c.appearance.progressColor = .systemGreen
       c.appearance.showsBuffer = true
-      c.label.labelPlacement = .centeredOnTrack
-      c.label.labelFormat = .percentInteger
+      c.label.placement = .centeredOnTrack
+      c.label.format = .percentInteger
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Ring + buffer",
@@ -268,7 +268,7 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
       c.layout.trackThickness = 6
       c.motion.indeterminateStyle = .marquee
       c.motion.indeterminatePeriod = 1.1
-      c.label.labelPlacement = .none
+      c.label.placement = .none
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Indeterminate marquee (linear)",
@@ -286,8 +286,8 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
       c.layout.ringDiameter = 100
       c.motion.indeterminateStyle = .breathing
       c.motion.indeterminatePeriod = 1.4
-      c.label.labelPlacement = .centeredOnTrack
-      c.label.labelFormat = .percentInteger
+      c.label.placement = .centeredOnTrack
+      c.label.format = .percentInteger
       GalleryChrome.apply(&c)
       out.append(FKProgressBarGalleryRow(
         title: "Indeterminate breathing (ring)",
@@ -300,13 +300,13 @@ final class FKProgressBarGalleryDemoViewController: UITableViewController {
     }
     do {
       var c = FKProgressBarConfiguration()
-      c.label.labelPlacement = .centeredOnTrack
-      c.label.labelFormat = .logicalRangeValue
+      c.label.placement = .centeredOnTrack
+      c.label.format = .logicalRangeValue
       c.label.logicalMinimum = 0
       c.label.logicalMaximum = 512
-      c.label.labelPrefix = ""
-      c.label.labelSuffix = " MB"
-      c.label.labelUsesSemanticLabelColor = true
+      c.label.valuePrefix = ""
+      c.label.valueSuffix = " MB"
+      c.label.usesSemanticTextColor = true
       let f = NumberFormatter()
       f.numberStyle = .decimal
       f.maximumFractionDigits = 0

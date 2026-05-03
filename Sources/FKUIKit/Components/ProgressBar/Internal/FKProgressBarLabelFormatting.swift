@@ -4,10 +4,10 @@ import UIKit
 enum FKProgressBarLabelFormatting {
   static func displayString(progress: CGFloat, configuration: FKProgressBarConfiguration) -> String {
     let t = min(max(progress, 0), 1)
-    let prefix = configuration.label.labelPrefix
-    let suffix = configuration.label.labelSuffix
-    let digits = configuration.label.labelFractionDigits
-    switch configuration.label.labelFormat {
+    let prefix = configuration.label.valuePrefix
+    let suffix = configuration.label.valueSuffix
+    let digits = configuration.label.fractionDigits
+    switch configuration.label.format {
     case .percentInteger:
       let p = Int((t * 100).rounded(.toNearestOrAwayFromZero))
       return "\(prefix)\(p)%\(suffix)"

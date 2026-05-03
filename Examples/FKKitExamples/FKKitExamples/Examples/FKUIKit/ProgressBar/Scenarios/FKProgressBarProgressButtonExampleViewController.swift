@@ -18,16 +18,16 @@ final class FKProgressBarProgressButtonDemoViewController: UIViewController {
     view.backgroundColor = .systemGroupedBackground
 
     var downloadConfig = FKProgressBarConfiguration()
-    downloadConfig.label.labelPlacement = .centeredOnTrack
-    downloadConfig.label.labelContentMode = .customTitleWhenIdle
+    downloadConfig.label.placement = .centeredOnTrack
+    downloadConfig.label.contentMode = .customTitleWhenIdle
     downloadConfig.label.customTitle = "Download"
     downloadConfig.interaction.interactionMode = .button
     downloadConfig.interaction.touchHaptic = .lightImpactOnTouchDown
     downloadConfig.interaction.minimumTouchTargetSize = CGSize(width: 44, height: 44)
     downloadConfig.layout.trackThickness = 10
-    downloadConfig.label.labelFont = .preferredFont(forTextStyle: .subheadline)
-    downloadConfig.label.labelUsesSemanticLabelColor = true
-    downloadConfig.accessibility.accessibilityCustomHint = "Starts a mock download."
+    downloadConfig.label.font = .preferredFont(forTextStyle: .subheadline)
+    downloadConfig.label.usesSemanticTextColor = true
+    downloadConfig.accessibility.customHint = "Starts a mock download."
     downloadConfig.motion.playsIndeterminateAnimation = false
     downloadBar.configuration = downloadConfig
     // Finger taps reliably deliver touchUpInside; primaryActionTriggered covers accessibility / external keyboards.
@@ -39,8 +39,8 @@ final class FKProgressBarProgressButtonDemoViewController: UIViewController {
     ringConfig.layout.variant = .ring
     ringConfig.layout.ringDiameter = 96
     ringConfig.layout.ringLineWidth = 5
-    ringConfig.label.labelPlacement = .centeredOnTrack
-    ringConfig.label.labelContentMode = .customTitleWithProgressSubtitle
+    ringConfig.label.placement = .centeredOnTrack
+    ringConfig.label.contentMode = .customTitleWithProgressSubtitle
     ringConfig.label.customTitle = "Sync"
     ringConfig.interaction.interactionMode = .button
     ringConfig.interaction.touchHaptic = .selectionChangedOnTouchDown
@@ -74,7 +74,7 @@ final class FKProgressBarProgressButtonDemoViewController: UIViewController {
 
     let sectionB = FKProgressBarExampleLayoutHelpers.makeSectionLabel("Ring + two-line label")
     let capB = FKProgressBarExampleLayoutHelpers.makeCaptionLabel(
-      "First line is fixed copy; second line follows labelFormat (percent). Tap to bump progress in small steps."
+      "First line is fixed copy; second line follows the percent format. Tap to bump progress in small steps."
     )
     let ringTopSpacer = UIView()
     ringTopSpacer.translatesAutoresizingMaskIntoConstraints = false
@@ -137,7 +137,7 @@ final class FKProgressBarProgressButtonDemoViewController: UIViewController {
     let d = CGFloat(c.layout.ringDiameter ?? 36)
     let ins = c.layout.contentInsets
     let strokeSlop = c.layout.ringLineWidth * 2 + 10
-    let font = c.label.labelFont
+    let font = c.label.font
     let sample = c.label.customTitle.isEmpty ? "Sync\n100%" : "\(c.label.customTitle)\n100%"
     let h = ceil(
       (sample as NSString).boundingRect(

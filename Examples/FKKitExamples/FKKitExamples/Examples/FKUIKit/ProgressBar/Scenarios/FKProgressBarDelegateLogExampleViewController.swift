@@ -38,8 +38,8 @@ final class FKProgressBarDelegateLogDemoViewController: UIViewController, FKProg
     bar.delegate = self
     var c = FKProgressBarConfiguration()
     c.appearance.showsBuffer = true
-    c.label.labelPlacement = .below
-    c.label.labelFormat = .percentInteger
+    c.label.placement = .below
+    c.label.format = .percentInteger
     c.motion.animationDuration = 0.35
     bar.configuration = c
     bar.translatesAutoresizingMaskIntoConstraints = false

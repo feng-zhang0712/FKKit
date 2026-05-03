@@ -1,9 +1,7 @@
 import FKUIKit
 import UIKit
 
-/// Entry list for ``FKProgressBar`` samples (`Scenarios/`, `SwiftUI/`, `Shared/`).
-///
-/// The hub is grouped by intent so global teams can find integration, visual, and bridge demos quickly.
+/// Lists ``FKProgressBar`` example screens.
 final class FKProgressBarExamplesHubViewController: UITableViewController {
 
   init() {
@@ -30,36 +28,36 @@ final class FKProgressBarExamplesHubViewController: UITableViewController {
     DemoSection(title: "Interactive", items: [
       DemoItem(
         title: "Playground (full configuration)",
-        subtitle: "Goal: exercise every public knob on one live bar. Params: variant, axis, buffer, segments, motion, label, a11y, haptics. Expect: immediate visual feedback and safe edge values.",
+        subtitle: "All public knobs on one live bar.",
         factory: { FKProgressBarPlaygroundDemoViewController() }
       ),
       DemoItem(
         title: "Progress as button",
-        subtitle: "Goal: tap targets, custom titles, and UIControl actions for download-style flows. Params: interactionMode.button, labelContentMode, touchHaptic, minimumTouchTargetSize. Expect: primaryActionTriggered / touchUpInside and dimming when disabled.",
+        subtitle: "UIControl actions, custom titles, touch target and haptics.",
         factory: { FKProgressBarProgressButtonDemoViewController() }
       ),
       DemoItem(
         title: "Preset gallery",
-        subtitle: "Goal: compare common product patterns side-by-side. Params: frozen configurations. Expect: quick visual regression and RTL-friendly layouts.",
+        subtitle: "Side-by-side product-style presets.",
         factory: { FKProgressBarGalleryDemoViewController() }
       ),
     ]),
     DemoSection(title: "Integration", items: [
       DemoItem(
         title: "Delegate event log",
-        subtitle: "Goal: verify delegate hooks for analytics or chained UI. Params: animated progress + buffer. Expect: ordered log lines without retain cycles.",
+        subtitle: "Delegate callbacks with timestamps.",
         factory: { FKProgressBarDelegateLogDemoViewController() }
       ),
       DemoItem(
         title: "SwiftUI bridge",
-        subtitle: "Goal: embed ``FKProgressBarView`` in SwiftUI state. Params: bindings + shared configuration. Expect: same semantics as UIKit host.",
+        subtitle: "`FKProgressBarView` and bindings.",
         factory: { FKProgressBarSwiftUIDemoViewController() }
       ),
     ]),
-    DemoSection(title: "Global layout & accessibility", items: [
+    DemoSection(title: "Layout & accessibility", items: [
       DemoItem(
         title: "RTL, semantics & VoiceOver copy",
-        subtitle: "Goal: validate leading/trailing semantics and localized accessibility labels. Params: forced RTL + custom a11y strings. Expect: mirrored growth and readable VoiceOver.",
+        subtitle: "Forced RTL and custom accessibility strings.",
         factory: { FKProgressBarEnvironmentDemoViewController() }
       ),
     ]),

@@ -12,8 +12,8 @@ private struct FKProgressBarSwiftUIDemoRoot: View {
     var c = FKProgressBarConfiguration()
     c.layout.trackThickness = 8
     c.appearance.showsBuffer = true
-    c.label.labelPlacement = .below
-    c.label.labelFormat = .percentInteger
+    c.label.placement = .below
+    c.label.format = .percentInteger
     c.motion.animationDuration = 0.3
     return c
   }()
@@ -21,14 +21,14 @@ private struct FKProgressBarSwiftUIDemoRoot: View {
   @State private var buttonBarConfiguration: FKProgressBarConfiguration = {
     var c = FKProgressBarConfiguration()
     c.layout.trackThickness = 9
-    c.label.labelPlacement = .centeredOnTrack
-    c.label.labelContentMode = .customTitleWhenIdle
+    c.label.placement = .centeredOnTrack
+    c.label.contentMode = .customTitleWhenIdle
     c.label.customTitle = "Fetch"
     c.interaction.interactionMode = .button
     c.interaction.touchHaptic = .lightImpactOnTouchDown
     c.interaction.minimumTouchTargetSize = CGSize(width: 44, height: 44)
-    c.label.labelFont = .preferredFont(forTextStyle: .subheadline)
-    c.label.labelUsesSemanticLabelColor = true
+    c.label.font = .preferredFont(forTextStyle: .subheadline)
+    c.label.usesSemanticTextColor = true
     return c
   }()
 

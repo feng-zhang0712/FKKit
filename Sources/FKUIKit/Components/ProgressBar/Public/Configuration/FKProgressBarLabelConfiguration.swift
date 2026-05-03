@@ -1,63 +1,65 @@
 import UIKit
 
-/// Visible label text, placement, typography, logical range, and optional ``NumberFormatter``.
+/// Text, placement, typography, logical value range, and optional ``NumberFormatter`` for the progress value label.
 ///
 /// - Note: Marked `@unchecked Sendable` because `UIFont` / `NumberFormatter` are not `Sendable`.
 public struct FKProgressBarLabelConfiguration: @unchecked Sendable {
-  /// How the visible label chooses its text when ``labelPlacement`` is not ``FKProgressBarLabelPlacement/none``.
-  public var labelContentMode: FKProgressBarLabelContentMode
-  /// Free-form title for ``FKProgressBarLabelContentMode/customTitleOnly``, ``customTitleWhenIdle``, or the first line of ``customTitleWithProgressSubtitle``.
+  /// How label text is chosen when ``placement`` is not ``FKProgressBarLabelPlacement/none``.
+  public var contentMode: FKProgressBarLabelContentMode
+  /// Title line for ``FKProgressBarLabelContentMode/customTitleOnly``, ``customTitleWhenIdle``, or the first line of ``customTitleWithProgressSubtitle``.
   public var customTitle: String
 
-  public var labelPlacement: FKProgressBarLabelPlacement
-  public var labelFormat: FKProgressBarLabelFormat
-  public var labelFractionDigits: Int
-  public var labelFont: UIFont
-  public var labelColor: UIColor
-  public var labelPadding: CGFloat
-  /// When `true`, the label ignores `labelColor` and uses `UIColor.label` (adapts in Dark Mode).
-  public var labelUsesSemanticLabelColor: Bool
+  public var placement: FKProgressBarLabelPlacement
+  public var format: FKProgressBarLabelFormat
+  public var fractionDigits: Int
+  public var font: UIFont
+  /// Color for the label when ``usesSemanticTextColor`` is `false`.
+  public var textColor: UIColor
+  public var padding: CGFloat
+  /// When `true`, ignores ``textColor`` and uses ``UIColor/label`` (adapts in Dark Mode).
+  public var usesSemanticTextColor: Bool
 
-  /// Logical minimum corresponding to progress `0`.
+  /// Logical value at progress `0`.
   public var logicalMinimum: Double
-  /// Logical maximum corresponding to progress `1`.
+  /// Logical value at progress `1`.
   public var logicalMaximum: Double
-  /// Optional prefix/suffix around formatted label text (e.g. `" "` + `" MB"`).
-  public var labelPrefix: String
-  public var labelSuffix: String
+  /// Prepended to formatted value text (e.g. a space or currency symbol).
+  public var valuePrefix: String
+  /// Appended after formatted value text (e.g. `" MB"`).
+  public var valueSuffix: String
 
-  /// Used for `.logicalRangeValue` label format and optional custom grouping.
+  /// Used for ``FKProgressBarLabelFormat/logicalRangeValue`` and optional locale/grouping overrides.
   public var numberFormatter: NumberFormatter?
 
   public init(
-    labelContentMode: FKProgressBarLabelContentMode = .formattedProgress,
+    contentMode: FKProgressBarLabelContentMode = .formattedProgress,
     customTitle: String = "",
-    labelPlacement: FKProgressBarLabelPlacement = .none,
-    labelFormat: FKProgressBarLabelFormat = .percentInteger,
-    labelFractionDigits: Int = 1,
-    labelFont: UIFont = .preferredFont(forTextStyle: .footnote),
-    labelColor: UIColor = .secondaryLabel,
-    labelPadding: CGFloat = 4,
-    labelUsesSemanticLabelColor: Bool = false,
+    placement: FKProgressBarLabelPlacement = .none,
+    format: FKProgressBarLabelFormat = .percentInteger,
+    fractionDigits: Int = 1,
+    font: UIFont = .preferredFont(forTextStyle: .footnote),
+    textColor: UIColor = .secondaryLabel,
+    padding: CGFloat = 4,
+    usesSemanticTextColor: Bool = false,
     logicalMinimum: Double = 0,
     logicalMaximum: Double = 1,
-    labelPrefix: String = "",
-    labelSuffix: String = "",
+    valuePrefix: String = "",
+    valueSuffix: String = "",
     numberFormatter: NumberFormatter? = nil
   ) {
-    self.labelContentMode = labelContentMode
+    self.contentMode = contentMode
     self.customTitle = customTitle
-    self.labelPlacement = labelPlacement
-    self.labelFormat = labelFormat
-    self.labelFractionDigits = max(0, min(6, labelFractionDigits))
-    self.labelFont = labelFont
-    self.labelColor = labelColor
-    self.labelPadding = max(0, labelPadding)
-    self.labelUsesSemanticLabelColor = labelUsesSemanticLabelColor
+    self.placement = placement
+    self.format = format
+    self.fractionDigits = max(0, min(6, fractionDigits))
+    self.font = font
+    self.textColor = textColor
+    self.padding = max(0, padding)
+    self.usesSemanticTextColor = usesSemanticTextColor
     self.logicalMinimum = logicalMinimum
     self.logicalMaximum = logicalMaximum
-    self.labelPrefix = labelPrefix
-    self.labelSuffix = labelSuffix
+    self.valuePrefix = valuePrefix
+    self.valueSuffix = valueSuffix
     self.numberFormatter = numberFormatter
   }
 }

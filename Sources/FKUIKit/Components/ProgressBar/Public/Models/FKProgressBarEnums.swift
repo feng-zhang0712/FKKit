@@ -82,7 +82,7 @@ public enum FKProgressBarLabelPlacement: Int, Sendable {
   case below
   case leading
   case trailing
-  /// Centered over the track (may clash with thin bars; increase `labelPadding` or track height).
+  /// Centered over the track (may clash with thin bars; increase ``FKProgressBarLabelConfiguration/padding`` or track height).
   case centeredOnTrack
 }
 
@@ -94,6 +94,35 @@ public enum FKProgressBarLabelFormat: Int, Sendable {
   case percentFractional
   /// Raw normalized `0…1` with digits.
   case normalizedValue
-  /// Maps `0…1` through `logicalRange` and formats with `NumberFormatter.decimal`.
+  /// Maps normalized `0…1` through ``FKProgressBarLabelConfiguration/logicalMinimum`` and ``FKProgressBarLabelConfiguration/logicalMaximum`` (see ``FKProgressBarLabelConfiguration/numberFormatter``).
   case logicalRangeValue
+}
+
+// MARK: - Interaction & value label behavior
+
+/// Whether the control behaves as a read-only indicator or as a tappable button.
+public enum FKProgressBarInteractionMode: Int, Sendable {
+  /// Non-interactive: touches pass through (``UIView/isUserInteractionEnabled`` is `false`).
+  case indicator
+  /// Interactive: uses ``UIControl`` tracking and sends ``UIControl/Event/primaryActionTriggered`` and ``UIControl/Event/touchUpInside`` on successful taps.
+  case button
+}
+
+/// How the visible label text is chosen when ``FKProgressBarLabelConfiguration/placement`` is not ``FKProgressBarLabelPlacement/none``.
+public enum FKProgressBarLabelContentMode: Int, Sendable {
+  /// Formatted from ``FKProgressBar/progress`` using ``FKProgressBarLabelConfiguration/format``.
+  case formattedProgress
+  /// Always shows ``FKProgressBarLabelConfiguration/customTitle`` (progress is visible only in the fill).
+  case customTitleOnly
+  /// Shows ``FKProgressBarLabelConfiguration/customTitle`` while determinate ``progress`` is zero and ``FKProgressBar/isIndeterminate`` is `false`; otherwise shows the formatted progress string.
+  case customTitleWhenIdle
+  /// Two lines: ``FKProgressBarLabelConfiguration/customTitle`` on the first line and formatted progress on the second (e.g. action title + percent).
+  case customTitleWithProgressSubtitle
+}
+
+/// Optional haptics for ``FKProgressBarInteractionMode/button``.
+public enum FKProgressBarTouchHaptic: Int, Sendable {
+  case none
+  case lightImpactOnTouchDown
+  case selectionChangedOnTouchDown
 }

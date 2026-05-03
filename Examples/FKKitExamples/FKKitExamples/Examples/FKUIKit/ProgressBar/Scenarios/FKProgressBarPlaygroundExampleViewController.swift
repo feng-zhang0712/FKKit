@@ -453,18 +453,18 @@ final class FKProgressBarPlaygroundDemoViewController: UIViewController {
     c.appearance.trackBorderColor = .separator
     c.appearance.progressBorderWidth = progressBorderSwitch.isOn ? 1 : 0
     c.appearance.progressBorderColor = .label
-    c.label.labelPlacement = labelPlacementFromSegment(labelPlacementControl.selectedSegmentIndex)
-    c.label.labelFormat = labelFormatFromSegment(labelFormatControl.selectedSegmentIndex)
-    c.label.labelFractionDigits = Int(labelDigitsSlider.value.rounded())
-    c.label.labelUsesSemanticLabelColor = semanticLabelColorSwitch.isOn
+    c.label.placement = labelPlacementFromSegment(labelPlacementControl.selectedSegmentIndex)
+    c.label.format = labelFormatFromSegment(labelFormatControl.selectedSegmentIndex)
+    c.label.fractionDigits = Int(labelDigitsSlider.value.rounded())
+    c.label.usesSemanticTextColor = semanticLabelColorSwitch.isOn
     let lo = Double(logicalMinField.text ?? "") ?? 0
     var hi = Double(logicalMaxField.text ?? "") ?? 100
     if hi <= lo { hi = lo + 1 }
     c.label.logicalMinimum = lo
     c.label.logicalMaximum = hi
-    c.label.labelPrefix = prefixField.text ?? ""
-    c.label.labelSuffix = suffixField.text ?? ""
-    c.accessibility.accessibilityTreatAsFrequentUpdates = a11yFrequentSwitch.isOn
+    c.label.valuePrefix = prefixField.text ?? ""
+    c.label.valueSuffix = suffixField.text ?? ""
+    c.accessibility.treatAsFrequentUpdates = a11yFrequentSwitch.isOn
     c.motion.indeterminateStyle = indeterminateStyleFromSegment(indeterminateStyleControl.selectedSegmentIndex)
     c.motion.indeterminatePeriod = TimeInterval(indeterminatePeriodSlider.value)
     c.motion.playsIndeterminateAnimation = playsIndeterminateAnimSwitch.isOn
