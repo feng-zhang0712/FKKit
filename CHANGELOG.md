@@ -4,6 +4,26 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Planned
+
+- Optional: Example app under `Examples/` (depending on this package locally)
+
+## [0.46.0] - 2026-05-04
+
+### Added (FKCompositeKit)
+
+- **`Filter`**: filter UI on **`AnchoredDropdownController`** under **`Sources/FKCompositeKit/Components/Filter/`** — **`FKFilterConfiguration`**, **`FKFilterController`**, **`FKFilterHosting`**, **`FKFilterTab`**, **`FKFilterPanelFactory`**, panel view controllers (chips, single list, two-column list/grid), appearance models, and panel height behavior.
+- **Examples**: Filter demos under **`Examples/.../FKCompositeKit/Filter/`** reorganized into **`Hub/`**, **`Scenarios/`**, and **`Shared/`** (appearance, chrome, panel factory, state, static data).
+
+### Changed (FKCompositeKit)
+
+- **`AnchoredDropdownController`**: configuration and controller surface refactored; **`FKAnchoredDropdownAnchorPlacement`** replaces the prior anchor override / embedding split; public API, internal anchor layout hook, and README updates; example hosts updated.
+- **`FKTabBarItemCell`** / **`FKTabBar`**: tab item layout and selection handling refinements.
+
+### Changed (Examples)
+
+- Anchored dropdown example sources updated for the new configuration and factory patterns.
+
 ### Added (Tooling)
 
 - **`scripts/bump-version.sh`**: bumps **`s.version`** in all four root **`*.podspec`** files to one SemVer argument (prints manual **CHANGELOG** / **README** / **git tag** follow-up).
@@ -24,7 +44,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ### Changed (CocoaPods)
 
-- Root **`*.podspec`**: normalized spacing (**`s.attr = value`**); no version or dependency behavior change at **0.45.0**.
+- Root **`*.podspec`**: normalized spacing (**`s.attr = value`**); **s.version** set to **0.46.0** for this release (formatting unchanged).
 
 ### Changed (Package)
 
@@ -37,7 +57,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Removed **`docs/REFACTOR_PLAN.md`** now that the sustainability refactor backlog (R1–R11) is complete; **`docs/EXTENSION_VS_UTILS.md`** no longer links to it.
 - **`README.md`**: iOS / Swift badges and **Requirements** updated for **iOS-only** distribution and **Swift 6.2+** (matches **`Package.swift`** tools version used on CI).
 - **`README.md`**: **FKCoreKit: Extension vs Utils** subsection and Table of Contents link; points to **`docs/EXTENSION_VS_UTILS.md`** for contributor policy (`fk_*` extensions vs **`FKUtils.*`** static helpers).
-- **`README.md`**: **Module Structure** and **FKCompositeKit** sections now include **`AnchoredDropdownController/`** and link to the new component READMEs; clarifies that a standalone **Filter** component is **not** present in the package today (root tree stays minimal until something ships).
+- **`README.md`**: **Module Structure** and **FKCompositeKit** sections now include **`AnchoredDropdownController/`** and link to the new component READMEs; lists **`Filter/`** in the module tree and documents **Filter** in the **FKCompositeKit** section; SPM / CocoaPods examples use **0.46.0**.
 - **`README.md`**: **Installation (CocoaPods)** links maintainers to **`docs/RELEASING.md`** and the **`scripts/bump-version.sh`** / **`scripts/verify-podspec-versions.sh`** workflow.
 - **`docs/GIT_HOOKS.md`**: documentation is now in English (same content as before); **`README.md`** no longer labels the guide as Chinese-only.
 
@@ -76,10 +96,6 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - **`FKUtilsCommon.openURL`** / **`FKUtilsUI.runOnMain`**: main-queue hops aligned with **`Sendable`** / **`MainActor`** rules (**`runOnMain`** now takes a **`@Sendable`** closure).
 - **`FKUIKit`**: Presentation keyboard/orientation notifications forward through **`Task { @MainActor … }`**; **`FKRefreshControl`** is **`@MainActor`** with **`nonisolated(unsafe)`** KVO handles and **`deinit`** teardown that invalidates them directly; **`FKSkeletonDispatch`** uses an **`@unchecked Sendable`** thunk for main-queue marshaling; **`FKSkeletonPresets`** is **`@MainActor`**; **`UIViewController+FKEmptyState`** uses a handler box for **`NotificationCenter`** callbacks; **`fk_blurredSnapshotAsync`** **`completion`** is **`@Sendable`**.
 - **Note:** **`SWIFT_STRICT_CONCURRENCY=complete`** still reports warnings in some untouched files; maintainer builds can use that flag to prioritize further cleanup.
-
-### Planned
-
-- Optional: Example app under `Examples/` (depending on this package locally)
 
 ## [0.45.0] - 2026-05-03
 
