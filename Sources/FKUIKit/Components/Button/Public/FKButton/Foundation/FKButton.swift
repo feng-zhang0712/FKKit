@@ -204,6 +204,8 @@ import UIKit
   var leadingConstraint: NSLayoutConstraint?
   var trailingConstraint: NSLayoutConstraint?
   var bottomConstraint: NSLayoutConstraint?
+  /// Active only while `loadingOverlayHost` is attached; cleared on uninstall so constraints can be re-created.
+  var loadingOverlayLayoutConstraints: [NSLayoutConstraint] = []
   var batchUpdateDepth = 0
   var needsVisualRefresh = false
   var needsContentLayoutRefresh = false
