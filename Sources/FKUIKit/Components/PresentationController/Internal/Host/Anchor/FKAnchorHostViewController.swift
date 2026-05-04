@@ -27,13 +27,11 @@ final class FKAnchorHostViewController: UIViewController {
 
   let contentContainerView = UIView()
   let chromeView = UIView()
-  /// Outer container that carries shadow (must not clip).
-  private let shadowContainerView = UIView()
-  /// Inner card that clips content to rounded corners.
+  /// Inner card that clips content to rounded corners (shadow lives on `wrapperView`, which must not clip).
   private let cardView = UIView()
   /// Optional blur material rendered behind anchor content (installed only when `configuration.containerBlur.isEnabled`).
   private var containerBlurView: FKBlurView?
-  /// Public handle for layout/animation; maps to `shadowContainerView`.
+  /// Presentation shell: carries frame, shadow, and pan gesture; hosts `cardView` as direct subview.
   let wrapperView = UIView()
 
   private let maskView = FKAnchorMaskView()
@@ -69,17 +67,13 @@ final class FKAnchorHostViewController: UIViewController {
     maskView.alpha = 0
     view.addSubview(maskView)
 
-    // Wrapper/chrome/content
-    // Keep a clear hierarchy:
-    // - `shadowContainerView` draws shadow (must not clip)
-    // - `cardView` clips and rounds corners (must clip)
-    // This matches the classic “attached dropdown” feel and avoids card-like full shadows.
-    shadowContainerView.backgroundColor = .clear
-    shadowContainerView.layer.shadowColor = configuration.shadow.color.cgColor
-    shadowContainerView.layer.shadowOpacity = configuration.shadow.opacity
-    shadowContainerView.layer.shadowRadius = configuration.shadow.radius
-    shadowContainerView.layer.shadowOffset = configuration.shadow.offset
-    shadowContainerView.layer.masksToBounds = false
+    // Wrapper + card: shadow on `wrapperView` (must not clip); corner + clip on `cardView`.
+    wrapperView.backgroundColor = .clear
+    wrapperView.layer.shadowColor = configuration.shadow.color.cgColor
+    wrapperView.layer.shadowOpacity = configuration.shadow.opacity
+    wrapperView.layer.shadowRadius = configuration.shadow.radius
+    wrapperView.layer.shadowOffset = configuration.shadow.offset
+    wrapperView.layer.masksToBounds = false
 
     cardView.backgroundColor = .systemBackground
     cardView.layer.cornerRadius = configuration.cornerRadius
@@ -96,10 +90,7 @@ final class FKAnchorHostViewController: UIViewController {
 
     cardView.addSubview(contentContainerView)
     cardView.addSubview(chromeView)
-    shadowContainerView.addSubview(cardView)
-
-    // `wrapperView` is a stable alias used by the host; keep it as the shadow container.
-    wrapperView.addSubview(shadowContainerView)
+    wrapperView.addSubview(cardView)
     view.addSubview(wrapperView)
 
     // Gestures
@@ -126,8 +117,7 @@ final class FKAnchorHostViewController: UIViewController {
     maskView.coverageRect = layout.maskCoverageRect
 
     wrapperView.frame = layout.presentationFrame
-    shadowContainerView.frame = wrapperView.bounds
-    cardView.frame = shadowContainerView.bounds
+    cardView.frame = wrapperView.bounds
     containerBlurView?.frame = cardView.bounds
     chromeView.frame = cardView.bounds
     contentContainerView.frame = cardView.bounds.inset(by: UIEdgeInsets(configuration.contentInsets))
@@ -176,8 +166,8 @@ final class FKAnchorHostViewController: UIViewController {
   private func updateShadowPath(for direction: FKAnchor.Direction) {
     let shouldShowShadow = configuration.shadow.opacity > 0 && configuration.shadow.radius > 0
     if !shouldShowShadow {
-      shadowContainerView.layer.shadowOpacity = 0
-      shadowContainerView.layer.shadowPath = nil
+      wrapperView.layer.shadowOpacity = 0
+      wrapperView.layer.shadowPath = nil
       return
     }
 
@@ -194,7 +184,7 @@ final class FKAnchorHostViewController: UIViewController {
         return CGRect(x: 0, y: b.maxY - stripThickness, width: b.width, height: stripThickness + radius * 2)
       }
     }()
-    shadowContainerView.layer.shadowPath = UIBezierPath(rect: rect).cgPath
+    wrapperView.layer.shadowPath = UIBezierPath(rect: rect).cgPath
   }
 
   private func configureContainerBlurIfNeeded() {
@@ -280,8 +270,7 @@ final class FKAnchorHostViewController: UIViewController {
 
       let newFrame = frame(forHeight: newHeight, basedOn: panStartFrame, anchorLineY: currentLayout.anchorLineY, direction: currentLayout.direction)
       wrapperView.frame = newFrame
-      shadowContainerView.frame = wrapperView.bounds
-      cardView.frame = shadowContainerView.bounds
+      cardView.frame = wrapperView.bounds
       chromeView.frame = cardView.bounds
       contentContainerView.frame = cardView.bounds.inset(by: UIEdgeInsets(configuration.contentInsets))
       updateShadowPath(for: currentLayout.direction)
@@ -311,8 +300,7 @@ final class FKAnchorHostViewController: UIViewController {
       } else {
         UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut, .allowUserInteraction]) {
           self.wrapperView.frame = self.panStartFrame
-          self.shadowContainerView.frame = self.wrapperView.bounds
-          self.cardView.frame = self.shadowContainerView.bounds
+          self.cardView.frame = self.wrapperView.bounds
           self.chromeView.frame = self.cardView.bounds
           self.contentContainerView.frame = self.cardView.bounds.inset(by: UIEdgeInsets(self.configuration.contentInsets))
           self.updateShadowPath(for: currentLayout.direction)
