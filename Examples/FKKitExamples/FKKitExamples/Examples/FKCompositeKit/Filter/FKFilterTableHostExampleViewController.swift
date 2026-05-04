@@ -48,8 +48,6 @@ final class FKFilterTableHostExampleViewController: UIViewController {
           id: TabID.tags.rawValue,
           panelKind: .tags,
           title: "标签",
-          subtitle: "可多选",
-          allowsMultipleSelection: true,
           stripMetrics: sm
         ),
       ],
@@ -81,9 +79,10 @@ final class FKFilterTableHostExampleViewController: UIViewController {
       fv.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
       fv.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       fv.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      fv.heightAnchor.constraint(equalToConstant: 56),
+      fv.heightAnchor.constraint(equalToConstant: FKFilterExampleAppearance.filterStripChromeHeight),
     ])
     filterHost.didMove(toParent: self)
+    FKFilterExampleAppearance.applyFilterExampleTabButtonContentInsets(to: filterHost.dropdownController.tabBar)
     filterHost.pinAnchoredPresentationOverlay(to: view)
   }
 

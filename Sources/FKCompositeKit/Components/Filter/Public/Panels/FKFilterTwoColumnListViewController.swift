@@ -89,7 +89,11 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
       rightSectionHeaderStyle: RightHeaderStyle = .init(),
       allowsSelectingSectionHeader: Bool = false,
       singleSelectionScope: SingleSelectionScope = .withinSection,
-      heightBehavior: FKFilterPanelHeightBehavior = .fixed(440),
+      heightBehavior: FKFilterPanelHeightBehavior = .automatic(
+        minimum: 120,
+        screenMinimumFraction: 0.38,
+        maximumScreenFraction: 0.88
+      ),
       configureLeftCell: LeftCellContentConfiguration? = nil,
       configureRightCell: RightCellContentConfiguration? = nil
     ) {
@@ -115,7 +119,11 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
         sectionHeaderHeight: 44,
         allowsSelectingSectionHeader: true,
         singleSelectionScope: .globalAcrossSections,
-        heightBehavior: .fixed(440)
+        heightBehavior: .automatic(
+          minimum: 120,
+          screenMinimumFraction: 0.38,
+          maximumScreenFraction: 0.88
+        )
       )
     }
   }
@@ -129,6 +137,8 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
   private let leftTable = UITableView(frame: .zero, style: .plain)
   private let rightTable = UITableView(frame: .zero, style: .plain)
   private var selectedHeaderSectionID: FKFilterID?
+  /// Avoids redundant anchor relayout when computed height is unchanged (reduces flicker).
+  private var lastPublishedPreferredHeight: CGFloat?
 
   private static let fallbackSizingRowHeight: CGFloat = 44
   private static let fallbackSizingSectionHeaderHeight: CGFloat = 28
@@ -151,23 +161,33 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
   public required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
   public override var preferredContentSize: CGSize {
-    get {
-      let leftRows = model.categories.count
-      let sections = rightSections()
-      let rightRows = sections.reduce(0) { partial, sec in partial + sec.items.count }
-      let titledSectionCount = sections.filter { ($0.title ?? "").isEmpty == false }.count
-      let sectionHeaderHeight = max(configuration.sectionHeaderHeight, Self.fallbackSizingSectionHeaderHeight)
-      let rightChrome = CGFloat(titledSectionCount) * sectionHeaderHeight
-      let rowHeight = max(configuration.rowHeight, Self.fallbackSizingRowHeight)
-      let body = max(
-        CGFloat(leftRows) * rowHeight,
-        CGFloat(rightRows) * rowHeight + rightChrome
-      )
-      let estimated = max(body, 120)
-      let resolved = configuration.heightBehavior.resolvedHeight(for: estimated)
-      return CGSize(width: 0, height: resolved)
-    }
+    get { CGSize(width: 0, height: resolvedPreferredContentHeight()) }
     set { super.preferredContentSize = newValue }
+  }
+
+  /// Preferred height from current model (left row count vs right rows/headers), after ``FKFilterPanelHeightBehavior``.
+  private func resolvedPreferredContentHeight() -> CGFloat {
+    let leftRows = model.categories.count
+    let sections = rightSections()
+    let rightRows = sections.reduce(0) { partial, sec in partial + sec.items.count }
+    let titledSectionCount = sections.filter { ($0.title ?? "").isEmpty == false }.count
+    let sectionHeaderHeight = max(configuration.sectionHeaderHeight, Self.fallbackSizingSectionHeaderHeight)
+    let rightChrome = CGFloat(titledSectionCount) * sectionHeaderHeight
+    let rowHeight = max(configuration.rowHeight, Self.fallbackSizingRowHeight)
+    let body = max(
+      CGFloat(leftRows) * rowHeight,
+      CGFloat(rightRows) * rowHeight + rightChrome
+    )
+    let estimated = max(body, 120)
+    return configuration.heightBehavior.resolvedHeight(for: estimated)
+  }
+
+  /// Writes through to `super` so ancestor presenters (e.g. anchored dropdown) receive ``preferredContentSizeDidChange(forChildContentContainer:)``.
+  private func publishPreferredContentSizeUpdate() {
+    let height = resolvedPreferredContentHeight()
+    if lastPublishedPreferredHeight == height { return }
+    lastPublishedPreferredHeight = height
+    super.preferredContentSize = CGSize(width: 0, height: height)
   }
 
   public override func viewDidLoad() {
@@ -341,16 +361,13 @@ extension FKFilterTwoColumnListViewController: UITableViewDataSource, UITableVie
   }
 
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    tableView.deselectRow(at: indexPath, animated: true)
-
     if tableView === leftTable {
+      tableView.deselectRow(at: indexPath, animated: false)
       let selectedCategory = model.categories[indexPath.row]
       let tappedID = selectedCategory.id
       for i in model.categories.indices {
         model.categories[i].isSelected = (model.categories[i].id == tappedID)
       }
-      leftTable.reloadData()
-      rightTable.reloadData()
       selectedHeaderSectionID = nil
       onChange(model)
       let sections = model.sectionsByCategoryID[tappedID] ?? []
@@ -358,8 +375,15 @@ extension FKFilterTwoColumnListViewController: UITableViewDataSource, UITableVie
         let item = FKFilterOptionItem(id: selectedCategory.id, title: selectedCategory.title, isSelected: true)
         onSelectItem?(nil, item, .single)
       }
+      UIView.performWithoutAnimation {
+        leftTable.reloadData()
+        rightTable.reloadData()
+        publishPreferredContentSizeUpdate()
+      }
       return
     }
+
+    tableView.deselectRow(at: indexPath, animated: true)
 
     guard let catID = selectedCategoryID else { return }
     var sections = model.sectionsByCategoryID[catID] ?? []

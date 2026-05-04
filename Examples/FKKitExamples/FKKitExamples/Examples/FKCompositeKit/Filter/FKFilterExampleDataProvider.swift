@@ -14,7 +14,7 @@ protocol FKFilterExampleDataProviding: Sendable {
 final class FKFilterExampleMockDataProvider: FKFilterExampleDataProviding, Sendable {
   func fetchKnowledgeTwoColumnModel() async -> FKFilterTwoColumnModel {
     try? await Task.sleep(nanoseconds: 120_000_000)
-    let all = FKFilterTwoColumnModel.Category(id: .init(rawValue: "all"), title: "全部", isSelected: false)
+    let all = FKFilterTwoColumnModel.Category(id: .init(rawValue: "all"), title: "全部")
     let laws = FKFilterTwoColumnModel.Category(id: .init(rawValue: "laws"), title: "法规库")
     let cases = FKFilterTwoColumnModel.Category(id: .init(rawValue: "cases"), title: "案例库")
     let allSections: [FKFilterSection] = []
@@ -40,7 +40,7 @@ final class FKFilterExampleMockDataProvider: FKFilterExampleDataProviding, Senda
 
   func fetchCourseTwoColumnModel() async -> FKFilterTwoColumnModel {
     try? await Task.sleep(nanoseconds: 120_000_000)
-    let a = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-a"), title: "党建引领、行业规范", isSelected: false)
+    let a = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-a"), title: "党建引领、行业规范")
     let b = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-b"), title: "法律规范")
     let c = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-c"), title: "专业技能")
     let d = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-d"), title: "证监会网校")

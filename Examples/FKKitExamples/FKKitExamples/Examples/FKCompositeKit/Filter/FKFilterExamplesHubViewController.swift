@@ -51,6 +51,7 @@ final class FKFilterExamplesHubViewController: UITableViewController {
     title = "Filter"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
+    tableView.rowHeight = 76
   }
 
   override func numberOfSections(in tableView: UITableView) -> Int { 1 }

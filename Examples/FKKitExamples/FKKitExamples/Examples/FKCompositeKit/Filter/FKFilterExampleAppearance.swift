@@ -4,12 +4,49 @@ import FKUIKit
 
 /// Shared tab bar + chevron metrics for Filter examples.
 enum FKFilterExampleAppearance {
+  /// Total height for the embedded ``FKFilterController`` chrome row (was 56; −4pt).
+  static let filterStripChromeHeight: CGFloat = 52
+
+  /// Horizontal ``FKButton`` content insets for each tab (default in cells is 8pt; −4pt per side for demos).
+  private static let filterTabButtonHorizontalInset: CGFloat = 4
+
+  /// Applies tighter tab button insets on the dropdown’s ``FKTabBar`` (runs after each cell refresh).
+  static func applyFilterExampleTabButtonContentInsets(to tabBar: FKTabBar) {
+    tabBar.itemButtonConfigurator = { button, _, _ in
+      let appearance = FKButtonAppearance(
+        backgroundColor: .clear,
+        contentInsets: .init(
+          top: 6,
+          leading: filterTabButtonHorizontalInset,
+          bottom: 6,
+          trailing: filterTabButtonHorizontalInset
+        )
+      )
+      button.setAppearance(appearance, for: .normal)
+      button.setAppearance(appearance, for: .selected)
+      button.setAppearance(appearance, for: .disabled)
+    }
+  }
+
+  /// Selected chip / grid label color in filter panels (`FKFilterPillStyle` default); strip expanded tab uses the same.
+  private static let filterSelectionAccentColor = UIColor.systemRed
+
   static let panelPillStyle = FKFilterPillStyle(
     cornerRadius: 6,
-    contentInsets: .init(top: 6, left: 8, bottom: 6, right: 8)
+    contentInsets: .init(top: 6, left: 8, bottom: 6, right: 8),
+    selectedTextColor: filterSelectionAccentColor,
+    selectedBackgroundColor: filterSelectionAccentColor.withAlphaComponent(0.10),
+    selectedBorderColor: filterSelectionAccentColor.withAlphaComponent(0.55)
   )
 
+  /// Right column / single-column list rows (white background).
   static let panelListCellStyle = FKFilterListCellStyle()
+
+  /// Left sidebar in two-column panels; matches ``FKFilterTwoColumnGridViewController`` default sidebar coloring.
+  static let panelSidebarListCellStyle = FKFilterListCellStyle(
+    rowBackgroundColor: UIColor.systemGray6.withAlphaComponent(0.6),
+    selectedRowBackgroundColor: .systemBackground
+  )
 
   static let titleStyle: UIFont.TextStyle = .subheadline
   static let subtitleStyle: UIFont.TextStyle = .caption2
@@ -23,7 +60,9 @@ enum FKFilterExampleAppearance {
       subtitleTextStyle: subtitleStyle,
       chevronSize: chevronSize,
       chevronSpacing: chevronSpacing,
-      titleSubtitleSpacing: titleSubtitleSpacing
+      titleSubtitleSpacing: titleSubtitleSpacing,
+      expandedTitleColor: filterSelectionAccentColor,
+      expandedChevronColor: filterSelectionAccentColor
     )
   }
 

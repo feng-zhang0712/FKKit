@@ -215,7 +215,11 @@ public final class FKFilterTwoColumnGridViewController: UIViewController {
       rightHeaderStyle: RightHeaderStyle = .init(),
       allowsSelectingSectionHeader: Bool = true,
       singleSelectionScope: SingleSelectionScope = .globalAcrossSections,
-      heightBehavior: FKFilterPanelHeightBehavior = .fixed(460),
+      heightBehavior: FKFilterPanelHeightBehavior = .automatic(
+        minimum: 100,
+        screenMinimumFraction: 0.36,
+        maximumScreenFraction: 0.88
+      ),
       configureLeftCell: LeftCellContentConfiguration? = nil,
       configureItemCell: ItemCellContentConfiguration? = nil
     ) {
@@ -285,20 +289,25 @@ public final class FKFilterTwoColumnGridViewController: UIViewController {
   public required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
   public override var preferredContentSize: CGSize {
-    get {
-      let sections = rightSections()
-      let leftBody = CGFloat(model.categories.count) * configuration.leftRowHeight
-      let headerCount = sections.filter { ($0.title ?? "").isEmpty == false }.count
-      let itemCount = sections.reduce(0) { $0 + $1.items.count }
-      let rows = ceil(CGFloat(max(itemCount, 1)) / CGFloat(configuration.itemColumns))
-      let rightBody = rows * configuration.itemHeight + max(rows - 1, 0) * configuration.lineSpacing
-      let rightHeaders = CGFloat(headerCount) * max(configuration.rightHeaderStyle.minimumHeight, 1)
-      let rightInsets = configuration.rightContentInsets.top + configuration.rightContentInsets.bottom + CGFloat(max(sections.count - 1, 0)) * configuration.rightSectionSpacing
-      let estimated = max(leftBody, rightBody + rightHeaders + rightInsets)
-      let resolved = configuration.heightBehavior.resolvedHeight(for: max(estimated, 140))
-      return CGSize(width: 0, height: resolved)
-    }
+    get { CGSize(width: 0, height: resolvedPreferredContentHeight()) }
     set { super.preferredContentSize = newValue }
+  }
+
+  private func resolvedPreferredContentHeight() -> CGFloat {
+    let sections = rightSections()
+    let leftBody = CGFloat(model.categories.count) * configuration.leftRowHeight
+    let headerCount = sections.filter { ($0.title ?? "").isEmpty == false }.count
+    let itemCount = sections.reduce(0) { $0 + $1.items.count }
+    let rows = ceil(CGFloat(max(itemCount, 1)) / CGFloat(configuration.itemColumns))
+    let rightBody = rows * configuration.itemHeight + max(rows - 1, 0) * configuration.lineSpacing
+    let rightHeaders = CGFloat(headerCount) * max(configuration.rightHeaderStyle.minimumHeight, 1)
+    let rightInsets = configuration.rightContentInsets.top + configuration.rightContentInsets.bottom + CGFloat(max(sections.count - 1, 0)) * configuration.rightSectionSpacing
+    let estimated = max(leftBody, rightBody + rightHeaders + rightInsets)
+    return configuration.heightBehavior.resolvedHeight(for: max(estimated, 140))
+  }
+
+  private func publishPreferredContentSizeUpdate() {
+    super.preferredContentSize = CGSize(width: 0, height: resolvedPreferredContentHeight())
   }
 
   public override func viewDidLoad() {
@@ -433,6 +442,7 @@ extension FKFilterTwoColumnGridViewController: UITableViewDataSource, UITableVie
     leftTable.reloadData()
     rightCollectionView.reloadData()
     onChange(model)
+    publishPreferredContentSizeUpdate()
   }
 }
 

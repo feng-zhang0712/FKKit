@@ -12,7 +12,8 @@ public extension FKAnchoredDropdownConfiguration {
     tab.layout.contentAlignment = .leading
     tab.appearance.backgroundStyle = .solid(.systemBackground)
     tab.appearance.indicatorStyle = .none
-    tab.appearance.showsDivider = false
+    tab.appearance.showsDivider = true
+    tab.appearance.dividerPosition = .bottom
 
     var presentation = FKPresentationConfiguration.default
     presentation.cornerRadius = 10

@@ -189,6 +189,11 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
 
   public override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
+    // Avoid calling `realignSelection` on every layout pass: it scrolls with `animated: false` and
+    // cancels an in-flight selection scroll animation after a user tap (see `reload` → layout invalidation).
+    let size = tabBarHost.view.bounds.size
+    guard size != lastTabBarHostLayoutSize else { return }
+    lastTabBarHostLayoutSize = size
     tabBar.realignSelection(animated: false)
   }
 
@@ -217,6 +222,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
   private var desiredExpanded: DesiredExpandedRequest?
   private var isReconciling = false
   private var cachedContentControllers: [TabID: UIViewController] = [:]
+  private var lastTabBarHostLayoutSize: CGSize = .zero
 
   private func installTabBarHost() {
     let hostView = tabBarHost.view

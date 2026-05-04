@@ -93,8 +93,10 @@ public final class FKFilterSingleListViewController: UITableViewController {
   public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { self.section.items.count }
 
   public override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
     let item = section.items[indexPath.row]
+    let hasSubtitleContent =
+      (item.subtitle.map { !$0.isEmpty } ?? false) || item.attributedSubtitle != nil
+    let cell = UITableViewCell(style: hasSubtitleContent ? .subtitle : .default, reuseIdentifier: nil)
     if let configureCell = configuration.configureCell {
       configureCell(cell, indexPath, item, section)
       return cell
@@ -116,6 +118,7 @@ public final class FKFilterSingleListViewController: UITableViewController {
       cell.detailTextLabel?.font = .preferredFont(forTextStyle: .subheadline)
       cell.detailTextLabel?.textColor = .secondaryLabel
     }
+    cell.detailTextLabel?.textAlignment = configuration.cellStyle.textAlignment
     if !item.isEnabled {
       cell.textLabel?.textColor = configuration.cellStyle.disabledTextColor
       if item.attributedSubtitle == nil {

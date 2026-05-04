@@ -2,7 +2,7 @@ import UIKit
 import FKCompositeKit
 import FKUIKit
 
-/// Chrome for Filter examples: **top-aligned** tab row (no bottom hairline — divider removed per design).
+/// Chrome for Filter examples: **top-aligned** tab row; bottom edge uses ``FKTabBar``’s built-in divider from configuration.
 ///
 /// Use as ``FKAnchoredDropdownTabBarHost`` so items align to the top when titles wrap to two lines.
 final class FKFilterExampleTabStripView: UIView, FKAnchoredDropdownTabBarHost {

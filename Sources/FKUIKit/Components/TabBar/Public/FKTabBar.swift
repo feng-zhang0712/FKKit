@@ -440,7 +440,9 @@ public final class FKTabBar: UIView {
     clearProgressSnapshot()
 
     collectionView.reloadData()
-    invalidateLayoutAndRelayout(animatedScroll: false)
+    let layout = resolvedLayoutForCurrentEnvironment()
+    let animatedScroll = layout.isScrollable && layout.isSelectionScrollAnimationEnabled
+    invalidateLayoutAndRelayout(animatedScroll: animatedScroll)
     updateIndicatorFrame(animated: false)
     delegate?.tabBar(self, didReloadItems: self.items, visibleItems: visibleItems, selectedIndex: selectedIndex)
   }

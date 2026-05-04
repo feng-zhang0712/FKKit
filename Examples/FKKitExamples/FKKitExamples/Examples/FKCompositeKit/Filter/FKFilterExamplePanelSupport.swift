@@ -25,7 +25,7 @@ enum FKFilterExamplePanelSupport {
           model: knowledgeModel,
           onChange: onKnowledgeChange,
           configuration: .init(
-            leftCellStyle: FKFilterExampleAppearance.panelListCellStyle,
+            leftCellStyle: FKFilterExampleAppearance.panelSidebarListCellStyle,
             rightCellStyle: FKFilterExampleAppearance.panelListCellStyle
           )
         ),
@@ -35,8 +35,7 @@ enum FKFilterExamplePanelSupport {
           configuration: .init(
             itemHeight: 36,
             itemColumns: 2,
-            pillStyle: FKFilterExampleAppearance.panelPillStyle,
-            heightBehavior: .automatic(minimum: 80)
+            pillStyle: FKFilterExampleAppearance.panelPillStyle
           )
         ),
         .gridPrimary: .chips(

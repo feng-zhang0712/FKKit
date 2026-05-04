@@ -30,6 +30,14 @@ final class FKFilterTopHairlineWrapperViewController: UIViewController {
     set { super.preferredContentSize = newValue }
   }
 
+  override func preferredContentSizeDidChange(forChildContentContainer container: any UIContentContainer) {
+    super.preferredContentSizeDidChange(forChildContentContainer: container)
+    guard container === contentVC else { return }
+    let inner = contentVC.preferredContentSize
+    guard inner.height > 0 else { return }
+    super.preferredContentSize = CGSize(width: inner.width, height: inner.height + currentHairlineHeight())
+  }
+
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
