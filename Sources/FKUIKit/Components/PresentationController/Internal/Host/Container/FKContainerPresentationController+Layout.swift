@@ -6,8 +6,10 @@ extension FKContainerPresentationController {
 
   /// Applies corner radius, border and shadow on the wrapper shell.
   func applyContainerAppearance() {
-    containerBlurView.frame = wrapperView.bounds
-    containerBlurView.maskedCornerRadius = configuration.cornerRadius
+    if let containerBlurView {
+      containerBlurView.frame = wrapperView.bounds
+      containerBlurView.maskedCornerRadius = configuration.cornerRadius
+    }
     wrapperView.layer.cornerRadius = configuration.cornerRadius
     wrapperView.layer.masksToBounds = false
     wrapperView.layer.shadowColor = configuration.shadow.color.cgColor
@@ -99,8 +101,9 @@ extension FKContainerPresentationController {
 
     if showsGrabber {
       if grabberView.superview == nil {
-        chromeView.addSubview(grabberView)
+        wrapperView.addSubview(grabberView)
       }
+      wrapperView.bringSubviewToFront(grabberView)
       grabberView.backgroundColor = UIColor.secondaryLabel.withAlphaComponent(0.35)
       grabberView.layer.cornerRadius = configuration.sheet.grabberSize.height / 2
       grabberView.isHidden = false

@@ -13,12 +13,50 @@ Same layering as **`Badge`**: **`Public`** (types you configure from app code), 
 
 ### `Public/`
 
+| Directory | Role |
+|-----------|------|
+| `Configuration/` | Content/element/state models and accessibility configuration |
+| `Appearance/` | `FKButtonAppearance`, `FKButtonGlobalStyle` |
+| `Feedback/` | Haptics, sound, pointer configuration structs |
+| `Loading/` | `FKButtonLoadingPresentation` + replacement options |
+| `Aliases/` | `FKButton.Content`, `FKButton.Appearance`, … short typealiases |
+| `FKButton/` | `FKButton` control implementation (see subfolders below) |
+
+#### `Public/Configuration/`
+
 | File | Role |
 |------|------|
-| `FKButton/` | Implementation slices for `FKButton` (see table below) |
-| `FKButtonAliases.swift` | `FKButton.Content`, `FKButton.Appearance`, … short typealiases |
+| `FKButtonContentConfiguration.swift` | Content kind (text / image / text+image / custom) |
+| `FKButtonElementConfiguration.swift` | `FKButtonLabelConfiguration`, `FKButtonImageConfiguration`, `FKButtonCustomContentConfiguration` |
+| `FKButtonStateModel.swift` | Bundle model for `setModel(_:for:)` |
+| `FKButtonAccessibilityConfiguration.swift` | Optional VoiceOver label/value/hint providers |
 
-#### `Public/FKButton/` (`FKButton` control)
+#### `Public/Appearance/`
+
+| File | Role |
+|------|------|
+| `FKButtonAppearance.swift` | `FKButtonAppearance`, corners, border, shadow, gradient, `FKButtonStateAppearances` |
+| `FKButtonGlobalStyle.swift` | Process-wide defaults for new instances |
+
+#### `Public/Feedback/`
+
+| File | Role |
+|------|------|
+| `FKButtonFeedbackConfigurations.swift` | Haptics, sound, pointer configuration structs |
+
+#### `Public/Loading/`
+
+| File | Role |
+|------|------|
+| `FKButtonLoadingPresentation.swift` | `FKButtonLoadingPresentation` + replacement options |
+
+#### `Public/Aliases/`
+
+| File | Role |
+|------|------|
+| `FKButtonAliases.swift` | `FKButton.Content`, `FKButton.Appearance`, … scoped typealiases |
+
+#### `Public/FKButton/Foundation/`
 
 | File | Role |
 |------|------|
@@ -26,30 +64,27 @@ Same layering as **`Badge`**: **`Public`** (types you configure from app code), 
 | `FKButton+Setup.swift` | `commonInit()`, `applyFactoryDefaultsFromGlobalStyle()` |
 | `FKButton+PublicAPI.swift` | `setModel`, labels, images, appearance, batch updates |
 | `FKButton+Layout.swift` | Content alignment overrides, `intrinsicContentSize`, `layoutSubviews`, hit testing hook |
-| `FKButton+ControlDispatch.swift` | `sendActions` / `sendAction`, primary-action throttling |
-| `FKButton+Loading.swift` | `setLoading`, `performWhileLoading`, loading overlay views |
-| `FKButton+InteractionGestures.swift` | Hit bounds helpers, long-press handler |
 | `FKButton+LayoutEngine.swift` | Stack alignment, refresh pipeline, title/image/custom host lifecycle |
 | `FKButton+StackContent.swift` | Arranged subview composition for `content.kind` |
-| `FKButton+AppearanceRendering.swift` | Background, border, shadow, corner metrics, `activeImageElements` |
-| `FKButton+ContentRendering.swift` | Text/image resolution, `UILabel` / `UIImageView` application, padded symbols |
-| `FKButton+Accessibility.swift` | VoiceOver traits and default label/value/hint |
-| `FKButton+Feedback.swift` | Haptics/sound dispatch, pointer hover sync |
-| `FKButton+PointerInteraction.swift` | `UIPointerInteractionDelegate` |
-| `FKButton+InterfaceBuilderHooks.swift` | `prepareForInterfaceBuilder()` |
 
-Other configuration types remain directly under `Public/`:
+#### `Public/FKButton/Presentation/`
 
 | File | Role |
 |------|------|
-| `FKButtonContentConfiguration.swift` | Content kind (text / image / text+image / custom) |
-| `FKButtonElementConfiguration.swift` | `FKButtonLabelConfiguration`, `FKButtonImageConfiguration`, `FKButtonCustomContentConfiguration` |
-| `FKButtonStateModel.swift` | Bundle model for `setModel(_:for:)` |
-| `FKButtonAppearance.swift` | `FKButtonAppearance`, corners, border, shadow, gradient, `FKButtonStateAppearances` |
-| `FKButtonLoadingPresentation.swift` | `FKButtonLoadingPresentation` + replacement options |
-| `FKButtonGlobalStyle.swift` | Process-wide defaults for new instances |
-| `FKButtonAccessibilityConfiguration.swift` | Optional VoiceOver label/value/hint providers |
-| `FKButtonFeedbackConfigurations.swift` | Haptics, sound, pointer configuration structs |
+| `FKButton+ContentRendering.swift` | Text/image resolution, `UILabel` / `UIImageView` application, padded symbols |
+| `FKButton+AppearanceRendering.swift` | Background, border, shadow, corner metrics, `activeImageElements` |
+| `FKButton+Accessibility.swift` | VoiceOver traits and default label/value/hint |
+
+#### `Public/FKButton/Interaction/`
+
+| File | Role |
+|------|------|
+| `FKButton+ControlDispatch.swift` | `sendActions` / `sendAction`, primary-action throttling |
+| `FKButton+InteractionGestures.swift` | Hit bounds helpers, long-press handler |
+| `FKButton+Feedback.swift` | Haptics/sound dispatch, pointer hover sync |
+| `FKButton+PointerInteraction.swift` | `UIPointerInteractionDelegate` |
+| `FKButton+Loading.swift` | `setLoading`, `performWhileLoading`, loading overlay views |
+| `FKButton+InterfaceBuilderHooks.swift` | `prepareForInterfaceBuilder()` |
 
 ### `Internal/`
 

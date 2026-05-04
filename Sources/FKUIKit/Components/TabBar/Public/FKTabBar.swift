@@ -440,7 +440,9 @@ public final class FKTabBar: UIView {
     clearProgressSnapshot()
 
     collectionView.reloadData()
-    invalidateLayoutAndRelayout(animatedScroll: false)
+    let layout = resolvedLayoutForCurrentEnvironment()
+    let animatedScroll = layout.isScrollable && layout.isSelectionScrollAnimationEnabled
+    invalidateLayoutAndRelayout(animatedScroll: animatedScroll)
     updateIndicatorFrame(animated: false)
     delegate?.tabBar(self, didReloadItems: self.items, visibleItems: visibleItems, selectedIndex: selectedIndex)
   }
@@ -816,6 +818,15 @@ public final class FKTabBar: UIView {
 
     indicator.isHidden = false
     indicator.move(to: target, animation: resolvedAnimation().indicatorAnimation, animated: animated)
+  }
+
+  /// Re-applies the current `visibleItems` to already-visible cells.
+  ///
+  /// Call after you replace models via ``reload(items:updatePolicy:)`` when `selectedIndex` is unchanged,
+  /// because the selection reducer may skip per-cell refresh for the same index.
+  public func reapplyVisibleItemConfigurations() {
+    assertMainThreadInDebug()
+    refreshVisibleCellsForCurrentState()
   }
 
   private func refreshVisibleCellsForCurrentState() {

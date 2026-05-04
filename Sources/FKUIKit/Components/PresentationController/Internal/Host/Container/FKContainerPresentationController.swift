@@ -9,10 +9,8 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
   let configuration: FKPresentationConfiguration
   /// Backdrop renderer shared by supported backdrop styles.
   let backdropView = FKPresentationBackdropView()
-  /// Non-interactive chrome host for grabber and related affordances.
-  let chromeView = UIView()
-  /// Optional blur material rendered behind the presented content.
-  let containerBlurView = FKBlurView()
+  /// Optional blur material rendered behind the presented content (installed only when `configuration.containerBlur.isEnabled`).
+  var containerBlurView: FKBlurView?
   /// Presentation shell carrying frame, corners, border, and shadow.
   let wrapperView = UIView()
   /// Content host that embeds the system provided presented view.
@@ -50,7 +48,7 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
   }
 
-  /// We wrap the system-provided presented view to enable corner radius, shadow, transforms, and chrome.
+  /// We wrap the system-provided presented view to enable corner radius, shadow, transforms, and sheet grabber.
   public override var presentedView: UIView? {
     wrapperView
   }
@@ -95,15 +93,9 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     backdropView.alpha = 0
     containerView.insertSubview(backdropView, at: 0)
 
-    chromeView.backgroundColor = .clear
-    chromeView.isUserInteractionEnabled = false
-
     wrapperView.backgroundColor = .systemBackground
-    containerBlurView.isUserInteractionEnabled = false
-    wrapperView.addSubview(containerBlurView)
-    // Content should be below chrome so the grabber is never covered by the presented view.
+    // `grabberView` is added on top of `contentContainerView` when enabled (see `configureGrabberIfNeeded`).
     wrapperView.addSubview(contentContainerView)
-    wrapperView.addSubview(chromeView)
     contentContainerView.backgroundColor = .clear
     contentContainerView.clipsToBounds = true
 
@@ -137,7 +129,6 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     super.dismissalTransitionWillBegin()
     if keepsInteractiveFrameForDismissal {
       wrapperView.frame = dismissalStartingFrame
-      chromeView.frame = wrapperView.bounds
       layoutContentContainer()
       hostedPresentedView?.frame = contentContainerView.bounds
     }
@@ -159,7 +150,6 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     if !isPanningSheet && !keepsInteractiveFrameForDismissal {
       wrapperView.frame = frameOfPresentedViewInContainerView
     }
-    chromeView.frame = wrapperView.bounds
     layoutContentContainer()
     hostedPresentedView?.frame = contentContainerView.bounds
 
@@ -192,7 +182,6 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     let targetFrame = frameOfPresentedViewInContainerView
     let applyLayout: () -> Void = {
       self.wrapperView.frame = targetFrame
-      self.chromeView.frame = self.wrapperView.bounds
       self.layoutContentContainer()
       self.hostedPresentedView?.frame = self.contentContainerView.bounds
       self.applyContainerAppearance()

@@ -196,11 +196,16 @@ extension FKContainerPresentationController {
   }
 
   func applyInteractiveFrame(_ frame: CGRect) {
+    // Interactive sizing assigns a fresh `frame`; reset any prior layer transform (e.g. keyboard
+    // avoidance) before applying it so we do not compound translation with the new geometry.
+    wrapperView.transform = .identity
     wrapperView.frame = frame
-    chromeView.frame = wrapperView.bounds
     layoutContentContainer()
     hostedPresentedView?.frame = contentContainerView.bounds
     applyContainerAppearance()
+    if let containerView {
+      applyKeyboardAvoidance(in: containerView)
+    }
   }
 
   // MARK: - Top Sheet (mirror of bottom sheet, vertical axis inverted)
@@ -208,7 +213,6 @@ extension FKContainerPresentationController {
   func interactiveTopSheetFrame(in containerView: UIView, translationY: CGFloat) -> CGRect {
     var frame = panStartFrame
     let minY = sheetMinY(in: containerView)
-    let maxY = sheetMaxY(in: containerView)
     let minHeight = resolvedDetentHeights.min() ?? 240
     let maxHeight = resolvedDetentHeights.max() ?? containerView.bounds.height * 0.9
 
@@ -216,20 +220,18 @@ extension FKContainerPresentationController {
       // Smallest detent: upward drag moves the panel off the top (dismiss), height unchanged.
       frame.origin.y = panStartFrame.origin.y + translationY
       frame.size.height = panStartFrame.size.height
+      // Do not cap upward dismiss travel to ~44pt; allow following the finger off-screen.
+      frame.origin.y = min(frame.origin.y, minY)
     } else {
       // Top sheet expands downward: finger down increases height; finger up decreases height.
-      // Top edge stays pinned at `minY` while changing detents.
+      // The top edge must stay pinned at `minY` (unlike bottom sheets, there is no separate `maxY`
+      // stop for the top edge—`sheetMaxY` collapses to `minY`). Reusing the bottom-sheet Y clamp
+      // here is incorrect and can allow the shell to drift downward at large detents.
       frame.size.height = panStartFrame.height + translationY
       frame.size.height = min(max(frame.size.height, minHeight - configuration.sheet.dismissThreshold), maxHeight + configuration.sheet.dismissThreshold)
       frame.origin.y = minY
     }
 
-    if currentDetentIndex == 0, translationY < 0 {
-      // Do not cap upward dismiss travel to ~44pt; allow following the finger off-screen.
-      frame.origin.y = min(frame.origin.y, minY)
-    } else {
-      frame.origin.y = min(max(frame.origin.y, minY - configuration.sheet.dismissThreshold), maxY + configuration.sheet.dismissThreshold)
-    }
     return frame
   }
 
@@ -363,8 +365,8 @@ extension FKContainerPresentationController {
       abs(wrapperView.frame.height - targetFrame.height)
     )
     let animations = {
+      self.wrapperView.transform = .identity
       self.wrapperView.frame = targetFrame
-      self.chromeView.frame = self.wrapperView.bounds
       self.layoutContentContainer()
       self.hostedPresentedView?.frame = self.contentContainerView.bounds
       self.applyContainerAppearance()

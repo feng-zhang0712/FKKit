@@ -34,7 +34,7 @@ enum FKPresentationAnchorLayout {
     guard let sourceRect = resolveSourceRect(in: containerView, anchor: anchor) else {
       // Fallback to center when anchor cannot be resolved yet (detached view / stale weak reference).
       let width = min(bounds.width - safeInsets.left - safeInsets.right, 460)
-      let height = min(bounds.height - safeInsets.top - safeInsets.bottom, max(180, measuredContentHeight()))
+      let height = min(bounds.height - safeInsets.top - safeInsets.bottom, max(1, measuredContentHeight()))
       let frame = CGRect(x: (bounds.width - width) / 2, y: (bounds.height - height) / 2, width: width, height: height)
       return .init(frame: frame, sourceRect: nil, resolvedDirection: .down)
     }
@@ -63,7 +63,7 @@ enum FKPresentationAnchorLayout {
     }()
 
     let measured = measuredContentHeight()
-    let height = min(availableHeight, max(180, measured))
+    let height = min(availableHeight, max(1, measured))
 
     let width: CGFloat = {
       switch anchor.widthPolicy {

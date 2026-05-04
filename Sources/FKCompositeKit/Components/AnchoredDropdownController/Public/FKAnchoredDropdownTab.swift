@@ -56,9 +56,9 @@ public extension FKAnchoredDropdownTab {
     title: @escaping () -> String,
     subtitle: (() -> String?)? = nil,
     normalTitleColor: UIColor = .label,
-    expandedTitleColor: UIColor = .systemRed,
+    expandedTitleColor: UIColor = .tintColor,
     normalChevronColor: UIColor = .secondaryLabel,
-    expandedChevronColor: UIColor = .systemRed,
+    expandedChevronColor: UIColor = .tintColor,
     titleFont: UIFont = .preferredFont(forTextStyle: .subheadline),
     subtitleFont: UIFont = .preferredFont(forTextStyle: .caption2),
     chevronSize: CGSize = .init(width: 14, height: 14),
@@ -132,26 +132,3 @@ public extension FKAnchoredDropdownTab {
     )
   }
 }
-
-@MainActor
-internal final class FKTabDropdownViewWrappingController: UIViewController {
-  private let makeView: () -> UIView
-  private var wrappedView: UIView?
-
-  init(makeView: @escaping () -> UIView) {
-    self.makeView = makeView
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  @available(*, unavailable)
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-
-  override func loadView() {
-    let v = makeView()
-    wrappedView = v
-    view = v
-  }
-}
-
