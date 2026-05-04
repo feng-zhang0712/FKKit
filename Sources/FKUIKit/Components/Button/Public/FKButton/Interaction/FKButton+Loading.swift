@@ -13,6 +13,7 @@ extension FKButton {
       userInteractionEnabledBeforeLoading = isUserInteractionEnabled
       isLoading = true
       isUserInteractionEnabled = false
+      installLoadingOverlayIfNeeded()
       applyLoadingChromeForCurrentStyle()
       loadingOverlayHost.isHidden = false
       loadingIndicator.startAnimating()
@@ -20,11 +21,11 @@ extension FKButton {
       isLoading = false
       isUserInteractionEnabled = userInteractionEnabledBeforeLoading
       loadingIndicator.stopAnimating()
-      loadingOverlayHost.isHidden = true
       stackView.isHidden = false
       stackView.alpha = 1
       loadingMessageLabel.text = nil
       loadingMessageLabel.isHidden = true
+      uninstallLoadingOverlayFromHierarchy()
     }
     requestVisualRefresh()
   }
@@ -81,16 +82,31 @@ extension FKButton {
     loadingRowStack.addArrangedSubview(loadingIndicator)
     loadingRowStack.addArrangedSubview(loadingMessageLabel)
 
-    addSubview(loadingOverlayHost)
     loadingOverlayHost.addSubview(loadingRowStack)
     NSLayoutConstraint.activate([
+      loadingRowStack.centerXAnchor.constraint(equalTo: loadingOverlayHost.centerXAnchor),
+      loadingRowStack.centerYAnchor.constraint(equalTo: loadingOverlayHost.centerYAnchor),
+    ])
+  }
+
+  /// Pins `loadingOverlayHost` to the button and places it above the content stack. Call only from `setLoading(true)`.
+  func installLoadingOverlayIfNeeded() {
+    guard loadingOverlayHost.superview == nil else { return }
+    insertSubview(loadingOverlayHost, aboveSubview: contentContainerView)
+    loadingOverlayLayoutConstraints = [
       loadingOverlayHost.topAnchor.constraint(equalTo: topAnchor),
       loadingOverlayHost.leadingAnchor.constraint(equalTo: leadingAnchor),
       loadingOverlayHost.trailingAnchor.constraint(equalTo: trailingAnchor),
       loadingOverlayHost.bottomAnchor.constraint(equalTo: bottomAnchor),
-      loadingRowStack.centerXAnchor.constraint(equalTo: loadingOverlayHost.centerXAnchor),
-      loadingRowStack.centerYAnchor.constraint(equalTo: loadingOverlayHost.centerYAnchor),
-    ])
+    ]
+    NSLayoutConstraint.activate(loadingOverlayLayoutConstraints)
+  }
+
+  /// Removes loading chrome from the hierarchy until the next `setLoading(true)`.
+  func uninstallLoadingOverlayFromHierarchy() {
+    NSLayoutConstraint.deactivate(loadingOverlayLayoutConstraints)
+    loadingOverlayLayoutConstraints.removeAll()
+    loadingOverlayHost.removeFromSuperview()
   }
 
   func syncLoadingActivityIndicatorColor() {
