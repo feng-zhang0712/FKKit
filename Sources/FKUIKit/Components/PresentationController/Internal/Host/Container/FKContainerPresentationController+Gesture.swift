@@ -200,7 +200,6 @@ extension FKContainerPresentationController {
     // avoidance) before applying it so we do not compound translation with the new geometry.
     wrapperView.transform = .identity
     wrapperView.frame = frame
-    chromeView.frame = wrapperView.bounds
     layoutContentContainer()
     hostedPresentedView?.frame = contentContainerView.bounds
     applyContainerAppearance()
@@ -368,7 +367,6 @@ extension FKContainerPresentationController {
     let animations = {
       self.wrapperView.transform = .identity
       self.wrapperView.frame = targetFrame
-      self.chromeView.frame = self.wrapperView.bounds
       self.layoutContentContainer()
       self.hostedPresentedView?.frame = self.contentContainerView.bounds
       self.applyContainerAppearance()

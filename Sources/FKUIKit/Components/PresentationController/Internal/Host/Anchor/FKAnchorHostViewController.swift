@@ -3,7 +3,7 @@ import UIKit
 /// Internal view controller used by `FKAnchorHost`.
 ///
 /// Responsibilities:
-/// - Hosts the anchor presentation root view (mask/backdrop + chrome + content container)
+/// - Hosts the anchor presentation root view (mask/backdrop + content container)
 /// - Installs gestures (tap to dismiss, pan to dismiss)
 /// - Exposes a single layout update entry point
 @MainActor
@@ -26,7 +26,6 @@ final class FKAnchorHostViewController: UIViewController {
   private let configuration: FKPresentationConfiguration
 
   let contentContainerView = UIView()
-  let chromeView = UIView()
   /// Inner card that clips content to rounded corners (shadow lives on `wrapperView`, which must not clip).
   private let cardView = UIView()
   /// Optional blur material rendered behind anchor content (installed only when `configuration.containerBlur.isEnabled`).
@@ -85,11 +84,8 @@ final class FKAnchorHostViewController: UIViewController {
     }
 
     contentContainerView.backgroundColor = .clear
-    chromeView.backgroundColor = .clear
-    chromeView.isUserInteractionEnabled = false
 
     cardView.addSubview(contentContainerView)
-    cardView.addSubview(chromeView)
     wrapperView.addSubview(cardView)
     view.addSubview(wrapperView)
 
@@ -119,7 +115,6 @@ final class FKAnchorHostViewController: UIViewController {
     wrapperView.frame = layout.presentationFrame
     cardView.frame = wrapperView.bounds
     containerBlurView?.frame = cardView.bounds
-    chromeView.frame = cardView.bounds
     contentContainerView.frame = cardView.bounds.inset(by: UIEdgeInsets(configuration.contentInsets))
 
     // Corner strategy: keep the attached edge “straight” to avoid a modal-card feel.
@@ -271,7 +266,6 @@ final class FKAnchorHostViewController: UIViewController {
       let newFrame = frame(forHeight: newHeight, basedOn: panStartFrame, anchorLineY: currentLayout.anchorLineY, direction: currentLayout.direction)
       wrapperView.frame = newFrame
       cardView.frame = wrapperView.bounds
-      chromeView.frame = cardView.bounds
       contentContainerView.frame = cardView.bounds.inset(by: UIEdgeInsets(configuration.contentInsets))
       updateShadowPath(for: currentLayout.direction)
 
@@ -301,7 +295,6 @@ final class FKAnchorHostViewController: UIViewController {
         UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut, .allowUserInteraction]) {
           self.wrapperView.frame = self.panStartFrame
           self.cardView.frame = self.wrapperView.bounds
-          self.chromeView.frame = self.cardView.bounds
           self.contentContainerView.frame = self.cardView.bounds.inset(by: UIEdgeInsets(self.configuration.contentInsets))
           self.updateShadowPath(for: currentLayout.direction)
           self.maskView.alpha = 1

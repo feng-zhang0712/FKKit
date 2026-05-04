@@ -101,8 +101,9 @@ extension FKContainerPresentationController {
 
     if showsGrabber {
       if grabberView.superview == nil {
-        chromeView.addSubview(grabberView)
+        wrapperView.addSubview(grabberView)
       }
+      wrapperView.bringSubviewToFront(grabberView)
       grabberView.backgroundColor = UIColor.secondaryLabel.withAlphaComponent(0.35)
       grabberView.layer.cornerRadius = configuration.sheet.grabberSize.height / 2
       grabberView.isHidden = false

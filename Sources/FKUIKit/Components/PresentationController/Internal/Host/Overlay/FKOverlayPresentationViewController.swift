@@ -12,7 +12,6 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
   private let backdropView = FKPresentationBackdropView()
   private let wrapperView = UIView()
   private let contentContainerView = UIView()
-  private let chromeView = UIView()
 
   private lazy var tapToDismissGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapToDismiss(_:)))
   private lazy var panToDismissGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanToDismiss(_:)))
@@ -47,12 +46,9 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
     wrapperView.backgroundColor = .systemBackground
     wrapperView.addSubview(contentContainerView)
-    wrapperView.addSubview(chromeView)
 
     contentContainerView.backgroundColor = .clear
     contentContainerView.clipsToBounds = true
-    chromeView.backgroundColor = .clear
-    chromeView.isUserInteractionEnabled = false
 
     view.addSubview(wrapperView)
 
@@ -255,7 +251,6 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private func layoutContent() {
     contentContainerView.frame = wrapperView.bounds.inset(by: UIEdgeInsets(configuration.contentInsets))
-    chromeView.frame = wrapperView.bounds
     hostedContentView?.frame = contentContainerView.bounds
   }
 
