@@ -6,6 +6,8 @@ import FKCoreKit
 final class FKNetworkExampleViewController: UIViewController {
   private let scrollView = UIScrollView()
   private let contentStack = UIStackView()
+  /// Fixed log panel (same layout as `FKAsyncExampleViewController` / Permissions example).
+  private let logView = UITextView()
 
   private let reachabilitySimulator = FKNetworkExampleReachabilitySimulator()
   private let tokenStore = FKNetworkExampleTokenStore()
@@ -43,7 +45,7 @@ final class FKNetworkExampleViewController: UIViewController {
     super.viewDidLoad()
     title = "FKNetwork"
     view.backgroundColor = .systemBackground
-    setupScrollLayout()
+    buildLayout()
     buildDemoButtons()
     appendLog("FKNetwork examples ready. Uses JSONPlaceholder + HTTPBin; requires outbound network for live demos.")
   }
@@ -117,27 +119,40 @@ final class FKNetworkExampleViewController: UIViewController {
 
   // MARK: - Layout
 
-  private func setupScrollLayout() {
+  private func buildLayout() {
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.alwaysBounceVertical = true
-    view.addSubview(scrollView)
 
     contentStack.axis = .vertical
     contentStack.spacing = 8
     contentStack.translatesAutoresizingMaskIntoConstraints = false
+
+    logView.isEditable = false
+    logView.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+    logView.backgroundColor = .secondarySystemBackground
+    logView.layer.cornerRadius = 8
+    logView.translatesAutoresizingMaskIntoConstraints = false
+
+    view.addSubview(scrollView)
     scrollView.addSubview(contentStack)
+    view.addSubview(logView)
 
     NSLayoutConstraint.activate([
-      scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+      scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+      scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+      scrollView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.52),
 
-      contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 16),
-      contentStack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 16),
-      contentStack.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -16),
-      contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -16),
-      contentStack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
+      contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+      contentStack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+      contentStack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+      contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+      contentStack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+
+      logView.topAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: 8),
+      logView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+      logView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+      logView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
     ])
   }
 
@@ -187,17 +202,16 @@ final class FKNetworkExampleViewController: UIViewController {
     addSectionHeading("Controls")
     addActionButton("Cancel active data task / upload / download") { [weak self] in self?.cancelActiveTasks() }
     addActionButton("Clear log") { [weak self] in self?.clearLogs() }
-
-    let textView = makeLogTextView()
-    contentStack.addArrangedSubview(textView)
   }
 
   private func addSectionHeading(_ text: String) {
     let label = UILabel()
-    label.font = .preferredFont(forTextStyle: .headline)
+    label.font = .preferredFont(forTextStyle: .subheadline)
+    label.textColor = .secondaryLabel
     label.text = text
     label.numberOfLines = 0
     label.textAlignment = .natural
+    label.accessibilityTraits.insert(.header)
     contentStack.addArrangedSubview(label)
     contentStack.setCustomSpacing(12, after: label)
   }
@@ -260,21 +274,6 @@ final class FKNetworkExampleViewController: UIViewController {
     refreshToggleTitles()
     appendLog(mockModeEnabled ? "Mock mode enabled on JSONPlaceholder client (short-circuits transport when request.mockData is set)." : "Mock mode disabled.")
   }
-
-  private func makeLogTextView() -> UITextView {
-    let textView = UITextView()
-    textView.isEditable = false
-    textView.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
-    textView.backgroundColor = .secondarySystemBackground
-    textView.layer.cornerRadius = 10
-    textView.translatesAutoresizingMaskIntoConstraints = false
-    textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 220).isActive = true
-    return textView
-  }
-
-  private lazy var logTextView: UITextView? = {
-    contentStack.arrangedSubviews.compactMap { $0 as? UITextView }.first
-  }()
 
   // MARK: - JSONPlaceholder demos
 
@@ -549,7 +548,7 @@ final class FKNetworkExampleViewController: UIViewController {
   }
 
   private func clearLogs() {
-    logTextView?.text = ""
+    logView.text = ""
   }
 
   // MARK: - Logging helpers
@@ -557,11 +556,9 @@ final class FKNetworkExampleViewController: UIViewController {
   private func appendLog(_ message: String) {
     let prefix = DateFormatter.fkNetworkLogFormatter.string(from: Date())
     let line = "[\(prefix)] \(message)\n"
-    if let tv = logTextView {
-      tv.text.append(line)
-      let end = NSRange(location: max(tv.text.count - 1, 0), length: 1)
-      tv.scrollRangeToVisible(end)
-    }
+    logView.text.append(line)
+    let end = NSRange(location: max(logView.text.count - 1, 0), length: 1)
+    logView.scrollRangeToVisible(end)
   }
 
   private func describe<T>(_ result: Result<T, NetworkError>) -> String {

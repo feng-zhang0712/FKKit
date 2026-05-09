@@ -64,7 +64,7 @@ public final class FKPermissions: FKPermissionObserving {
     }
 
     let result = await handler.requestAuthorization(using: request)
-    cachedStatuses[request.kind] = result.status
+    // Let `notifyObserversIfNeeded` write `cachedStatuses` so `previous != latest` can be detected.
     notifyObserversIfNeeded(for: request.kind, latest: result.status)
     return result
   }
@@ -174,6 +174,7 @@ public final class FKPermissions: FKPermissionObserving {
     }
   }
 
+  /// Updates the status cache and notifies observers when `latest` differs from the last cached value.
   private func notifyObserversIfNeeded(for kind: FKPermissionKind, latest: FKPermissionStatus) {
     let previous = cachedStatuses[kind]
     cachedStatuses[kind] = latest

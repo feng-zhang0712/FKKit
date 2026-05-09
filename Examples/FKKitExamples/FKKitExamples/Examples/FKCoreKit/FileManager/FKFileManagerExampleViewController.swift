@@ -349,19 +349,25 @@ final class FKFileManagerExampleViewController: UIViewController {
   @objc private func demoReadWriteClosure() {
     let url = demoDirectoryURL().appendingPathComponent("closure-note.txt")
     manager.writeContent(.text("Written via completion handler"), to: url) { [weak self] writeResult in
-      switch writeResult {
-      case .success:
-        self?.appendOutput("[writeContent completion] success")
-        self?.manager.readText(from: url) { readResult in
-          switch readResult {
-          case let .success(text):
-            self?.appendOutput("[readText completion] \(text)")
-          case let .failure(err):
-            self?.appendOutput("[readText completion] \(err.localizedDescription)")
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        switch writeResult {
+        case .success:
+          self.appendOutput("[writeContent completion] success")
+          self.manager.readText(from: url) { readResult in
+            Task { @MainActor [weak self] in
+              guard let self else { return }
+              switch readResult {
+              case let .success(text):
+                self.appendOutput("[readText completion] \(text)")
+              case let .failure(err):
+                self.appendOutput("[readText completion] \(err.localizedDescription)")
+              }
+            }
           }
+        case let .failure(err):
+          self.appendOutput("[writeContent completion] \(err.localizedDescription)")
         }
-      case let .failure(err):
-        self?.appendOutput("[writeContent completion] \(err.localizedDescription)")
       }
     }
   }
@@ -644,12 +650,15 @@ final class FKFileManagerExampleViewController: UIViewController {
       self.manager.download(req, completion: completion)
     }
     starter(request) { [weak self] result in
-      switch result {
-      case let .success(taskID):
-        self?.activeDownloadTaskID = taskID
-        self?.appendOutput("[FKFileManager+Convenience download] taskID=\(taskID)")
-      case let .failure(err):
-        self?.appendOutput("[FKFileManager+Convenience download] \(err.localizedDescription)")
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        switch result {
+        case let .success(taskID):
+          self.activeDownloadTaskID = taskID
+          self.appendOutput("[FKFileManager+Convenience download] taskID=\(taskID)")
+        case let .failure(err):
+          self.appendOutput("[FKFileManager+Convenience download] \(err.localizedDescription)")
+        }
       }
     }
   }
