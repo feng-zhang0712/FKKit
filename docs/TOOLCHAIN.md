@@ -26,4 +26,14 @@ xcrun swift --version
 ./scripts/verify-podspec-versions.sh   # optional; CI runs this too
 ```
 
-Then build/test the package the same way CI does (`FKKit-Package` scheme, iOS Simulator).
+Then build/test the package the same way CI does (`FKKit-Package` scheme, iOS Simulator):
+
+```bash
+xcodebuild -scheme FKKit-Package \
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -derivedDataPath /tmp/FKKit-DD \
+  CODE_SIGNING_ALLOWED=NO \
+  test
+```
+
+CI uses that **name-based** destination so `xcodebuild` resolves a valid simulator for the active Xcode (avoiding exit **70** from a mismatched UDID when multiple iOS runtimes are installed).

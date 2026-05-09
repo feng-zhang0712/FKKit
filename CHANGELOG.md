@@ -15,7 +15,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 ### Changed (CI / docs)
 
 - **`.github/workflows/ci.yml`**: use **`macos-15`** and pin **`xcode-version: '16.2'`** instead of `latest-stable`.
-- **`docs/TOOLCHAIN.md`**: documents minimum Xcode and why CI pins it; **`README.md`** links to it.
+- **`.github/workflows/ci.yml`**: use **`xcodebuild -destination 'platform=iOS Simulator,name=iPhone 16'`** instead of a UDID from **`pick_iphone_simulator_udid.py`** — avoids **exit code 70** when CoreSimulator runtimes overlap across Xcode installs.
+- **`docs/TOOLCHAIN.md`**: documents minimum Xcode and why CI pins it; **`README.md`** links to it; local **`xcodebuild`** example matches CI.
 
 ### Planned
 
