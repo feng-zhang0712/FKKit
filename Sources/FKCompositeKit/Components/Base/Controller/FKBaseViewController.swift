@@ -422,17 +422,15 @@ open class FKBaseViewController: UIViewController {
       object: nil,
       queue: .main
     ) { [weak self] notification in
-      guard
-        let self,
-        let userInfo = notification.userInfo,
-        let frame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
-      else {
-        return
-      }
-      let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
-      let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
+      let userInfo = notification.userInfo
+      let frame = (userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
+      let duration = (userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
+      let curveRaw = (userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
       let curve = UIView.AnimationCurve(rawValue: curveRaw) ?? .easeInOut
-      self.keyboardWillChange(to: frame, duration: duration, curve: curve)
+      guard let self, let frame else { return }
+      MainActor.assumeIsolated {
+        self.keyboardWillChange(to: frame, duration: duration, curve: curve)
+      }
     }
 
     let willHide = center.addObserver(
@@ -440,12 +438,14 @@ open class FKBaseViewController: UIViewController {
       object: nil,
       queue: .main
     ) { [weak self] notification in
-      guard let self else { return }
       let userInfo = notification.userInfo
       let duration = (userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
       let curveRaw = (userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
       let curve = UIView.AnimationCurve(rawValue: curveRaw) ?? .easeInOut
-      self.keyboardWillHide(duration: duration, curve: curve)
+      guard let self else { return }
+      MainActor.assumeIsolated {
+        self.keyboardWillHide(duration: duration, curve: curve)
+      }
     }
 
     keyboardObservers = [willChange, willHide]
@@ -454,7 +454,9 @@ open class FKBaseViewController: UIViewController {
   private func stopKeyboardObservationIfNeeded() {
     guard !keyboardObservers.isEmpty else { return }
     let center = NotificationCenter.default
-    keyboardObservers.forEach(center.removeObserver)
+    for token in keyboardObservers {
+      center.removeObserver(token)
+    }
     keyboardObservers.removeAll()
   }
 

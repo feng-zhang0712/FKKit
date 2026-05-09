@@ -135,11 +135,13 @@ public final class FKBlurView: UIView {
     }
   }
 
-  /// Prepares the view for rendering inside Interface Builder.
+  /// Prepares the view for rendering inside Interface Builder (always invoked on the main thread).
   public override func prepareForInterfaceBuilder() {
     super.prepareForInterfaceBuilder()
-    syncFromIB()
-    applyConfiguration()
+    MainActor.assumeIsolated {
+      syncFromIB()
+      applyConfiguration()
+    }
   }
 
   public override func didMoveToWindow() {
@@ -215,7 +217,9 @@ public final class FKBlurView: UIView {
       object: nil,
       queue: .main
     ) { [weak self] _ in
-      self?.handleReduceTransparencyStatusChanged()
+      MainActor.assumeIsolated {
+        self?.handleReduceTransparencyStatusChanged()
+      }
     }
 
     // Default: show system path until config applied.

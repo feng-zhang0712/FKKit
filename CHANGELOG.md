@@ -4,6 +4,19 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Fixed (Swift concurrency — Xcode 16.2 / Swift 6.0)
+
+- **UIKit extensions**: avoid `forEach(methodReference)` for `addSubview` / `addArrangedSubview` (`UIView`, `UIStackView`).
+- **`FKBlurView` / `FKButton`**: `prepareForInterfaceBuilder` and Reduce Transparency notification use **`MainActor.assumeIsolated`** where UIKit invokes handlers on the main thread but the closure is still `nonisolated`.
+- **`FKBaseViewController`**: keyboard `NotificationCenter` callbacks extract **`CGRect` / animation metadata** before entering the main actor; replace `forEach(center.removeObserver)` with an explicit loop.
+- **`UIViewController+FKEmptyState`**: build a **`Sendable`** `FKEmptyStateAction` before invoking the handler on the main actor (avoid capturing `Notification` across isolation).
+- **`FKFilterPanelHeightBehavior`**: mark **`resolvedHeight(for:)`** as **`@MainActor`** because it reads **`UIScreen`** (main-actor isolated in current SDKs).
+
+### Changed (CI / docs)
+
+- **`.github/workflows/ci.yml`**: use **`macos-15`** and pin **`xcode-version: '16.2'`** instead of `latest-stable`.
+- **`docs/TOOLCHAIN.md`**: documents minimum Xcode and why CI pins it; **`README.md`** links to it.
+
 ### Planned
 
 - Optional: Example app under `Examples/` (depending on this package locally)

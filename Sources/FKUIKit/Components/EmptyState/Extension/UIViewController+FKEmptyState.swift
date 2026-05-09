@@ -30,12 +30,16 @@ public extension UIViewController {
       object: source,
       queue: .main
     ) { note in
-      guard let id = note.userInfo?[FKEmptyStateNotificationKeys.id] as? String else { return }
-      let kindRaw = (note.userInfo?[FKEmptyStateNotificationKeys.kind] as? String) ?? FKEmptyStateActionKind.primary.rawValue
+      guard let userInfo = note.userInfo else { return }
+      guard let id = userInfo[FKEmptyStateNotificationKeys.id] as? String else { return }
+      let kindRaw = (userInfo[FKEmptyStateNotificationKeys.kind] as? String) ?? FKEmptyStateActionKind.primary.rawValue
       let kind = FKEmptyStateActionKind(rawValue: kindRaw) ?? .primary
-      let title = (note.userInfo?[FKEmptyStateNotificationKeys.title] as? String) ?? ""
-      let payload = (note.userInfo?[FKEmptyStateNotificationKeys.payload] as? [String: String]) ?? [:]
-      handlerBox.handler(FKEmptyStateAction(id: id, title: title, kind: kind, payload: payload))
+      let title = (userInfo[FKEmptyStateNotificationKeys.title] as? String) ?? ""
+      let payload = (userInfo[FKEmptyStateNotificationKeys.payload] as? [String: String]) ?? [:]
+      let action = FKEmptyStateAction(id: id, title: title, kind: kind, payload: payload)
+      MainActor.assumeIsolated {
+        handlerBox.handler(action)
+      }
     }
     objc_setAssociatedObject(self, &FKEmptyStateActionObserverKeys.token, token, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
   }

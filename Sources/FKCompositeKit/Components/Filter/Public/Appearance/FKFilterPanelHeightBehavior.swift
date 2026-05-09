@@ -14,6 +14,8 @@ public enum FKFilterPanelHeightBehavior: Sendable {
   /// Use a fraction of screen height. You may still clamp via min/max.
   case screenFraction(CGFloat, minimum: CGFloat = 80, maximum: CGFloat? = nil)
 
+  /// Must run on the main actor because it reads ``UIScreen`` geometry (main-actor isolated in current SDKs).
+  @MainActor
   func resolvedHeight(for estimatedContentHeight: CGFloat) -> CGFloat {
     switch self {
     case let .automatic(minimum, screenMinimumFraction, maximumScreenFraction):

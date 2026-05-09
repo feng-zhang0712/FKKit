@@ -4,7 +4,7 @@ import UIKit
 public extension UIView {
   /// Adds multiple subviews in declaration order.
   func fk_addSubviews(_ views: UIView...) {
-    views.forEach(addSubview)
+    views.forEach { addSubview($0) }
   }
 
   /// Walks the responder chain and returns the first `UIViewController`, if any.

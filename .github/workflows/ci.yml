@@ -24,7 +24,8 @@ permissions:
 jobs:
   ios-spm:
     name: Build & test (iOS Simulator / SPM)
-    runs-on: macos-latest
+    # Pin the runner image + Xcode that matches our documented minimum (see docs/TOOLCHAIN.md).
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,7 +36,8 @@ jobs:
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          # Oldest supported Xcode for FKKit consumers (Swift 6.0); avoids “green on latest only”.
+          xcode-version: '16.2'
 
       - name: Build and test FKKit-Package (iOS Simulator)
         run: |

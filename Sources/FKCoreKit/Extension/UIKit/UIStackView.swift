@@ -13,7 +13,7 @@ public extension UIStackView {
   /// Replaces the arranged subviews with `views`, preserving the stack’s axis and spacing.
   func fk_setArrangedSubviews(_ views: [UIView]) {
     fk_removeAllArrangedSubviews()
-    views.forEach(addArrangedSubview)
+    views.forEach { addArrangedSubview($0) }
   }
 }
 

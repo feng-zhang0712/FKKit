@@ -141,6 +141,7 @@ This module keeps **deep docs next to sources** (`README.md` per major folder); 
 ## Requirements
 - **iOS 15.0+** (declared in `Package.swift`; all package products are **iOS-only**)
 - Swift toolchain **6.0+** / **Xcode 16.2+** (`swift-tools-version` in `Package.swift` is **6.0** so SPM resolves on Xcode 16.2; newer Xcode remains supported)
+- **CI** builds/tests with **Xcode 16.2** so releases stay compatible with that baseline — see **`docs/TOOLCHAIN.md`**
 
 ## Installation (SPM)
 
