@@ -1,16 +1,14 @@
 import Foundation
 
-public extension FKFileManager {
-  /// Closure-based convenience for creating a directory.
-  func createDirectory(
-    at url: URL,
-    intermediate: Bool = true,
-    completion: @escaping @Sendable (Result<Void, FKFileManagerError>) -> Void
+private extension FKFileManager {
+  /// Runs async `FKFileManager` work and delivers `Result` on the main actor (matches `async` overload semantics).
+  func deliverResult<T: Sendable>(
+    _ work: @escaping @Sendable () async throws -> T,
+    completion: @escaping @Sendable (Result<T, FKFileManagerError>) -> Void
   ) {
     Task { @MainActor in
       do {
-        try await createDirectory(at: url, intermediate: intermediate)
-        completion(.success(()))
+        completion(.success(try await work()))
       } catch let error as FKFileManagerError {
         completion(.failure(error))
       } catch {
@@ -18,22 +16,24 @@ public extension FKFileManager {
       }
     }
   }
+}
+
+public extension FKFileManager {
+  /// Closure-based convenience for creating a directory.
+  func createDirectory(
+    at url: URL,
+    intermediate: Bool = true,
+    completion: @escaping @Sendable (Result<Void, FKFileManagerError>) -> Void
+  ) {
+    deliverResult({ try await self.createDirectory(at: url, intermediate: intermediate) }, completion: completion)
+  }
 
   /// Closure-based convenience for deleting a file or directory.
   func removeItem(
     at url: URL,
     completion: @escaping @Sendable (Result<Void, FKFileManagerError>) -> Void
   ) {
-    Task { @MainActor in
-      do {
-        try await removeItem(at: url)
-        completion(.success(()))
-      } catch let error as FKFileManagerError {
-        completion(.failure(error))
-      } catch {
-        completion(.failure(.unknown(error.localizedDescription)))
-      }
-    }
+    deliverResult({ try await self.removeItem(at: url) }, completion: completion)
   }
 
   /// Closure-based convenience for writing content.
@@ -43,16 +43,7 @@ public extension FKFileManager {
     atomically: Bool = true,
     completion: @escaping @Sendable (Result<Void, FKFileManagerError>) -> Void
   ) {
-    Task { @MainActor in
-      do {
-        try await writeContent(content, to: url, atomically: atomically)
-        completion(.success(()))
-      } catch let error as FKFileManagerError {
-        completion(.failure(error))
-      } catch {
-        completion(.failure(.unknown(error.localizedDescription)))
-      }
-    }
+    deliverResult({ try await self.writeContent(content, to: url, atomically: atomically) }, completion: completion)
   }
 
   /// Closure-based convenience for reading Data.
@@ -60,15 +51,7 @@ public extension FKFileManager {
     from url: URL,
     completion: @escaping @Sendable (Result<Data, FKFileManagerError>) -> Void
   ) {
-    Task { @MainActor in
-      do {
-        completion(.success(try await readData(from: url)))
-      } catch let error as FKFileManagerError {
-        completion(.failure(error))
-      } catch {
-        completion(.failure(.unknown(error.localizedDescription)))
-      }
-    }
+    deliverResult({ try await self.readData(from: url) }, completion: completion)
   }
 
   /// Closure-based convenience for reading text.
@@ -77,15 +60,7 @@ public extension FKFileManager {
     encoding: String.Encoding = .utf8,
     completion: @escaping @Sendable (Result<String, FKFileManagerError>) -> Void
   ) {
-    Task { @MainActor in
-      do {
-        completion(.success(try await readText(from: url, encoding: encoding)))
-      } catch let error as FKFileManagerError {
-        completion(.failure(error))
-      } catch {
-        completion(.failure(.unknown(error.localizedDescription)))
-      }
-    }
+    deliverResult({ try await self.readText(from: url, encoding: encoding) }, completion: completion)
   }
 
   /// Closure-based convenience for writing codable model.
@@ -94,16 +69,7 @@ public extension FKFileManager {
     to url: URL,
     completion: @escaping @Sendable (Result<Void, FKFileManagerError>) -> Void
   ) {
-    Task { @MainActor in
-      do {
-        try await writeModel(model, to: url)
-        completion(.success(()))
-      } catch let error as FKFileManagerError {
-        completion(.failure(error))
-      } catch {
-        completion(.failure(.unknown(error.localizedDescription)))
-      }
-    }
+    deliverResult({ try await self.writeModel(model, to: url) }, completion: completion)
   }
 
   /// Closure-based convenience for reading codable model.
@@ -112,15 +78,7 @@ public extension FKFileManager {
     from url: URL,
     completion: @escaping @Sendable (Result<T, FKFileManagerError>) -> Void
   ) {
-    Task { @MainActor in
-      do {
-        completion(.success(try await readModel(type, from: url)))
-      } catch let error as FKFileManagerError {
-        completion(.failure(error))
-      } catch {
-        completion(.failure(.unknown(error.localizedDescription)))
-      }
-    }
+    deliverResult({ try await self.readModel(type, from: url) }, completion: completion)
   }
 
   /// Closure-based convenience for starting a download task.
@@ -128,15 +86,7 @@ public extension FKFileManager {
     _ request: FKDownloadRequest,
     completion: @escaping @Sendable (Result<Int, FKFileManagerError>) -> Void
   ) {
-    Task { @MainActor in
-      do {
-        completion(.success(try await download(request)))
-      } catch let error as FKFileManagerError {
-        completion(.failure(error))
-      } catch {
-        completion(.failure(.unknown(error.localizedDescription)))
-      }
-    }
+    deliverResult({ try await self.download(request) }, completion: completion)
   }
 
   /// Closure-based convenience for starting an upload task.
@@ -144,14 +94,6 @@ public extension FKFileManager {
     _ request: FKUploadRequest,
     completion: @escaping @Sendable (Result<Int, FKFileManagerError>) -> Void
   ) {
-    Task { @MainActor in
-      do {
-        completion(.success(try await upload(request)))
-      } catch let error as FKFileManagerError {
-        completion(.failure(error))
-      } catch {
-        completion(.failure(.unknown(error.localizedDescription)))
-      }
-    }
+    deliverResult({ try await self.upload(request) }, completion: completion)
   }
 }

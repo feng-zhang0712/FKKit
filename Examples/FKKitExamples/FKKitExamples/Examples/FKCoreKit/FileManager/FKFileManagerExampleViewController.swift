@@ -1,38 +1,38 @@
 import FKCoreKit
+import QuickLook
 import UIKit
 
-/// Interactive and copy-ready demo for FKFileManager.
-/// Each button maps to one production-ready usage scenario.
+/// Interactive catalog of **every** `FKFileManager` surface: sandbox URLs, CRUD, content I/O (async + closure),
+/// directory utilities, disk checks, downloads (foreground/background, pause/resume/cancel), uploads, transfer
+/// bookkeeping, and iOS helpers (`makeShareController`, `makePreviewController`).
 final class FKFileManagerExampleViewController: UIViewController {
-  // MARK: - UI
-
   private let scrollView = UIScrollView()
   private let stackView = UIStackView()
   private let outputView = UITextView()
 
-  // MARK: - State
-
   private let manager = FKFileManager.shared
+
+  /// Tracks the latest download task identifier (note: `resumeDownload` may replace the system task id).
   private var activeDownloadTaskID: Int?
 
-  // MARK: - Lifecycle
+  /// Hold strongly while `QLPreviewController` is visible.
+  private var quickLookDataSource: QLPreviewControllerDataSource?
 
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "FKFileManager"
     view.backgroundColor = .systemBackground
     buildLayout()
-    appendOutput("FKFileManager example loaded.")
+    appendOutput("Loaded. Scroll for grouped demos; the log explains each API.")
   }
 
   // MARK: - Layout
 
   private func buildLayout() {
     scrollView.translatesAutoresizingMaskIntoConstraints = false
-
     stackView.translatesAutoresizingMaskIntoConstraints = false
     stackView.axis = .vertical
-    stackView.spacing = 8
+    stackView.spacing = 6
 
     outputView.translatesAutoresizingMaskIntoConstraints = false
     outputView.isEditable = false
@@ -40,30 +40,119 @@ final class FKFileManagerExampleViewController: UIViewController {
     outputView.backgroundColor = .secondarySystemBackground
     outputView.layer.cornerRadius = 8
 
-    let actions: [(String, Selector)] = [
-      ("1) Get Sandbox Directories", #selector(demoSandboxDirectories)),
-      ("2) File Operations (Create/Delete/Move/Rename)", #selector(demoFileOperations)),
-      ("3) Read/Write Text + JSON + Codable (async)", #selector(demoReadWriteAsync)),
-      ("4) Read/Write via Closure Callback", #selector(demoReadWriteClosure)),
-      ("5) Write Image Data", #selector(demoWriteImage)),
-      ("6) Breakpoint Download Start", #selector(demoStartDownload)),
-      ("7) Download Pause", #selector(demoPauseDownload)),
-      ("8) Download Resume", #selector(demoResumeDownload)),
-      ("9) Download Cancel", #selector(demoCancelDownload)),
-      ("10) Single File Upload", #selector(demoSingleUpload)),
-      ("11) Multi File Upload", #selector(demoMultiUpload)),
-      ("12) Cache Size + Clean Cache", #selector(demoCacheOperations)),
-      ("13) Zip Compress + Decompress", #selector(demoZipOperations)),
-      ("14) Check Exists + File Info", #selector(demoFileInfo)),
-      ("Clear On-screen Output", #selector(clearOutput)),
+    let sections: [(title: String, rows: [(String, Selector)])] = [
+      (
+        "1. Sandbox — directoryURL(_:)",
+        [
+          ("Print .home, .documents, .caches, .temporary", #selector(demoSandboxAllDirectories)),
+        ]
+      ),
+      (
+        "2. File operations — async (create / write / copy / move / rename / remove)",
+        [
+          ("Full pipeline on disk under Documents", #selector(demoFilePipelineAsync)),
+          ("copyItem only (duplicate a demo file)", #selector(demoCopyItemOnly)),
+          ("removeItem only (delete one demo file)", #selector(demoRemoveItemOnly)),
+        ]
+      ),
+      (
+        "3. File operations — closure conveniences",
+        [
+          ("createDirectory(at:intermediate:completion:)", #selector(demoCreateDirectoryClosure)),
+          ("removeItem(at:completion:)", #selector(demoRemoveItemClosure)),
+        ]
+      ),
+      (
+        "4. Content I/O — async/await",
+        [
+          ("writeContent .text / .jsonObject, readText, readData", #selector(demoReadWriteStructuredAsync)),
+          ("writeModel / readModel (Codable)", #selector(demoCodableAsync)),
+        ]
+      ),
+      (
+        "5. Content I/O — closure conveniences",
+        [
+          ("writeContent + readText (completion)", #selector(demoReadWriteClosure)),
+          ("readData + readModel (completion)", #selector(demoReadDataAndModelClosure)),
+        ]
+      ),
+      (
+        "6. Binary & typing helpers",
+        [
+          ("writeContent .data (PNG) + isImageFile(_:)", #selector(demoWriteImageAndMime)),
+        ]
+      ),
+      (
+        "7. Directory utilities",
+        [
+          ("enumerateFiles (default options)", #selector(demoEnumerateDefault)),
+          ("enumerateFiles (only .txt, non-recursive)", #selector(demoEnumerateFiltered)),
+          ("directorySize under demo folder", #selector(demoDirectorySize)),
+          ("clearCaches + log directorySize of Caches", #selector(demoClearCaches)),
+          ("clearTemporaryFiles", #selector(demoClearTemporaryFiles)),
+        ]
+      ),
+      (
+        "8. ZIP (placeholders)",
+        [
+          ("zipItem / unzipItem (expect zipUnavailable on current build)", #selector(demoZipPlaceholders)),
+        ]
+      ),
+      (
+        "9. Metadata & disk",
+        [
+          ("exists + fileInfo", #selector(demoExistsAndFileInfo)),
+          ("ensureSufficientDiskSpace()", #selector(demoEnsureDiskSpace)),
+        ]
+      ),
+      (
+        "10. Download — URLSession tasks",
+        [
+          ("download (background) + progress + completion → store taskID", #selector(demoStartBackgroundDownload)),
+          ("download (foreground, allowsBackground: false)", #selector(demoStartForegroundDownload)),
+          ("download async + nil progress + completion (overload disambiguation)", #selector(demoDownloadClosureOnly)),
+          ("Extension download(_:completion:) → Result<Int,>", #selector(demoExtensionDownloadIntOnly)),
+          ("pauseDownload(taskID:)", #selector(demoPauseDownload)),
+          ("resumeDownload(taskID:) (refreshes tracked id)", #selector(demoResumeDownload)),
+          ("cancel(taskID:) download", #selector(demoCancelDownload)),
+        ]
+      ),
+      (
+        "11. Upload — multipart",
+        [
+          ("upload async + progress + completion (single file)", #selector(demoSingleUpload)),
+          ("upload async + nil progress + completion (multi-part)", #selector(demoMultiUploadClosure)),
+          ("Extension upload(_:completion:) → Result<Int,>", #selector(demoExtensionUploadIntOnly)),
+        ]
+      ),
+      (
+        "12. Global transfer control",
+        [
+          ("cancelAll()", #selector(demoCancelAllTransfers)),
+          ("persistedTransfers()", #selector(demoPersistedTransfers)),
+        ]
+      ),
+      (
+        "13. iOS helpers",
+        [
+          ("makeShareController (UIActivityViewController)", #selector(demoPresentShareSheet)),
+          ("makePreviewController (QLPreviewController)", #selector(demoPresentQuickLook)),
+        ]
+      ),
+      (
+        "14. Output",
+        [
+          ("Clear log", #selector(clearOutput)),
+        ]
+      ),
     ]
 
-    for (title, selector) in actions {
-      let button = UIButton(type: .system)
-      button.setTitle(title, for: .normal)
-      button.contentHorizontalAlignment = .left
-      button.addTarget(self, action: selector, for: .touchUpInside)
-      stackView.addArrangedSubview(button)
+    for section in sections {
+      stackView.addArrangedSubview(makeSectionTitle(section.title))
+      for row in section.rows {
+        stackView.addArrangedSubview(makeButton(title: row.0, action: row.1))
+      }
+      stackView.setCustomSpacing(14, after: stackView.arrangedSubviews.last!)
     }
 
     view.addSubview(scrollView)
@@ -74,7 +163,7 @@ final class FKFileManagerExampleViewController: UIViewController {
       scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
       scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
       scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-      scrollView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.54),
+      scrollView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.52),
 
       stackView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
       stackView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
@@ -89,55 +178,132 @@ final class FKFileManagerExampleViewController: UIViewController {
     ])
   }
 
-  // MARK: - 1) Get Sandbox Directories
-
-  @objc private func demoSandboxDirectories() {
-    let documents = manager.directoryURL(.documents)
-    let caches = manager.directoryURL(.caches)
-    let temporary = manager.directoryURL(.temporary)
-    appendOutput("Documents: \(documents.path)")
-    appendOutput("Caches: \(caches.path)")
-    appendOutput("Tmp: \(temporary.path)")
+  private func makeSectionTitle(_ text: String) -> UILabel {
+    let label = UILabel()
+    label.text = text
+    label.font = .preferredFont(forTextStyle: .subheadline)
+    label.textColor = .secondaryLabel
+    label.numberOfLines = 0
+    label.accessibilityTraits.insert(.header)
+    return label
   }
 
-  // MARK: - 2) File Operations
+  private func makeButton(title: String, action: Selector) -> UIButton {
+    let button = UIButton(type: .system)
+    button.setTitle(title, for: .normal)
+    button.titleLabel?.numberOfLines = 0
+    button.titleLabel?.textAlignment = .left
+    button.contentHorizontalAlignment = .leading
+    button.addTarget(self, action: action, for: .touchUpInside)
+    return button
+  }
 
-  @objc private func demoFileOperations() {
+  // MARK: - 1) Sandbox
+
+  @objc private func demoSandboxAllDirectories() {
+    appendOutput("[directoryURL] Resolving standard locations:")
+    appendOutput("  .home -> \(manager.directoryURL(.home).path)")
+    appendOutput("  .documents -> \(manager.directoryURL(.documents).path)")
+    appendOutput("  .caches -> \(manager.directoryURL(.caches).path)")
+    appendOutput("  .temporary -> \(manager.directoryURL(.temporary).path)")
+  }
+
+  // MARK: - 2) File ops async
+
+  @objc private func demoFilePipelineAsync() {
     Task { @MainActor [weak self] in
       guard let self else { return }
       do {
-        let docs = self.manager.directoryURL(.documents)
-        let demoDir = docs.appendingPathComponent("FKFileManagerDemo", isDirectory: true)
-        let source = demoDir.appendingPathComponent("source.txt")
-        let moved = demoDir.appendingPathComponent("moved.txt")
-
+        let demoDir = self.demoDirectoryURL()
+        let source = demoDir.appendingPathComponent("pipeline-source.txt")
+        let moved = demoDir.appendingPathComponent("pipeline-moved.txt")
         try await self.manager.createDirectory(at: demoDir, intermediate: true)
-        try await self.manager.writeContent(.text("Initial content"), to: source)
+        try await self.manager.writeContent(.text("pipeline"), to: source)
         try await self.manager.moveItem(from: source, to: moved)
-        let renamed = try await self.manager.renameItem(at: moved, newName: "renamed.txt")
+        let renamed = try await self.manager.renameItem(at: moved, newName: "pipeline-renamed.txt")
         try await self.manager.removeItem(at: renamed)
-        appendOutput("File operations completed successfully.")
+        appendOutput("[createDirectory, writeContent, moveItem, renameItem, removeItem] Pipeline OK -> \(renamed.deletingLastPathComponent().path)")
       } catch {
-        appendOutput("File operations failed: \(error.localizedDescription)")
+        appendOutput("Pipeline error: \(error.localizedDescription)")
       }
     }
   }
 
-  // MARK: - 3) Read/Write Text/JSON/Codable (async/await)
-
-  @objc private func demoReadWriteAsync() {
+  @objc private func demoCopyItemOnly() {
     Task { @MainActor [weak self] in
       guard let self else { return }
       do {
-        let docs = self.manager.directoryURL(.documents)
-        let folder = docs.appendingPathComponent("FKFileManagerDemo", isDirectory: true)
-        try await self.manager.createDirectory(at: folder, intermediate: true)
+        let demoDir = self.demoDirectoryURL()
+        try await self.manager.createDirectory(at: demoDir, intermediate: true)
+        let original = demoDir.appendingPathComponent("copy-original.txt")
+        let duplicate = demoDir.appendingPathComponent("copy-duplicate.txt")
+        try await self.manager.writeContent(.text("copy source"), to: original)
+        if self.manager.exists(at: duplicate) { try await self.manager.removeItem(at: duplicate) }
+        try await self.manager.copyItem(from: original, to: duplicate)
+        appendOutput("[copyItem] duplicate bytes: \(try await self.manager.readData(from: duplicate).count)")
+      } catch {
+        appendOutput("copyItem error: \(error.localizedDescription)")
+      }
+    }
+  }
 
+  @objc private func demoRemoveItemOnly() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let url = self.demoDirectoryURL().appendingPathComponent("removal-target.txt")
+        try await self.manager.createDirectory(at: url.deletingLastPathComponent(), intermediate: true)
+        try await self.manager.writeContent(.text("delete me"), to: url)
+        try await self.manager.removeItem(at: url)
+        appendOutput("[removeItem] removed \(url.lastPathComponent); exists=\(self.manager.exists(at: url))")
+      } catch {
+        appendOutput("removeItem error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  // MARK: - 3) Closure file ops
+
+  @objc private func demoCreateDirectoryClosure() {
+    let url = demoDirectoryURL().appendingPathComponent("ClosureSubfolder", isDirectory: true)
+    manager.createDirectory(at: url, intermediate: true) { [weak self] result in
+      switch result {
+      case .success:
+        self?.appendOutput("[createDirectory completion] Created \(url.lastPathComponent)")
+      case let .failure(err):
+        self?.appendOutput("[createDirectory completion] \(err.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoRemoveItemClosure() {
+    let url = demoDirectoryURL().appendingPathComponent("closure-removal.txt")
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      try? await self.manager.writeContent(.text("temp"), to: url)
+      self.manager.removeItem(at: url) { [weak self] result in
+        switch result {
+        case .success:
+          self?.appendOutput("[removeItem completion] Removed closure-removal.txt")
+        case let .failure(err):
+          self?.appendOutput("[removeItem completion] \(err.localizedDescription)")
+        }
+      }
+    }
+  }
+
+  // MARK: - 4) Async content
+
+  @objc private func demoReadWriteStructuredAsync() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let folder = self.demoDirectoryURL()
+        try await self.manager.createDirectory(at: folder, intermediate: true)
         let textURL = folder.appendingPathComponent("note.txt")
         try await self.manager.writeContent(.text("Hello FKFileManager"), to: textURL)
         let text = try await self.manager.readText(from: textURL)
-        appendOutput("Text read: \(text)")
-
+        appendOutput("[readText] \(text)")
         let jsonURL = folder.appendingPathComponent("sample.json")
         try await self.manager.writeContent(
           .jsonObject([
@@ -147,309 +313,579 @@ final class FKFileManagerExampleViewController: UIViewController {
           ]),
           to: jsonURL
         )
-        let jsonData = try await self.manager.readData(from: jsonURL)
-        appendOutput("JSON bytes: \(jsonData.count)")
-
-        let modelURL = folder.appendingPathComponent("profile.json")
-        let profile = FKPersistedTransfer(
-          id: 1001,
-          kind: .upload,
-          state: .running,
-          sourceURL: URL(string: "https://example.com/file.txt")!,
-          destinationPath: folder.path,
-          updatedAt: Date()
-        )
-        try await self.manager.writeModel(profile, to: modelURL)
-        let loaded: FKPersistedTransfer = try await self.manager.readModel(FKPersistedTransfer.self, from: modelURL)
-        appendOutput("Codable model read: \(loaded)")
+        let bytes = try await self.manager.readData(from: jsonURL)
+        appendOutput("[readData] JSON byte count: \(bytes.count)")
       } catch {
-        appendOutput("Read/write async failed: \(error.localizedDescription)")
+        appendOutput("Structured read/write error: \(error.localizedDescription)")
       }
     }
   }
 
-  // MARK: - 4) Closure callback usage
-
-  @objc private func demoReadWriteClosure() {
-    let docs = manager.directoryURL(.documents)
-    let url = docs.appendingPathComponent("FKFileManagerDemo/closure.txt")
-
-    manager.writeContent(.text("Written by closure API"), to: url, completion: { [weak self] writeResult in
+  @objc private func demoCodableAsync() {
+    Task { @MainActor [weak self] in
       guard let self else { return }
-      switch writeResult {
-      case .success:
-        self.appendOutput("Closure write succeeded.")
-        Task { @MainActor [weak self] in
-          guard let self else { return }
-          self.manager.readText(from: url, completion: { [weak self] readResult in
-            guard let self else { return }
-            switch readResult {
-            case let .success(text):
-              self.appendOutput("Closure read text: \(text)")
-            case let .failure(error):
-              self.appendOutput("Closure read failed: \(error.localizedDescription)")
-            }
-          })
-        }
-      case let .failure(error):
-        self.appendOutput("Closure write failed: \(error.localizedDescription)")
+      do {
+        let url = self.demoDirectoryURL().appendingPathComponent("profile.json")
+        try await self.manager.createDirectory(at: url.deletingLastPathComponent(), intermediate: true)
+        let original = FKPersistedTransfer(
+          id: 9_001,
+          kind: .upload,
+          state: .running,
+          sourceURL: URL(string: "https://example.com/demo.bin")!,
+          destinationPath: self.demoDirectoryURL().path,
+          updatedAt: Date()
+        )
+        try await self.manager.writeModel(original, to: url)
+        let loaded = try await self.manager.readModel(FKPersistedTransfer.self, from: url)
+        appendOutput("[writeModel/readModel] id=\(loaded.id) kind=\(loaded.kind) state=\(loaded.state)")
+      } catch {
+        appendOutput("Codable error: \(error.localizedDescription)")
       }
-    })
+    }
   }
 
-  // MARK: - 5) Write image data
+  // MARK: - 5) Closure content
 
-  @objc private func demoWriteImage() {
+  @objc private func demoReadWriteClosure() {
+    let url = demoDirectoryURL().appendingPathComponent("closure-note.txt")
+    manager.writeContent(.text("Written via completion handler"), to: url) { [weak self] writeResult in
+      switch writeResult {
+      case .success:
+        self?.appendOutput("[writeContent completion] success")
+        self?.manager.readText(from: url) { readResult in
+          switch readResult {
+          case let .success(text):
+            self?.appendOutput("[readText completion] \(text)")
+          case let .failure(err):
+            self?.appendOutput("[readText completion] \(err.localizedDescription)")
+          }
+        }
+      case let .failure(err):
+        self?.appendOutput("[writeContent completion] \(err.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoReadDataAndModelClosure() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let url = self.demoDirectoryURL().appendingPathComponent("closure-model.json")
+      let sample = FKPersistedTransfer(
+        id: 9_002,
+        kind: .download,
+        state: .paused,
+        sourceURL: URL(string: "https://example.com/closure.json")!,
+        destinationPath: nil,
+        updatedAt: Date()
+      )
+      try? await self.manager.writeModel(sample, to: url)
+      self.manager.readData(from: url) { [weak self] dataResult in
+        switch dataResult {
+        case let .success(data):
+          self?.appendOutput("[readData completion] \(data.count) bytes")
+        case let .failure(err):
+          self?.appendOutput("[readData completion] \(err.localizedDescription)")
+        }
+      }
+      self.manager.readModel(FKPersistedTransfer.self, from: url) { [weak self] modelResult in
+        switch modelResult {
+        case let .success(model):
+          self?.appendOutput("[readModel completion] id=\(model.id) state=\(model.state)")
+        case let .failure(err):
+          self?.appendOutput("[readModel completion] \(err.localizedDescription)")
+        }
+      }
+    }
+  }
+
+  // MARK: - 6) Image
+
+  @objc private func demoWriteImageAndMime() {
     Task { @MainActor [weak self] in
       guard let self else { return }
       do {
         let image = Self.makeDemoImage()
-        guard let pngData = image.pngData() else {
-          self.appendOutput("Image conversion failed.")
+        guard let png = image.pngData() else {
+          appendOutput("PNG encoding failed.")
           return
         }
-        let imageURL = self.manager.directoryURL(.documents).appendingPathComponent("FKFileManagerDemo/demo.png")
-        try await self.manager.writeContent(.data(pngData), to: imageURL)
-        appendOutput("Image written: \(imageURL.lastPathComponent), bytes: \(pngData.count)")
+        let url = self.demoDirectoryURL().appendingPathComponent("demo.png")
+        try await self.manager.createDirectory(at: url.deletingLastPathComponent(), intermediate: true)
+        try await self.manager.writeContent(.data(png), to: url)
+        let imageFlag = self.manager.isImageFile(url)
+        appendOutput("[writeContent .data] bytes=\(png.count); [isImageFile]=\(imageFlag)")
       } catch {
-        appendOutput("Write image failed: \(error.localizedDescription)")
+        appendOutput("Image demo error: \(error.localizedDescription)")
       }
     }
   }
 
-  // MARK: - 6~9) Breakpoint download
+  // MARK: - 7) Directories
 
-  @objc private func demoStartDownload() {
+  @objc private func demoEnumerateDefault() {
     Task { @MainActor [weak self] in
       guard let self else { return }
-      guard let sourceURL = URL(string: "https://raw.githubusercontent.com/github/gitignore/main/Swift.gitignore") else {
-        self.appendOutput("Download URL is invalid.")
+      do {
+        let folder = self.demoDirectoryURL()
+        try await self.manager.createDirectory(at: folder, intermediate: true)
+        let items = try await self.manager.enumerateFiles(at: folder, options: .init())
+        appendOutput("[enumerateFiles default] count=\(items.count) (files only, skips directories)")
+      } catch {
+        appendOutput("enumerateFiles error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoEnumerateFiltered() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let folder = self.demoDirectoryURL()
+        try await self.manager.createDirectory(at: folder, intermediate: true)
+        try await self.manager.writeContent(.text("a"), to: folder.appendingPathComponent("a.txt"))
+        try await self.manager.writeContent(.text("b"), to: folder.appendingPathComponent("b.json"))
+        let opts = FKFileTraversalOptions(recursive: false, includeHiddenFiles: false, allowedExtensions: ["txt"])
+        let items = try await self.manager.enumerateFiles(at: folder, options: opts)
+        appendOutput("[enumerateFiles filtered] .txt only, non-recursive: \(items.map(\.lastPathComponent))")
+      } catch {
+        appendOutput("Filtered enumerate error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoDirectorySize() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let folder = self.demoDirectoryURL()
+        try await self.manager.createDirectory(at: folder, intermediate: true)
+        let bytes = try await self.manager.directorySize(at: folder)
+        appendOutput("[directorySize] \(folder.lastPathComponent) -> \(bytes) bytes")
+      } catch {
+        appendOutput("directorySize error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoClearCaches() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let caches = self.manager.directoryURL(.caches)
+        let before = try await self.manager.directorySize(at: caches)
+        try await self.manager.clearCaches()
+        let after = try await self.manager.directorySize(at: caches)
+        appendOutput("[clearCaches] directorySize caches before/after: \(before) -> \(after)")
+      } catch {
+        appendOutput("clearCaches error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoClearTemporaryFiles() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        try await self.manager.clearTemporaryFiles()
+        appendOutput("[clearTemporaryFiles] Finished (tmp sweep).")
+      } catch {
+        appendOutput("clearTemporaryFiles error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  // MARK: - 8) ZIP
+
+  @objc private func demoZipPlaceholders() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let folder = self.demoDirectoryURL()
+      let zip = self.manager.directoryURL(.documents).appendingPathComponent("FKFileManagerDemoArchive.zip")
+      do {
+        try await self.manager.zipItem(at: folder, to: zip)
+        appendOutput("[zipItem] Unexpected success at \(zip.path)")
+      } catch {
+        appendOutput("[zipItem] \(error.localizedDescription)")
+      }
+      do {
+        try await self.manager.unzipItem(at: zip, to: folder.appendingPathComponent("unzipped", isDirectory: true))
+        appendOutput("[unzipItem] Unexpected success")
+      } catch {
+        appendOutput("[unzipItem] \(error.localizedDescription)")
+      }
+    }
+  }
+
+  // MARK: - 9) Metadata & disk
+
+  @objc private func demoExistsAndFileInfo() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let url = self.demoDirectoryURL().appendingPathComponent("meta-check.txt")
+        try await self.manager.createDirectory(at: url.deletingLastPathComponent(), intermediate: true)
+        try await self.manager.writeContent(.text("meta"), to: url)
+        let exists = self.manager.exists(at: url)
+        appendOutput("[exists] \(url.lastPathComponent) -> \(exists)")
+        let info = try await self.manager.fileInfo(at: url)
+        appendOutput("[fileInfo] size=\(info.sizeInBytes) mime=\(info.mimeType) modified=\(String(describing: info.modifiedAt))")
+      } catch {
+        appendOutput("exists/fileInfo error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoEnsureDiskSpace() {
+    do {
+      try manager.ensureSufficientDiskSpace()
+      appendOutput("[ensureSufficientDiskSpace] Passed using default threshold from FKFileManagerConfiguration.")
+    } catch {
+      appendOutput("[ensureSufficientDiskSpace] \(error.localizedDescription)")
+    }
+  }
+
+  // MARK: - 10) Downloads
+
+  private func sampleDownloadRequest(fileName: String, allowsBackground: Bool) -> FKDownloadRequest? {
+    guard let sourceURL = URL(string: "https://raw.githubusercontent.com/github/gitignore/main/Swift.gitignore") else {
+      return nil
+    }
+    return FKDownloadRequest(
+      sourceURL: sourceURL,
+      destinationDirectory: manager.directoryURL(.caches),
+      fileName: fileName,
+      allowsBackground: allowsBackground
+    )
+  }
+
+  @objc private func demoStartBackgroundDownload() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      guard let request = self.sampleDownloadRequest(fileName: "Swift.gitignore.bg", allowsBackground: true) else {
+        appendOutput("Invalid download URL.")
         return
       }
-
-      let request = FKDownloadRequest(
-        sourceURL: sourceURL,
-        destinationDirectory: self.manager.directoryURL(.caches),
-        fileName: "Swift.gitignore",
-        allowsBackground: true
-      )
-
       do {
         let taskID = try await self.manager.download(
           request,
-          progress: { [weak self] progress in
-            self?.appendOutput("Download progress: \(Int(progress.progress * 100))% (\(progress.completedBytes)/\(progress.totalBytes))")
+          progress: { [weak self] p in
+            self?.appendOutput("[download progress] \(Int(p.progress * 100))% \(p.completedBytes)/\(p.totalBytes) id=\(p.taskID)")
           },
           completion: { [weak self] result in
-            guard let self else { return }
             switch result {
-            case let .success(output):
-              self.appendOutput("Download completed: \(output.fileURL.path)")
-            case let .failure(error):
-              self.appendOutput("Download failed: \(error.localizedDescription)")
+            case let .success(out):
+              self?.appendOutput("[download completion] saved \(out.fileURL.path)")
+            case let .failure(err):
+              self?.appendOutput("[download completion] \(err.localizedDescription)")
             }
           }
         )
         self.activeDownloadTaskID = taskID
-        self.appendOutput("Download started. TaskID: \(taskID)")
+        appendOutput("[download async] started background taskID=\(taskID)")
       } catch {
-        self.appendOutput("Download start failed: \(error.localizedDescription)")
+        appendOutput("[download async] \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoStartForegroundDownload() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      guard let request = self.sampleDownloadRequest(fileName: "Swift.gitignore.fg", allowsBackground: false) else {
+        appendOutput("Invalid download URL.")
+        return
+      }
+      do {
+        let taskID = try await self.manager.download(request, progress: nil, completion: nil)
+        self.activeDownloadTaskID = taskID
+        appendOutput("[download async] foreground session taskID=\(taskID) (allowsBackground=false)")
+      } catch {
+        appendOutput("[download async] foreground error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoDownloadClosureOnly() {
+    guard let request = sampleDownloadRequest(fileName: "Swift.gitignore.closure", allowsBackground: true) else {
+      appendOutput("Invalid download URL.")
+      return
+    }
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let taskID = try await self.manager.download(
+          request,
+          progress: nil,
+          completion: { [weak self] result in
+            switch result {
+            case let .success(out):
+              self?.appendOutput("[download completion] finished file=\(out.fileURL.lastPathComponent)")
+            case let .failure(err):
+              self?.appendOutput("[download completion] \(err.localizedDescription)")
+            }
+          }
+        )
+        self.activeDownloadTaskID = taskID
+        self.appendOutput("[download async] taskID=\(taskID) (progress nil; completion for terminal state)")
+      } catch {
+        self.appendOutput("[download async] \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoExtensionDownloadIntOnly() {
+    guard let request = sampleDownloadRequest(fileName: "Swift.gitignore.ext-int", allowsBackground: true) else {
+      appendOutput("Invalid download URL.")
+      return
+    }
+    typealias DownloadStarter = (FKDownloadRequest, @escaping @Sendable (Result<Int, FKFileManagerError>) -> Void) -> Void
+    let starter: DownloadStarter = { [weak self] req, completion in
+      guard let self else { return }
+      self.manager.download(req, completion: completion)
+    }
+    starter(request) { [weak self] result in
+      switch result {
+      case let .success(taskID):
+        self?.activeDownloadTaskID = taskID
+        self?.appendOutput("[FKFileManager+Convenience download] taskID=\(taskID)")
+      case let .failure(err):
+        self?.appendOutput("[FKFileManager+Convenience download] \(err.localizedDescription)")
       }
     }
   }
 
   @objc private func demoPauseDownload() {
     Task { @MainActor [weak self] in
-      guard let self, let taskID = self.activeDownloadTaskID else {
-        self?.appendOutput("No active download task.")
+      guard let self, let id = self.activeDownloadTaskID else {
+        self?.appendOutput("[pauseDownload] No tracked task id. Start a download first.")
         return
       }
-      await self.manager.pauseDownload(taskID: taskID)
-      self.appendOutput("Download paused. TaskID: \(taskID)")
+      await self.manager.pauseDownload(taskID: id)
+      appendOutput("[pauseDownload] taskID=\(id)")
     }
   }
 
   @objc private func demoResumeDownload() {
     Task { @MainActor [weak self] in
-      guard let self, let taskID = self.activeDownloadTaskID else {
-        self?.appendOutput("No paused download task.")
+      guard let self, let id = self.activeDownloadTaskID else {
+        self?.appendOutput("[resumeDownload] No tracked task id.")
         return
       }
-      await self.manager.resumeDownload(taskID: taskID)
-      self.appendOutput("Download resumed. TaskID: \(taskID)")
+      await self.manager.resumeDownload(taskID: id)
+      let running = await self.manager.persistedTransfers()
+        .filter { $0.kind == .download && $0.state == .running }
+        .max(by: { $0.updatedAt < $1.updatedAt })
+      if let newID = running?.id {
+        self.activeDownloadTaskID = newID
+        appendOutput("[resumeDownload] issued for \(id); URLSession may reissue id -> now tracking \(newID)")
+      } else {
+        appendOutput("[resumeDownload] issued for \(id); no running snapshot (task may have finished).")
+      }
     }
   }
 
   @objc private func demoCancelDownload() {
     Task { @MainActor [weak self] in
-      guard let self, let taskID = self.activeDownloadTaskID else {
-        self?.appendOutput("No download task to cancel.")
+      guard let self, let id = self.activeDownloadTaskID else {
+        self?.appendOutput("[cancel] No tracked download id.")
         return
       }
-      await self.manager.cancel(taskID: taskID)
+      await self.manager.cancel(taskID: id)
       self.activeDownloadTaskID = nil
-      self.appendOutput("Download canceled. TaskID: \(taskID)")
+      appendOutput("[cancel(taskID:)] cancelled download id=\(id)")
     }
   }
 
-  // MARK: - 10~11) Single / Multi file upload
+  // MARK: - 11) Uploads
 
   @objc private func demoSingleUpload() {
     Task { @MainActor [weak self] in
       guard let self else { return }
       do {
-        let fileURL = try await self.createUploadFile(name: "single-upload.txt", content: "Single file upload from FKFileManager.")
+        let fileURL = try await self.createUploadFile(name: "single-upload.txt", content: "Single-part upload demo.")
         var request = URLRequest(url: URL(string: "https://httpbin.org/post")!)
         request.httpMethod = "POST"
-        let uploadRequest = FKUploadRequest(
+        let upload = FKUploadRequest(
           urlRequest: request,
           files: [FKUploadFile(fieldName: "file", fileURL: fileURL)],
-          formFields: ["scene": "single"]
+          formFields: ["scene": "single-async"]
         )
-
         _ = try await self.manager.upload(
-          uploadRequest,
-          progress: { [weak self] progress in
-            self?.appendOutput("Single upload progress: \(Int(progress.progress * 100))%")
+          upload,
+          progress: { [weak self] p in
+            self?.appendOutput("[upload progress] \(Int(p.progress * 100))% id=\(p.taskID)")
           },
           completion: { [weak self] result in
-            guard let self else { return }
             switch result {
             case let .success(value):
-              self.appendOutput("Single upload success, response bytes: \(value.responseData.count)")
-            case let .failure(error):
-              self.appendOutput("Single upload failed: \(error.localizedDescription)")
+              self?.appendOutput("[upload completion] bytes=\(value.responseData.count)")
+            case let .failure(err):
+              self?.appendOutput("[upload completion] \(err.localizedDescription)")
             }
           }
         )
       } catch {
-        appendOutput("Single upload setup failed: \(error.localizedDescription)")
+        appendOutput("Single upload error: \(error.localizedDescription)")
       }
     }
   }
 
-  @objc private func demoMultiUpload() {
+  @objc private func demoExtensionUploadIntOnly() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let fileURL = try await self.createUploadFile(name: "ext-upload.txt", content: "Extension-only upload starter.")
+        var request = URLRequest(url: URL(string: "https://httpbin.org/post")!)
+        request.httpMethod = "POST"
+        let upload = FKUploadRequest(urlRequest: request, files: [FKUploadFile(fieldName: "file", fileURL: fileURL)], formFields: [:])
+        typealias UploadStarter = (FKUploadRequest, @escaping @Sendable (Result<Int, FKFileManagerError>) -> Void) -> Void
+        let starter: UploadStarter = { [weak self] req, completion in
+          guard let self else { return }
+          self.manager.upload(req, completion: completion)
+        }
+        starter(upload) { [weak self] result in
+          switch result {
+          case let .success(taskID):
+            self?.appendOutput("[FKFileManager+Convenience upload] taskID=\(taskID)")
+          case let .failure(err):
+            self?.appendOutput("[FKFileManager+Convenience upload] \(err.localizedDescription)")
+          }
+        }
+      } catch {
+        appendOutput("Extension upload setup error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoMultiUploadClosure() {
     Task { @MainActor [weak self] in
       guard let self else { return }
       do {
         let first = try await self.createUploadFile(name: "multi-1.txt", content: "First file.")
         let second = try await self.createUploadFile(name: "multi-2.txt", content: "Second file.")
-
         var request = URLRequest(url: URL(string: "https://httpbin.org/post")!)
         request.httpMethod = "POST"
-        let uploadRequest = FKUploadRequest(
+        let upload = FKUploadRequest(
           urlRequest: request,
           files: [
             FKUploadFile(fieldName: "files", fileURL: first),
             FKUploadFile(fieldName: "files", fileURL: second),
           ],
-          formFields: ["scene": "multi"]
+          formFields: ["scene": "multi-closure"]
         )
-
-        self.manager.upload(uploadRequest, completion: { [weak self] (result: Result<Int, FKFileManagerError>) in
-          guard let self else { return }
-          switch result {
-          case let .success(taskID):
-            self.appendOutput("Multi upload started via closure. TaskID: \(taskID)")
-          case let .failure(error):
-            self.appendOutput("Multi upload failed: \(error.localizedDescription)")
+        let taskID = try await self.manager.upload(
+          upload,
+          progress: nil,
+          completion: { [weak self] result in
+            switch result {
+            case let .success(out):
+              self?.appendOutput("[upload completion] response bytes=\(out.responseData.count)")
+            case let .failure(err):
+              self?.appendOutput("[upload completion] \(err.localizedDescription)")
+            }
           }
-        })
+        )
+        self.appendOutput("[upload async] started taskID=\(taskID) (multi-part, progress nil)")
       } catch {
-        appendOutput("Multi upload setup failed: \(error.localizedDescription)")
+        appendOutput("Multi upload setup error: \(error.localizedDescription)")
       }
     }
   }
 
-  // MARK: - 12) Cache size + clean cache
+  // MARK: - 12) Global control
 
-  @objc private func demoCacheOperations() {
+  @objc private func demoCancelAllTransfers() {
     Task { @MainActor [weak self] in
       guard let self else { return }
-      do {
-        let cacheURL = self.manager.directoryURL(.caches)
-        let sizeBefore = try await self.manager.directorySize(at: cacheURL)
-        appendOutput("Cache size before clean: \(sizeBefore) bytes")
-        try await self.manager.clearCaches()
-        let sizeAfter = try await self.manager.directorySize(at: cacheURL)
-        appendOutput("Cache size after clean: \(sizeAfter) bytes")
-      } catch {
-        appendOutput("Cache operation failed: \(error.localizedDescription)")
-      }
+      await self.manager.cancelAll()
+      self.activeDownloadTaskID = nil
+      self.appendOutput("[cancelAll] Invoked for downloads + uploads.")
     }
   }
 
-  // MARK: - 13) Zip compress + decompress
-
-  @objc private func demoZipOperations() {
+  @objc private func demoPersistedTransfers() {
     Task { @MainActor [weak self] in
       guard let self else { return }
-      let docs = self.manager.directoryURL(.documents)
-      let source = docs.appendingPathComponent("FKFileManagerDemo")
-      let zip = docs.appendingPathComponent("FKFileManagerDemo.zip")
-      let unzipDir = docs.appendingPathComponent("FKFileManagerDemo_Unzipped", isDirectory: true)
-
-      do {
-        try await self.manager.zipItem(at: source, to: zip)
-        appendOutput("Zip success: \(zip.path)")
-      } catch {
-        appendOutput("Zip result: \(error.localizedDescription)")
-      }
-
-      do {
-        try await self.manager.unzipItem(at: zip, to: unzipDir)
-        appendOutput("Unzip success: \(unzipDir.path)")
-      } catch {
-        appendOutput("Unzip result: \(error.localizedDescription)")
-      }
-    }
-  }
-
-  // MARK: - 14) Exists + info
-
-  @objc private func demoFileInfo() {
-    Task { @MainActor [weak self] in
-      guard let self else { return }
-      do {
-        let target = self.manager.directoryURL(.documents).appendingPathComponent("FKFileManagerDemo/note.txt")
-        let exists = self.manager.exists(at: target)
-        appendOutput("Exists(\(target.lastPathComponent)): \(exists)")
-        if exists {
-          let info = try await self.manager.fileInfo(at: target)
-          appendOutput("FileInfo -> size: \(info.sizeInBytes), mime: \(info.mimeType), modified: \(String(describing: info.modifiedAt))")
+      let rows = await self.manager.persistedTransfers().prefix(8)
+      if rows.isEmpty {
+        appendOutput("[persistedTransfers] empty (start a transfer first).")
+      } else {
+        appendOutput("[persistedTransfers] latest snapshots:")
+        for row in rows {
+          appendOutput("  id=\(row.id) kind=\(row.kind) state=\(row.state) updated=\(row.updatedAt)")
         }
-      } catch {
-        appendOutput("Read file info failed: \(error.localizedDescription)")
       }
     }
+  }
+
+  // MARK: - 13) iOS helpers
+
+  @objc private func demoPresentShareSheet() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let url = self.demoDirectoryURL().appendingPathComponent("share-demo.txt")
+        try await self.manager.createDirectory(at: url.deletingLastPathComponent(), intermediate: true)
+        try await self.manager.writeContent(.text("Share sheet demo"), to: url)
+        let controller = self.manager.makeShareController(for: url)
+        if let pop = controller.popoverPresentationController {
+          pop.sourceView = self.view
+          pop.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 1, height: 1)
+        }
+        self.present(controller, animated: true)
+        self.appendOutput("[makeShareController] Presenting UIActivityViewController.")
+      } catch {
+        appendOutput("Share demo error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  @objc private func demoPresentQuickLook() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      do {
+        let url = self.demoDirectoryURL().appendingPathComponent("ql-demo.txt")
+        try await self.manager.createDirectory(at: url.deletingLastPathComponent(), intermediate: true)
+        try await self.manager.writeContent(.text("Quick Look text preview"), to: url)
+        let pair = self.manager.makePreviewController(for: url)
+        self.quickLookDataSource = pair.dataSource
+        self.present(pair.controller, animated: true)
+        self.appendOutput("[makePreviewController] Presenting QLPreviewController (data source retained).")
+      } catch {
+        appendOutput("Quick Look error: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  // MARK: - 14) Output
+
+  @objc private func clearOutput() {
+    outputView.text = ""
+    appendOutput("Log cleared.")
   }
 
   // MARK: - Helpers
 
-  @objc private func clearOutput() {
-    outputView.text = ""
-    appendOutput("On-screen output cleared.")
+  private func demoDirectoryURL() -> URL {
+    manager.directoryURL(.documents).appendingPathComponent("FKFileManagerDemo", isDirectory: true)
   }
 
-  /// Creates a temp text file used for upload scenarios.
   private func createUploadFile(name: String, content: String) async throws -> URL {
     let url = manager.directoryURL(.temporary).appendingPathComponent(name)
     try await manager.writeContent(.text(content), to: url)
     return url
   }
 
-  /// Appends one line into on-screen log.
   private nonisolated func appendOutput(_ message: String) {
     Task { @MainActor [weak self] in
       guard let self else { return }
-      let line = "[\(DateFormatter.fileManagerDemoFormatter.string(from: Date()))] \(message)\n"
-      self.outputView.text.append(line)
+      let stamp = DateFormatter.fileManagerDemoFormatter.string(from: Date())
+      self.outputView.text.append("[\(stamp)] \(message)\n")
       let range = NSRange(location: max(self.outputView.text.count - 1, 0), length: 1)
       self.outputView.scrollRangeToVisible(range)
     }
   }
 
-  /// Draws a small in-memory image for write-image demo.
   private static func makeDemoImage() -> UIImage {
     let renderer = UIGraphicsImageRenderer(size: CGSize(width: 120, height: 120))
     return renderer.image { context in
@@ -463,8 +899,8 @@ final class FKFileManagerExampleViewController: UIViewController {
 
 private extension DateFormatter {
   static let fileManagerDemoFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "HH:mm:ss"
-    return formatter
+    let f = DateFormatter()
+    f.dateFormat = "HH:mm:ss.SSS"
+    return f
   }()
 }
