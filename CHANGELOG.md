@@ -4,13 +4,60 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
-### Fixed (Package)
-
-- **`Package.swift`**: set **`swift-tools-version`** to **6.0** and drop package-level **`swiftLanguageModes`** so SwiftPM on **Xcode 16.2** (Swift tools **6.0.x**) can resolve the manifest; language mode remains Swift 6 by default for this tools version.
-
 ### Planned
 
 - Optional: Example app under `Examples/` (depending on this package locally)
+
+## [0.47.0] - 2026-05-09
+
+### Fixed (Package)
+
+- **`Package.swift`**: set **`swift-tools-version`** to **6.0** and remove package-level **`swiftLanguageModes`** so SwiftPM resolves on **Xcode 16.2** (Swift tools **6.0.x**); Swift 6 remains the default for this tools version.
+
+### Changed (Documentation)
+
+- **`README.md`**: requirements and install examples updated for this release.
+
+### Fixed (FKCoreKit — Storage)
+
+- **`StorageCodec`**: use a new **`JSONEncoder` / `JSONDecoder`** per operation to avoid cross-queue races.
+- **`FKMemoryStorage`**: iterate a key snapshot in **`allKeys()`** and **`purgeExpired()`** (safe mutation while iterating).
+- **`FKUserDefaultsStorage`**: single **`data(forKey:)`** read in **`exists(key:)`**.
+- **`FKFileStorage`**: route file I/O through the injected **`FileManager`** instance.
+
+### Changed (Examples — FKCoreKit)
+
+- **Storage**: sectioned playground covering **`exists`**, **`remove`**, **`allKeys`**, TTL on all backends, async facades, purge, and **`removeAll`** (English-only copy).
+
+### Fixed (FKCoreKit — Security)
+
+- **RSA**: verification semantics corrected where applicable.
+- **Signatures**: timing-safe MAC comparison.
+- **Examples**: security demo expanded.
+
+### Fixed (FKCoreKit — Permissions)
+
+- Observer updates; **iOS 17** EventKit-related handling; example layout and **Info.plist** adjustments.
+
+### Fixed (FKCoreKit — Network)
+
+- Request de-duplication lifecycle corrected; **FKNetwork** examples expanded.
+
+### Changed (FKCoreKit — Logger)
+
+- Logger ergonomics and file manager behavior refinements; Logger example updates.
+
+### Changed (FKCoreKit — FileManager)
+
+- Hardening across download/upload/storage utilities; FileManager example expanded.
+
+### Changed (FKCoreKit — Async)
+
+- **`FKAsync`** utilities, debounce/throttle, executors, and task helpers; Async example and module **README** updates.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **s.version** set to **0.47.0** (Git tag **`0.47.0`**).
 
 ## [0.46.0] - 2026-05-04
 
