@@ -140,7 +140,7 @@ This module keeps **deep docs next to sources** (`README.md` per major folder); 
 
 ## Requirements
 - **iOS 15.0+** (declared in `Package.swift`; all package products are **iOS-only**)
-- Swift toolchain **6.2+** (matches `swift-tools-version` in `Package.swift`; CI uses **Xcode** `latest-stable`, currently **Swift 6.2.x**)
+- Swift toolchain **6.0+** / **Xcode 16.2+** (`swift-tools-version` in `Package.swift` is **6.0** so SPM resolves on Xcode 16.2; newer Xcode remains supported)
 
 ## Installation (SPM)
 
@@ -157,7 +157,7 @@ This module keeps **deep docs next to sources** (`README.md` per major folder); 
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.46.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.47.0")
 ],
 targets: [
   .target(
@@ -174,7 +174,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKEmptyStateCoreLite`, `FKUIKit`, `FKCompositeKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.46.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKEmptyStateCoreLite`, `FKUIKit`, `FKCompositeKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.47.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — **`docs/RELEASING.md`**.
 
@@ -183,10 +183,10 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKEmptyStateCoreLite', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.46.0'
-pod 'FKCoreKit',           :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.46.0'
-pod 'FKUIKit',             :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.46.0'
-pod 'FKCompositeKit',      :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.46.0'
+pod 'FKEmptyStateCoreLite', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.47.0'
+pod 'FKCoreKit',           :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.47.0'
+pod 'FKUIKit',             :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.47.0'
+pod 'FKCompositeKit',      :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.47.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKEmptyStateCoreLite`; `FKCompositeKit` → `FKCoreKit`, `FKUIKit`).

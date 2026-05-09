@@ -186,7 +186,10 @@ public final class FKLogger: @unchecked Sendable {
     workQueue.sync(flags: .barrier) {}
   }
 
-  func log(
+  /// Emits a log event when the level passes filters (message is evaluated only if logging proceeds).
+  ///
+  /// Used by global helpers (`FKLogV`, etc.) that already hold an `@escaping` message closure.
+  public func log(
     _ level: FKLogLevel,
     message: @escaping () -> String,
     metadata: [String: String],

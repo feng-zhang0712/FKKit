@@ -27,7 +27,7 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
     do {
       try fileManager.createDirectory(at: url, withIntermediateDirectories: intermediate)
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: url.path)
     }
   }
 
@@ -36,7 +36,7 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
     do {
       try fileManager.removeItem(at: url)
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: url.path)
     }
   }
 
@@ -46,7 +46,7 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
     do {
       try fileManager.moveItem(at: sourceURL, to: destinationURL)
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: sourceURL.path)
     }
   }
 
@@ -56,7 +56,7 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
     do {
       try fileManager.copyItem(at: sourceURL, to: destinationURL)
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: sourceURL.path)
     }
   }
 
@@ -68,7 +68,7 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
       try fileManager.moveItem(at: url, to: destination)
       return destination
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: url.path)
     }
   }
 
@@ -90,7 +90,7 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
         exists: true
       )
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: path)
     }
   }
 
@@ -115,7 +115,7 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
     } catch let error as FKFileManagerError {
       throw error
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: url.path)
     }
   }
 
@@ -124,15 +124,19 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
       try ensureParentDirectory(for: url)
       let data = try JSONEncoder().encode(model)
       try data.write(to: url, options: .atomic)
+    } catch let error as FKFileManagerError {
+      throw error
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: url.path)
     }
   }
 
   func readData(from url: URL) async throws -> Data {
     guard fileManager.fileExists(atPath: url.path) else { throw FKFileManagerError.fileNotFound(path: url.path) }
     do { return try Data(contentsOf: url) }
-    catch { throw FKFileManagerError.unknown(error.localizedDescription) }
+    catch {
+      throw FKFileManagerError.mappingFileOperation(error, path: url.path)
+    }
   }
 
   func readText(from url: URL, encoding: String.Encoding = .utf8) async throws -> String {
@@ -144,7 +148,9 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
   func readModel<T: Codable & Sendable>(_ type: T.Type, from url: URL) async throws -> T {
     let data = try await readData(from: url)
     do { return try JSONDecoder().decode(type, from: data) }
-    catch { throw FKFileManagerError.unknown(error.localizedDescription) }
+    catch {
+      throw FKFileManagerError.mappingFileOperation(error, path: url.path)
+    }
   }
 
   /// Enumerates files under directory by traversal options.
@@ -179,7 +185,7 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
       let items = try fileManager.contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: nil)
       for item in items { try fileManager.removeItem(at: item) }
     } catch {
-      throw FKFileManagerError.unknown(error.localizedDescription)
+      throw FKFileManagerError.mappingFileOperation(error, path: directoryURL.path)
     }
   }
 
@@ -200,7 +206,11 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
   private func ensureParentDirectory(for url: URL) throws {
     let directory = url.deletingLastPathComponent()
     if fileManager.fileExists(atPath: directory.path) == false {
-      try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+      do {
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+      } catch {
+        throw FKFileManagerError.mappingFileOperation(error, path: directory.path)
+      }
     }
   }
 }

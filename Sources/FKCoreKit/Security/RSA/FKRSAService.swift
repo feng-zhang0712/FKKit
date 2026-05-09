@@ -102,9 +102,9 @@ public final class FKRSAService: FKRSACrypting, @unchecked Sendable {
         throw FKSecurityError.unavailable("RSA verification algorithm is not supported by this key.")
       }
       let ok = SecKeyVerifySignature(publicKey, secAlg, data as CFData, signature as CFData, &error)
-      if let error {
-        let message = (error.takeRetainedValue() as Error).localizedDescription
-        throw FKSecurityError.unknown(message)
+      // Invalid signatures return `false` and may still populate `error`; callers expect `false`, not a thrown error.
+      if let unmanaged = error {
+        _ = unmanaged.takeRetainedValue()
       }
       return ok
     }

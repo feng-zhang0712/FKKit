@@ -54,11 +54,23 @@ public final class FKSignatureService: FKSecuritySigning, @unchecked Sendable {
     algorithm: FKHMACAlgorithm
   ) async throws -> Bool {
     let computed = try await signParameters(parameters, secret: secret, algorithm: algorithm)
-    return computed.caseInsensitiveCompare(signatureHex) == .orderedSame
+    return Self.constantTimeEqualHex(computed, signatureHex)
   }
 }
 
 extension FKSignatureService {
+  /// Lowercases both sides and compares UTF-8 bytes in constant time (length mismatch → `false`).
+  private static func constantTimeEqualHex(_ a: String, _ b: String) -> Bool {
+    let au = Array(a.lowercased().utf8)
+    let bu = Array(b.lowercased().utf8)
+    guard au.count == bu.count else { return false }
+    var diff: UInt8 = 0
+    for i in au.indices {
+      diff |= au[i] ^ bu[i]
+    }
+    return diff == 0
+  }
+
   private func canonicalQuery(_ parameters: [String: Any]) -> String {
     let pairs: [(String, String)] = parameters.map { key, value in
       (key, Self.stringValue(value))

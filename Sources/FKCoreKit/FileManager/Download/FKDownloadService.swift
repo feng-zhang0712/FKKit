@@ -176,6 +176,9 @@ final class FKDownloadService: NSObject, URLSessionDownloadDelegate, URLSessionT
         await self.persistSnapshots()
       } catch {
         context.completion?(.failure(.transferFailed(error.localizedDescription)))
+        self.contexts.removeValue(forKey: downloadTask.taskIdentifier)
+        self.snapshots.removeValue(forKey: downloadTask.taskIdentifier)
+        await self.persistSnapshots()
       }
     }
   }

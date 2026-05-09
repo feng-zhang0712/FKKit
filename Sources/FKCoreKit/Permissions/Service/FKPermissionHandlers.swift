@@ -192,9 +192,29 @@ final class FKEventPermissionHandler: FKPermissionHandling {
     }
   }
   func requestAuthorization(using request: FKPermissionRequest) async -> FKPermissionResult {
-    let entity: EKEntityType = kind == .reminders ? .reminder : .event
-    let granted = await withCheckedContinuation { continuation in
-      store.requestAccess(to: entity) { granted, _ in continuation.resume(returning: granted) }
+    let granted: Bool
+    if #available(iOS 17.0, *) {
+      switch kind {
+      case .calendar:
+        granted = await withCheckedContinuation { continuation in
+          store.requestFullAccessToEvents { granted, _ in
+            continuation.resume(returning: granted)
+          }
+        }
+      case .reminders:
+        granted = await withCheckedContinuation { continuation in
+          store.requestFullAccessToReminders { granted, _ in
+            continuation.resume(returning: granted)
+          }
+        }
+      default:
+        return FKPermissionResult(kind: kind, status: .restricted)
+      }
+    } else {
+      let entity: EKEntityType = kind == .reminders ? .reminder : .event
+      granted = await withCheckedContinuation { continuation in
+        store.requestAccess(to: entity) { granted, _ in continuation.resume(returning: granted) }
+      }
     }
     return FKPermissionResult(kind: kind, status: granted ? .authorized : .denied)
   }

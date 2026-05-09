@@ -25,17 +25,17 @@ public final class FKCancellableDelayedWork: FKAsyncCancellable, @unchecked Send
   public func schedule(after delay: TimeInterval, execute work: @escaping @Sendable () -> Void) {
     let newItem = DispatchWorkItem(block: work)
     lock.lock()
+    defer { lock.unlock() }
     item?.cancel()
     item = newItem
-    lock.unlock()
     queue.asyncAfter(deadline: .now() + max(0, delay), execute: newItem)
   }
 
   public func cancel() {
     lock.lock()
+    defer { lock.unlock() }
     item?.cancel()
     item = nil
-    lock.unlock()
   }
 
   deinit {

@@ -21,6 +21,17 @@ public final class FKAsyncTaskGroup: @unchecked Sendable {
     group.leave()
   }
 
+  /// Calls ``enter()``, then runs `work` asynchronously on `queue`, and always calls ``leave()`` when `work` returns.
+  ///
+  /// Prefer this over manual ``enter()``/``leave()`` pairs to avoid unbalanced calls on early exits.
+  public func enterAndAsync(on queue: DispatchQueue, execute work: @escaping @Sendable () -> Void) {
+    enter()
+    queue.async { [self, work] in
+      defer { self.leave() }
+      work()
+    }
+  }
+
   /// Schedules `work` when all tracked tasks have finished.
   ///
   /// - Parameters:

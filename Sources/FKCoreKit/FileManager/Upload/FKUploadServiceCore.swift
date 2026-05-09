@@ -3,6 +3,9 @@ import Foundation
 /// URLSession-based multipart upload manager.
 @MainActor
 final class FKUploadServiceCore: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
+  /// Stable placeholder URL for persisted upload rows when `URLRequest.url` is nil (never used for networking).
+  private static let persistenceSourcePlaceholder = URL(string: "https://fkkit.invalid/upload-persistence")!
+
   private struct UploadContext {
     let progress: (@Sendable (FKTransferProgress) -> Void)?
     let completion: (@Sendable (Result<FKUploadResult, FKFileManagerError>) -> Void)?
@@ -42,7 +45,7 @@ final class FKUploadServiceCore: NSObject, URLSessionTaskDelegate, URLSessionDat
       id: task.taskIdentifier,
       kind: .upload,
       state: .running,
-      sourceURL: request.urlRequest.url ?? URL(string: "about:blank")!,
+      sourceURL: request.urlRequest.url ?? Self.persistenceSourcePlaceholder,
       destinationPath: nil,
       updatedAt: Date()
     )
@@ -108,20 +111,21 @@ final class FKUploadServiceCore: NSObject, URLSessionTaskDelegate, URLSessionDat
   nonisolated func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
     Task { @MainActor in
       guard let context = self.contexts[task.taskIdentifier] else { return }
-      defer {
-        self.contexts.removeValue(forKey: task.taskIdentifier)
-        self.snapshots.removeValue(forKey: task.taskIdentifier)
-        Task { await self.persistSnapshots() }
-      }
 
       if let error {
         context.completion?(.failure(.transferFailed(error.localizedDescription)))
+        self.contexts.removeValue(forKey: task.taskIdentifier)
+        self.snapshots.removeValue(forKey: task.taskIdentifier)
+        await self.persistSnapshots()
         return
       }
 
       context.completion?(
         .success(FKUploadResult(taskID: task.taskIdentifier, responseData: context.buffer, response: task.response))
       )
+      self.contexts.removeValue(forKey: task.taskIdentifier)
+      self.snapshots.removeValue(forKey: task.taskIdentifier)
+      await self.persistSnapshots()
     }
   }
 
