@@ -1,4 +1,4 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.0
 
 import PackageDescription
 
@@ -73,6 +73,5 @@ let package = Package(
       dependencies: ["FKCoreKit"],
       path: "Tests/FKCoreKitTests"
     ),
-  ],
-  swiftLanguageModes: [.v6]
+  ]
 )

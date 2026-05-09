@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Fixed (Package)
+
+- **`Package.swift`**: set **`swift-tools-version`** to **6.0** and drop package-level **`swiftLanguageModes`** so SwiftPM on **Xcode 16.2** (Swift tools **6.0.x**) can resolve the manifest; language mode remains Swift 6 by default for this tools version.
+
 ### Planned
 
 - Optional: Example app under `Examples/` (depending on this package locally)
