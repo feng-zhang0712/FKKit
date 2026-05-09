@@ -17,6 +17,9 @@ public final class FKFileStorage: FKCodableStorage, @unchecked Sendable {
   /// JSON file listing logical keys for enumeration.
   private let indexURL: URL
 
+  /// Same instance passed at init; all I/O uses this (tests can redirect the sandbox).
+  private let fileManager: FileManager
+
   private let queue = DispatchQueue(label: "com.fkkit.storage.file", qos: .utility)
 
   /// Creates the on-disk layout if missing.
@@ -26,11 +29,12 @@ public final class FKFileStorage: FKCodableStorage, @unchecked Sendable {
   ///   - fileManager: Inject in tests to use a temporary directory.
   /// - Throws: ``FKStorageError/fileSystemFailed`` if the directory or empty index cannot be written.
   public init(directoryName: String = "FKStorage", fileManager: FileManager = .default) throws {
+    self.fileManager = fileManager
     let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
     rootDirectory = base.appendingPathComponent(directoryName, isDirectory: true)
     indexURL = rootDirectory.appendingPathComponent("index.json", isDirectory: false)
     try fileManager.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
-    if !fileManager.fileExists(atPath: indexURL.path) {
+    if !self.fileManager.fileExists(atPath: indexURL.path) {
       let empty = IndexFile(keys: [])
       let data = try StorageCodec.encode(empty)
       try data.write(to: indexURL, options: .atomic)
@@ -55,14 +59,14 @@ public final class FKFileStorage: FKCodableStorage, @unchecked Sendable {
   public func value<Value: Codable & Sendable>(key: String, as type: Value.Type) throws -> Value {
     try queue.sync {
       let fileURL = blobURL(for: key)
-      guard FileManager.default.fileExists(atPath: fileURL.path) else {
+      guard fileManager.fileExists(atPath: fileURL.path) else {
         throw FKStorageError.notFound
       }
       let data = try Data(contentsOf: fileURL)
       let record = try StorageCodec.decode(ExpiringRecord.self, from: data)
       let now = Date().timeIntervalSince1970
       if record.isExpired(now: now) {
-        try? FileManager.default.removeItem(at: fileURL)
+        try? fileManager.removeItem(at: fileURL)
         try? removeKeyFromIndex(key)
         throw FKStorageError.notFound
       }
@@ -78,8 +82,8 @@ public final class FKFileStorage: FKCodableStorage, @unchecked Sendable {
   public func remove(key: String) throws {
     try queue.sync {
       let url = blobURL(for: key)
-      if FileManager.default.fileExists(atPath: url.path) {
-        try FileManager.default.removeItem(at: url)
+      if fileManager.fileExists(atPath: url.path) {
+        try fileManager.removeItem(at: url)
       }
       try removeKeyFromIndex(key)
     }
@@ -89,13 +93,13 @@ public final class FKFileStorage: FKCodableStorage, @unchecked Sendable {
   public func exists(key: String) -> Bool {
     queue.sync {
       let fileURL = blobURL(for: key)
-      guard FileManager.default.fileExists(atPath: fileURL.path) else { return false }
+      guard fileManager.fileExists(atPath: fileURL.path) else { return false }
       guard let data = try? Data(contentsOf: fileURL),
             let record = try? StorageCodec.decode(ExpiringRecord.self, from: data)
       else { return false }
       let now = Date().timeIntervalSince1970
       if record.isExpired(now: now) {
-        try? FileManager.default.removeItem(at: fileURL)
+        try? fileManager.removeItem(at: fileURL)
         try? removeKeyFromIndex(key)
         return false
       }
@@ -106,12 +110,11 @@ public final class FKFileStorage: FKCodableStorage, @unchecked Sendable {
   /// Removes every blob listed in the index and resets `index.json` to empty.
   public func removeAll() throws {
     try queue.sync {
-      let fm = FileManager.default
       let keys = try readIndex().keys
       for key in keys {
         let url = blobURL(for: key)
-        if fm.fileExists(atPath: url.path) {
-          try fm.removeItem(at: url)
+        if fileManager.fileExists(atPath: url.path) {
+          try fileManager.removeItem(at: url)
         }
       }
       let empty = IndexFile(keys: [])
@@ -137,7 +140,7 @@ public final class FKFileStorage: FKCodableStorage, @unchecked Sendable {
               let record = try? StorageCodec.decode(ExpiringRecord.self, from: data)
         else { continue }
         if record.isExpired(now: now) {
-          try? FileManager.default.removeItem(at: url)
+          try? fileManager.removeItem(at: url)
           try? removeKeyFromIndex(key)
         }
       }

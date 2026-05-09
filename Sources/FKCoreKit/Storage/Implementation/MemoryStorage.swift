@@ -85,7 +85,9 @@ public final class FKMemoryStorage: FKCodableStorage, @unchecked Sendable {
     defer { lock.unlock() }
     let now = Date().timeIntervalSince1970
     var keys: [String] = []
-    for (key, entry) in storage {
+    // Snapshot keys first — mutating `storage` during Dictionary iteration is undefined behavior.
+    for key in Array(storage.keys) {
+      guard let entry = storage[key] else { continue }
       if let exp = entry.expiresAt, now >= exp {
         storage.removeValue(forKey: key)
         continue
@@ -100,7 +102,8 @@ public final class FKMemoryStorage: FKCodableStorage, @unchecked Sendable {
     lock.lock()
     defer { lock.unlock() }
     let now = Date().timeIntervalSince1970
-    for (key, entry) in storage {
+    for key in Array(storage.keys) {
+      guard let entry = storage[key] else { continue }
       if let exp = entry.expiresAt, now >= exp {
         storage.removeValue(forKey: key)
       }
