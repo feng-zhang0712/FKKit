@@ -92,20 +92,22 @@ Module source location:
 
 Module layout:
 
-- `Core`
-  - `AsyncProtocols.swift`: protocol contracts for dispatch, cancellation, debounce/throttle
-  - `FKAsync.swift`: singleton-style orchestration hub (`FKAsync.shared`)
-- `Queue`
-  - `AsyncQueues.swift`: queue factory helpers (`global`, `serial`, `concurrent`)
-- `Task`
-  - `CancellableWork.swift`: cancelable delayed work wrapper
-  - `AsyncTaskGroup.swift`: `DispatchGroup` wrapper
-- `DebounceThrottle`
-  - `Debouncer.swift`: idle-window coalescing
-  - `Throttler.swift`: fixed-rate limiting
-- `Executor`
-  - `AsyncExecutors.swift`: serial and concurrent executors
-- `Extension`
+- `Public` — shipped API types and protocols
+  - `Core/`
+    - `AsyncProtocols.swift`: protocol contracts for dispatch, cancellation, debounce/throttle
+    - `FKAsync.swift`: singleton-style orchestration hub (`FKAsync.shared`)
+  - `Queue/`
+    - `AsyncQueues.swift`: queue factory helpers (`global`, `serial`, `concurrent`)
+  - `Task/`
+    - `CancellableWork.swift`: cancelable delayed work wrapper
+    - `AsyncTaskGroup.swift`: `DispatchGroup` wrapper
+  - `DebounceThrottle/`
+    - `Debouncer.swift`: idle-window coalescing
+    - `Throttler.swift`: fixed-rate limiting
+  - `Executor/`
+    - `AsyncExecutors.swift`: serial and concurrent executors
+- `Internal` — non-public helpers only (`AsyncPackageInternal.swift`; public default coordination label: `FKAsync.Configuration.defaultCoordinationQueueLabel`)
+- `Extension` — `DispatchQueue` conveniences
   - `DispatchQueue+FKAsync.swift`: utility extensions for shorter scheduling calls
 
 Design principles:
@@ -329,6 +331,7 @@ concurrentExecutor.async { /* parallel task */ }
 
 - `FKAsyncTaskGroup.enter()`
 - `FKAsyncTaskGroup.leave()`
+- `FKAsyncTaskGroup.enterAndAsync(on:execute:)`
 - `FKAsyncTaskGroup.notify(queue:execute:)`
 - `FKAsyncTaskGroup.wait(timeout:)`
 
@@ -355,7 +358,7 @@ concurrentExecutor.async { /* parallel task */ }
 - Keep heavy CPU and blocking I/O off the main queue (`asyncGlobal`, custom serial queues).
 - Debounce user input (search fields), throttle telemetry/scroll callbacks.
 - For delayed work, keep the `FKCancellableDelayedWork` instance as a property and call `cancel()` in lifecycle cleanup.
-- In `DispatchGroup` flows, always pair every `enter()` with exactly one `leave()` (including failure branches).
+- In `DispatchGroup` flows, always pair every `enter()` with exactly one `leave()` (including failure branches), or use `FKAsyncTaskGroup.enterAndAsync(on:execute:)` so `leave()` runs in a `defer`.
 - Use explicit queue labels (`com.company.feature.task`) for diagnostics and profiling.
 
 ---

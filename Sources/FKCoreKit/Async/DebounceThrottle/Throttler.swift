@@ -22,8 +22,8 @@ public final class FKThrottler: FKAsyncThrottling, @unchecked Sendable {
   }
 
   public func throttle(_ action: @escaping @Sendable () -> Void) {
+    let now = ProcessInfo.processInfo.systemUptime
     lock.lock()
-    let now = Date().timeIntervalSince1970
     if let last = lastInvocation, now - last < interval {
       lock.unlock()
       return
@@ -36,7 +36,7 @@ public final class FKThrottler: FKAsyncThrottling, @unchecked Sendable {
   /// Resets the last-invocation time so the next ``throttle`` can fire immediately.
   public func reset() {
     lock.lock()
+    defer { lock.unlock() }
     lastInvocation = nil
-    lock.unlock()
   }
 }

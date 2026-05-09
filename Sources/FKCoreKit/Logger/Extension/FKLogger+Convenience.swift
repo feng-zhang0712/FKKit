@@ -1,5 +1,10 @@
 import Foundation
 
+/// Module-level namespace for cross-cutting conveniences (see ``logger``).
+///
+/// Other subsystems live under `Sources/FKCoreKit/` (for example `Network/`, `Storage/`, `Async/Public/`).
+public enum FKCoreKit {}
+
 /// Namespace shortcuts for one-line global logging usage.
 public extension FKCoreKit {
   /// Global logger instance.

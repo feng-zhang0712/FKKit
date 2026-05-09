@@ -22,17 +22,17 @@ public final class FKDebouncer: FKAsyncDebouncing, @unchecked Sendable {
   public func signal(_ action: @escaping @Sendable () -> Void) {
     let work = DispatchWorkItem(block: action)
     lock.lock()
+    defer { lock.unlock() }
     pending?.cancel()
     pending = work
-    lock.unlock()
     queue.asyncAfter(deadline: .now() + max(0, interval), execute: work)
   }
 
   public func cancelPending() {
     lock.lock()
+    defer { lock.unlock() }
     pending?.cancel()
     pending = nil
-    lock.unlock()
   }
 
   deinit {
