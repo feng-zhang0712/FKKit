@@ -19,7 +19,7 @@ public func FKLogV(
   function: String = #function,
   line: Int = #line
 ) {
-  FKLogger.shared.verbose(message(), metadata: metadata, file: file, function: function, line: line)
+  FKLogger.shared.log(.verbose, message: message, metadata: metadata, file: file, function: function, line: line)
 }
 
 /// Logs a debug message through singleton.
@@ -30,7 +30,7 @@ public func FKLogD(
   function: String = #function,
   line: Int = #line
 ) {
-  FKLogger.shared.debug(message(), metadata: metadata, file: file, function: function, line: line)
+  FKLogger.shared.log(.debug, message: message, metadata: metadata, file: file, function: function, line: line)
 }
 
 /// Logs an info message through singleton.
@@ -41,7 +41,7 @@ public func FKLogI(
   function: String = #function,
   line: Int = #line
 ) {
-  FKLogger.shared.info(message(), metadata: metadata, file: file, function: function, line: line)
+  FKLogger.shared.log(.info, message: message, metadata: metadata, file: file, function: function, line: line)
 }
 
 /// Logs a warning message through singleton.
@@ -52,7 +52,7 @@ public func FKLogW(
   function: String = #function,
   line: Int = #line
 ) {
-  FKLogger.shared.warning(message(), metadata: metadata, file: file, function: function, line: line)
+  FKLogger.shared.log(.warning, message: message, metadata: metadata, file: file, function: function, line: line)
 }
 
 /// Logs an error message through singleton.
@@ -63,7 +63,7 @@ public func FKLogE(
   function: String = #function,
   line: Int = #line
 ) {
-  FKLogger.shared.error(message(), metadata: metadata, file: file, function: function, line: line)
+  FKLogger.shared.log(.error, message: message, metadata: metadata, file: file, function: function, line: line)
 }
 
 public extension FKLogger {
