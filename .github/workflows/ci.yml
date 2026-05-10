@@ -24,8 +24,8 @@ permissions:
 jobs:
   ios-spm:
     name: Build & test (iOS Simulator / SPM)
-    # `macos-latest` can resolve to macOS 26 images that ship only Xcode 26.x (no 16.2). Pin macOS 15 so
-    # setup-xcode can select Xcode 16.2 from /Applications. See: github.com/actions/runner-images
+    # `macos-latest` can be macOS 26 with only Xcode 26.x. Pin macOS 15 for multi-version Xcode installs.
+    # See: https://github.com/actions/runner-images/blob/main/images/macos/macos-15-arm64-Readme.md
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -34,12 +34,13 @@ jobs:
       - name: Verify podspec s.version alignment
         run: bash scripts/verify-podspec-versions.sh
 
-      # Pin to 16.2 so CI matches Package.swift / README minimum and teammates on Xcode 16.2.
-      # `latest-stable` tracks the newest Xcode on the runner and can hide 16.2-only compile issues.
+      # Local / Package minimum can stay Xcode 16.2; on GitHub-hosted macos-15, 16.2 often exposes no
+      # non-placeholder iOS Simulator in `xcodebuild -showdestinations` (installed sim runtimes skew newer).
+      # 16.4 is the image default and pairs with bundled iPhone simulators for reliable `xcodebuild test`.
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2'
+          xcode-version: '16.4'
 
       # SWIFT_STRICT_CONCURRENCY=complete matches long-term Swift 6 checking; catches issues CI would miss at minimal/targeted.
       - name: Build and test FKKit-Package (iOS Simulator)
