@@ -73,5 +73,11 @@ let package = Package(
       dependencies: ["FKCoreKit"],
       path: "Tests/FKCoreKitTests"
     ),
-  ]
+  ],
+  /// Swift 6 language mode for all targets (region isolation; aligns with strict concurrency work).
+  ///
+  /// Default MainActor isolation is **not** enabled at the package level: ``FKCoreKit`` mixes networking and
+  /// other background-safe code with UI helpers; forcing module-wide ``MainActor`` would fight that split.
+  /// UI-heavy targets rely on UIKit’s own isolation plus explicit annotations instead (see CI strict concurrency).
+  swiftLanguageModes: [.v6]
 )

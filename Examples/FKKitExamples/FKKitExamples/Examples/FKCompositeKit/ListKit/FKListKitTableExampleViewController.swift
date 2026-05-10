@@ -44,7 +44,8 @@ final class DemoItemCell: UITableViewCell, FKListCellConfigurable {
 /// Pure local async simulation: delay + random batch sizes / empty / failure.
 ///
 /// - Note: All randomness lives here; the screen only maps outcomes into ``FKListPlugin`` APIs.
-private final class DemoListMockService {
+/// - Note: Isolated from UI ``MainActor`` so background work does not fight module default actor isolation.
+nonisolated private final class DemoListMockService: @unchecked Sendable {
 
   enum Outcome {
     case items([DemoItemModel])
@@ -63,7 +64,7 @@ private final class DemoListMockService {
 
   private let queue = DispatchQueue(label: "demo.list.mock", qos: .userInitiated)
 
-  func simulateRequest(
+  nonisolated func simulateRequest(
     page: Int,
     limit: Int,
     isFirstPage: Bool,

@@ -108,14 +108,18 @@ final class FKRefreshScrollViewDemoViewController: UIViewController {
     }
   }
 
-  private func scrollToBottomForLoadMore(_ completion: @escaping () -> Void) {
+  private func scrollToBottomForLoadMore(_ completion: @escaping @MainActor () -> Void) {
     let s = scrollView
     s.layoutIfNeeded()
     let maxY = max(0, s.contentSize.height - s.bounds.height + s.adjustedContentInset.bottom)
     UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut, .allowUserInteraction]) {
       s.contentOffset = CGPoint(x: s.contentOffset.x, y: maxY)
     } completion: { _ in
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: completion)
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        MainActor.assumeIsolated {
+          completion()
+        }
+      }
     }
   }
 

@@ -4,7 +4,10 @@ import FKUIKit
 /// Per-view shape / configuration overrides and typed convenience entry points.
 final class FKSkeletonExampleOverridesViewController: UIViewController {
 
-  private let shapeHosts: [(String, FKSkeletonShape, UIView)] = {
+  private lazy var shapeHosts: [(String, FKSkeletonShape, UIView)] = Self.makeShapeHosts()
+
+  @MainActor
+  private static func makeShapeHosts() -> [(String, FKSkeletonShape, UIView)] {
     func box(_ shape: FKSkeletonShape) -> UIImageView {
       let v = UIImageView(image: UIImage(systemName: "person.crop.square.fill"))
       v.contentMode = .scaleAspectFill
@@ -24,7 +27,7 @@ final class FKSkeletonExampleOverridesViewController: UIViewController {
       ("rounded", .rounded, box(.rounded)),
       ("custom(10)", .custom(10), box(.custom(10))),
     ]
-  }()
+  }
 
   override func viewDidLoad() {
     super.viewDidLoad()

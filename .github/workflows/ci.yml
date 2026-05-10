@@ -37,6 +37,7 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      # SWIFT_STRICT_CONCURRENCY=complete matches long-term Swift 6 checking; catches issues CI would miss at minimal/targeted.
       - name: Build and test FKKit-Package (iOS Simulator)
         run: |
           set -eo pipefail
@@ -47,4 +48,5 @@ jobs:
             -destination "platform=iOS Simulator,id=${UDID}" \
             -derivedDataPath "${RUNNER_TEMP}/DerivedData-FKKit" \
             CODE_SIGNING_ALLOWED=NO \
+            SWIFT_STRICT_CONCURRENCY=complete \
             test

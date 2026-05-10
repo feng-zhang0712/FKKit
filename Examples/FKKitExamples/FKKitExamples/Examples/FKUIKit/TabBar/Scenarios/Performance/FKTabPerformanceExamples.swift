@@ -62,7 +62,8 @@ final class FKTabBarPerformanceExampleViewController: UIViewController {
     applyLayoutMode()
   }
 
-  deinit {
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     stop()
   }
 
@@ -100,7 +101,10 @@ final class FKTabBarPerformanceExampleViewController: UIViewController {
   private func start() {
     stop()
     timer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { [weak self] _ in
-      self?.tickOnce()
+      guard let self else { return }
+      MainActor.assumeIsolated {
+        self.tickOnce()
+      }
     }
     statusLabel.text = "Running updates… (local setBadge)"
   }
