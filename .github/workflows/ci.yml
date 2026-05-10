@@ -32,10 +32,12 @@ jobs:
       - name: Verify podspec s.version alignment
         run: bash scripts/verify-podspec-versions.sh
 
+      # Pin to 16.2 so CI matches Package.swift / README minimum and teammates on Xcode 16.2.
+      # `latest-stable` tracks the newest Xcode on the runner and can hide 16.2-only compile issues.
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: '16.2'
 
       # SWIFT_STRICT_CONCURRENCY=complete matches long-term Swift 6 checking; catches issues CI would miss at minimal/targeted.
       - name: Build and test FKKit-Package (iOS Simulator)
