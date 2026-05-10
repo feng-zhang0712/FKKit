@@ -24,7 +24,9 @@ permissions:
 jobs:
   ios-spm:
     name: Build & test (iOS Simulator / SPM)
-    runs-on: macos-latest
+    # `macos-latest` can resolve to macOS 26 images that ship only Xcode 26.x (no 16.2). Pin macOS 15 so
+    # setup-xcode can select Xcode 16.2 from /Applications. See: github.com/actions/runner-images
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4

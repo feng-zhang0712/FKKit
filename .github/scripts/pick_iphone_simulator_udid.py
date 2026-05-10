@@ -14,7 +14,9 @@ def main() -> None:
         text=True,
     )
     data = json.loads(raw)
-    for runtime in sorted(data.get("devices", {}), reverse=True):
+    # Prefer the lowest iOS runtime that still has an available iPhone. Newer GitHub images list iOS 26
+    # before 18.x; picking newest first breaks when the job uses an older Xcode (e.g. 16.2).
+    for runtime in sorted(data.get("devices", {})):
         if "iOS" not in runtime:
             continue
         for dev in data["devices"][runtime]:
