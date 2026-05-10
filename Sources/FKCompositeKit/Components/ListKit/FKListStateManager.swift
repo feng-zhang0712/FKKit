@@ -1,12 +1,5 @@
-//
-// FKListStateManager.swift
-// FKUIKit — List state
-//
-// Central coordinator for list placeholders, skeletons, primary surfaces, and FK refresh controls.
-//
-
-import UIKit
 import FKUIKit
+import UIKit
 
 // MARK: - Configuration
 
@@ -45,13 +38,15 @@ public struct FKListStateManagerConfiguration {
 // MARK: - Manager
 
 /// Coordinates list placeholders so business code only calls ``setState(_:animated:)``.
+///
+/// UI side-effects are applied through ``drivers`` so this type stays decoupled from concrete scroll views.
 @MainActor
 public final class FKListStateManager {
 
-  /// Latest resolved state (read on the main thread).
+  /// Latest resolved state (read on the main actor).
   public private(set) var state: FKListState = .idle
 
-  /// Called on the main thread whenever ``state`` actually changes.
+  /// Called whenever ``state`` actually changes.
   public var onStateChange: ((_ previous: FKListState, _ new: FKListState) -> Void)?
 
   /// Primary button on empty / full-screen error overlays.
@@ -61,17 +56,19 @@ public final class FKListStateManager {
   public var onPullToRefreshEndedEmpty: FKVoidHandler?
 
   public var configuration: FKListStateManagerConfiguration
-  public var ui: FKListStateUIDrivers
+
+  /// Weak references to skeleton, list surface, empty-state host, and refresh bridges.
+  public var drivers: FKListPresentationDrivers
 
   public init(
-    ui: FKListStateUIDrivers,
+    drivers: FKListPresentationDrivers,
     configuration: FKListStateManagerConfiguration = FKListStateManagerConfiguration()
   ) {
-    self.ui = ui
+    self.drivers = drivers
     self.configuration = configuration
   }
 
-  /// Thread-safe entry: always hops to the main queue before mutating UI or ``state``.
+  /// When not called from the main actor, hops asynchronously to the main queue before mutating UI or ``state``.
   public func setState(_ newState: FKListState, animated: Bool = true) {
     if Thread.isMainThread {
       applyStateIfNeeded(newState, animated: animated)
@@ -89,14 +86,14 @@ public final class FKListStateManager {
     let previous = state
     state = newState
     onStateChange?(previous, newState)
-    syncUI(from: previous, to: newState, animated: animated)
+    synchronizePresentation(from: previous, to: newState, animated: animated)
   }
 
-  private func syncUI(from previous: FKListState, to newState: FKListState, animated: Bool) {
-    let host = ui.emptyStateHost
-    let skeleton = ui.skeleton
-    let surface = ui.primarySurface
-    let refresh = ui.refresh
+  private func synchronizePresentation(from previous: FKListState, to newState: FKListState, animated: Bool) {
+    let host = drivers.emptyStateHost
+    let skeleton = drivers.skeleton
+    let surface = drivers.primarySurface
+    let refresh = drivers.refresh
 
     switch newState {
     case .idle:

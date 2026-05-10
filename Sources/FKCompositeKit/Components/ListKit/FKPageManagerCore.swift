@@ -1,8 +1,4 @@
-//
-// FKPageManagerCore.swift
-// FKUIKit — Pagination
-//
-// Types for ``FKPageManager``: pagination mode, request parameters, load phase, configuration.
+// Pagination types for ``FKPageManager`` (FKCompositeKit — ListKit).
 //
 
 import Foundation

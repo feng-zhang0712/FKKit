@@ -1,13 +1,8 @@
-//
-// FKPageManager.swift
-// FKUIKit — Pagination
-//
-// Pure pagination coordinator: cursors, hasMore, duplicate guards, optional ``FKListStateManager`` bridge.
-//
-
 import UIKit
 
 /// Orchestrates page / offset cursors, `hasMore`, and load phases without touching scroll views or refresh controls.
+///
+/// All APIs are ``MainActor``-isolated; call from the main thread (or hop with `await MainActor.run { … }`).
 @MainActor
 public final class FKPageManager {
 
@@ -17,7 +12,7 @@ public final class FKPageManager {
     didSet { configuration.pageSize = max(1, configuration.pageSize) }
   }
 
-  /// Overrides ``FKPageManagerConfiguration/hasMoreStrategy`` when set (main-thread only).
+  /// Overrides ``FKPageManagerConfiguration/hasMoreStrategy`` when set.
   public var hasMoreEvaluator: ((_ fetchedCount: Int, _ pageSize: Int) -> Bool)?
 
   // MARK: - Optional list-state bridge (weak — screen owns both objects)
@@ -28,7 +23,7 @@ public final class FKPageManager {
   /// List presentation while ``beginInitialLoad`` runs with ``automaticallyUpdatesListState`` (skeleton vs silent).
   public var initialLoadListPresentation: FKListLoadingKind = .initial
 
-  // MARK: - Callbacks (always invoked on the main queue)
+  // MARK: - Callbacks
 
   public var onInitialLoadStarted: (() -> Void)?
   public var onRefreshStarted: (() -> Void)?
@@ -38,7 +33,7 @@ public final class FKPageManager {
   /// `hasMore` flipped from `true` → `false` after a successful fetch.
   public var onNoMoreData: (() -> Void)?
 
-  // MARK: - Public state (read on the main thread)
+  // MARK: - Public state
 
   public private(set) var loadPhase: FKPageLoadPhase = .idle
   public private(set) var hasMore: Bool = true
@@ -83,12 +78,12 @@ public final class FKPageManager {
 
   /// `true` when another page might exist and no request is in flight.
   public var canLoadMore: Bool {
-    performOnMain { self.hasMore && !self.isLoading && self.hasCompletedFirstSuccessfulPageLocked }
+    hasMore && !isLoading && hasCompletedFirstSuccessfulPageLocked
   }
 
   /// `true` when idle (no first-page / refresh / load-more in flight).
   public var isIdle: Bool {
-    performOnMain { !self.isLoading }
+    !isLoading
   }
 
   // MARK: - Begin requests
@@ -97,52 +92,44 @@ public final class FKPageManager {
   /// Returns `nil` when a load is already in flight (duplicate guard).
   @discardableResult
   public func beginInitialLoad() -> FKPageRequestParameters? {
-    performOnMain {
-      guard !self.isLoading else { return nil }
-      self.resetPagingLocked()
-      self.isLoading = true
-      self.loadPhase = .loadingFirstPage
-      self.onInitialLoadStarted?()
-      if self.automaticallyUpdatesListState, let list = self.listStateManager {
-        list.setState(.loading(self.initialLoadListPresentation))
-      }
-      return self.makeFirstPageParametersLocked()
+    guard !isLoading else { return nil }
+    resetPagingLocked()
+    isLoading = true
+    loadPhase = .loadingFirstPage
+    onInitialLoadStarted?()
+    if automaticallyUpdatesListState, let list = listStateManager {
+      list.setState(.loading(initialLoadListPresentation))
     }
+    return makeFirstPageParametersLocked()
   }
 
   /// Resets paging like the first page, marks ``FKPageLoadPhase/refreshing``, and returns the first slice.
   @discardableResult
   public func beginRefresh() -> FKPageRequestParameters? {
-    performOnMain {
-      guard !self.isLoading else { return nil }
-      self.resetPagingLocked()
-      self.isLoading = true
-      self.loadPhase = .refreshing
-      self.onRefreshStarted?()
-      if self.automaticallyUpdatesListState, let list = self.listStateManager {
-        list.setState(.refreshing)
-      }
-      return self.makeFirstPageParametersLocked()
+    guard !isLoading else { return nil }
+    resetPagingLocked()
+    isLoading = true
+    loadPhase = .refreshing
+    onRefreshStarted?()
+    if automaticallyUpdatesListState, let list = listStateManager {
+      list.setState(.refreshing)
     }
+    return makeFirstPageParametersLocked()
   }
 
   /// Advances only after a successful batch; returns the next slice or `nil` if `hasMore` is false or a load is active.
   @discardableResult
   public func beginLoadMore() -> FKPageRequestParameters? {
-    performOnMain {
-      guard !self.isLoading, self.hasMore, self.hasCompletedFirstSuccessfulPageLocked else { return nil }
-      self.isLoading = true
-      self.loadPhase = .loadingMore
-      self.onLoadMoreStarted?()
-      return self.makeNextPageParametersLocked()
-    }
+    guard !isLoading, hasMore, hasCompletedFirstSuccessfulPageLocked else { return nil }
+    isLoading = true
+    loadPhase = .loadingMore
+    onLoadMoreStarted?()
+    return makeNextPageParametersLocked()
   }
 
   // MARK: - Complete requests
 
-  /// Finishes a first-page / refresh request. Always clears the in-flight flag on the main thread.
-  /// - Parameter totalItemCountAfterMerge: Pass your merged UI count; omit to use this batch size only (same as `fetchedCount` after reset).
-  /// - Parameter itemCountBeforeRefresh: When a **pull-to-refresh** request fails and this value is `> 0`, list UI shows ``FKListState/loadMoreFailed`` instead of a full-screen ``FKListState/error``.
+  /// Finishes a first-page / refresh request. Always clears the in-flight flag.
   public func completeFirstPage(
     fetchedCount: Int,
     totalItemCountAfterMerge: Int? = nil,
@@ -151,38 +138,35 @@ public final class FKPageManager {
     itemCountBeforeRefresh: Int? = nil,
     animated: Bool = true
   ) {
-    performOnMain {
-      guard self.loadPhase == .loadingFirstPage || self.loadPhase == .refreshing else { return }
-      let count = max(0, fetchedCount)
-      defer {
-        self.isLoading = false
-        self.loadPhase = .idle
-        self.onAnyLoadFinished?()
-      }
-      if let error {
-        self.hasMore = true
-        if self.automaticallyUpdatesListState, let list = self.listStateManager {
-          let mapped = listError ?? FKListDisplayedError.resolve(from: error)
-          let retained = itemCountBeforeRefresh ?? 0
-          if self.loadPhase == .refreshing, retained > 0 {
-            list.setState(.loadMoreFailed(mapped), animated: animated)
-          } else {
-            list.setState(.error(mapped), animated: animated)
-          }
-        }
-        return
-      }
-      self.applyFirstPageSuccessLocked(fetchedCount: count)
-      let totalForList = totalItemCountAfterMerge ?? self.accumulatedFetchedCount
-      self.pushListStateAfterFirstPage(
-        totalItemCountAfterMerge: totalForList,
-        animated: animated
-      )
+    guard loadPhase == .loadingFirstPage || loadPhase == .refreshing else { return }
+    let count = max(0, fetchedCount)
+    defer {
+      isLoading = false
+      loadPhase = .idle
+      onAnyLoadFinished?()
     }
+    if let error {
+      hasMore = true
+      if automaticallyUpdatesListState, let list = listStateManager {
+        let mapped = listError ?? FKListDisplayedError.resolve(from: error)
+        let retained = itemCountBeforeRefresh ?? 0
+        if loadPhase == .refreshing, retained > 0 {
+          list.setState(.loadMoreFailed(mapped), animated: animated)
+        } else {
+          list.setState(.error(mapped), animated: animated)
+        }
+      }
+      return
+    }
+    applyFirstPageSuccessLocked(fetchedCount: count)
+    let totalForList = totalItemCountAfterMerge ?? accumulatedFetchedCount
+    pushListStateAfterFirstPage(
+      totalItemCountAfterMerge: totalForList,
+      animated: animated
+    )
   }
 
   /// Finishes a load-more request. Failures do **not** advance cursors (implicit page / offset rollback).
-  /// - Parameter totalItemCountAfterMerge: Pass your merged UI count; omit to use the running ``accumulatedFetchedCount`` after success.
   public func completeLoadMore(
     fetchedCount: Int,
     totalItemCountAfterMerge: Int? = nil,
@@ -190,36 +174,34 @@ public final class FKPageManager {
     listError: FKListDisplayedError? = nil,
     animated: Bool = true
   ) {
-    performOnMain {
-      guard self.loadPhase == .loadingMore else { return }
-      let count = max(0, fetchedCount)
-      defer {
-        self.isLoading = false
-        self.loadPhase = .idle
-        self.onAnyLoadFinished?()
-      }
-      if let error {
-        if self.automaticallyUpdatesListState, let list = self.listStateManager {
-          let mapped = listError ?? FKListDisplayedError.resolve(from: error)
-          let existingItems = totalItemCountAfterMerge ?? self.accumulatedFetchedCount
-          if existingItems > 0 {
-            list.setState(.loadMoreFailed(mapped), animated: animated)
-          } else {
-            list.setState(.error(mapped), animated: animated)
-          }
+    guard loadPhase == .loadingMore else { return }
+    let count = max(0, fetchedCount)
+    defer {
+      isLoading = false
+      loadPhase = .idle
+      onAnyLoadFinished?()
+    }
+    if let error {
+      if automaticallyUpdatesListState, let list = listStateManager {
+        let mapped = listError ?? FKListDisplayedError.resolve(from: error)
+        let existingItems = totalItemCountAfterMerge ?? accumulatedFetchedCount
+        if existingItems > 0 {
+          list.setState(.loadMoreFailed(mapped), animated: animated)
+        } else {
+          list.setState(.error(mapped), animated: animated)
         }
-        return
       }
-      let hadMore = self.hasMore
-      self.applyLoadMoreSuccessLocked(fetchedCount: count)
-      if hadMore && !self.hasMore {
-        self.onNoMoreData?()
-      }
-      if self.automaticallyUpdatesListState, let list = self.listStateManager {
-        let totalForList = totalItemCountAfterMerge ?? self.accumulatedFetchedCount
-        let snapshot = FKListContentSnapshot(itemCount: totalForList, hasMorePages: self.hasMore)
-        list.setState(.content(snapshot), animated: animated)
-      }
+      return
+    }
+    let hadMore = hasMore
+    applyLoadMoreSuccessLocked(fetchedCount: count)
+    if hadMore && !hasMore {
+      onNoMoreData?()
+    }
+    if automaticallyUpdatesListState, let list = listStateManager {
+      let totalForList = totalItemCountAfterMerge ?? accumulatedFetchedCount
+      let snapshot = FKListContentSnapshot(itemCount: totalForList, hasMorePages: hasMore)
+      list.setState(.content(snapshot), animated: animated)
     }
   }
 
@@ -227,46 +209,27 @@ public final class FKPageManager {
 
   /// Clears cursors and flags as if the screen just appeared (does not start a fetch).
   public func resetPagingToInitial() {
-    performOnMain {
-      self.resetPagingLocked()
-      self.isLoading = false
-      self.loadPhase = .idle
-    }
+    resetPagingLocked()
+    isLoading = false
+    loadPhase = .idle
   }
 
   /// Full reset plus optional list idle state.
   public func resetEverything(animated: Bool = true) {
-    performOnMain {
-      self.resetPagingLocked()
-      self.isLoading = false
-      self.loadPhase = .idle
-      if self.automaticallyUpdatesListState, let list = self.listStateManager {
-        list.setState(.idle, animated: animated)
-      }
+    resetPagingLocked()
+    isLoading = false
+    loadPhase = .idle
+    if automaticallyUpdatesListState, let list = listStateManager {
+      list.setState(.idle, animated: animated)
     }
   }
 
   /// Drops the in-flight guard without advancing cursors (e.g. task cancellation). Prefer paired `complete*` when possible.
   public func abandonInFlightRequest() {
-    performOnMain {
-      guard self.isLoading else { return }
-      self.isLoading = false
-      self.loadPhase = .idle
-      self.onAnyLoadFinished?()
-    }
-  }
-
-  // MARK: - Main queue
-
-  private func performOnMain<T>(_ work: () -> T) -> T {
-    if Thread.isMainThread {
-      return work()
-    }
-    var result: T!
-    DispatchQueue.main.sync {
-      result = work()
-    }
-    return result
+    guard isLoading else { return }
+    isLoading = false
+    loadPhase = .idle
+    onAnyLoadFinished?()
   }
 
   /// `true` once the first page has succeeded at least once in this paging session (guards premature load-more).

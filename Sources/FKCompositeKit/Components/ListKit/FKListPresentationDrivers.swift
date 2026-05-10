@@ -1,16 +1,9 @@
-//
-// FKListStateDrivers.swift
-// FKUIKit — List state
-//
-// Protocol-driven UI hooks so ``FKListStateManager`` stays decoupled from concrete scroll views.
-//
-
-import UIKit
 import FKUIKit
+import UIKit
 
 // MARK: - Skeleton
 
-/// Controls a skeleton host such as ``FKSkeletonContainerView``.
+/// Drives skeleton presentation for ``FKListStateManager`` (e.g. ``FKSkeletonContainerView``).
 @MainActor
 public protocol FKListSkeletonDriving: AnyObject {
   func fk_list_setSkeletonActive(_ active: Bool, animated: Bool)
@@ -70,14 +63,11 @@ extension UIView: FKListEmptyStateDriving {
 
 // MARK: - Refresh
 
-/// Finishes header/footer refresh work without hard-coding ``FKRefreshControl`` call sites in the manager.
+/// Finishes header/footer refresh work without hard-coding ``FKRefreshControl`` inside ``FKListStateManager``.
 @MainActor
 public protocol FKListRefreshDriving: AnyObject {
-  /// Collapses the header after a successful refresh (no-op when not attached / idle).
   func fk_list_endPullToRefreshSuccess()
-  /// Collapses the header when the first page is empty.
   func fk_list_endPullToRefreshEmptyList()
-  /// Collapses the header after a transport / server failure.
   func fk_list_endPullToRefreshFailure()
   func fk_list_finishLoadMoreSuccess(hasMorePages: Bool)
   func fk_list_finishLoadMoreFailure()
@@ -123,7 +113,7 @@ public final class FKListScrollViewRefreshDriver: FKListRefreshDriving {
 
 /// Weak references to optional UI collaborators; pass only the pieces your screen supports.
 @MainActor
-public struct FKListStateUIDrivers {
+public struct FKListPresentationDrivers {
   public weak var emptyStateHost: (any FKListEmptyStateDriving)?
   public weak var skeleton: (any FKListSkeletonDriving)?
   public weak var primarySurface: (any FKListPrimarySurfaceDriving)?

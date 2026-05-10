@@ -1,8 +1,4 @@
-//
-// FKListConfiguration.swift
-// FKCompositeKit — FKListKit
-//
-// Unified feature flags and styling hooks for ``FKListPlugin``.
+// Unified feature flags and styling hooks for ``FKListPlugin`` (FKCompositeKit — ListKit).
 //
 
 import Foundation

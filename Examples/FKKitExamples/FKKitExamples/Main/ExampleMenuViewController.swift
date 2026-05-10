@@ -162,7 +162,7 @@ final class ExampleMenuViewController: UITableViewController {
       items: [
         ExampleMenuItem(
           title: "Base",
-          subtitle: "Controller foundation examples: lifecycle, navigation and tab bar infrastructure",
+          subtitle: "Hub: FKBaseViewController, table/collection shells, composition, search",
           make: { FKBaseExamplesHubViewController() }
         ),
         ExampleMenuItem(
@@ -172,13 +172,13 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "Filter",
-          subtitle: "FKFilterController hub: full demo, equal-width tabs, and blank hosts",
+          subtitle: "Hub: full demo, equal-width hosts — see Examples/FKCompositeKit/Filter/README.md",
           make: { FKFilterExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "ListKit",
-          subtitle: "Plugin list: refresh, paging, skeleton, empty/error",
-          make: { FKListKitTableExampleViewController() }
+          subtitle: "Hub: FKListPlugin table (paging, skeleton, empty/error, FKListScreen)",
+          make: { FKListKitExamplesHubViewController() }
         ),
       ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),

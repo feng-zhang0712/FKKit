@@ -1,18 +1,9 @@
-//
-//  FKListKitTableExampleViewController.swift
-//  FKKitExamples
-//
-//  End-to-end demo: ``FKListPlugin`` + ``UITableView`` with pagination, pull-to-refresh, load-more,
-//  first-load skeleton, empty/error overlays, and load-more failures — backed entirely by mock data.
-//
-
-import UIKit
 import FKCompositeKit
 import FKUIKit
+import UIKit
 
 // MARK: - Model
 
-/// Row model for the demo list (in real apps you may map from DTO → domain; kept minimal here).
 struct DemoItemModel: Equatable, Hashable {
   let id: String
   let title: String
@@ -21,12 +12,16 @@ struct DemoItemModel: Equatable, Hashable {
 
 // MARK: - Cell
 
-private extension UITableViewCell {
-  static var demoReuseId: String { String(describing: DemoItemCell.self) }
-}
+/// Uses ``FKBaseTableViewCell`` as the reusable root while conforming to ``FKListTableCellConfigurable``.
+final class DemoItemCell: FKBaseTableViewCell, FKListTableCellConfigurable {
 
-/// Minimal cell style; uses ``FKListCellConfigurable`` to bind UI to ``DemoItemModel``.
-final class DemoItemCell: UITableViewCell, FKListCellConfigurable {
+  override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+    super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
 
   func configure(with item: DemoItemModel) {
     var config = defaultContentConfiguration()
@@ -41,10 +36,6 @@ final class DemoItemCell: UITableViewCell, FKListCellConfigurable {
 
 // MARK: - Mock service
 
-/// Pure local async simulation: delay + random batch sizes / empty / failure.
-///
-/// - Note: All randomness lives here; the screen only maps outcomes into ``FKListPlugin`` APIs.
-/// - Note: Isolated from UI ``MainActor`` so background work does not fight module default actor isolation.
 nonisolated private final class DemoListMockService: @unchecked Sendable {
 
   enum Outcome {
@@ -53,13 +44,9 @@ nonisolated private final class DemoListMockService: @unchecked Sendable {
     case failure(message: String)
   }
 
-  /// When enabled, the next first-page / refresh request returns an empty list (useful for validating empty state).
   var forceNextRefreshEmpty = false
-  /// When enabled, the next request (initial/refresh/load-more) fails.
   var forceNextFailure = false
-  /// Item count range for initial/refresh responses (inclusive).
   var refreshItemCountRange: ClosedRange<Int> = 4...12
-  /// Page size for load-more responses (the final page may still end earlier due to pagination policy).
   var loadMorePageSize: Int = 8
 
   private let queue = DispatchQueue(label: "demo.list.mock", qos: .userInitiated)
@@ -72,20 +59,17 @@ nonisolated private final class DemoListMockService: @unchecked Sendable {
   ) {
     queue.async { [weak self] in
       guard let self else { return }
-      // Simulate network RTT.
       Thread.sleep(forTimeInterval: Double.random(in: 0.35...0.85))
       let outcome: Outcome
       if self.forceNextFailure {
         self.forceNextFailure = false
         outcome = .failure(message: "Forced demo failure (simulating a 503).")
       } else if isFirstPage, Double.random(in: 0...1) < 0.06 {
-        // Initial/refresh: ~6% probability to enter full-screen ``FKListState.error`` (or footer-failure when rows exist).
         outcome = .failure(message: "Refresh failed. Please try again.")
       } else if isFirstPage, self.forceNextRefreshEmpty {
         self.forceNextRefreshEmpty = false
         outcome = .empty
       } else if !isFirstPage, Double.random(in: 0...1) < 0.12 {
-        // Load-more: inject an extra ~12% failure rate to demonstrate ``loadMoreFailed`` and footer error animations.
         outcome = .failure(message: "Load more failed. Please retry.")
       } else if isFirstPage, Double.random(in: 0...1) < 0.08 {
         outcome = .empty
@@ -104,7 +88,7 @@ nonisolated private final class DemoListMockService: @unchecked Sendable {
           return DemoItemModel(
             id: "demo-\(index)",
             title: "Page \(page) · Row \(offset + 1)",
-            content: "Placeholder copy #\(index). Replace with your own summary/tags/rich text in real screens."
+            content: "Placeholder copy #\(index). Replace with your own summary in production."
           )
         }
         outcome = .items(items)
@@ -118,10 +102,9 @@ nonisolated private final class DemoListMockService: @unchecked Sendable {
 
 // MARK: - View controller
 
-/// Demo host screen: **compose** ``FKListPlugin`` (no base controller inheritance); explicitly attaches/detaches within lifecycle.
-final class FKListKitTableExampleViewController: UIViewController, FKListCapable {
+final class FKListKitTableExampleViewController: UIViewController, FKListScreen {
 
-  // MARK: Subviews
+  var listPlugins: [FKListPlugin] { [listPlugin] }
 
   private let tableView: UITableView = {
     let tv = UITableView(frame: .zero, style: .insetGrouped)
@@ -130,16 +113,10 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
     return tv
   }()
 
-  /// First-load skeleton host, covering the same area as the list. During ``.loading(.initial)``,
-  /// ``FKListPlugin`` hides the table and shows the skeleton.
   private let skeletonHost = FKSkeletonContainerView()
-
-  // MARK: Composition
-
   private let mockService = DemoListMockService()
 
-  /// List plugin: the generic ``Item`` matches ``DemoItemModel`` so `handleSuccess(data:)` can infer batch counts.
-  private lazy var listPlugin: FKListPlugin<DemoItemModel> = {
+  private lazy var listPlugin: FKListPlugin = {
     var configuration = FKListConfiguration()
     configuration.pagination = FKPageManagerConfiguration(pageSize: 8, mode: .page(firstPageIndex: 1))
     configuration.enablesPullToRefresh = true
@@ -148,72 +125,50 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
     configuration.presentsEmptyStateOverlay = true
     configuration.presentsErrorStateOverlay = true
     configuration.tracksItemCountForRefreshFailureUX = true
-    // End pagination after 3 successful pages; decoupled from variable page sizes returned by the mock service.
     configuration.hasMoreEvaluator = { [weak self] _, _ in
       guard let self else { return false }
       let page = self.listPlugin.pageManager.lastSuccessfulPage ?? 0
       return page < 3
     }
-    return FKListPlugin<DemoItemModel>(configuration: configuration)
+    return FKListPlugin(configuration: configuration)
   }()
-
-  // MARK: Data
 
   private var items: [DemoItemModel] = []
 
-  // MARK: Lifecycle
-
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "FKListKit (Table)"
+    title = "ListKit · Table"
     view.backgroundColor = .systemBackground
     configureNavigationItems()
     configureHierarchy()
     configureTable()
     buildSkeletonLayout()
     mountListPlugin()
-    // Kick off initial load right after mounting (skeleton + ``onRefresh``).
     startRefresh()
   }
 
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    // Detach refresh controls when leaving the navigation stack to avoid duplicate callbacks.
-    // (Avoid calling `MainActor` APIs from `deinit` which is not actor-isolated.)
     if isMovingFromParent || isBeingDismissed {
-      listPlugin.detach()
+      detachAllListPlugins()
     }
   }
 
-  // MARK: Setup
-
   private func configureNavigationItems() {
     navigationItem.rightBarButtonItems = [
-      UIBarButtonItem(
-        title: "Next empty",
-        style: .plain,
-        target: self,
-        action: #selector(toggleNextEmpty)
-      ),
-      UIBarButtonItem(
-        title: "Next failure",
-        style: .plain,
-        target: self,
-        action: #selector(toggleNextFailure)
-      ),
+      UIBarButtonItem(title: "Next empty", style: .plain, target: self, action: #selector(toggleNextEmpty)),
+      UIBarButtonItem(title: "Next failure", style: .plain, target: self, action: #selector(toggleNextFailure)),
     ]
   }
 
   @objc private func toggleNextEmpty() {
     mockService.forceNextRefreshEmpty.toggle()
-    let on = mockService.forceNextRefreshEmpty
-    presentToast(on ? "Enabled: next refresh returns 0 items." : "Disabled: forced empty list.")
+    presentToast(mockService.forceNextRefreshEmpty ? "Next refresh → empty." : "Forced empty off.")
   }
 
   @objc private func toggleNextFailure() {
     mockService.forceNextFailure.toggle()
-    let on = mockService.forceNextFailure
-    presentToast(on ? "Enabled: next request will fail." : "Disabled: forced failure.")
+    presentToast(mockService.forceNextFailure ? "Next request → failure." : "Forced failure off.")
   }
 
   private func presentToast(_ message: String) {
@@ -244,11 +199,9 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
 
   private func configureTable() {
     tableView.dataSource = self
-    tableView.register(DemoItemCell.self, forCellReuseIdentifier: UITableViewCell.demoReuseId)
+    tableView.register(DemoItemCell.self, forCellReuseIdentifier: DemoItemCell.reuseIdentifier)
   }
 
-  /// Builds skeleton blocks that mimic row heights.
-  /// Subviews must be registered via ``FKSkeletonContainerView/addSkeletonSubview(_:)``.
   private func buildSkeletonLayout() {
     skeletonHost.removeAllSkeletonSubviews()
     var previous: FKSkeletonView?
@@ -275,10 +228,6 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
     }
   }
 
-  // MARK: Plugin wiring
-
-  /// Mounts the plugin after the view hierarchy is ready: binds the scroll view, empty/error host, skeleton host,
-  /// and the host view controller.
   private func mountListPlugin() {
     listPlugin.currentTotalItemCount = { [weak self] in
       self?.items.count ?? 0
@@ -292,7 +241,6 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
       self?.handleLoadMoreRequest(parameters: parameters)
     }
 
-    /// Primary action on empty/error overlay: re-trigger the initial-load path.
     listPlugin.onEmptyOrErrorOverlayPrimaryAction = { [weak self] in
       self?.startRefresh()
     }
@@ -305,13 +253,6 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
     )
   }
 
-  // MARK: Requests
-
-  /// `startRefresh` as used in this demo maps to ``FKListPlugin/startInitialLoad()`` (first page / full reload entry).
-  ///
-  /// If you want to **simulate a real user pull-to-refresh** (``FKPageLoadPhase.refreshing``),
-  /// call ``tableView.fk_beginPullToRefresh(animated:)`` instead. It triggers the same `onRefresh` callback,
-  /// but skips the first-load skeleton (``.loading(.initial)``).
   private func startRefresh() {
     listPlugin.startInitialLoad()
   }
@@ -324,11 +265,14 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
       case .items(let batch):
         self.items = batch
         self.tableView.reloadData()
-        self.listPlugin.handleSuccess(data: batch, totalItemCountAfterMerge: self.items.count)
+        self.listPlugin.handleSuccess(
+          fetchedThisBatchCount: batch.count,
+          totalItemCountAfterMerge: self.items.count
+        )
       case .empty:
         self.items = []
         self.tableView.reloadData()
-        self.listPlugin.handleSuccess(data: [], totalItemCountAfterMerge: 0)
+        self.listPlugin.handleSuccess(fetchedThisBatchCount: 0, totalItemCountAfterMerge: 0)
       case .failure(let message):
         self.listPlugin.handleError(
           DemoListError.stub(message),
@@ -346,11 +290,13 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
       case .items(let batch):
         self.items.append(contentsOf: batch)
         self.tableView.reloadData()
-        self.listPlugin.handleSuccess(data: batch, totalItemCountAfterMerge: self.items.count)
+        self.listPlugin.handleSuccess(
+          fetchedThisBatchCount: batch.count,
+          totalItemCountAfterMerge: self.items.count
+        )
       case .empty:
-        // Load-more returned an empty array: treat as a normal completion with no new rows.
         self.tableView.reloadData()
-        self.listPlugin.handleSuccess(data: [], totalItemCountAfterMerge: self.items.count)
+        self.listPlugin.handleSuccess(fetchedThisBatchCount: 0, totalItemCountAfterMerge: self.items.count)
       case .failure(let message):
         self.listPlugin.handleError(
           DemoListError.stub(message),
@@ -361,21 +307,17 @@ final class FKListKitTableExampleViewController: UIViewController, FKListCapable
   }
 }
 
-// MARK: - UITableViewDataSource
-
 extension FKListKitTableExampleViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     items.count
   }
 
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: UITableViewCell.demoReuseId, for: indexPath) as! DemoItemCell
+    let cell = tableView.dequeueReusableCell(withIdentifier: DemoItemCell.reuseIdentifier, for: indexPath) as! DemoItemCell
     cell.configure(with: items[indexPath.row])
     return cell
   }
 }
-
-// MARK: - Error type
 
 private struct DemoListError: LocalizedError {
   let message: String
