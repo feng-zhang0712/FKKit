@@ -91,29 +91,47 @@ final class FKLocationPermissionHandler: NSObject, FKPermissionHandling, @precon
       return FKPermissionResult(kind: kind, status: .denied)
     }
 
-    // Reuse one manager instance so we can query the latest accuracy authorization.
+    // Read current accuracy on the main actor; no delegate is used for this flow.
     let manager = CLLocationManager()
-    self.manager = manager
 
     // Skip request if already at full accuracy.
     if manager.accuracyAuthorization == .fullAccuracy {
-      self.manager = nil
       return FKPermissionResult(kind: kind, status: .authorized)
     }
 
     // A matching key must exist under NSLocationTemporaryUsageDescriptionDictionary.
     let key = request.temporaryLocationPurposeKey ?? "FKLocationTemporaryFullAccuracyPurpose"
     do {
-      try await manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: key)
+      // Use the Objective-C completion API on the main queue instead of the async `throws`
+      // overload. Under `SWIFT_STRICT_CONCURRENCY=complete` (e.g. Xcode 16.4), awaiting the async
+      // overload is diagnosed as sending a `MainActor`-isolated `CLLocationManager` into a
+      // nonisolated async SDK method.
+      try await Self.requestTemporaryFullAccuracyUsingCompletion(purposeKey: key)
     } catch {
-      self.manager = nil
       return FKPermissionResult(kind: kind, status: .denied, error: .custom(error.localizedDescription))
     }
 
-    // Re-check current accuracy after the system request returns.
-    let status: FKPermissionStatus = manager.accuracyAuthorization == .fullAccuracy ? .authorized : .denied
-    self.manager = nil
+    // Re-check current accuracy after the system request returns (global state).
+    let accuracy = CLLocationManager().accuracyAuthorization
+    let status: FKPermissionStatus = accuracy == .fullAccuracy ? .authorized : .denied
     return FKPermissionResult(kind: kind, status: status)
+  }
+
+  /// Bridges `requestTemporaryFullAccuracyAuthorizationWithPurposeKey:completion:` to async
+  /// without crossing Swift 6 strict isolation on the async-imported overload.
+  private static func requestTemporaryFullAccuracyUsingCompletion(purposeKey: String) async throws {
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+      DispatchQueue.main.async {
+        let requestManager = CLLocationManager()
+        requestManager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: purposeKey) { error in
+          if let error {
+            continuation.resume(throwing: error)
+          } else {
+            continuation.resume()
+          }
+        }
+      }
+    }
   }
 
   /// Maps system authorization status to this handler's current permission kind.
