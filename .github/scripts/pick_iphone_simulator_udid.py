@@ -88,7 +88,9 @@ def main() -> None:
 
     sys.stderr.write(
         "No concrete iOS Simulator (non-placeholder) in xcodebuild -showdestinations.\n"
-        "On GitHub-hosted macos-15, Xcode 16.2 often has no paired simulator runtime; use 16.4+ in CI.\n"
+        "For Swift packages this often happens before the graph is resolved (IDE: supported platforms empty).\n"
+        "Run: xcodebuild -scheme FKKit-Package -resolvePackageDependencies … first, or use an explicit\n"
+        "-destination 'platform=iOS Simulator,name=…,OS=…' as in .github/workflows/ci.yml.\n"
     )
     sys.stderr.write(combined[:8000])
     raise SystemExit(1)

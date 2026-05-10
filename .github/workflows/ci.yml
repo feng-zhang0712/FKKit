@@ -43,15 +43,29 @@ jobs:
           xcode-version: '16.4'
 
       # SWIFT_STRICT_CONCURRENCY=complete matches long-term Swift 6 checking; catches issues CI would miss at minimal/targeted.
+      #
+      # Root cause we hit repeatedly: on a fresh clone, `xcodebuild -showdestinations` often lists only the
+      # `Any iOS Simulator Device` placeholder (IDE reports "Supported platforms for the buildables … is empty")
+      # until package dependencies are resolved — so parsing UDIDs from `-showdestinations` is unreliable on CI.
+      #
+      # Fix: resolve the Swift package graph first, then target a concrete simulator that GitHub documents on
+      # macos-15 (adjust name/OS if runner-images drops iOS 18.5): macos-15-arm64-Readme.md → Installed Simulators.
       - name: Build and test FKKit-Package (iOS Simulator)
         run: |
           set -eo pipefail
-          UDID="$(python3 "${GITHUB_WORKSPACE}/.github/scripts/pick_iphone_simulator_udid.py")"
-          echo "Selected simulator UDID=${UDID}"
+          DD="${RUNNER_TEMP}/DerivedData-FKKit"
+          SPM="${RUNNER_TEMP}/FKKit-SPM"
           xcodebuild \
             -scheme FKKit-Package \
-            -destination "platform=iOS Simulator,id=${UDID}" \
-            -derivedDataPath "${RUNNER_TEMP}/DerivedData-FKKit" \
+            -resolvePackageDependencies \
+            -clonedSourcePackagesDirPath "${SPM}" \
+            -derivedDataPath "${DD}" \
+            CODE_SIGNING_ALLOWED=NO
+          xcodebuild \
+            -scheme FKKit-Package \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
+            -derivedDataPath "${DD}" \
+            -clonedSourcePackagesDirPath "${SPM}" \
             CODE_SIGNING_ALLOWED=NO \
             SWIFT_STRICT_CONCURRENCY=complete \
             test
