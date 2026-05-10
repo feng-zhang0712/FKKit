@@ -15,7 +15,9 @@ final class FKEmptyStateI18nExampleViewController: UIViewController {
   }
 
   deinit {
-    fk_clearEmptyStateActionObservers()
+    MainActor.assumeIsolated {
+      fk_clearEmptyStateActionObservers()
+    }
   }
 
   private func buildUI() {

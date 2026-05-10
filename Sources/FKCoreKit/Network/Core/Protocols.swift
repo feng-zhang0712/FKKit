@@ -165,6 +165,10 @@ public protocol TokenStore: AnyObject {
 ///
 /// Conforming types should call backend refresh API and return a valid new
 /// access token through completion callback.
+///
+/// ## Concurrency
+/// Implementations run off the caller’s isolation today; invoke `completion` on a predictable
+/// executor (typically the main queue) if results touch UI or non-Sendable stores.
 public protocol TokenRefresher {
   /// Refreshes access token.
   ///

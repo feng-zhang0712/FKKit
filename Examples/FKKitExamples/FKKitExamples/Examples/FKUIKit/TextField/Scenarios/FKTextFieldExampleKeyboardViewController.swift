@@ -18,7 +18,12 @@ final class FKTextFieldExampleKeyboardViewController: FKTextFieldExamplePageView
       object: nil,
       queue: .main
     ) { [weak self] note in
-      self?.keyboardWillChangeFrame(note)
+      guard let self else { return }
+      guard let userInfo = note.userInfo,
+            let endFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+      MainActor.assumeIsolated {
+        self.applyKeyboardOverlap(endFrameInScreen: endFrame)
+      }
     }
   }
 
@@ -42,10 +47,8 @@ final class FKTextFieldExampleKeyboardViewController: FKTextFieldExamplePageView
     addSection(title: "Tap Blank Area to Dismiss Keyboard", note: "This page already installs a tap gesture to end editing.")
   }
 
-  private func keyboardWillChangeFrame(_ note: Notification) {
-    guard let userInfo = note.userInfo,
-          let endFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-    let keyboardFrame = view.convert(endFrame, from: nil)
+  private func applyKeyboardOverlap(endFrameInScreen: CGRect) {
+    let keyboardFrame = view.convert(endFrameInScreen, from: nil)
     let overlap = max(0, view.bounds.maxY - keyboardFrame.minY - view.safeAreaInsets.bottom)
     scrollView.contentInset.bottom = overlap + 12
     scrollView.verticalScrollIndicatorInsets.bottom = overlap + 12

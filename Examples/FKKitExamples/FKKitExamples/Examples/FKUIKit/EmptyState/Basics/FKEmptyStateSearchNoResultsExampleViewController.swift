@@ -16,7 +16,9 @@ final class FKEmptyStateSearchNoResultsExampleViewController: UIViewController {
   }
 
   deinit {
-    fk_clearEmptyStateActionObservers()
+    MainActor.assumeIsolated {
+      fk_clearEmptyStateActionObservers()
+    }
   }
 
   private func buildUI() {

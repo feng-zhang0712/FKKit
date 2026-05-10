@@ -175,7 +175,10 @@ final class FKBlurUIViewSnapshotVC: FKBlurExampleBaseViewController {
       parameters: params,
       downsampleFactor: 2
     ) { [weak self] image in
-      self?.asyncImageView.image = image
+      guard let self else { return }
+      Task { @MainActor in
+        self.asyncImageView.image = image
+      }
     }
   }
 }
