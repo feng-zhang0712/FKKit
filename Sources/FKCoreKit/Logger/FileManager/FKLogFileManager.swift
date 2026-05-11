@@ -43,7 +43,7 @@ public final class FKLogFileManager: FKLogFileManaging, @unchecked Sendable {
   }
 
   public func clearAllLogs() {
-    queue.async { [weak self] in
+    queue.sync { [weak self] in
       guard let self else { return }
       let files = self.listedLogFiles()
       files.forEach { _ = try? self.fileManager.removeItem(at: $0) }

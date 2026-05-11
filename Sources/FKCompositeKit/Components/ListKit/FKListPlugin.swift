@@ -1,15 +1,8 @@
-//
-// FKListPlugin.swift
-// FKCompositeKit — FKListKit
-//
-// Plugin-style list coordinator: composes ``FKPageManager``, ``FKListStateManager``, FKRefresh,
-// optional skeleton + empty/error overlays, without subclassing ``UIViewController``.
-//
-
-import UIKit
 import FKUIKit
+import UIKit
 
-/// Composable “list capability” object you retain on a screen; **never** subclass a base list controller.
+/// Composable list coordinator: composes ``FKPageManager``, ``FKListStateManager``, FKRefresh,
+/// optional skeleton + empty/error overlays, **without** subclassing ``UIViewController``.
 ///
 /// ## Responsibilities
 /// - Wires ``UIScrollView`` pull-to-refresh / load-more to ``FKPageManager`` cursors.
@@ -18,15 +11,13 @@ import FKUIKit
 /// - Keeps the host view controller and scroll view as **weak** references to avoid retain cycles.
 ///
 /// ## Typical wiring
-/// 1. `let plugin = FKListPlugin<MyModel>(configuration: …)`
+/// 1. `let plugin = FKListPlugin(configuration: …)`
 /// 2. Assign `onRefresh` / `onLoadMore`, optionally `currentTotalItemCount`.
 /// 3. `plugin.attach(scrollView: tableView, emptyStateHost: view, skeletonHost: container, hostViewController: self)`
 /// 4. `plugin.startInitialLoad()` from `viewDidAppear` (once) or your own trigger.
-/// 5. After each network completes: update your data source, `tableView.reloadData()`, then `plugin.handleSuccess(data:)`.
+/// 5. After each network completes: update your data source, reload the list, then ``handleSuccess(fetchedThisBatchCount:totalItemCountAfterMerge:animated:)``.
 @MainActor
-public final class FKListPlugin<Item> {
-
-  // MARK: Public surfaces
+public final class FKListPlugin {
 
   public private(set) var configuration: FKListConfiguration
 
@@ -53,21 +44,17 @@ public final class FKListPlugin<Item> {
   /// Current rendered row count; used when ``FKListConfiguration/tracksItemCountForRefreshFailureUX`` is enabled.
   public var currentTotalItemCount: () -> Int = { 0 }
 
-  // MARK: Private
-
   private weak var emptyStateHost: UIView?
   private var refreshDriver: FKListScrollViewRefreshDriver?
   private var itemCountBeforeRefreshOrInitial: Int = 0
   private var hasSkeletonDriver = false
   private var isAttached = false
 
-  // MARK: Init
-
   public init(configuration: FKListConfiguration = FKListConfiguration()) {
     self.configuration = configuration
     self.pageManager = FKPageManager(configuration: configuration.pagination)
     self.listStateManager = FKListStateManager(
-      ui: FKListStateUIDrivers(),
+      drivers: FKListPresentationDrivers(),
       configuration: configuration.resolvedListStateManagerConfiguration()
     )
     installPageManagerBridge()
@@ -77,13 +64,6 @@ public final class FKListPlugin<Item> {
   // MARK: Attach
 
   /// Binds a scroll view (``UITableView`` / ``UICollectionView`` / plain ``UIScrollView``) to the plugin.
-  ///
-  /// - Parameters:
-  ///   - scrollView: Primary list surface (also receives FKRefresh attachments).
-  ///   - emptyStateHost: Usually `viewController.view`; must conform to ``FKListEmptyStateDriving`` (`UIView` extension).
-  ///   - skeletonHost: Optional ``FKSkeletonContainerView`` (or custom ``FKListSkeletonDriving``). Skeleton + list **never**
-  ///     show together: ``FKListStateManager`` hides the primary surface while `.loading(.initial)` is active.
-  ///   - hostViewController: Weak reference for future presentation hooks; may be `nil`.
   @discardableResult
   public func attach(
     scrollView: UIScrollView,
@@ -100,7 +80,7 @@ public final class FKListPlugin<Item> {
     let driver = FKListScrollViewRefreshDriver(scrollView: scrollView)
     refreshDriver = driver
 
-    listStateManager.ui = FKListStateUIDrivers(
+    listStateManager.drivers = FKListPresentationDrivers(
       emptyStateHost: emptyStateHost,
       skeleton: skeletonHost,
       primarySurface: scrollView,
@@ -141,7 +121,7 @@ public final class FKListPlugin<Item> {
 
     listStateManager.onStateChange = nil
     listStateManager.onOverlayPrimaryAction = nil
-    listStateManager.ui = FKListStateUIDrivers()
+    listStateManager.drivers = FKListPresentationDrivers()
 
     refreshDriver = nil
     scrollView = nil
@@ -174,17 +154,25 @@ public final class FKListPlugin<Item> {
 
   // MARK: Completion API
 
-  /// Records a successful batch. Uses ``FKPageManager`` phase to choose ``completeFirstPage`` vs ``completeLoadMore``.
+  /// Records a successful batch. Uses ``FKPageManager/loadPhase`` to choose ``completeFirstPage`` vs ``completeLoadMore``.
   ///
   /// - Parameters:
-  ///   - data: Latest page rows (only `count` is forwarded to pagination unless you supply `totalItemCountAfterMerge`).
-  ///   - totalItemCountAfterMerge: Pass when your UI model diverges from `data.count` (e.g. merged unique cache).
-  public func handleSuccess(data: [Item], totalItemCountAfterMerge: Int? = nil, animated: Bool = true) {
+  ///   - fetchedThisBatchCount: Number of rows returned in this response (after any client-side filtering).
+  ///   - totalItemCountAfterMerge: Pass when your UI model count diverges from the batch count (e.g. merged cache).
+  public func handleSuccess(
+    fetchedThisBatchCount: Int,
+    totalItemCountAfterMerge: Int? = nil,
+    animated: Bool = true
+  ) {
     if Thread.isMainThread {
-      handleSuccessOnMain(data: data, totalItemCountAfterMerge: totalItemCountAfterMerge, animated: animated)
+      handleSuccessOnMain(fetchedThisBatchCount: fetchedThisBatchCount, totalItemCountAfterMerge: totalItemCountAfterMerge, animated: animated)
     } else {
       DispatchQueue.main.async { [weak self] in
-        self?.handleSuccessOnMain(data: data, totalItemCountAfterMerge: totalItemCountAfterMerge, animated: animated)
+        self?.handleSuccessOnMain(
+          fetchedThisBatchCount: fetchedThisBatchCount,
+          totalItemCountAfterMerge: totalItemCountAfterMerge,
+          animated: animated
+        )
       }
     }
   }
@@ -288,8 +276,8 @@ public final class FKListPlugin<Item> {
 
   // MARK: - Private — completions
 
-  private func handleSuccessOnMain(data: [Item], totalItemCountAfterMerge: Int?, animated: Bool) {
-    let fetched = data.count
+  private func handleSuccessOnMain(fetchedThisBatchCount: Int, totalItemCountAfterMerge: Int?, animated: Bool) {
+    let fetched = max(0, fetchedThisBatchCount)
     switch pageManager.loadPhase {
     case .loadingFirstPage, .refreshing:
       pageManager.completeFirstPage(

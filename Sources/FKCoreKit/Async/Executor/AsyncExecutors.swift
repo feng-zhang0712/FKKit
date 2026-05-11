@@ -39,7 +39,7 @@ public final class FKAsyncConcurrentExecutor: @unchecked Sendable {
   ///
   /// - Parameters:
   ///   - label: Unique queue label.
-  ///   - qos: QoS for the underlying queue.
+  ///   - qos: Target QoS for the underlying queue.
   public init(label: String, qos: DispatchQoS = .default) {
     queue = FKAsyncQueues.concurrent(label: label, qos: qos)
   }

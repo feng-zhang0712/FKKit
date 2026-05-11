@@ -6,6 +6,12 @@ import Foundation
 ///
 /// Use ``shared`` for default behavior, or create instances with a custom coordination queue for tests or isolated subsystems.
 public final class FKAsync: FKAsyncMainExecuting, FKAsyncBackgroundExecuting, @unchecked Sendable {
+  /// Shared configuration defaults for ``FKAsync`` (usable from public call sites and default arguments).
+  public enum Configuration {
+    /// Default reverse-DNS label for the internal coordination serial queue.
+    public static let defaultCoordinationQueueLabel = "com.fkkit.async.coordination"
+  }
+
   /// Shared instance with a default private coordination queue.
   public static let shared = FKAsync()
 
@@ -14,20 +20,20 @@ public final class FKAsync: FKAsyncMainExecuting, FKAsyncBackgroundExecuting, @u
   /// Creates an `FKAsync` hub with a dedicated serial queue used by batch helpers.
   ///
   /// - Parameter coordinationQueueLabel: Label for the internal serial queue (reverse-DNS).
-  public init(coordinationQueueLabel: String = "com.fkkit.async.coordination") {
+  public init(coordinationQueueLabel: String = Configuration.defaultCoordinationQueueLabel) {
     coordinationQueue = FKAsyncQueues.serial(label: coordinationQueueLabel, qos: .utility)
   }
 
   // MARK: Thread state
 
-  /// `true` when the caller runs on the main thread (same as `Thread.isMainThread`).
-  public static var isMainThread: Bool {
-    Thread.isMainThread
-  }
-
   /// Returns whether the current execution context is the main thread.
   public nonisolated static func currentIsMainThread() -> Bool {
     Thread.isMainThread
+  }
+
+  /// `true` when the caller runs on the main thread (same as ``currentIsMainThread()``).
+  public static var isMainThread: Bool {
+    currentIsMainThread()
   }
 
   // MARK: FKAsyncMainExecuting
@@ -100,11 +106,7 @@ public final class FKAsync: FKAsyncMainExecuting, FKAsyncBackgroundExecuting, @u
     let group = FKAsyncTaskGroup()
     let bg = FKAsyncQueues.global(qos: qos)
     for op in operations {
-      group.enter()
-      bg.async {
-        op()
-        group.leave()
-      }
+      group.enterAndAsync(on: bg, execute: op)
     }
     group.notify(queue: notifyQueue, execute: completion)
   }

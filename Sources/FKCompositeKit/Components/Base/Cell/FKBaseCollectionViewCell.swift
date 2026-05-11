@@ -1,70 +1,58 @@
-//
-// FKBaseCollectionViewCell.swift
-// FKCompositeKit
-//
-
 import UIKit
 
-/// A reusable, extensible base class for `UICollectionViewCell`.
+/// A reusable base class for `UICollectionViewCell` mirroring ``FKBaseTableViewCell`` patterns:
+/// a ``containerView`` root, reuse/t hooks, and optional card-style chrome.
 ///
-/// This class provides a unified initialization flow and extension points for UI setup, style setup,
-/// and model binding.
+/// Override ``setupUI()`` and ``setupStyle()`` for structure and appearance; use ``bindData(_:)`` or
+/// ``FKListCollectionCellConfigurable`` `configure(with:)` on concrete subclasses.
+@MainActor
 open class FKBaseCollectionViewCell: UICollectionViewCell {
 
-  /// Default reusable identifier derived from class name.
   open class var reuseIdentifier: String {
     String(describing: self)
   }
 
-  /// Main container view used by subclasses to build UI content.
   public let containerView = UIView()
 
-  /// Content insets applied to `containerView` inside `contentView`.
   public var containerInsets: UIEdgeInsets = .zero {
     didSet { updateContainerConstraints() }
   }
 
-  /// Corner radius applied to `containerView`.
   public var cornerRadius: CGFloat = .zero {
-    didSet { containerView.layer.cornerRadius = cornerRadius }
+    didSet {
+      containerView.layer.cornerRadius = cornerRadius
+      containerView.layer.masksToBounds = cornerRadius > 0
+    }
   }
 
-  /// Border width applied to `containerView`.
   public var borderWidth: CGFloat = .zero {
     didSet { containerView.layer.borderWidth = borderWidth }
   }
 
-  /// Border color applied to `containerView`.
   public var borderColor: UIColor = .clear {
     didSet { containerView.layer.borderColor = borderColor.cgColor }
   }
 
-  /// Fill color applied to `containerView`.
   public var containerBackgroundColor: UIColor = .clear {
     didSet { containerView.backgroundColor = containerBackgroundColor }
   }
 
-  /// Shadow color applied to cell layer.
   public var shadowColor: UIColor = .clear {
     didSet { layer.shadowColor = shadowColor.cgColor }
   }
 
-  /// Shadow opacity applied to cell layer.
   public var shadowOpacity: Float = .zero {
     didSet { layer.shadowOpacity = shadowOpacity }
   }
 
-  /// Shadow offset applied to cell layer.
   public var shadowOffset: CGSize = .zero {
     didSet { layer.shadowOffset = shadowOffset }
   }
 
-  /// Shadow blur radius applied to cell layer.
   public var shadowRadius: CGFloat = .zero {
     didSet { layer.shadowRadius = shadowRadius }
   }
 
-  /// Shadow path inset used to tune performance and appearance.
   public var shadowPathInset: CGFloat = .zero {
     didSet { setNeedsLayout() }
   }
@@ -87,25 +75,55 @@ open class FKBaseCollectionViewCell: UICollectionViewCell {
     performInitialSetupIfNeeded()
   }
 
+  open override func prepareForReuse() {
+    super.prepareForReuse()
+    resetCellContent()
+  }
+
+  open override var isHighlighted: Bool {
+    didSet {
+      if isHighlighted != oldValue {
+        highlightStateDidChange(isHighlighted: isHighlighted)
+      }
+    }
+  }
+
+  open override var isSelected: Bool {
+    didSet {
+      if isSelected != oldValue {
+        selectionStateDidChange(isSelected: isSelected)
+      }
+    }
+  }
+
+  open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    traitConfigurationDidChange(from: previousTraitCollection)
+  }
+
   open override func layoutSubviews() {
     super.layoutSubviews()
     updateShadowPathIfNeeded()
   }
 
-  /// Hook for subclass UI construction.
-  ///
-  /// Override this method to add and constrain subviews inside `containerView`.
   open func setupUI() {}
 
-  /// Hook for subclass visual style configuration.
   open func setupStyle() {}
 
-  /// Hook for subclass data binding.
-  ///
-  /// - Parameter model: Any model object used by subclass to update UI.
   open func bindData(_ model: Any) {}
 
-  /// Applies surface style values in one call.
+  /// Called from ``prepareForReuse()`` after `super`. Override to clear images, cancel tasks, or reset transforms.
+  open func resetCellContent() {}
+
+  /// Invoked when ``isHighlighted`` changes (collection selection/highlight semantics).
+  open func highlightStateDidChange(isHighlighted: Bool) {}
+
+  /// Invoked when ``isSelected`` changes.
+  open func selectionStateDidChange(isSelected: Bool) {}
+
+  /// Called when Dynamic Type, dark mode, or other traits change.
+  open func traitConfigurationDidChange(from previousTraitCollection: UITraitCollection?) {}
+
   public func configureSurface(
     cornerRadius: CGFloat,
     borderWidth: CGFloat = .zero,
@@ -118,7 +136,6 @@ open class FKBaseCollectionViewCell: UICollectionViewCell {
     self.containerBackgroundColor = backgroundColor
   }
 
-  /// Applies shadow values in one call.
   public func configureShadow(
     color: UIColor,
     opacity: Float,
@@ -133,9 +150,6 @@ open class FKBaseCollectionViewCell: UICollectionViewCell {
     shadowPathInset = pathInset
   }
 
-  /// Registers this cell class to a collection view.
-  ///
-  /// This API is optional because `UICollectionView.fkDequeueCell(_:,for:)` performs lazy auto-registration.
   open class func register(to collectionView: UICollectionView) {
     collectionView.register(self, forCellWithReuseIdentifier: reuseIdentifier)
   }
@@ -164,30 +178,28 @@ open class FKBaseCollectionViewCell: UICollectionViewCell {
   }
 
   private func updateContainerConstraints() {
-    NSLayoutConstraint.deactivate(containerConstraints)
-    containerConstraints = [
-      containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: containerInsets.top),
-      containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: containerInsets.left),
-      containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -containerInsets.right),
-      containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -containerInsets.bottom),
-    ]
-    NSLayoutConstraint.activate(containerConstraints)
+    FKBaseReusableCellCore.activateContainerConstraints(
+      containerView: containerView,
+      contentView: contentView,
+      insets: containerInsets,
+      storage: &containerConstraints
+    )
   }
 
   private func updateShadowPathIfNeeded() {
-    guard shadowOpacity > .zero || shadowRadius > .zero else {
-      layer.shadowPath = nil
-      return
-    }
-    let pathRect = bounds.insetBy(dx: shadowPathInset, dy: shadowPathInset)
-    layer.shadowPath = UIBezierPath(roundedRect: pathRect, cornerRadius: cornerRadius).cgPath
+    FKBaseReusableCellCore.applyShadowPath(
+      to: layer,
+      bounds: bounds,
+      cornerRadius: cornerRadius,
+      shadowPathInset: shadowPathInset,
+      shadowOpacity: shadowOpacity,
+      shadowRadius: shadowRadius
+    )
   }
 }
 
 public extension UICollectionView {
-  /// Dequeues a reusable cell with lazy auto-registration.
-  ///
-  /// Registration is idempotent, so this method safely registers before dequeueing.
+  /// Dequeues a cell of type `T`, registering the class first if needed.
   func fkDequeueCell<T: FKBaseCollectionViewCell>(_ type: T.Type, for indexPath: IndexPath) -> T {
     register(type, forCellWithReuseIdentifier: type.reuseIdentifier)
     let cell = dequeueReusableCell(withReuseIdentifier: type.reuseIdentifier, for: indexPath)

@@ -12,9 +12,7 @@ public extension DispatchQueue {
   func fk_asyncAfter(delay: TimeInterval, execute work: @escaping @Sendable () -> Void) {
     asyncAfter(deadline: .now() + max(0, delay), execute: work)
   }
-}
 
-public extension DispatchQueue {
   /// Executes `work` on the main queue asynchronously from any thread.
   static func fk_asyncOnMain(_ work: @escaping @Sendable () -> Void) {
     DispatchQueue.main.async(execute: work)

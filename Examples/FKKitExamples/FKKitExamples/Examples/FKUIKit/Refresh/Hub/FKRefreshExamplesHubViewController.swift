@@ -1,7 +1,7 @@
 import FKUIKit
 import UIKit
 
-/// Lists every demo that exercises a distinct public type or integration path.
+/// Entry list for FKRefresh samples (`Scenarios/`, `SwiftUI/`, `Shared/`, `Support/`).
 final class FKRefreshExamplesHubViewController: UITableViewController {
   private struct DemoItem {
     let title: String
@@ -15,7 +15,7 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
   }
 
   private lazy var sections: [DemoSection] = [
-    DemoSection(title: "Foundations", items: [
+    DemoSection(title: "Core scenarios", items: [
       DemoItem(
         title: "UITableView baseline",
         subtitle: "Goal: pull gesture + programmatic trigger. Params: default config. Expect: success/error/empty/cancel safe transitions.",
@@ -37,7 +37,7 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
         factory: { FKRefreshAsyncAwaitExampleViewController() }
       ),
     ]),
-    DemoSection(title: "Customization", items: [
+    DemoSection(title: "Indicators & configuration", items: [
       DemoItem(
         title: "Configuration + silent mode",
         subtitle: "Goal: text/theme/timing knobs. Params: minimum visibility + silent refresh. Expect: no loading flash and configurable copy.",
@@ -59,7 +59,7 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
         factory: { FKRefreshHostedDemoViewController() }
       ),
     ]),
-    DemoSection(title: "Concurrency + Boundaries", items: [
+    DemoSection(title: "Policy & state", items: [
       DemoItem(
         title: "Policy and stress test",
         subtitle: "Goal: conflict policy + rapid gestures. Params: mutex/queue/parallel + autoFill. Expect: no duplicate in-flight actions.",
@@ -76,7 +76,7 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
         factory: { FKRefreshPaginationDemoViewController() }
       ),
     ]),
-    DemoSection(title: "Global + Environment", items: [
+    DemoSection(title: "Globals & environment", items: [
       DemoItem(
         title: "Global defaults",
         subtitle: "Goal: shared style baseline. Params: FKRefreshSettings + manager updates. Expect: screens inherit defaults consistently.",

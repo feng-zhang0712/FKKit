@@ -5,8 +5,625 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 ## [Unreleased]
 
 ### Planned
-- Unit test target and `Tests/` directory
+
 - Optional: Example app under `Examples/` (depending on this package locally)
+
+## [0.48.0] - 2026-05-11
+
+### Changed (FKUIKit — Presentation) **Breaking**
+
+- **`FKPresentationController`** / sheet configuration names aligned with **`UISheetPresentationController`**: **`detents`**, **`selectedDetent`** / **`selectedDetentIndex`**, **`selectDetent`**, **`prefersGrabberVisible`**, **`initialSelectedDetentIndex`**; delegate **`presentationController(_:didChangeSelectedDetent:at:)`**; lifecycle **`selectedDetentDidChange`**.
+- Sheet cross-detent interactive dismiss: **`crossDetentSwipeDismissPolicy`** (**`systemAligned`** vs **`strictSmallestDetentAtPanStart`**); container and overlay gesture handling updates; anchor-style dismiss uses fixed height with **Y** translation.
+
+### Changed (FKCompositeKit — ListKit) **Breaking**
+
+- **`FKListStateUIDrivers`** → **`FKListPresentationDrivers`**; **`FKListStateManager`**: `ui` → **`drivers`**, initializer label `ui:` → **`drivers:`**.
+- **`FKListPlugin`**: removed generic parameter; use **`handleSuccess(fetchedThisBatchCount:totalItemCountAfterMerge:animated:)`** instead of `handleSuccess(data:…)`.
+- **`FKListCapable`** → **`FKListScreen`** (`UIViewController` + **`listPlugins`** + **`detachAllListPlugins()`**).
+- **`FKListCellConfigurable`** → **`FKListTableCellConfigurable`** and new **`FKListCollectionCellConfigurable`**.
+- **`FKPageManager`**: removed `DispatchQueue.main.sync` bridging; type is **`@MainActor`** — call only from the main actor (or hop with `MainActor`).
+- **`FKListDisplayedError`**: **`==`** now includes **`image`** identity (`===`).
+- **File layout**: `FKListStateDrivers.swift` → `FKListPresentationDrivers.swift`; removed **`FKListCapable.swift`** / **`FKListCellConfigurable.swift`** in favor of **`FKListScreen.swift`** / **`FKListReusableViews.swift`**.
+
+### Changed (FKCompositeKit — Base cells)
+
+- **`FKBaseTableViewCell`** / **`FKBaseCollectionViewCell`**: annotated **`@MainActor`**; **`prepareForReuse()`** calls **`resetCellContent()`** (override point); **`traitConfigurationDidChange(from:)`** for trait updates; table **`selectionDidChange`** / **`highlightDidChange`**; collection **`highlightStateDidChange`** / **`selectionStateDidChange`**; **`containerView`** uses **`masksToBounds`** when **`cornerRadius > 0`**; new internal **`FKBaseReusableCellCore`** for shared constraints and shadow path.
+
+### Added (FKCompositeKit — Base)
+
+- **`FKBaseCollectionViewController`**: primary **`UICollectionView`**, keyboard-safe layout, optional FKRefresh pull/load-more, prefetch wiring; default vertical **`UICollectionViewFlowLayout`** via **`makeDefaultFlowLayout()`**.
+- **`FKBaseTableLoadMoreState`** extracted for shared table/collection load-more footer state (replaces the table-only nested enum).
+- **`FKBaseSearchIntegration`**: attach/detach **`UISearchController`** on **`navigationItem`**.
+- **`FKBaseViewController`**: **`loadInitialContent()`** — runs once on first **`viewDidAppear`**, before **`viewDidAppearForTheFirstTime(_:)`**.
+- **`Components/Base/README.md`**: documents Base vs Composition vs **ListKit**, refresh overlap warning, and **`loadInitialContent`** timing.
+
+### Changed (Build)
+
+- **Strict concurrency** enforced in CI; examples and project settings aligned with Swift 6 concurrency rules.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **s.version** set to **0.48.0** (Git tag **`0.48.0`**).
+
+## [0.47.0] - 2026-05-09
+
+### Fixed (Package)
+
+- **`Package.swift`**: set **`swift-tools-version`** to **6.0** and remove package-level **`swiftLanguageModes`** so SwiftPM resolves on **Xcode 16.2** (Swift tools **6.0.x**); Swift 6 remains the default for this tools version.
+
+### Changed (Documentation)
+
+- **`README.md`**: requirements and install examples updated for this release.
+
+### Fixed (FKCoreKit — Storage)
+
+- **`StorageCodec`**: use a new **`JSONEncoder` / `JSONDecoder`** per operation to avoid cross-queue races.
+- **`FKMemoryStorage`**: iterate a key snapshot in **`allKeys()`** and **`purgeExpired()`** (safe mutation while iterating).
+- **`FKUserDefaultsStorage`**: single **`data(forKey:)`** read in **`exists(key:)`**.
+- **`FKFileStorage`**: route file I/O through the injected **`FileManager`** instance.
+
+### Changed (Examples — FKCoreKit)
+
+- **Storage**: sectioned playground covering **`exists`**, **`remove`**, **`allKeys`**, TTL on all backends, async facades, purge, and **`removeAll`** (English-only copy).
+
+### Fixed (FKCoreKit — Security)
+
+- **RSA**: verification semantics corrected where applicable.
+- **Signatures**: timing-safe MAC comparison.
+- **Examples**: security demo expanded.
+
+### Fixed (FKCoreKit — Permissions)
+
+- Observer updates; **iOS 17** EventKit-related handling; example layout and **Info.plist** adjustments.
+
+### Fixed (FKCoreKit — Network)
+
+- Request de-duplication lifecycle corrected; **FKNetwork** examples expanded.
+
+### Changed (FKCoreKit — Logger)
+
+- Logger ergonomics and file manager behavior refinements; Logger example updates.
+
+### Changed (FKCoreKit — FileManager)
+
+- Hardening across download/upload/storage utilities; FileManager example expanded.
+
+### Changed (FKCoreKit — Async)
+
+- **`FKAsync`** utilities, debounce/throttle, executors, and task helpers; Async example and module **README** updates.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **s.version** set to **0.47.0** (Git tag **`0.47.0`**).
+
+## [0.46.0] - 2026-05-04
+
+### Added (FKCompositeKit)
+
+- **`Filter`**: filter UI on **`AnchoredDropdownController`** under **`Sources/FKCompositeKit/Components/Filter/`** — **`FKFilterConfiguration`**, **`FKFilterController`**, **`FKFilterHosting`**, **`FKFilterTab`**, **`FKFilterPanelFactory`**, panel view controllers (chips, single list, two-column list/grid), appearance models, and panel height behavior.
+- **Examples**: Filter demos under **`Examples/.../FKCompositeKit/Filter/`** reorganized into **`Hub/`**, **`Scenarios/`**, and **`Shared/`** (appearance, chrome, panel factory, state, static data).
+
+### Changed (FKCompositeKit)
+
+- **`AnchoredDropdownController`**: configuration and controller surface refactored; **`FKAnchoredDropdownAnchorPlacement`** replaces the prior anchor override / embedding split; public API, internal anchor layout hook, and README updates; example hosts updated.
+- **`FKTabBarItemCell`** / **`FKTabBar`**: tab item layout and selection handling refinements.
+
+### Changed (Examples)
+
+- Anchored dropdown example sources updated for the new configuration and factory patterns.
+
+### Added (Tooling)
+
+- **`scripts/bump-version.sh`**: bumps **`s.version`** in all four root **`*.podspec`** files to one SemVer argument (prints manual **CHANGELOG** / **README** / **git tag** follow-up).
+- **`scripts/verify-podspec-versions.sh`**: fails if any podspec **`s.version`** differs; **CI** runs it after checkout.
+- **`.githooks/pre-push`** + **`scripts/install-git-hooks.sh`**: optional local **`git push`** gate that runs **`verify-podspec-versions.sh`** when **`git config core.hooksPath .githooks`** is set; documented in **`docs/GIT_HOOKS.md`**.
+
+### Changed (CI)
+
+- **`.github/workflows/ci.yml`**: runs **`scripts/verify-podspec-versions.sh`** before the Xcode build so podspec version drift fails fast.
+
+### Fixed (CI)
+
+- **`Package.swift`**: lowered **`swift-tools-version`** from **6.3** to **6.2** so **`xcodebuild`** on GitHub Actions (**Xcode 16.1** / Swift **6.2.4** under **`latest-stable`**) can resolve the manifest (avoids exit code **74** / “installed version is 6.2.4”).
+
+### Fixed (FKCoreKit)
+
+- **`FKSecurityUtils.maskEmail`**: build **`String`** from **`name.prefix(1)`** / **`name.suffix(1)`** before concatenation so CI (Swift **6.2**) does not fail on **`Substring` + `String`** / **`Substring` assignment to `String`** (exit code **65**).
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: normalized spacing (**`s.attr = value`**); **s.version** set to **0.46.0** for this release (formatting unchanged).
+
+### Changed (Package)
+
+**Breaking**
+
+- **Platforms**: `Package.swift` now declares **iOS 15+ only**; **macOS** was removed from `platforms` so the manifest matches UIKit-first modules and avoids unsupported `swift build` on macOS hosts without an iOS SDK.
+
+### Changed (Documentation)
+
+- Removed **`docs/REFACTOR_PLAN.md`** now that the sustainability refactor backlog (R1–R11) is complete; **`docs/EXTENSION_VS_UTILS.md`** no longer links to it.
+- **`README.md`**: iOS / Swift badges and **Requirements** updated for **iOS-only** distribution and **Swift 6.2+** (matches **`Package.swift`** tools version used on CI).
+- **`README.md`**: **FKCoreKit: Extension vs Utils** subsection and Table of Contents link; points to **`docs/EXTENSION_VS_UTILS.md`** for contributor policy (`fk_*` extensions vs **`FKUtils.*`** static helpers).
+- **`README.md`**: **Module Structure** and **FKCompositeKit** sections now include **`AnchoredDropdownController/`** and link to the new component READMEs; lists **`Filter/`** in the module tree and documents **Filter** in the **FKCompositeKit** section; SPM / CocoaPods examples use **0.46.0**.
+- **`README.md`**: **Installation (CocoaPods)** links maintainers to **`docs/RELEASING.md`** and the **`scripts/bump-version.sh`** / **`scripts/verify-podspec-versions.sh`** workflow.
+- **`docs/GIT_HOOKS.md`**: documentation is now in English (same content as before); **`README.md`** no longer labels the guide as Chinese-only.
+
+### Added (Documentation)
+
+- **`docs/EXTENSION_VS_UTILS.md`**: governance rules for **`Sources/FKCoreKit/Extension/`** vs **`Sources/FKCoreKit/Utils/`** (when to add APIs, avoiding new duplicates, concurrency note for UI helpers, semver guidance).
+- **`docs/RELEASING.md`**: maintainer checklist for aligning **Git tags**, **podspec** versions, **CHANGELOG**, and **`pod spec lint`**.
+- **`docs/GIT_HOOKS.md`**: how to enable **`.githooks/pre-push`** (runs **`verify-podspec-versions.sh`** before **`git push`**).
+- **`FKCompositeKit`**: English **`README.md`** files under **`Sources/FKCompositeKit/Components/Base/`**, **`…/ListKit/`**, and **`…/AnchoredDropdownController/`** (integrator-oriented module docs next to sources); **`Package.swift`** lists these paths in **`exclude`** so SwiftPM does not treat them as unhandled resources.
+
+### Added (Distribution)
+
+- **CocoaPods**: root **`FKCoreKit.podspec`**, **`FKEmptyStateCoreLite.podspec`**, **`FKUIKit.podspec`**, and **`FKCompositeKit.podspec`** (iOS 15+, Swift 6.0 module language) mirroring SPM products; **`README.md`** adds an **Installation (CocoaPods)** section (Git tag, local path, and `pod spec lint` notes).
+
+### Added (CI)
+
+- **GitHub Actions**: **`.github/workflows/ci.yml`** builds and **tests** the **`FKKit-Package`** Xcode scheme on an **available iPhone iOS Simulator** (UDID from **`.github/scripts/pick_iphone_simulator_udid.py`**) on pushes to **`main`**, **`develop`**, and **`refactor/**`** branches and on pull requests targeting **`main`** or **`develop`** (uses **`maxim-lobanov/setup-xcode`** with **`latest-stable`**; signing disabled).
+
+### Added (Tests)
+
+- **SwiftPM**: **`FKCoreKitTests`** target at **`Tests/FKCoreKitTests/`** with smoke coverage for selected **`FKCoreKit`** extension helpers (`String`, `Optional`, `Dictionary`, `Result`, `UUID`) without UIKit.
+
+### Changed (SwiftPM)
+
+- **`Package.swift`**: **`exclude`** lists on **`FKUIKit`**, **`FKCoreKit`**, and **`FKCompositeKit`** targets list component **`README.md`** paths explicitly so SwiftPM does not report them as unhandled resources during builds.
+
+### Changed (Concurrency / Swift 6)
+
+- **`FKNetworkClient`**: conforms to **`@unchecked Sendable`** (mutable **`URLSession`** + callback queues are guarded by existing locking); clears strict-concurrency errors on the client type itself.
+- **`NetworkSession`**: **`DataTaskCompletion`** / **`DownloadTaskCompletion`** are now **`@Sendable`** (matches **`URLSession`** task callbacks).
+- **`FKSecurityExecutor`**: cryptographic **`run`** work is boxed for **`DispatchQueue`** submission without changing the public **`FKSecurityExecuting`** signature (supports non-**`Sendable`** results such as **`SecKey`**).
+- **`FKMainActorUIKitBridge`** (**`FKCoreKit`**): centralizes Main-thread reads of **`UIDevice`** / **`UIScreen`** used by **`FKUtilsDevice`** and **`FKBusinessInfoProvider`** so nonisolated helpers stay strict-concurrency-clean.
+- **`FKBusinessAlertManager`** / **`FKBusinessVersionManager`**: UI presentation hops via **`Task { @MainActor … }`** instead of non-**`Sendable`** **`DispatchQueue.main.async`** closures.
+- **`FKBusinessAnalyticsTracker`**: **`@unchecked Sendable`** boxes for optional analytics provider/uploader references passed through the serial queue.
+- **`FKTopViewControllerResolver`**: annotated **`@MainActor`** (UIKit scene/window traversal).
+- **`FKUtilsCommon.openURL`** / **`FKUtilsUI.runOnMain`**: main-queue hops aligned with **`Sendable`** / **`MainActor`** rules (**`runOnMain`** now takes a **`@Sendable`** closure).
+- **`FKUIKit`**: Presentation keyboard/orientation notifications forward through **`Task { @MainActor … }`**; **`FKRefreshControl`** is **`@MainActor`** with **`nonisolated(unsafe)`** KVO handles and **`deinit`** teardown that invalidates them directly; **`FKSkeletonDispatch`** uses an **`@unchecked Sendable`** thunk for main-queue marshaling; **`FKSkeletonPresets`** is **`@MainActor`**; **`UIViewController+FKEmptyState`** uses a handler box for **`NotificationCenter`** callbacks; **`fk_blurredSnapshotAsync`** **`completion`** is **`@Sendable`**.
+- **Note:** **`SWIFT_STRICT_CONCURRENCY=complete`** still reports warnings in some untouched files; maintainer builds can use that flag to prioritize further cleanup.
+
+## [0.45.0] - 2026-05-03
+
+### Added (FKCoreKit)
+
+- **`Sources/FKCoreKit/Extension/`**: a curated set of **`public`** Swift extensions, grouped by layer:
+  - **`Foundation/`** — common helpers on `String`, `Data`, `Date`, `URL`, `Array`, `Dictionary`, `Optional`, `Collection`, numeric protocols, `Bundle`, `UserDefaults`, `NotificationCenter`, `JSONEncoder` / `JSONDecoder`, `UUID`, `Decimal`, `NSRange`, `NSAttributedString`, `ProcessInfo`, and related types.
+  - **`CoreGraphics/`** — helpers on `CGFloat`, `CGPoint`, `CGSize`, and `CGRect`.
+  - **`UIKit/`** — UI helpers (guarded with **`#if canImport(UIKit)`**) on views, controls, colors, images, layers, navigation, traits, and screen metrics.
+- All extension members use an **`fk_`** prefix to reduce collisions with consumer extensions and future SDK APIs.
+
+### Changed (Documentation)
+
+- **`README.md`**: module tree and **FKCoreKit** overview now include **`Extension/`**; SPM snippet minimum version example updated to **`0.45.0`** and usage sample mentions an extension API.
+
+## [0.44.2] - 2026-05-03
+
+### Changed (FKUIKit FKProgressBar)
+
+**Breaking**
+
+- **`FKProgressBarLabelConfiguration`**: renamed fields for clarity — `labelPlacement` → **`placement`**, `labelFormat` → **`format`**, `labelContentMode` → **`contentMode`**, `labelFont` / `labelColor` / `labelPadding` → **`font`** / **`textColor`** / **`padding`**, `labelFractionDigits` → **`fractionDigits`**, `labelPrefix` / `labelSuffix` → **`valuePrefix`** / **`valueSuffix`**, `labelUsesSemanticLabelColor` → **`usesSemanticTextColor`** (initializer parameter names follow the same mapping).
+- **`FKProgressBarAccessibilityConfiguration`**: **`customLabel`**, **`customHint`**, **`treatAsFrequentUpdates`** (replacing the previous accessibility-prefixed property names).
+- **`FKProgressBarInteractionConfiguration`**: **`highlightedAlphaMultiplier`**, **`disabledAlpha`** (replacing `buttonHighlightedContentAlphaMultiplier`, `disabledContentAlpha`).
+- **`FKProgressBarInteractionMode`**, **`FKProgressBarLabelContentMode`**, **`FKProgressBarTouchHaptic`**: moved into **`FKProgressBarEnums.swift`**; removed standalone **`FKProgressBarProgressButtonModels.swift`**.
+- **File layout**: **`Public/Core/FKProgressBar.swift`** moved to **`Public/FKProgressBar.swift`** (empty **`Public/Core/`** removed).
+
+### Changed (Documentation)
+
+- Rewrote **`Sources/FKUIKit/Components/ProgressBar/README.md`** for the current API and migration notes.
+
+### Changed (Examples)
+
+- ProgressBar example sources updated for the renamed configuration properties.
+
+## [0.44.1] - 2026-05-03
+
+### Changed (FKUIKit FKProgressBar)
+
+**Breaking**
+
+- **`FKProgressBarConfiguration`** is now a **composite** value: all former top-level fields moved into **`layout`**, **`appearance`**, **`motion`**, **`label`**, **`accessibility`**, and **`interaction`** (`FKProgressBarLayoutConfiguration`, `FKProgressBarAppearanceConfiguration`, `FKProgressBarMotionConfiguration`, `FKProgressBarLabelConfiguration`, `FKProgressBarAccessibilityConfiguration`, `FKProgressBarInteractionConfiguration`). Update call sites from `configuration.trackThickness` to `configuration.layout.trackThickness`, `configuration.showsBuffer` to `configuration.appearance.showsBuffer`, and so on. **`FKProgressBar` `@IBInspectable` properties** continue to bridge into the nested structs.
+
+### Added (FKUIKit FKProgressBar)
+
+- **`FKProgressBarMotionConfiguration.playsIndeterminateAnimation`** (default `true`): when `false`, indeterminate **state** still drives label and accessibility, but **marquee**, **breathing**, and **ring** indeterminate **animations** are not started (masks stay determinate-visible).
+- **Progress-as-button** example screen and related **`FKProgressBarInteractionMode`** / **`FKProgressBarLabelContentMode`** / **`FKProgressBarTouchHaptic`** model split in `Public/Models/`.
+
+### Fixed (FKUIKit FKProgressBar)
+
+- **Value label**: wider layout for **`.above`**, **`.below`**, and **`.centeredOnTrack`** so short strings such as `100%` are not truncated; label frame avoids unnecessary `.integral` shrink.
+- **Examples**: **Preset gallery** row height and vertical-bar height heuristics adjusted so subtitles and vertical-axis copy are not clipped in `UITableView` cells.
+
+### Changed (Documentation)
+
+- Expanded **`Sources/FKUIKit/Components/ProgressBar/README.md`**: nested configuration table, **Migrating from 0.44.0**, label and accessibility path clarifications.
+
+### Changed (Examples)
+
+- **FKKitExamples** ProgressBar scenarios and SwiftUI sample updated for nested **`FKProgressBarConfiguration`**; **Playground** adds **Animate indeterminate** toggle.
+
+## [0.44.0] - 2026-05-03
+
+### Added (FKUIKit FKProgressBar)
+
+- **`FKProgressBar`**: public UIKit control for determinate and indeterminate **linear** and **ring** progress, optional **buffer**, **segmented** tracks, **gradient** fills, **spring** or timing-function animation, **value labels**, **accessibility** overrides, **`FKProgressBarDelegate`**, **`@IBDesignable`** helpers, and **`FKProgressBarView`** (`UIViewRepresentable`) when SwiftUI is available.
+- Module layout under **`Sources/FKUIKit/Components/ProgressBar/`** (`Public/`, `Internal/`, `Extension/`) with geometry and Core Animation implementation kept internal.
+
+### Added (Documentation)
+
+- **`Sources/FKUIKit/Components/ProgressBar/README.md`**: English component documentation (overview, layout map, API surface, SwiftUI, Interface Builder, accessibility, examples pointer, license).
+
+### Added (Examples)
+
+- **FKKitExamples** ProgressBar entry: hub, preset **gallery**, playground, delegate log, environment (RTL / accessibility), and SwiftUI host (`Examples/FKKitExamples/…/ProgressBar/`).
+
+## [0.43.17] - 2026-05-03
+
+### Changed (FKUIKit FKRefresh)
+
+**Non-breaking**
+
+- Reorganized `Sources/FKUIKit/Components/Refresh/` into **`Public/`** (control, models, policy, services, views, `FKLoadMoreTriggerMode`), **`Internal/`** (coordinator, manager, clock, action context), and **`Extension/`** (`UIScrollView+FKRefresh`); public symbols and `import FKUIKit` usage are unchanged.
+- Centralized `FKLoadMoreTriggerMode` in its own file; `UIScrollView` / `FKRefreshSwiftUIBridge` retain overloads for async and context-based handlers.
+
+### Fixed (FKUIKit FKRefresh)
+
+- After a successful load-more, the footer returns to `.idle` while `loadMoreAutoTriggerArmed` stayed `false` from the in-flight load, so another automatic load at the bottom required scrolling up past the release slack first. **`applyFooterIdleTransitionIfNeeded`** now sets `loadMoreAutoTriggerArmed = true` on the **success** path only (`.finished` / `.listEmpty` → `.idle`); **`.failed`** is unchanged and still does not pass through this branch.
+
+### Changed (Documentation)
+
+- Updated **`Sources/FKUIKit/Components/Refresh/README.md`** for the new layout and behavior notes.
+
+### Changed (Examples)
+
+- Regrouped Refresh samples under **`Hub/`**, **`Scenarios/`**, **`Shared/`**, **`Support/`**, and **`SwiftUI/`**; updated **`FKRefreshExamplesHubViewController`** routes.
+- **Default** demo: reset header/footer state when the outcome `UISegmentedControl` changes; use **`resetFooterAfterPullToRefresh()`** after a successful pull (instead of **`resetToIdle()`** alone) so bottom auto load-more can re-arm; call **`endRefreshingWithNoMoreData()`** or **`endRefreshing()`** exclusively on the last page (avoid `endRefreshing()` then `endRefreshingWithNoMoreData()` when the control has already left `.loadingMore`).
+- **Collection**, **Async/Await**, **Policy + Boundaries**, and **i18n + Accessibility** demos: segment or policy changes cancel in-flight refresh, reset data or policy as appropriate, and realign load-more / scroll position where needed.
+
+## [0.43.16] - 2026-05-03
+
+### Changed (FKUIKit FKSkeleton)
+
+**Breaking**
+
+- **`FKSkeletonPresentable`** is now **`internal`** (previously `public`). Downstream code must not conform to this protocol; use **`FKSkeletonManager`** and the **`UIView`** skeleton extensions instead.
+- **`UIView.fk_withSkeletonLoading`** now takes `loadingAction` as **`@escaping (@escaping () -> Void) -> Void`** so the nested completion can be stored and invoked safely alongside main-queue marshaling.
+
+**Non-breaking**
+
+- Reorganized **`Sources/FKUIKit/Components/Skeleton/`** into **`Public/`** (`FKSkeleton`, `Manager/`, `Models/` including **`FKSkeletonShimmerDirection.swift`**, `Views/`, `Cells/`, `Presets/`), **`Internal/`** (`FKSkeletonController`, `FKSkeletonDispatch`, **`FKSkeletonVisibleCells`**, `Rendering/`), and **`Extension/`** (**`UIView+FKSkeleton.swift`**, **`UIKit+FKSkeletonConvenience.swift`**).
+- Folded **`FKSkeletonUIKitExtensions.swift`** into **`UIKit+FKSkeletonConvenience.swift`** (symbols unchanged).
+- **`FKSkeletonManager`** centralizes main-queue scheduling for auto skeleton show/hide; **`fk_showAutoSkeleton`**, **`fk_hideAutoSkeleton`**, and **`fk_setSkeletonLoading`** call through without duplicating an outer `DispatchQueue.main.async`.
+- **`fk_withSkeletonLoading`** invokes the user completion on the main queue before hiding so UI mutations stay thread-safe.
+- **`UITableView`** / **`UICollectionView`** visible-cell helpers share **`FKSkeletonVisibleCells`** for mapping cells to `contentView`.
+- **`FKSkeletonContainerView.hideSkeleton(animated:completion:)`**: when **`usesUnifiedShimmer`** is enabled, the unified shimmer layer fades out with the blocks so it cannot sit visually above an animated dismiss; **`completion`** runs after host and child transitions finish.
+- **`FKSkeletonView`** and **`FKSkeletonContainerView`** re-resolve dynamic **`UIColor`** values when the interface style changes; **`FKSkeletonView.refreshSkeletonAppearanceForCurrentTraits()`** forces a layer refresh.
+
+### Changed (Documentation)
+
+- Rewrote **`Sources/FKUIKit/Components/Skeleton/README.md`** (module layout, threading model, API overview).
+
+### Changed (Examples)
+
+- Replaced the single **`FKSkeletonExampleViewController`** with **`FKSkeletonExamplesHubViewController`** plus **`Hub/`**, **`Support/`**, and **`Scenarios/`** topic screens.
+- Added **`FKSkeletonExampleAnimationEffectsViewController`** for **`FKSkeletonAnimationMode`**, shimmer directions, **`UIColorWell`** overrides for **`baseColor`** / **`highlightColor`**, and a side-by-side gallery.
+- **`ExampleMenuViewController`** routes Skeleton samples through the new hub.
+
+## [0.43.15] - 2026-05-03
+
+### Changed (FKUIKit FKTabBar)
+
+**Non-breaking**
+
+- Reorganized `Sources/FKUIKit/Components/TabBar/` into **`Public/`** (`Configuration/`, `Models/`, `Protocols/`, `Indicator/`, `SwiftUI/`) and **`Internal/`** (`Selection/`, `Layout/`, `Views/`, `Badge/`), replacing the previous `Adapter/`, top-level `Configuration/`, `Core/`, `Indicator/`, and `UI/Internal/` layout (SwiftPM consumers still use `import FKUIKit` only).
+- Split modeling sources into **`FKTabBarContentConfiguration.swift`** (title/subtitle/image configuration types) and **`FKTabBarItem.swift`** (tab descriptor); public type names are unchanged.
+- Added **`visibleItems`** (`public private(set)`) exposing the currently laid-out tabs in strip order (hidden items excluded).
+- Added **`setSelectedIndex(forItemID:animated:notify:reason:)`** (`@discardableResult`, returns whether a matching visible tab exists).
+- **`FKTabBarRepresentable`**: when the visible strip’s stable ID sequence changes, the `Binding` syncs from UIKit after `reload`; binding-driven updates apply selection with **`notify: false`** to avoid feedback loops and redundant delegate/reselect side effects.
+
+### Changed (Documentation)
+
+- Rewrote **`Sources/FKUIKit/Components/TabBar/README.md`** (module map, selection APIs, SwiftUI sync, examples layout).
+
+### Changed (Examples)
+
+- TabBar sample app tree is grouped under **`Hub/`**, **`Shared/`**, and **`Scenarios/<topic>/`** (Basics, Scrollable, Indicator, Badge, ReplaceUITabBar, Accessibility, Dynamic, Performance).
+- Replaced **`FKTabCapabilityCompletionExamples.swift`** with smaller topic files (e.g. content types, layout+RTL, scroll+width strategies, badge anchors).
+- Removed the unused text-only basics demo that was not wired from the hub.
+
+## [0.43.14] - 2026-05-02
+
+### Changed (FKUIKit FKTextField)
+
+**Breaking**
+
+- Reorganized sources under `Sources/FKUIKit/Components/TextField/` into **`Public/`** (role-based subfolders), **`Internal/`**, and **`Extension/`**, removing the previous top-level folders (`Core/`, `Configuration/`, `Model/`, `Protocol/`, `Formatter/`, `Validator/`, `Animation/`, `CodeInput/`, `CountInput/`).
+- **`Public/`** is further partitioned into `Core/`, `Configuration/`, `Types/`, `Protocols/`, `Pipeline/`, `Inputs/`, `SwiftUI/`, and `Convenience/` so integrations map cleanly to responsibilities.
+- Folded **`FKTextFieldBehaviorConfiguration.swift`** into **`FKTextFieldConfiguration.swift`** (layout, inline messaging, counter, decoration, accessories, and text-input traits live alongside the aggregate configuration type).
+- Folded **`FKTextInputProtocols.swift`** into **`FKTextFieldProtocols.swift`** (`FKTextInputComponent` and `fk_*` APIs remain on that file).
+- Renamed **`FKTextField+SwiftUI.swift`** to **`Public/SwiftUI/FKTextFieldRepresentable.swift`** (the `FKTextFieldRepresentable` symbol is unchanged).
+
+**Non-breaking**
+
+- Added **`FKTextFieldTextInputTraitsConfiguration`** (`FKTextFieldConfiguration.textInputTraits`) for `textContentType`, `returnKeyType`, `autocapitalizationType`, `keyboardAppearance`, and `passwordRules` (password mode); when fields are `nil`, defaults are inferred from `FKTextFieldFormatType` and return-key behavior.
+- Added **`FKTextField.validateNow()`** to run synchronous validation immediately regardless of `FKTextFieldValidationPolicy.trigger`, refreshing inline messaging and visual state (async validation still follows when applicable).
+
+### Changed (Documentation)
+
+- Rewrote **`Sources/FKUIKit/Components/TextField/README.md`** for the new directory map, traits overview, and `validateNow()` guidance.
+
+### Changed (Examples)
+
+- Replaced **`FKTextFieldExampleViewController.swift`** with **`FKTextFieldExamplesHubViewController.swift`**, **`FKTextFieldExampleSupport.swift`**, and topic screens under **`Examples/.../FKUIKit/TextField/Scenarios/`**.
+- Updated **`ExampleMenuViewController`** to push **`FKTextFieldExamplesHubViewController`**.
+
+### Fixed (Examples)
+
+- Keyboard inset scenario registers **`keyboardWillChangeFrame`** via a block-based **`NotificationCenter`** token and tears it down in **`viewWillDisappear`**, avoiding Swift 6 isolation issues around **`deinit`**.
+
+## [0.43.13] - 2026-05-02
+
+### Changed (FKUIKit FKToast)
+
+**Breaking**
+
+- Reorganized the Toast module into `Sources/FKUIKit/Components/Toast/Public/` (surface API and shared types) and `Internal/` (runtime implementation); removed the former `Core/`, `Models/`, and `UI/` directories.
+- Split public definitions across `FKToast.swift`, `FKToastConfiguration.swift`, `FKToastContent.swift`, and `FKToastTypes.swift` for clearer boundaries.
+- Async enqueue helpers are `showReturningID(builder:)` and `showReturningHandle(builder:)` only; older `showAndReturnID` / `showAndReturnHandle` symbols are removed.
+- Added `FKToastDismissReason.userLongPress`; exhaustive `switch` handling over `FKToastDismissReason` must include this case.
+
+**Non-breaking**
+
+- Added `@MainActor` `FKToast.isPresenting` to detect whether at least one overlay is currently on-screen (excluding queue-only requests).
+- Added `FKToastConfiguration.accessibilityAnnouncementOverride` so hosted/custom content can drive VoiceOver announcements when auto-derived text is unavailable.
+- `FKHUD.showLoading(_:interceptTouches:timeout:)` substitutes `FKToastLocalizedText().loadingText` when the title argument is `nil`.
+
+### Fixed (FKUIKit FKToast)
+
+- `FKToast.update(...)` reapplies layout chrome, tap/long-press recognizers, and swipe-to-dismiss pan configuration when content or `FKToastConfiguration` changes, matching live updates to initial presentation behavior.
+
+### Changed (Documentation)
+
+- Rewrote `Sources/FKUIKit/Components/Toast/README.md` (directory map, threading model, API overview).
+- Updated the Toast summary line in the root `README.md`.
+
+### Changed (Examples)
+
+- Grouped Toast examples under `Examples/.../FKUIKit/Toast/Support/`, `Playbook/`, and `Pages/` with one view controller per topic file.
+
+## [0.43.12] - 2026-05-02
+
+### Changed (FKUIKit FKMultiPicker)
+
+**Breaking**
+
+- Reorganized `Sources/FKUIKit/Components/MultiPicker/` into `Public/`, `Internal/`, and `Extension/` to match other FKUIKit components (e.g. `Badge`).
+- Removed `FKMultiPickerManager`; application-wide defaults are `FKMultiPicker.defaultConfiguration`.
+- Renamed `FKMultiPickerConfiguration.componentCount` to `numberOfColumns`.
+- Renamed `bindDataProvider(_:)` to `setDataProvider(_:)`.
+- Renamed `present(in:nodes:...)` to `present(in:roots:...)` and `present(in:provider:...)` to `present(in:dataProvider:...)`.
+- Renamed `presentRegionPicker(...)` to `presentSampleAddressPicker(...)` to reflect that bundled geography is **sample data**, not a production dataset.
+- Replaced `FKMultiPickerBuiltInRegionDataProvider` and `standardRegionNodes` with `FKMultiPickerSampleAddressData.tree` and `FKMultiPickerSampleAddressDataProvider`.
+- Replaced `fk_presentMultiPicker` / `fk_presentRegionPicker` with `fk_presentFKMultiPicker(roots:configuration:onConfirmed:)`, `fk_presentFKMultiPicker(dataProvider:configuration:onConfirmed:)`, and `fk_presentFKMultiPickerSampleAddress(configuration:onConfirmed:)`.
+
+**Non-breaking**
+
+- Refined sheet behavior: wheel bottom aligns to the host safe area, fullscreen sheet height tracks bounds changes, the confirm control is disabled when the selection snapshot is empty, and basic VoiceOver support covers modal presentation and mask dismissal when enabled.
+
+### Added (FKUIKit FKMultiPicker)
+
+- `restoreSelection(from:animated:)` to align wheels with a previous `FKMultiPickerSelectionResult`.
+- `FKMultiPickerSelectionResult.selectionKeys` to populate `defaultSelectionKeys` from a prior result without manual id collection.
+
+### Fixed (FKUIKit FKMultiPicker)
+
+- `reloadData()` retains level-0 nodes supplied by `updateNodes(_:)` when no `dataSource` is set, so `show()` no longer clears in-memory trees before presentation.
+- Marked `FKMultiPickerNode` as `Sendable` so static sample trees meet Swift 6 concurrency checking.
+
+### Changed (Documentation)
+
+- Rewrote `Sources/FKUIKit/Components/MultiPicker/README.md` and refreshed the MultiPicker lines in the root `README.md` module map.
+
+### Changed (Examples)
+
+- Moved MultiPicker demo fixtures into `Examples/.../FKUIKit/MultiPicker/Support/` (`FKMultiPickerDemoSampleData`, `FKMultiPickerDemoCatalogProvider`) and removed `FKMultiPickerCustomDataProvider.swift`.
+- Updated `ExampleMenuViewController` copy for the MultiPicker entry.
+
+## [0.43.11] - 2026-05-02
+
+### Changed (FKUIKit FKExpandableText)
+
+**Breaking**
+
+- Reorganized the module to match other FKUIKit components: exported API under `Public/`, implementation under `Internal/`, and `UILabel` / `UITextView` entry points under `Extension/` (removed the old `Core/`, `Configuration/`, and top-level `SwiftUI/` folder; `FKExpandableTextView` now lives in `Public/`).
+- Replaced `FKExpandableTextGlobalConfiguration` with `FKExpandableText.defaultConfiguration` (same pattern as `FKBadge.defaultConfiguration`).
+- Renamed `FKExpandableText.apply(to:text:...)` to `FKExpandableText.attach(to:attributedText:...)` (parameter label `attributedText`).
+- Renamed `FKExpandableTextTextViewController` to `FKExpandableTextLinkedTextViewController`.
+- Renamed `onStateChanged` to `onExpansionChange` on controllers, `UILabel` / `UITextView` helpers, and `FKExpandableTextView`.
+- Renamed `fk_expandableTextController` to `fk_expandableText`.
+- SwiftUI `FKExpandableTextView`: the stored property and initializer parameter `text` are now `attributedText`; availability is aligned with the package’s **iOS 15** minimum.
+- Removed `FKExpandableTextConfiguration.Animation` and the `animation` configuration field. Expand and collapse always apply the new `NSAttributedString` and run layout synchronously; `setExpanded(_:animated:)` still accepts `animated` for call-site compatibility, but layout is no longer driven by `UIView` animation curves.
+
+### Fixed (FKUIKit FKExpandableText)
+
+- `buttonPlacement: .trailingBottom` now truncates the body (including the truncation token) to the configured line budget and places the action on the following line; the previous implementation appended the action without truncating the body, so toggling had little or no visible effect.
+- Removed `UIView.transition` cross-dissolve around full-string swaps, which read as a flash on long copy.
+- Width resolution before the first layout pass no longer falls back to the full screen when `bounds.width` is still zero; measurement prefers `UILabel.preferredMaxLayoutWidth`, then resolved ancestor widths, and schedules a deferred `refreshLayout()` when needed so “Read more” appears correctly in nested stacks (e.g. card layouts).
+- Line-budget measurement treats non-wrapping `NSLineBreakMode` values as word-wrapped for Text Kit; hosts default to word wrapping. `render` runs `window.layoutIfNeeded()` before measuring.
+- `setText` schedules an extra `refreshLayout()` on the next run loop when the host had no `superview` yet (common when binding in `viewDidLoad` before `addSubview`).
+- `FKExpandableText.attach(to:)` reuses `fk_expandableText` on the host so the controller stays retained even if the return value is discarded.
+
+### Changed (Examples)
+
+- ExpandableText demos use `FKExpandableTextExampleSupport`, a hub controller, and per-topic screens under `ExpandableText/Examples/` (types and files use the `Example` prefix).
+- SwiftUI bridge sample: `FKExpandableTextSizingTextView`, `.fixedSize(horizontal: false, vertical: true)`, and vertical compression resistance so the text view is not collapsed to a single line.
+- Example catalog subtitle for ExpandableText updated to describe the hub layout.
+
+### Changed (Documentation)
+
+- Rewrote `Sources/FKUIKit/Components/ExpandableText/README.md` and refreshed the ExpandableText line in the root `README.md`.
+
+## [0.43.10] - 2026-05-02
+
+### Changed (FKUIKit FKEmptyState)
+
+**Breaking**
+
+- Renamed `FKEmptyStateModel` to `FKEmptyStateConfiguration` (consistent with other FKUIKit configuration value types, e.g. `FKBadgeConfiguration`).
+- Renamed `fk_emptyStateModel` to `fk_emptyStateConfiguration`; `FKEmptyStateView.model` is now `configuration`; `apply(_:)` takes `configuration`.
+- Removed `FKEmptyStateGlobalDefaults` and `FKEmptyStateManager`. App-wide defaults are `FKEmptyState.defaultConfiguration`, with `FKEmptyState.configureDefault(_:)` for launch-time branding (mirrors `FKBadge.defaultConfiguration`).
+- `FKUIKit` now depends on the `FKEmptyStateCoreLite` SwiftPM target; `import FKUIKit` re-exports CoreLite (`@_exported import`) so resolver, i18n, `FKEmptyStateType`, and `FKEmptyStateFactory` remain available without a second import for typical UIKit apps.
+- Removed `FKEmptyStateInputs.filtersCount` (it was never consumed by `FKEmptyStateResolver`).
+- Removed `UIScrollView.fk_showEmptyState` (duplicate of `fk_applyEmptyState`).
+- `UIScrollView` APIs: renamed the external parameter `model` to `configuration` on `fk_updateEmptyState(itemCount:configuration:)`, `fk_updateEmptyStateVisibility(isEmpty:configuration:)`, and `fk_updateEmptyStateForTable(configuration:)`.
+- **FKCompositeKit:** `FKListEmptyStateModelFactory` → `FKListEmptyStateConfigurationFactory`; `modelForEmptyList` → `configurationForEmptyList`; `modelForDisplayedError` → `configurationForDisplayedError`.
+
+**Non-breaking**
+
+- Reorganized sources under `Public/`, `Internal/`, `Extension/`, and split `CoreLite/` into `FKEmptyStateSemantic.swift`, `FKEmptyStateI18n.swift`, and `FKEmptyStateFactory.swift` (single source of truth for Foundation-only APIs consumed by both targets).
+- Added `Public/FKEmptyStateLayoutHints.swift` for UIKit-only layout hints; `FKEmptyStateType` is defined only in CoreLite (eliminates duplicate type definitions between targets).
+- Added `Internal/FKEmptyStateHostStorage.swift` for associated-object keys, configuration boxing, and scroll/refresh coordination; associated-object key renamed from `model` to `configuration`.
+- VoiceOver: loading-phase announcements now follow the same primary/secondary strings as the on-screen loading layout (`loadingMessage` / `title` / description visibility rules).
+- Documentation: rewrote `Sources/FKUIKit/Components/EmptyState/README.md`; updated the EmptyState line in the root `README.md`.
+
+### Added (FKUIKit FKEmptyState)
+
+- `FKEmptyState` namespace: `defaultConfiguration` and `configureDefault(_:)` for global styling.
+- `UIViewController` APIs: `fk_bindEmptyStateActions(from:handler:)` and `fk_clearEmptyStateActionObservers()` (library implementation; examples no longer duplicate this).
+- `UIView.fk_isEmptyStateOverlayVisible` for visibility checks.
+- `FKEmptyStateNotificationKeys.title` in `.fkEmptyStateActionInvoked` userInfo for richer notification routing.
+
+### Changed (Examples)
+
+- Restructured EmptyState samples into `Support/`, `Basics/`, and `Advanced/`; refreshed hub titles/subtitles and `ExampleMenuViewController` catalog copy.
+
+## [0.43.9] - 2026-05-02
+
+### Added (FKUIKit FKDivider)
+
+- `intrinsicContentSize` on `FKDivider` so `UIStackView` and similar layouts can resolve hairline thickness without an extra height/width constraint on the short axis.
+- `Internal/FKDividerGeometry.swift`: shared horizontal/vertical stroke math for `FKDivider` and `FKDividerView`, keeping UIKit and SwiftUI rendering aligned.
+
+### Changed (FKUIKit FKDivider)
+
+**Breaking:** The Divider module public API and repository layout were refactored to match other FKUIKit components (`Badge`, `BlurView`, `CornerShadow`).
+
+- Reorganized sources under **`Public/`** (`FKDivider`, `FKDividerConfiguration`, `FKDivider+InterfaceBuilder`, `FKDividerView`), **`Internal/`** (`FKDividerGeometry`), and **`Extension/`** (`UIView+FKDivider.swift`). The SwiftUI file is now `Public/FKDividerView.swift` (replaces `FKDividerSwiftUIView.swift`).
+- Replaced **`FKDividerManager.shared.defaultConfiguration`** with **`FKDivider.defaultConfiguration`** (single static baseline, consistent with `FKBlur` / `FKBadge` patterns).
+- Renamed **`FKDividerPinnedEdge.left`** and **`.right`** to **`.leading`** and **`.trailing`**; pinning still uses `leadingAnchor` / `trailingAnchor` for RTL-correct layout.
+- Changed **`FKDividerConfiguration.dashPattern`** from **`[NSNumber]`** to **`[CGFloat]`**; `CAShapeLayer` bridging is handled internally.
+- Removed **`FKDivider.apply(configuration:)`**; assign **`configuration`** directly to refresh layout and colors.
+
+### Fixed (FKUIKit FKDivider)
+
+- Horizontal gradient strokes under RTL now flip `CAGradientLayer` endpoints so the visual direction matches SwiftUI’s leading→trailing `LinearGradient`.
+- Stroke geometry no longer produces inverted segments when `contentInsets` are larger than the available width or height (degenerate cases yield an empty path).
+
+### Changed (Documentation)
+
+- Rewrote `Sources/FKUIKit/Components/Divider/README.md` (module layout table, quick start, defaults, RTL, `dashPattern`, Interface Builder, SwiftUI, examples pointer).
+- Root `README.md`: clarified the Divider tree line and the feature blurb for the new layout.
+
+### Changed (Examples)
+
+- Replaced the single large Divider demo file with **`FKDividerExampleSupport`**, a compact **`FKDividerExamplesHubViewController`**, and scenario screens under **`Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Divider/Scenarios/`**.
+- Updated the Divider entry subtitle in **`ExampleMenuViewController`**.
+
+### Removed (FKUIKit FKDivider)
+
+- **`FKDividerManager`** (superseded by **`FKDivider.defaultConfiguration`**).
+
+## [0.43.8] - 2026-05-02
+
+### Changed (FKUIKit FKCornerShadow)
+
+**Breaking:** The CornerShadow module was reorganized and several public symbols were renamed. Update call sites using the migration table in `Sources/FKUIKit/Components/CornerShadow/README.md`.
+
+- Reorganized on-disk layout to match `Badge` and `BlurView`: exported types under `Public/`, implementation under `Internal/` (renderer, layer store, layout observer, main-thread assertion), and `UIView` entry points under `Extension/`.
+- Renamed `FKCornerShadowShadow` to `FKCornerShadowElevation`; renamed `FKCornerShadowSide` to `FKCornerShadowEdge`; renamed shadow parameter `sides` to `edges`.
+- Renamed `fk_applyCornerShadowFromGlobal` to `fk_applyCornerShadowFromDefaults(_:)`, and added a parameterless `fk_applyCornerShadowFromDefaults()` convenience on `FKCornerShadowStylable` via a protocol extension.
+- Replaced `FKCornerShadowThreading.swift` with `Internal/FKCornerShadowAssertions.swift`.
+- Improved per-edge shadow masks: padding now accounts for shadow offset, and mask layers are reused across layout passes to reduce allocation churn.
+
+### Changed (Examples)
+
+- Restructured CornerShadow samples to mirror other FKUIKit hubs: `FKCornerShadowExampleSupport`, root hub view controller, and scenario screens under `Examples/.../CornerShadow/Scenarios/`.
+
+### Changed
+
+- Root `README.md`: expanded the CornerShadow feature line and linked to the module README.
+
+## [0.43.7] - 2026-05-02
+
+### Added (FKUIKit Button)
+- Added `Sources/FKUIKit/Components/Button/README.md` as the English module guide (directory layout, naming, quick start, state resolution, examples pointer).
+- Pointer interaction is re-evaluated when `userInterfaceIdiom` changes during `traitCollectionDidChange(_:)`.
+
+### Changed (FKUIKit Button)
+- Reorganized on-disk layout to align with other FKUIKit components: shared types stay under `Public/`, implementation-specific code under `Public/FKButton/`, glue under `Extension/`, and hosting views under `Internal/`.
+- Split the control implementation across `Public/FKButton/FKButton.swift` (core state + initializers) and focused `FKButton+*.swift` extensions (setup, public API, layout, event dispatch, loading, gestures, stack/content layout, appearance rendering, content rendering, accessibility, feedback, pointer delegate, Interface Builder preview hook).
+- Consolidated haptics, sound, and pointer settings into `FKButtonFeedbackConfigurations.swift`.
+- Renamed `FKButton+Namespace.swift` to `FKButtonAliases.swift`; relocated `FKButton+Builder.swift` and `FKButton+InterfaceBuilder.swift` into `Extension/`.
+- Renamed `FKButtonAccessibility.swift` to `FKButtonAccessibilityConfiguration.swift` (the `FKButtonAccessibilityConfiguration` type is unchanged).
+- **Behavior:** `setModel(nil, for:)` now clears **all** registrations for that exact `UIControl.State` key—appearance, title, subtitle, every image slot, and custom content—so resolution falls back (for example to `.normal`). Non-`nil` partial models still omit unchanged fields.
+- For split compilation only, promoted write visibility of select `public private(set)` members to `public internal(set)` for `titleLabel`, `subtitleLabel`, `imageView`, `leadingImageView`, `trailingImageView`, and `isLoading`. External modules remain read-only; only FKUIKit may assign.
+
+### Changed (Examples)
+- Refactored Button samples to mirror Badge/BlurView: `FKButtonExampleSupport`, `FKButtonExampleScrollViewController`, and topic screens under `Examples/.../Button/Scenarios/`.
+- Updated the catalog subtitle for the Button entry in `ExampleMenuViewController`.
+
+### Fixed (FKUIKit Button)
+- Removed unused temporary bindings in `applyTextForCurrentState()` for `.imageOnly` / `.custom` (no intended visual or interaction change).
+
+## [0.43.6] - 2026-05-02
+
+### Added (FKUIKit BlurView)
+- Added `FKBlur` namespace with `defaultConfiguration` as the single global baseline for new `FKBlurView` instances and `FKSwiftUIBlurView` default parameters.
+- Added `blurSourceProvider` on `FKSwiftUIBlurView` so SwiftUI callers can supply a snapshot source for the `.custom` backend beyond `superview`.
+- Added `reduceTransparencyFallbackColor` on `FKBlurConfiguration` and `ibReduceTransparencyFallbackColor` on `FKBlurView` so the opaque fill used under **Reduce Transparency** + `.custom` can match brand or surface colors (default remains system secondary background when unset).
+- Added `invalidateBlurContent()` on `FKBlurView` to force regeneration when underlying pixels change without a layout pass (especially for `.static` custom blur).
+
+### Changed (FKUIKit BlurView)
+- **Breaking:** Removed `FKBlurGlobalDefaults`; use `FKBlur.defaultConfiguration` instead.
+- **Breaking:** Reorganized the module to mirror other FKUIKit components (`Public/`, `Internal/`, `Extension/`).
+- **Breaking:** Renamed extension sources to `UIView+FKBlur.swift` and `UIImage+FKBlur.swift` (public `fk_*` APIs unchanged).
+- Refined custom blur behavior: pipeline-aware invalidation for `.static` + `.custom` when blur inputs change; Reduce Transparency now short-circuits the custom snapshot loop and uses an opaque fill.
+- Updated `FKSwiftUIBlurView` default configuration wiring to `FKBlur.defaultConfiguration`.
+- Rewrote `Sources/FKUIKit/Components/BlurView/README.md` as an English module guide (layout tables, quick start, accessibility notes, examples pointer).
+
+### Changed (Examples)
+- Split the monolithic BlurView example hub into multiple scenario files plus `FKBlurExampleSupport.swift`, aligned with the Badge examples layout.
+- Renamed shared demo helpers to `FKBlurExampleUI` / `FKBlurExampleBaseViewController` and updated copy to reference `FKBlur.defaultConfiguration`.
+
+### Fixed (FKUIKit BlurView)
+- Fixed `.static` + `.custom` blur not updating when `FKBlurConfiguration` blur-relevant fields changed while a cached image was still present.
+
+### Removed (FKUIKit BlurView)
+- Removed unused `import CoreImage.CIFilterBuiltins` from `UIImage+FKBlur.swift`.
+
+## [0.43.4] - 2026-05-01
+
+### Added (FKUIKit PresentationController)
+- Added new sheet detents aligned with system semantics:
+  - `FKPresentationDetent.medium` (half-height style detent)
+  - `FKPresentationDetent.large` (near-full detent that preserves a visible edge gap)
+- Applied detent resolution support in both modal container host and overlay passthrough host, so `medium/large/full` behavior is consistent across interaction modes.
+- Updated top/bottom basics examples to demonstrate the new detent ladder (`fitContent`, `medium`, `large`, `full`).
+
+### Fixed (FKUIKit PresentationController)
+- Fixed sheet shadow rendering in container and overlay hosts by avoiding clipping on the shadow-rendering wrapper layer and preserving content clipping in the inner content container.
+- Fixed Fit-to-content example initial toggle state mismatch when launched with extra blocks enabled.
+- Removed a non-functional toggle from the points-detent example to avoid misleading interaction.
+- Corrected basic bottom-sheet example narrative to match actual configuration behavior.
+
+### Changed (Documentation)
+- Updated `Sources/FKUIKit/Components/PresentationController/README.md` with zero-dim backdrop behavior and overlay host architecture notes.
+- Updated root `README.md` FKUIKit module structure/component list to match current on-disk components:
+  - removed stale references to deleted modules (`Carousel`, `LoadingAnimator`, `StarRating`, `StickyHeader`, `SwipeAction`)
+  - renamed `Presentation` references to `PresentationController`.
 
 ## [0.41.0] - 2026-04-24
 
@@ -179,7 +796,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Added a new high-performance blur module under `Sources/FKUIKit/Components/BlurView/`:
   - `FKBlurView` (UIKit blur view with system/custom backends)
   - `FKBlurConfiguration` (type-safe blur model with system styles, custom parameters, mode/backend selection)
-  - `FKBlurGlobalDefaults` (global baseline configuration)
+  - `FKBlur.defaultConfiguration` (global baseline configuration)
   - `FKSwiftUIBlurView` (SwiftUI adapter)
 - Added full blur capability coverage:
   - system material styles (`light` / `dark` / `extraLight` / `systemMaterial` family, etc.)
@@ -1168,7 +1785,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 ### Added (FKCompositeKit FKListKit)
 - **`FKListPlugin`**: composition-first list coordinator for `UITableView` / `UICollectionView` without base controller inheritance.
 - **Pagination + state orchestration** via **`FKPageManager`** and **`FKListStateManager`**: initial skeleton (optional), pull-to-refresh, load-more, empty/error overlays, and load-more failure UX.
-- **List state drivers** (`FKListStateUIDrivers`) for decoupled UI integration (empty state, skeleton host, primary surface, and refresh controls).
+- **List presentation drivers** (`FKListPresentationDrivers`) for decoupled UI integration (empty state, skeleton host, primary surface, and refresh controls).
 
 ### Added (Examples)
 - **`FKListKitTableExampleViewController`**: end-to-end mock demo (random data, empty, failures, 3-page paging, skeleton, empty/error overlays).
@@ -1440,7 +2057,18 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.40.1...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.44.2...HEAD
+[0.44.2]: https://github.com/feng-zhang0712/FKKit/compare/0.44.1...0.44.2
+[0.44.1]: https://github.com/feng-zhang0712/FKKit/compare/0.44.0...0.44.1
+[0.44.0]: https://github.com/feng-zhang0712/FKKit/compare/0.43.17...0.44.0
+[0.43.17]: https://github.com/feng-zhang0712/FKKit/compare/0.43.16...0.43.17
+[0.43.16]: https://github.com/feng-zhang0712/FKKit/compare/0.43.15...0.43.16
+[0.43.15]: https://github.com/feng-zhang0712/FKKit/compare/0.43.14...0.43.15
+[0.43.14]: https://github.com/feng-zhang0712/FKKit/compare/0.43.13...0.43.14
+[0.43.8]: https://github.com/feng-zhang0712/FKKit/compare/0.43.7...0.43.8
+[0.43.7]: https://github.com/feng-zhang0712/FKKit/compare/0.43.6...0.43.7
+[0.43.6]: https://github.com/feng-zhang0712/FKKit/compare/0.43.4...0.43.6
+[0.43.4]: https://github.com/feng-zhang0712/FKKit/compare/0.43.3...0.43.4
 [0.40.1]: https://github.com/feng-zhang0712/FKKit/compare/0.40.0...0.40.1
 [0.40.0]: https://github.com/feng-zhang0712/FKKit/compare/0.39.0...0.40.0
 [0.39.0]: https://github.com/feng-zhang0712/FKKit/compare/0.38.0...0.39.0

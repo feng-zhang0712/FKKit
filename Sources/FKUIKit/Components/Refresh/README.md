@@ -1,106 +1,81 @@
 # FKRefresh
 
-`FKRefresh` is a UIKit pull-to-refresh + load-more component for `UIScrollView` (including `UITableView` / `UICollectionView`). It provides one-line attachment APIs, configurable UI/behavior, and safe completion patterns for async work.
+`FKRefresh` is a UIKit pull-to-refresh and load-more implementation for `UIScrollView` (including `UITableView` and `UICollectionView`). It favors small call sites (`fk_addPullToRefresh`, `fk_addLoadMore`), shared configuration, explicit completion APIs, and optional token-aware handlers for async work.
 
-## Table of Contents
+## Table of contents
 
 - [Overview](#overview)
+- [Repository layout](#repository-layout)
 - [Features](#features)
-- [Supported Containers](#supported-containers)
+- [Supported containers](#supported-containers)
 - [Requirements](#requirements)
 - [Installation](#installation)
-  - [Swift Package Manager](#swift-package-manager)
-- [Basic Usage](#basic-usage)
-  - [Pull-to-refresh (Closure)](#pull-to-refresh-closure)
-  - [Load-more (Closure)](#load-more-closure)
-  - [Programmatic Triggers](#programmatic-triggers)
-- [Async & Completion](#async--completion)
-  - [Async/Await Handler](#asyncawait-handler)
-  - [Context Handler (Token-Safe)](#context-handler-token-safe)
+- [Basic usage](#basic-usage)
+- [Async and completion](#async-and-completion)
 - [Customization](#customization)
-  - [Texts & Localization](#texts--localization)
-  - [Custom Indicator View (`FKRefreshContentView`)](#custom-indicator-view-fkrefreshcontentview)
-  - [Hosted UIKit View](#hosted-uikit-view)
-- [Coordination & Policy](#coordination--policy)
-  - [Concurrency Policy](#concurrency-policy)
-  - [Auto-Fill Policy](#auto-fill-policy)
-- [Global Configuration](#global-configuration)
-- [SwiftUI Bridge](#swiftui-bridge)
-- [API Reference](#api-reference)
-  - [Core Types](#core-types)
-  - [Main APIs](#main-apis)
-- [Best Practices](#best-practices)
+- [Coordination and policy](#coordination-and-policy)
+- [Global configuration](#global-configuration)
+- [SwiftUI bridge](#swiftui-bridge)
+- [Example app layout](#example-app-layout)
+- [API reference](#api-reference)
+- [Best practices](#best-practices)
 - [Notes](#notes)
 - [License](#license)
 
 ## Overview
 
-The component is designed for production UIKit apps:
+- Pure UIKit and Foundation; no third-party runtime dependencies.
+- One implementation (`FKRefreshControl`) for both header and footer; behavior is driven by `FKRefreshKind` and `FKRefreshConfiguration`.
+- Pair-level coordination (mutually exclusive refresh vs load-more, optional queueing, optional auto-fill for short lists).
+- Optional `FKRefreshSwiftUIBridge` when SwiftUI hosts a UIKit scroll view.
 
-- Pure UIKit/Foundation implementation
-- No third-party dependencies
-- Pull-to-refresh and load-more share the same configuration model
-- Supports closure, async/await, and context-aware handlers
-- Pair-level policy coordination (concurrency + auto-fill)
-- Global defaults for consistent styling across screens
+## Repository layout
+
+Sources under `Sources/FKUIKit/Components/Refresh/`:
+
+| Area | Role |
+|------|------|
+| `Public/Control/` | `FKRefreshControl`, `FKRefreshKind` |
+| `Public/Models/` | `FKRefreshState`, `FKRefreshConfiguration`, `FKLoadMoreTriggerMode`, `FKRefreshText`, `FKRefreshPagination`, `FKRefreshActionContext`, `FKRefreshClock` |
+| `Public/Policy/` | `FKRefreshPolicy`, concurrency and auto-fill types |
+| `Public/Callbacks/` | Async and context handler type aliases |
+| `Public/Protocols/` | `FKRefreshContentView`, `FKRefreshControlDelegate` |
+| `Public/Views/` | `FKDefaultRefreshContentView`, `FKHostedRefreshContentView`, `FKGIFRefreshContentView` |
+| `Public/Services/` | `FKRefreshManager`, `FKRefreshSettings` |
+| `Public/Bridge/` | `FKRefreshSwiftUIBridge` (SwiftUI) |
+| `Internal/` | `FKRefreshCoordinator` (header/footer coordination; not public API) |
+| `Extension/` | `UIScrollView` attachment helpers |
 
 ## Features
 
 - Pull-to-refresh header (`fk_addPullToRefresh`)
 - Load-more footer (`fk_addLoadMore`)
-- Default indicator view (arrow/spinner + text)
-- Custom indicator view via `FKRefreshContentView` (GIF, Lottie host, etc.)
-- Async/await handlers with optional automatic end
-- Token-safe “context handler” to avoid stale completion/races
-- Pair coordination policy:
-  - Concurrency: mutually exclusive / queueing / parallel
-  - Auto-fill: trigger load-more automatically when content doesn’t fill viewport
+- Default indicator (arrow, spinner, localized strings)
+- Custom indicators via `FKRefreshContentView`
+- Closures, `async`/`await`, and context handlers with monotonic tokens
 - Global defaults via `FKRefreshSettings` / `FKRefreshManager`
-- Optional SwiftUI bridge for hosting UIKit scroll views
 
-## Supported Containers
+## Supported containers
 
-`FKRefresh` attaches to:
-
-- `UIScrollView` and any subclass
-- `UITableView`
-- `UICollectionView`
+Any `UIScrollView` subclass, including `UITableView` and `UICollectionView`.
 
 ## Requirements
 
-- Swift 5.9+
-- UIKit / Foundation
-- iOS 15+ in the current `FKUIKit` package setup
+- Swift 6 language mode (see the `FKKit` package manifest).
+- iOS 15+ for the current `FKUIKit` product.
+- UIKit.
 
 ## Installation
 
-### Swift Package Manager
-
-Add `FKKit` as a dependency and use the `FKUIKit` product.
-
-```swift
-dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.40.2")
-],
-targets: [
-  .target(
-    name: "YourApp",
-    dependencies: [
-      .product(name: "FKUIKit", package: "FKKit")
-    ]
-  )
-]
-```
-
-Then import:
+Add the `FKUIKit` product from this repository, then:
 
 ```swift
 import FKUIKit
 ```
 
-## Basic Usage
+## Basic usage
 
-### Pull-to-refresh (Closure)
+### Pull-to-refresh
 
 ```swift
 tableView.fk_addPullToRefresh { [weak self] in
@@ -113,7 +88,7 @@ tableView.fk_addPullToRefresh { [weak self] in
 }
 ```
 
-### Load-more (Closure)
+### Load-more
 
 ```swift
 tableView.fk_addLoadMore { [weak self] in
@@ -133,16 +108,16 @@ tableView.fk_addLoadMore { [weak self] in
 }
 ```
 
-### Programmatic Triggers
+### Programmatic triggers
 
 ```swift
 tableView.fk_beginPullToRefresh(animated: true)
 tableView.fk_beginLoadMore()
 ```
 
-## Async & Completion
+## Async and completion
 
-### Async/Await Handler
+### Async handler
 
 ```swift
 var config = FKRefreshConfiguration()
@@ -158,11 +133,11 @@ tableView.fk_addPullToRefresh(configuration: config, asyncAction: { [weak self] 
 })
 ```
 
-If you prefer manual control, keep `automaticallyEndsRefreshingOnAsyncCompletion = false` and call `endRefreshing()` yourself.
+If `automaticallyEndsRefreshingOnAsyncCompletion` is `false`, call `endRefreshing()` (or the error/empty variants) yourself.
 
-### Context Handler (Token-Safe)
+### Context handler (token-safe, synchronous)
 
-Use the context handler to guard against stale callbacks (e.g. overlapping triggers, fast re-attachments, screen dismissal):
+Use `FKRefreshActionContext` when completion may race with a new pull or view teardown:
 
 ```swift
 tableView.fk_addPullToRefresh { [weak self] context in
@@ -179,94 +154,53 @@ tableView.fk_addPullToRefresh { [weak self] context in
 }
 ```
 
-> Note: The context includes a monotonic token, kind, source, and start timestamp (`FKRefreshActionContext`).
+### Context async handler
+
+Same token semantics with `async`/`await`:
+
+```swift
+tableView.fk_addPullToRefresh(contextAsyncAction: { [weak self] context in
+  guard let self else { return }
+  try await api.refresh()
+  self.tableView.fk_pullToRefresh?.endRefreshing(token: context.token)
+})
+
+tableView.fk_addLoadMore(contextAsyncAction: { [weak tableView] context in
+  try await api.loadNextPage()
+  tableView?.fk_loadMore?.endRefreshing(token: context.token)
+})
+```
+
+The same overloads exist with a custom `contentView:` parameter when you implement `FKRefreshContentView`.
 
 ## Customization
 
-### Texts & Localization
+### Texts and localization
 
-`FKDefaultRefreshContentView` uses `FKRefreshText` for user-facing strings:
+`FKDefaultRefreshContentView` reads copy from `FKRefreshText`. Override `FKRefreshConfiguration.texts` per screen or assign localized defaults in `FKRefreshSettings`.
 
-```swift
-var config = FKRefreshConfiguration()
-config.texts = FKRefreshText(
-  pullToRefresh: NSLocalizedString("pull_to_refresh", comment: ""),
-  releaseToRefresh: NSLocalizedString("release_to_refresh", comment: ""),
-  headerLoading: NSLocalizedString("refreshing", comment: ""),
-  headerFinished: NSLocalizedString("refresh_done", comment: ""),
-  headerListEmpty: NSLocalizedString("list_empty", comment: ""),
-  headerFailed: NSLocalizedString("refresh_failed", comment: ""),
-  footerLoading: NSLocalizedString("loading_more", comment: ""),
-  footerFinished: NSLocalizedString("load_done", comment: ""),
-  footerNoMoreData: NSLocalizedString("no_more", comment: ""),
-  footerFailed: NSLocalizedString("load_failed", comment: ""),
-  footerTapToRetry: NSLocalizedString("tap_to_retry", comment: "")
-)
-```
+### Custom indicator
 
-### Custom Indicator View (`FKRefreshContentView`)
+Implement `FKRefreshContentView` and pass the view to `fk_addPullToRefresh(contentView:action:)` (or the async/context variants).
 
-Provide any view implementing `FKRefreshContentView`:
+### Hosted subtree
 
-```swift
-final class MyRefreshIndicatorView: UIView, FKRefreshContentView {
-  func refreshControl(_ control: FKRefreshControl, didTransitionTo state: FKRefreshState, from previous: FKRefreshState) {
-    // Drive animations based on state
-  }
+Use `FKHostedRefreshContentView` to wrap an existing `UIView` (for example a Lottie animation view).
 
-  func refreshControl(_ control: FKRefreshControl, didUpdatePullProgress progress: CGFloat) {
-    // Optional: update for interactive pull progress
-  }
-}
+## Coordination and policy
 
-let indicator = MyRefreshIndicatorView()
-tableView.fk_addPullToRefresh(contentView: indicator) { /* ... */ }
-```
+`fk_refreshPolicy` on the scroll view configures the attached pair:
 
-### Hosted UIKit View
+- **Concurrency:** `.mutuallyExclusive`, `.queueing`, or `.parallel` between header and footer.
+- **Auto-fill:** optional automatic `loadMore` when the first page is shorter than the viewport (`FKAutoFillPolicy`).
 
-If you already have a `UIView` (e.g. Lottie `AnimationView`), wrap it with `FKHostedRefreshContentView`:
-
-```swift
-let hosted = FKHostedRefreshContentView(hostedView: myAnimationView)
-tableView.fk_addPullToRefresh(contentView: hosted) { /* ... */ }
-```
-
-## Coordination & Policy
-
-`FKRefreshPolicy` is stored on the scroll view as `fk_refreshPolicy` and applies to the attached header+footer pair.
-
-### Concurrency Policy
-
-```swift
-tableView.fk_refreshPolicy = FKRefreshPolicy(concurrency: .queueing, autoFill: .disabled)
-```
-
-- `.mutuallyExclusive`: ignore new triggers while another is running
-- `.queueing`: queue the next trigger and run after current finishes
-- `.parallel`: allow pull-to-refresh and load-more concurrently
-
-### Auto-Fill Policy
-
-Auto-fill is useful for “short lists” where the first page doesn’t fill the screen:
-
-```swift
-tableView.fk_refreshPolicy = FKRefreshPolicy(
-  concurrency: .mutuallyExclusive,
-  autoFill: FKAutoFillPolicy(isEnabled: true, maxTriggerCount: 3)
-)
-```
-
-## Global Configuration
-
-Use global defaults to keep a consistent theme. These defaults are used when `configuration: nil` is passed.
+## Global configuration
 
 ```swift
 @MainActor
 func configureRefreshTheme() {
   var global = FKRefreshConfiguration()
   global.tintColor = .systemOrange
-  global.texts.pullToRefresh = NSLocalizedString("pull_to_refresh", comment: "")
 
   FKRefreshManager.shared.applyGlobalConfiguration(
     pullToRefresh: global,
@@ -276,67 +210,67 @@ func configureRefreshTheme() {
 }
 ```
 
-> Note: `FKRefreshSettings` stores process-wide mutable globals (`nonisolated(unsafe)`). Prefer configuring once at app launch (or on the main actor) before attaching controls from multiple threads.
+`FKRefreshSettings` holds process-wide defaults (`nonisolated(unsafe)`). Configure on the main actor, typically once at launch, before attaching controls from multiple threads.
 
-## SwiftUI Bridge
+## SwiftUI bridge
 
-If you host a UIKit scroll view inside SwiftUI (`UIViewRepresentable`), keep a single `FKRefreshSwiftUIBridge` to bind and install handlers.
+When a `UIScrollView` is embedded via `UIViewRepresentable`, keep a single `FKRefreshSwiftUIBridge`:
 
-```swift
-@MainActor
-final class Model: ObservableObject {
-  let refresh = FKRefreshSwiftUIBridge()
-}
+1. `bridge.bind(scrollView:)`
+2. `installPullToRefresh` / `installLoadMore` with `action`, `asyncAction`, or `contextAsyncAction`
+3. `setPolicy(_:)` if needed
 
-// In your UIViewRepresentable:
-// 1) bridge.bind(scrollView:)
-// 2) bridge.installPullToRefresh / bridge.installLoadMore
-```
+## Example app layout
 
-## API Reference
+FKKitExamples `Examples/FKUIKit/Refresh/`:
 
-### Core Types
+| Folder | Contents |
+|--------|----------|
+| `Hub/` | Navigation hub listing all demos |
+| `Scenarios/` | Individual view controllers (table, collection, scroll view, policy, pagination, GIF, dots, hosted, configuration, environment, localization, …) |
+| `SwiftUI/` | `FKRefreshSwiftUIBridge` hosting demo |
+| `Shared/` | `FKRefreshExampleCommon` helpers (simulated delays, state strings) |
+| `Support/` | Example-only views such as `FKDotsRefreshContentView` |
 
-- `FKRefreshControl`
-- `FKRefreshConfiguration`
-- `FKRefreshState`
-- `FKRefreshText`
-- `FKRefreshPolicy`
-- `FKAutoFillPolicy`
+## API reference
+
+### Core types
+
+- `FKRefreshControl`, `FKRefreshKind`, `FKRefreshState`
+- `FKRefreshConfiguration`, `FKLoadMoreTriggerMode`, `FKRefreshText`
+- `FKRefreshPolicy`, `FKAutoFillPolicy`, `FKRefreshConcurrencyPolicy`, `FKRefreshTriggerSource`
 - `FKRefreshActionContext`
-- `FKRefreshContentView`
-- `FKHostedRefreshContentView`
-- `FKRefreshManager` / `FKRefreshSettings`
-- `FKRefreshSwiftUIBridge` (when `canImport(SwiftUI)`)
+- `FKRefreshContentView`, `FKRefreshControlDelegate`
+- `FKHostedRefreshContentView`, `FKDefaultRefreshContentView`, `FKGIFRefreshContentView`
+- `FKRefreshPagination`
+- `FKRefreshClock`, `FKSystemRefreshClock`
+- `FKRefreshManager`, `FKRefreshSettings`
+- `FKRefreshSwiftUIBridge` (when SwiftUI is available)
 
-### Main APIs
+### Main `UIScrollView` APIs
 
-- `UIScrollView.fk_addPullToRefresh(...)`
-- `UIScrollView.fk_addLoadMore(...)`
-- `UIScrollView.fk_pullToRefresh`
-- `UIScrollView.fk_loadMore`
-- `UIScrollView.fk_beginPullToRefresh(animated:)`
-- `UIScrollView.fk_beginLoadMore()`
-- `UIScrollView.fk_resetLoadMoreState()`
-- `UIScrollView.fk_removePullToRefresh()`
-- `UIScrollView.fk_removeLoadMore()`
-- `UIScrollView.fk_removeRefreshComponents()`
-- `UIScrollView.fk_refreshPolicy`
+- `fk_addPullToRefresh(...)` — overloads for `action`, `asyncAction`, `FKRefreshActionHandler` (`(FKRefreshActionContext) -> Void`), `contextAsyncAction`, and custom `contentView` combinations
+- `fk_addLoadMore(...)` — same overload matrix for the footer
+- `fk_pullToRefresh`, `fk_loadMore`
+- `fk_beginPullToRefresh(animated:)`, `fk_beginLoadMore()`
+- `fk_resetLoadMoreState()`, `fk_setLoadMoreHidden(_:)`, `fk_resetLoadMoreAfterPullToRefresh()`
+- `fk_removePullToRefresh()`, `fk_removeLoadMore()`, `fk_removeRefreshComponents()`
+- `fk_refreshPolicy`
 
-## Best Practices
+## Best practices
 
-- Access UIKit mutations on the main actor / main queue.
-- Prefer the context handler (`FKRefreshActionContext`) when your completion may arrive late or out-of-order.
-- Always end refreshing on all code paths (success / error / cancellation).
-- Reset footer state after a successful pull-to-refresh when you restart pagination (`fk_resetLoadMoreState()`).
-- Localize `FKRefreshText` with `NSLocalizedString` (or inject from your i18n layer) for international apps.
+- Perform UI mutations on the main actor.
+- Use context handlers when completions can arrive after a newer refresh has started.
+- Call an appropriate `end*` method on every path (success, empty, no more data, error, cancel).
+- After a successful pull-to-refresh that resets pagination, call `fk_resetLoadMoreState()` when appropriate.
 
 ## Notes
 
-- `FKRefreshPolicy` lives on the scroll view and affects the header+footer pair together.
-- `loadMoreTriggerMode = .manual` is useful when you want “tap to load more” or explicit triggers.
-- For “first screen is empty” UX, consider combining silent refresh (`isSilentRefresh`) with an initial data request.
+- `loadMoreTriggerMode == .manual` disables automatic bottom triggering; use `fk_beginLoadMore()` or `beginLoadingMore()`. The footer may sit below the visible rect until you scroll near the bottom.
+- `isSilentRefresh` runs the header action without expanding the visible header; still call `endRefreshing` when work completes.
+- `fk_setLoadMoreHidden` is stored on the control: it is not overwritten on the next scroll (unlike assigning `fk_loadMore?.isHidden` directly).
+- Automatic load-more arms once per “approach the bottom”; after a run (success, failure, or no-more), the user must scroll slightly upward before the next automatic trigger — this avoids repeated fires while a finger rests at the end of the list.
 
 ## License
 
-`FKRefresh` is part of the FKKit project and is distributed under the same license as this repository.
+`FKRefresh` is part of FKKit and follows the same license as this repository.

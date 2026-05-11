@@ -93,7 +93,6 @@ public final class FKUserDefaultsStorage: FKCodableStorage, @unchecked Sendable 
   public func exists(key: String) -> Bool {
     queue.sync {
       let nk = namespaced(key)
-      guard defaults.data(forKey: nk) != nil else { return false }
       guard let blob = defaults.data(forKey: nk) else { return false }
       guard let record = try? StorageCodec.decode(ExpiringRecord.self, from: blob) else { return false }
       let now = Date().timeIntervalSince1970

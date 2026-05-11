@@ -1,7 +1,8 @@
 import UIKit
 import ObjectiveC.runtime
 
-// MARK: - Associated object keys
+// One-line attachment for `FKRefreshControl` on scroll views; at most one header + one footer per view.
+// Pair policy: `fk_refreshPolicy`. Re-attaching replaces the previous control.
 
 private enum FKRefreshKeys {
   nonisolated(unsafe) static var pullToRefresh: UInt8 = 0
@@ -9,10 +10,8 @@ private enum FKRefreshKeys {
   nonisolated(unsafe) static var coordinator: UInt8 = 0
 }
 
-// MARK: - UIScrollView extension
-
 public extension UIScrollView {
-  /// Shared policy for the attached pull-to-refresh and load-more pair.
+  /// Concurrency, queueing, and auto-fill rules for the header + footer pair on this scroll view.
   var fk_refreshPolicy: FKRefreshPolicy {
     get { fk_refreshCoordinator.policy }
     set { fk_refreshCoordinator.policy = newValue }
@@ -65,6 +64,21 @@ public extension UIScrollView {
     return control
   }
 
+  /// Attaches pull-to-refresh with context async callback (token-safe completion with `async`/`await`).
+  @discardableResult
+  func fk_addPullToRefresh(
+    configuration: FKRefreshConfiguration? = nil,
+    contextAsyncAction: @escaping FKRefreshContextAsyncHandler
+  ) -> FKRefreshControl {
+    let control = FKRefreshControl(
+      kind: .pullToRefresh,
+      configuration: configuration ?? FKRefreshSettings.pullToRefresh
+    )
+    control.contextAsyncActionHandler = contextAsyncAction
+    fk_setPullToRefresh(control)
+    return control
+  }
+
   /// Attaches a pull-to-refresh control with a custom content view.
   @discardableResult
   func fk_addPullToRefresh(
@@ -82,6 +96,23 @@ public extension UIScrollView {
     return control
   }
 
+  /// Attaches pull-to-refresh with custom indicator and context callback.
+  @discardableResult
+  func fk_addPullToRefresh(
+    configuration: FKRefreshConfiguration? = nil,
+    contentView: FKRefreshContentView,
+    action: @escaping FKRefreshActionHandler
+  ) -> FKRefreshControl {
+    let control = FKRefreshControl(
+      kind: .pullToRefresh,
+      configuration: configuration ?? FKRefreshSettings.pullToRefresh,
+      contentView: contentView
+    )
+    control.contextActionHandler = action
+    fk_setPullToRefresh(control)
+    return control
+  }
+
   /// Attaches a pull-to-refresh control with a custom content view and async callback.
   @discardableResult
   func fk_addPullToRefresh(
@@ -95,6 +126,23 @@ public extension UIScrollView {
       contentView: contentView,
       asyncAction: asyncAction
     )
+    fk_setPullToRefresh(control)
+    return control
+  }
+
+  /// Attaches pull-to-refresh with custom indicator and context async callback.
+  @discardableResult
+  func fk_addPullToRefresh(
+    configuration: FKRefreshConfiguration? = nil,
+    contentView: FKRefreshContentView,
+    contextAsyncAction: @escaping FKRefreshContextAsyncHandler
+  ) -> FKRefreshControl {
+    let control = FKRefreshControl(
+      kind: .pullToRefresh,
+      configuration: configuration ?? FKRefreshSettings.pullToRefresh,
+      contentView: contentView
+    )
+    control.contextAsyncActionHandler = contextAsyncAction
     fk_setPullToRefresh(control)
     return control
   }
@@ -163,6 +211,21 @@ public extension UIScrollView {
     return control
   }
 
+  /// Attaches load-more with context async callback (token-safe completion with `async`/`await`).
+  @discardableResult
+  func fk_addLoadMore(
+    configuration: FKRefreshConfiguration? = nil,
+    contextAsyncAction: @escaping FKRefreshContextAsyncHandler
+  ) -> FKRefreshControl {
+    let control = FKRefreshControl(
+      kind: .loadMore,
+      configuration: configuration ?? FKRefreshSettings.loadMore
+    )
+    control.contextAsyncActionHandler = contextAsyncAction
+    fk_setLoadMore(control)
+    return control
+  }
+
   /// Attaches a load-more control with a custom content view.
   @discardableResult
   func fk_addLoadMore(
@@ -180,6 +243,23 @@ public extension UIScrollView {
     return control
   }
 
+  /// Attaches load-more with custom indicator and context callback.
+  @discardableResult
+  func fk_addLoadMore(
+    configuration: FKRefreshConfiguration? = nil,
+    contentView: FKRefreshContentView,
+    action: @escaping FKRefreshActionHandler
+  ) -> FKRefreshControl {
+    let control = FKRefreshControl(
+      kind: .loadMore,
+      configuration: configuration ?? FKRefreshSettings.loadMore,
+      contentView: contentView
+    )
+    control.contextActionHandler = action
+    fk_setLoadMore(control)
+    return control
+  }
+
   /// Attaches a load-more control with a custom content view and async callback.
   @discardableResult
   func fk_addLoadMore(
@@ -193,6 +273,23 @@ public extension UIScrollView {
       contentView: contentView,
       asyncAction: asyncAction
     )
+    fk_setLoadMore(control)
+    return control
+  }
+
+  /// Attaches load-more with custom indicator and context async callback.
+  @discardableResult
+  func fk_addLoadMore(
+    configuration: FKRefreshConfiguration? = nil,
+    contentView: FKRefreshContentView,
+    contextAsyncAction: @escaping FKRefreshContextAsyncHandler
+  ) -> FKRefreshControl {
+    let control = FKRefreshControl(
+      kind: .loadMore,
+      configuration: configuration ?? FKRefreshSettings.loadMore,
+      contentView: contentView
+    )
+    control.contextAsyncActionHandler = contextAsyncAction
     fk_setLoadMore(control)
     return control
   }

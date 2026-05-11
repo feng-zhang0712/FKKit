@@ -16,7 +16,7 @@ import Foundation
  - Shared mutable maps (progress/completion handlers) are lock-protected.
  - This class does not own business-level parsing rules beyond Codable decoding.
  */
-public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegate, URLSessionDownloadDelegate {
+public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegate, URLSessionDownloadDelegate, @unchecked Sendable {
   /// Runtime configuration source.
   private let config: FKNetworkConfiguration
   /// Backing URLSession used for all task types.
@@ -94,42 +94,48 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     }
     let key = cacheKey(for: built)
 
-    // Cache fast path.
-    if case let .memory(ttl) = request.cachePolicy, let data = cache.value(for: key) {
-      decode(data: data, request: request, statusCode: 200, headers: [:], completion: callback)
-      config.logger.log("cache hit(memory), ttl: \(ttl), key: \(key)")
-      return NoopCancellable()
-    }
-    if case let .disk(ttl) = request.cachePolicy, let data = cache.value(for: key) {
-      decode(data: data, request: request, statusCode: 200, headers: [:], completion: callback)
-      config.logger.log("cache hit(disk), ttl: \(ttl), key: \(key)")
-      return NoopCancellable()
-    }
-    if case let .memoryAndDisk(ttl) = request.cachePolicy, let data = cache.value(for: key) {
-      decode(data: data, request: request, statusCode: 200, headers: [:], completion: callback)
-      config.logger.log("cache hit(memory+disk), ttl: \(ttl), key: \(key)")
+    // Cache fast path (memory / disk / memory+disk share the same lookup contract).
+    if let ttl = request.cachePolicy.fk_cacheTTL, let data = cache.value(for: key) {
+      decode(data: data, request: request, statusCode: 200, headers: [:], releaseDedup: {}, completion: callback)
+      config.logger.log("cache hit(\(request.cachePolicy.fk_cacheLabel)), ttl: \(ttl), key: \(key)")
       return NoopCancellable()
     }
 
-    // Prevent duplicate in-flight request when deduplication is enabled.
-    if request.behavior == .idempotentDeduplicated, deduplicator.shouldProceed(key: key) == false {
-      callback(.failure(.businessError(code: -2, message: "Request deduplicated.")))
-      return NoopCancellable()
+    let dedupKeyHeld: Bool
+    if request.behavior == .idempotentDeduplicated {
+      guard deduplicator.shouldProceed(key: key) else {
+        callback(.failure(.businessError(code: -2, message: "Request deduplicated.")))
+        return NoopCancellable()
+      }
+      dedupKeyHeld = true
+    } else {
+      dedupKeyHeld = false
+    }
+
+    let releaseDedup = { [deduplicator] in
+      if dedupKeyHeld {
+        deduplicator.complete(key: key)
+      }
     }
 
     // Mock path bypasses network transport but keeps decode behavior.
     if config.enableMock, let mockData = request.mockData {
-      decode(data: mockData, request: request, statusCode: 200, headers: [:], completion: callback)
-      deduplicator.complete(key: key)
+      decode(data: mockData, request: request, statusCode: 200, headers: [:], releaseDedup: releaseDedup, completion: callback)
       return NoopCancellable()
     }
 
     config.logger.log("➡️ \(built.httpMethod ?? "GET") \(built.url?.absoluteString ?? "")")
+    let dedup = deduplicator
     let task = session.dataTask(with: built) { [weak self] data, response, error in
-      guard let self else { return }
-      defer {
-        // Always release in-flight deduplication key.
-        self.deduplicator.complete(key: key)
+      let finalizeDedup = {
+        if dedupKeyHeld {
+          dedup.complete(key: key)
+        }
+      }
+      guard let self else {
+        finalizeDedup()
+        callback(.failure(.underlying(NSError(domain: "FKNetworkClient", code: 0, userInfo: [NSLocalizedDescriptionKey: "Client released before completion."]))))
+        return
       }
       self.handleResponse(
         request: request,
@@ -138,6 +144,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
         error: error,
         retried: false,
         originalRequest: built,
+        releaseDedup: finalizeDedup,
         completion: callback
       )
     }
@@ -245,6 +252,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   ///   - error: Transport error.
   ///   - retried: Indicates whether this is retry execution.
   ///   - originalRequest: URL request used for this execution.
+  ///   - releaseDedup: Invoked exactly once on terminal outcomes; skipped when starting 401 refresh + retry.
   ///   - completion: Final completion callback.
   private func handleResponse<R: Requestable>(
     request: R,
@@ -253,17 +261,21 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     error: Error?,
     retried: Bool,
     originalRequest: URLRequest,
+    releaseDedup: @escaping () -> Void,
     completion: @escaping (Result<R.Response, NetworkError>) -> Void
   ) {
     if let error {
+      releaseDedup()
       completion(.failure(mapError(error)))
       return
     }
     guard let httpResponse = response as? HTTPURLResponse else {
+      releaseDedup()
       completion(.failure(.invalidResponse))
       return
     }
     guard var data else {
+      releaseDedup()
       completion(.failure(.noData))
       return
     }
@@ -273,17 +285,24 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
         data = try interceptor.intercept(data: data, response: httpResponse)
       }
     } catch {
+      releaseDedup()
       completion(.failure(.underlying(error)))
       return
     }
 
-    // Transparent token refresh and one-time retry.
+    // Transparent token refresh and one-time retry (dedup slot stays held until retry finishes).
     if httpResponse.statusCode == 401, retried == false {
-      refreshTokenAndRetry(request: request, originalRequest: originalRequest, completion: completion)
+      refreshTokenAndRetry(
+        request: request,
+        originalRequest: originalRequest,
+        releaseDedup: releaseDedup,
+        completion: completion
+      )
       return
     }
 
     guard (200..<300).contains(httpResponse.statusCode) else {
+      releaseDedup()
       completion(.failure(.serverError(statusCode: httpResponse.statusCode, message: String(data: data, encoding: .utf8))))
       return
     }
@@ -293,6 +312,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
       request: request,
       statusCode: httpResponse.statusCode,
       headers: httpResponse.allHeaderFields,
+      releaseDedup: releaseDedup,
       completion: completion
     )
   }
@@ -304,15 +324,21 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   private func refreshTokenAndRetry<R: Requestable>(
     request: R,
     originalRequest: URLRequest,
+    releaseDedup: @escaping () -> Void,
     completion: @escaping (Result<R.Response, NetworkError>) -> Void
   ) {
     guard let refresher = config.tokenRefresher, let tokenStore = config.tokenStore else {
+      releaseDedup()
       completion(.failure(.tokenRefreshFailed))
       return
     }
     // Refresh token asynchronously, then replay original request with new auth.
     refresher.refreshToken(using: tokenStore.refreshToken) { [weak self] result in
-      guard let self else { return }
+      guard let self else {
+        releaseDedup()
+        completion(.failure(.tokenRefreshFailed))
+        return
+      }
       switch result {
       case let .success(token):
         // Persist new token before retrying.
@@ -320,18 +346,25 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
         var retryRequest = originalRequest
         retryRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         let task = session.dataTask(with: retryRequest) { [weak self] data, response, error in
-          self?.handleResponse(
+          guard let self else {
+            releaseDedup()
+            completion(.failure(.tokenRefreshFailed))
+            return
+          }
+          self.handleResponse(
             request: request,
             data: data,
             response: response,
             error: error,
             retried: true,
             originalRequest: retryRequest,
+            releaseDedup: releaseDedup,
             completion: completion
           )
         }
         task.resume()
       case .failure:
+        releaseDedup()
         completion(.failure(.tokenRefreshFailed))
       }
     }
@@ -401,20 +434,24 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   ///   - request: Original typed request.
   ///   - statusCode: HTTP status code.
   ///   - headers: HTTP response headers.
+  ///   - releaseDedup: Runs before success or decode failure completion (no-op when cache hit).
   ///   - completion: Final completion callback.
   private func decode<R: Requestable>(
     data: Data,
     request: R,
     statusCode: Int,
     headers: [AnyHashable: Any],
+    releaseDedup: @escaping () -> Void,
     completion: @escaping (Result<R.Response, NetworkError>) -> Void
   ) {
     do {
       let value = try decoder.decode(R.Response.self, from: data)
       // Keep metadata object creation for optional debugging/extension.
       _ = NetworkResponse(value: value, statusCode: statusCode, headers: headers, rawData: data)
+      releaseDedup()
       completion(.success(value))
     } catch {
+      releaseDedup()
       completion(.failure(.decodingFailed(underlying: error)))
     }
   }
@@ -556,4 +593,25 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
 private final class NoopCancellable: Cancellable {
   /// Performs no action.
   func cancel() {}
+}
+
+private extension NetworkCachePolicy {
+  /// TTL for policies that participate in cache read/write; `nil` for `.none`.
+  var fk_cacheTTL: TimeInterval? {
+    switch self {
+    case .none:
+      return nil
+    case let .memory(ttl), let .disk(ttl), let .memoryAndDisk(ttl):
+      return ttl
+    }
+  }
+
+  var fk_cacheLabel: String {
+    switch self {
+    case .none: return "none"
+    case .memory: return "memory"
+    case .disk: return "disk"
+    case .memoryAndDisk: return "memory+disk"
+    }
+  }
 }

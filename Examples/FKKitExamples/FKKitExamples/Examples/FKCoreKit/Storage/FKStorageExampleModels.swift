@@ -2,7 +2,7 @@
 //  FKStorageExampleModels.swift
 //  FKKitExamples
 //
-//  Shared models and keys for FKStorage demos — copy into your app as a starting point.
+//  Shared models and keys for FKStorage demos (English-only sample app). Copy as a starting point.
 //
 
 import Foundation
@@ -23,10 +23,17 @@ nonisolated enum FKStorageExampleKey: String, FKStorageKey {
   case userPassword
 
   // File + memory (logical segments)
+  case userProfile
   case imageBlob
   case textNote
   case jsonDocument
   case ttlSample
+  /// Short-lived UserDefaults row (TTL demo).
+  case userDefaultsTTLSample
+  /// Short-lived Keychain row (TTL demo).
+  case keychainTTLSample
+  /// Short-lived file row (TTL demo).
+  case fileTTLSample
 
   var namespace: String {
     "com.example.FKKitExamples.FKStorage"

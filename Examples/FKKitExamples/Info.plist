@@ -3,22 +3,40 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera access is used in the FKPermissions example to demonstrate camera authorization flow.</string>
+	<string>The FKPermissions example demonstrates how to request camera authorization.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Location access is used in the FKPermissions example to demonstrate always authorization flow.</string>
+	<string>The FKPermissions example demonstrates “Always” location authorization.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>FKLocationTemporaryFullAccuracyPurpose</key>
-		<string>Precise location is used in the FKPermissions example to demonstrate temporary full accuracy authorization.</string>
+		<string>The FKPermissions example demonstrates temporary full-accuracy location.</string>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location access is used in the FKPermissions example to demonstrate when-in-use authorization flow.</string>
+	<string>The FKPermissions example demonstrates When-In-Use location authorization.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Microphone access is used in the FKPermissions example to demonstrate audio permission requests.</string>
+	<string>The FKPermissions example demonstrates microphone authorization.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photo library access is used in the FKPermissions example to demonstrate read authorization flow.</string>
+	<string>The FKPermissions example demonstrates read access to the photo library.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>The FKPermissions example demonstrates add-only photo library authorization.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>Notification access is used in the FKPermissions example to demonstrate notification authorization requests.</string>
+	<string>The FKPermissions example demonstrates notification authorization.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>The FKPermissions example demonstrates Bluetooth authorization.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>The FKPermissions example demonstrates calendar access on older iOS versions.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>The FKPermissions example demonstrates full calendar access on iOS 17 and later.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>The FKPermissions example demonstrates reminders access on older iOS versions.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>The FKPermissions example demonstrates full reminders access on iOS 17 and later.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>The FKPermissions example demonstrates media library authorization.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>The FKPermissions example demonstrates speech recognition authorization.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>The FKPermissions example demonstrates App Tracking Transparency.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

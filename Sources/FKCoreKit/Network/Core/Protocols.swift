@@ -52,9 +52,9 @@ public extension Requestable {
 /// custom transport implementations without changing high-level client logic.
 public protocol NetworkSession {
   /// Completion signature for data and upload tasks.
-  typealias DataTaskCompletion = (Data?, URLResponse?, Error?) -> Void
+  typealias DataTaskCompletion = @Sendable (Data?, URLResponse?, Error?) -> Void
   /// Completion signature for download tasks.
-  typealias DownloadTaskCompletion = (URL?, URLResponse?, Error?) -> Void
+  typealias DownloadTaskCompletion = @Sendable (URL?, URLResponse?, Error?) -> Void
 
   /// Creates a data task.
   ///
@@ -165,6 +165,10 @@ public protocol TokenStore: AnyObject {
 ///
 /// Conforming types should call backend refresh API and return a valid new
 /// access token through completion callback.
+///
+/// ## Concurrency
+/// Implementations run off the caller’s isolation today; invoke `completion` on a predictable
+/// executor (typically the main queue) if results touch UI or non-Sendable stores.
 public protocol TokenRefresher {
   /// Refreshes access token.
   ///

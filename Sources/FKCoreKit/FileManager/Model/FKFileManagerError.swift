@@ -20,6 +20,30 @@ public enum FKFileManagerError: Error, Sendable, Equatable {
   case unknown(String)
 }
 
+extension FKFileManagerError {
+  /// Maps Foundation / POSIX errors from `FileManager` operations into structured cases when possible.
+  static func mappingFileOperation(_ error: Error, path: String) -> FKFileManagerError {
+    let ns = error as NSError
+    if ns.domain == NSCocoaErrorDomain {
+      switch ns.code {
+      case NSFileReadNoSuchFileError, NSFileNoSuchFileError:
+        return .fileNotFound(path: path)
+      case NSFileWriteFileExistsError:
+        return .fileAlreadyExists(path: path)
+      default:
+        break
+      }
+    }
+    if ns.domain == NSPOSIXErrorDomain, ns.code == POSIXError.ENOENT.rawValue {
+      return .fileNotFound(path: path)
+    }
+    if ns.domain == NSPOSIXErrorDomain, ns.code == POSIXError.EEXIST.rawValue {
+      return .fileAlreadyExists(path: path)
+    }
+    return .unknown(error.localizedDescription)
+  }
+}
+
 extension FKFileManagerError: LocalizedError {
   public var errorDescription: String? {
     switch self {

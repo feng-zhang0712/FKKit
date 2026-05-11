@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 
 enum FKFileMimeResolver {
   private static let fallbackMap: [String: String] = [
@@ -18,8 +19,12 @@ enum FKFileMimeResolver {
   ]
 
   static func mimeType(for fileExtension: String) -> String {
-    guard !fileExtension.isEmpty else { return "application/octet-stream" }
-    return fallbackMap[fileExtension.lowercased()] ?? "application/octet-stream"
+    let ext = fileExtension.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    guard !ext.isEmpty else { return "application/octet-stream" }
+    if let type = UTType(filenameExtension: ext), let preferred = type.preferredMIMEType {
+      return preferred
+    }
+    return fallbackMap[ext] ?? "application/octet-stream"
   }
 }
 

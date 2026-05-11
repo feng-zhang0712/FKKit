@@ -1,77 +1,64 @@
-//
-// FKBaseTableViewCell.swift
-// FKCompositeKit
-//
-
 import UIKit
 
-/// A reusable, extensible base class for `UITableViewCell`.
+/// A reusable base class for `UITableViewCell` with a single ``containerView`` content root,
+/// consistent hooks for layout and reuse, and optional card-style chrome (corner radius, shadow).
 ///
-/// This class standardizes initialization flow, style setup, layout entry points, and data binding.
-/// Subclasses only need to override `setupUI()`, `setupStyle()`, and `bindData(_:)`.
+/// Subclasses should add subviews inside ``containerView`` (not directly on ``contentView``) and override
+/// ``setupUI()``, ``setupStyle()``, and ``bindData(_:)`` (or use ``FKListTableCellConfigurable`` with `configure(with:)` on the subclass).
+@MainActor
 open class FKBaseTableViewCell: UITableViewCell {
 
-  /// Default reusable identifier derived from class name.
+  /// Default reuse identifier derived from the concrete class name.
   open class var reuseIdentifier: String {
     String(describing: self)
   }
 
-  /// Main container view used by subclasses to build UI content.
-  ///
-  /// Build all custom subviews inside this container instead of attaching directly to `contentView`.
-  /// This keeps style and layout behavior consistent across large projects.
+  /// Primary content root inside ``contentView``. Subclasses attach custom subviews here.
   public let containerView = UIView()
 
-  /// Content insets applied to `containerView` inside `contentView`.
-  ///
-  /// Update this value before layout to support design-system spacing.
+  /// Insets from ``contentView`` edges to ``containerView`` (design-system spacing).
   public var containerInsets: UIEdgeInsets = .zero {
     didSet { updateContainerConstraints() }
   }
 
-  /// Corner radius applied to `containerView`.
+  /// Corner radius applied to ``containerView``. When greater than zero, the container clips subviews.
   public var cornerRadius: CGFloat = .zero {
-    didSet { containerView.layer.cornerRadius = cornerRadius }
+    didSet {
+      containerView.layer.cornerRadius = cornerRadius
+      containerView.layer.masksToBounds = cornerRadius > 0
+    }
   }
 
-  /// Border width applied to `containerView`.
   public var borderWidth: CGFloat = .zero {
     didSet { containerView.layer.borderWidth = borderWidth }
   }
 
-  /// Border color applied to `containerView`.
   public var borderColor: UIColor = .clear {
     didSet { containerView.layer.borderColor = borderColor.cgColor }
   }
 
-  /// Fill color applied to `containerView`.
   public var containerBackgroundColor: UIColor = .clear {
     didSet { containerView.backgroundColor = containerBackgroundColor }
   }
 
-  /// Shadow color applied to cell layer.
+  /// Shadow is applied to the cell ``layer`` (not ``containerView``) so content can stay clipped inside the rounded container.
   public var shadowColor: UIColor = .clear {
     didSet { layer.shadowColor = shadowColor.cgColor }
   }
 
-  /// Shadow opacity applied to cell layer.
   public var shadowOpacity: Float = .zero {
     didSet { layer.shadowOpacity = shadowOpacity }
   }
 
-  /// Shadow offset applied to cell layer.
   public var shadowOffset: CGSize = .zero {
     didSet { layer.shadowOffset = shadowOffset }
   }
 
-  /// Shadow blur radius applied to cell layer.
   public var shadowRadius: CGFloat = .zero {
     didSet { layer.shadowRadius = shadowRadius }
   }
 
-  /// Shadow path inset used to tune performance and appearance.
-  ///
-  /// Negative values expand the path; positive values shrink it.
+  /// Inset applied when computing ``layer.shadowPath`` (performance tuning for card shadows).
   public var shadowPathInset: CGFloat = .zero {
     didSet { setNeedsLayout() }
   }
@@ -94,33 +81,52 @@ open class FKBaseTableViewCell: UITableViewCell {
     performInitialSetupIfNeeded()
   }
 
+  open override func prepareForReuse() {
+    super.prepareForReuse()
+    resetCellContent()
+  }
+
+  open override func setSelected(_ selected: Bool, animated: Bool) {
+    super.setSelected(selected, animated: animated)
+    selectionDidChange(isSelected: selected, animated: animated)
+  }
+
+  open override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+    super.setHighlighted(highlighted, animated: animated)
+    highlightDidChange(isHighlighted: highlighted, animated: animated)
+  }
+
+  open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    traitConfigurationDidChange(from: previousTraitCollection)
+  }
+
   open override func layoutSubviews() {
     super.layoutSubviews()
     updateShadowPathIfNeeded()
   }
 
-  /// Hook for subclass UI construction.
-  ///
-  /// Override this method to add and constrain subviews inside `containerView`.
+  /// Builds subviews and constraints inside ``containerView``.
   open func setupUI() {}
 
-  /// Hook for subclass visual style configuration.
-  ///
-  /// Override this method to configure fonts, colors, spacing, and other appearance behavior.
+  /// Fonts, colors, and other appearance not tied to a specific model.
   open func setupStyle() {}
 
-  /// Hook for subclass data binding.
-  ///
-  /// - Parameter model: Any model object used by subclass to update UI.
+  /// Binds a model to the cell. Prefer narrow types in subclasses; `Any` keeps the base generic.
   open func bindData(_ model: Any) {}
 
-  /// Applies surface style values in one call.
-  ///
-  /// - Parameters:
-  ///   - cornerRadius: Corner radius on `containerView`.
-  ///   - borderWidth: Border width on `containerView`.
-  ///   - borderColor: Border color on `containerView`.
-  ///   - backgroundColor: Fill color on `containerView`.
+  /// Called from ``prepareForReuse()`` after `super`. Override to cancel async work, clear images, or reset transforms.
+  open func resetCellContent() {}
+
+  /// Called after ``setSelected(_:animated:)``. Override for custom selected styling.
+  open func selectionDidChange(isSelected: Bool, animated: Bool) {}
+
+  /// Called after ``setHighlighted(_:animated:)``. Override for press/highlight styling.
+  open func highlightDidChange(isHighlighted: Bool, animated: Bool) {}
+
+  /// Called when Dynamic Type, dark mode, or other traits change. Override to refresh colors and metrics.
+  open func traitConfigurationDidChange(from previousTraitCollection: UITraitCollection?) {}
+
   public func configureSurface(
     cornerRadius: CGFloat,
     borderWidth: CGFloat = .zero,
@@ -133,14 +139,6 @@ open class FKBaseTableViewCell: UITableViewCell {
     self.containerBackgroundColor = backgroundColor
   }
 
-  /// Applies shadow values in one call.
-  ///
-  /// - Parameters:
-  ///   - color: Shadow color.
-  ///   - opacity: Shadow opacity.
-  ///   - offset: Shadow offset.
-  ///   - radius: Shadow blur radius.
-  ///   - pathInset: Optional path inset used to tune shadow bounds.
   public func configureShadow(
     color: UIColor,
     opacity: Float,
@@ -155,9 +153,6 @@ open class FKBaseTableViewCell: UITableViewCell {
     shadowPathInset = pathInset
   }
 
-  /// Registers this cell class to a table view.
-  ///
-  /// This API is optional because `UITableView.fkDequeueCell(_:,for:)` performs lazy auto-registration.
   open class func register(to tableView: UITableView) {
     tableView.register(self, forCellReuseIdentifier: reuseIdentifier)
   }
@@ -187,30 +182,28 @@ open class FKBaseTableViewCell: UITableViewCell {
   }
 
   private func updateContainerConstraints() {
-    NSLayoutConstraint.deactivate(containerConstraints)
-    containerConstraints = [
-      containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: containerInsets.top),
-      containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: containerInsets.left),
-      containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -containerInsets.right),
-      containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -containerInsets.bottom),
-    ]
-    NSLayoutConstraint.activate(containerConstraints)
+    FKBaseReusableCellCore.activateContainerConstraints(
+      containerView: containerView,
+      contentView: contentView,
+      insets: containerInsets,
+      storage: &containerConstraints
+    )
   }
 
   private func updateShadowPathIfNeeded() {
-    guard shadowOpacity > .zero || shadowRadius > .zero else {
-      layer.shadowPath = nil
-      return
-    }
-    let pathRect = bounds.insetBy(dx: shadowPathInset, dy: shadowPathInset)
-    layer.shadowPath = UIBezierPath(roundedRect: pathRect, cornerRadius: cornerRadius).cgPath
+    FKBaseReusableCellCore.applyShadowPath(
+      to: layer,
+      bounds: bounds,
+      cornerRadius: cornerRadius,
+      shadowPathInset: shadowPathInset,
+      shadowOpacity: shadowOpacity,
+      shadowRadius: shadowRadius
+    )
   }
 }
 
 public extension UITableView {
-  /// Dequeues a reusable cell with lazy auto-registration.
-  ///
-  /// Registration is idempotent, so this method safely registers before dequeueing.
+  /// Dequeues a cell of type `T`, registering the class first if needed.
   func fkDequeueCell<T: FKBaseTableViewCell>(_ type: T.Type, for indexPath: IndexPath) -> T {
     register(type, forCellReuseIdentifier: type.reuseIdentifier)
     let cell = dequeueReusableCell(withIdentifier: type.reuseIdentifier, for: indexPath)
