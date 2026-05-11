@@ -13,8 +13,8 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
   private enum IndicatorDemo: String, CaseIterable {
     case none
     case lineProgress
-    case backgroundHighlight
-    case gradientHighlight
+    case background
+    case gradient
     case pill
     case customBehind
     case customOverlay
@@ -143,8 +143,8 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
     switch kind {
     case .none: return "None"
     case .lineProgress: return "Line · trackContentProgress"
-    case .backgroundHighlight: return "Background highlight"
-    case .gradientHighlight: return "Gradient highlight"
+    case .background: return "Background"
+    case .gradient: return "Gradient"
     case .pill: return "Pill"
     case .customBehind: return "Custom · behind items"
     case .customOverlay: return "Custom · overlay (above items)"
@@ -180,9 +180,9 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
           )
         )
       )
-    case .backgroundHighlight:
+    case .background:
       return FKTabBarAppearance(
-        indicatorStyle: .backgroundHighlight(
+        indicatorStyle: FKTabBarIndicatorStyle.background(
           FKTabBarBackgroundIndicatorConfiguration(
             insets: insets,
             cornerRadius: 10,
@@ -191,9 +191,9 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
           )
         )
       )
-    case .gradientHighlight:
+    case .gradient:
       return FKTabBarAppearance(
-        indicatorStyle: .gradientHighlight(
+        indicatorStyle: FKTabBarIndicatorStyle.gradient(
           FKTabBarBackgroundIndicatorConfiguration(
             insets: insets,
             cornerRadius: 10,
@@ -212,7 +212,7 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
       )
     case .pill:
       return FKTabBarAppearance(
-        indicatorStyle: .pill(
+        indicatorStyle: FKTabBarIndicatorStyle.pill(
           FKTabBarBackgroundIndicatorConfiguration(
             insets: insets,
             cornerRadius: 999,

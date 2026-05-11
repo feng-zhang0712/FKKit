@@ -257,7 +257,7 @@ public struct FKTabBarLayoutConfiguration {
 public enum FKTabBarIndicatorZOrder: Equatable {
   /// Derives placement from `indicatorStyle`.
   ///
-  /// Background styles (highlight, gradient, pill) and ``FKTabBarIndicatorStyle/custom`` sit below
+  /// ``FKTabBarIndicatorStyle/backdrop`` and ``FKTabBarIndicatorStyle/custom`` (automatic) sit below
   /// tab item content. The line style sits above so the underline remains visible on top of the strip.
   case automatic
   /// Always places the indicator below the tab item collection (behind titles and icons).
@@ -380,8 +380,8 @@ public struct FKTabBarAppearance {
   /// Draw order for the indicator relative to tab item content.
   ///
   /// Use ``FKTabBarIndicatorZOrder/aboveTabItems`` when a custom indicator must paint on top of tab
-  /// content (for example overlays). ``FKTabBarIndicatorZOrder/automatic`` treats
-  /// ``FKTabBarIndicatorStyle/custom`` like background indicators (below items).
+  /// content (for example overlays). ``FKTabBarIndicatorZOrder/automatic`` places
+  /// ``FKTabBarIndicatorStyle/backdrop`` below items and treats ``FKTabBarIndicatorStyle/custom`` the same unless overridden.
   public var indicatorZOrder: FKTabBarIndicatorZOrder
   /// Whether a divider is shown.
   public var showsDivider: Bool

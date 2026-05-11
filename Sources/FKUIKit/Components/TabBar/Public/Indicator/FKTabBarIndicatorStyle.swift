@@ -78,17 +78,24 @@ public struct FKTabBarLineIndicatorConfiguration: Equatable {
   }
 }
 
-/// Shared configuration for background-like indicators.
+/// How ``FKTabBarBackgroundIndicatorConfiguration/cornerRadius`` is applied when rendering a background indicator.
+public enum FKTabBarBackgroundIndicatorShape: Equatable {
+  /// Corners are capped at half the indicator height (`min(cornerRadius, height/2)`).
+  ///
+  /// Large `cornerRadius` yields a capsule; smaller values yield a fixed-corner rounded rectangle.
+  case roundedRect
+  /// End caps are at least semicircular: effective radius is `max(cornerRadius, height/2)`.
+  case pill
+}
+
+/// Shared configuration for ``FKTabBarIndicatorStyle/backdrop``.
 public struct FKTabBarBackgroundIndicatorConfiguration: Equatable {
   public var insets: NSDirectionalEdgeInsets
-  /// Corner radius used for background-like indicators.
-  ///
-  /// - Note: The runtime renderer caps this value to half of the indicator height so passing a
-  ///   "large enough" radius produces capsule semantics (\(radius = height / 2\)). This enables:
-  ///   - capsule by default
-  ///   - fixed rounded-rect by explicitly providing a smaller value
+  /// Corner radius in points before ``shape`` maps it into the laid-out indicator bounds.
   public var cornerRadius: CGFloat
-  /// Fill style for selected background.
+  /// Maps ``cornerRadius`` and indicator height to the layer’s rendered corner radius.
+  public var shape: FKTabBarBackgroundIndicatorShape
+  /// Fill style for selected background (solid or gradient).
   public var fill: FKTabBarIndicatorFillStyle
   public var borderColor: UIColor
   public var borderWidth: CGFloat
@@ -105,6 +112,7 @@ public struct FKTabBarBackgroundIndicatorConfiguration: Equatable {
   public init(
     insets: NSDirectionalEdgeInsets = .init(top: 4, leading: 6, bottom: 4, trailing: 6),
     cornerRadius: CGFloat = 999,
+    shape: FKTabBarBackgroundIndicatorShape = .roundedRect,
     fill: FKTabBarIndicatorFillStyle = .solid(UIColor.secondarySystemFill),
     borderColor: UIColor = .clear,
     borderWidth: CGFloat = 0,
@@ -116,6 +124,7 @@ public struct FKTabBarBackgroundIndicatorConfiguration: Equatable {
   ) {
     self.insets = insets
     self.cornerRadius = cornerRadius
+    self.shape = shape
     self.fill = fill
     self.borderColor = borderColor
     self.borderWidth = borderWidth
@@ -145,12 +154,10 @@ public enum FKTabBarIndicatorStyle {
   case none
   /// Full line indicator with precise controls.
   case line(FKTabBarLineIndicatorConfiguration)
-  /// Background highlight behind selected item.
-  case backgroundHighlight(FKTabBarBackgroundIndicatorConfiguration)
-  /// Gradient background highlight behind selected item.
-  case gradientHighlight(FKTabBarBackgroundIndicatorConfiguration)
-  /// Capsule / pill style highlight.
-  case pill(FKTabBarBackgroundIndicatorConfiguration)
+  /// Background indicator (solid or gradient) behind the selected item; use ``shape`` on the configuration for rounded rect vs. pill.
+  ///
+  /// Prefer convenience factories ``FKTabBarIndicatorStyle/background(_:)``, ``gradient(_:)``, or ``pill(_:)`` when you want fixed shape semantics.
+  case backdrop(FKTabBarBackgroundIndicatorConfiguration)
   /// Host-provided custom indicator.
   case custom(FKTabBarCustomIndicatorConfiguration)
 }
@@ -160,6 +167,27 @@ extension FKTabBarIndicatorStyle {
   public static func custom(id: String, followMode: FKTabBarIndicatorFollowMode = .trackSelectedFrame) -> FKTabBarIndicatorStyle {
     .custom(FKTabBarCustomIndicatorConfiguration(id: id, followMode: followMode))
   }
+
+  /// Background indicator with ``FKTabBarBackgroundIndicatorShape/roundedRect`` (caps `cornerRadius` at `height/2`).
+  public static func background(_ configuration: FKTabBarBackgroundIndicatorConfiguration) -> FKTabBarIndicatorStyle {
+    var c = configuration
+    c.shape = .roundedRect
+    return .backdrop(c)
+  }
+
+  /// Same as ``background(_:)`` with rounded-rect shape; typical pairing with ``FKTabBarIndicatorFillStyle/gradient(colors:startPoint:endPoint:)``.
+  public static func gradient(_ configuration: FKTabBarBackgroundIndicatorConfiguration) -> FKTabBarIndicatorStyle {
+    var c = configuration
+    c.shape = .roundedRect
+    return .backdrop(c)
+  }
+
+  /// Background indicator with ``FKTabBarBackgroundIndicatorShape/pill`` semantics.
+  public static func pill(_ configuration: FKTabBarBackgroundIndicatorConfiguration) -> FKTabBarIndicatorStyle {
+    var c = configuration
+    c.shape = .pill
+    return .backdrop(c)
+  }
 }
 
 /// Case identifier set for `FKTabBarIndicatorStyle`.
@@ -168,8 +196,10 @@ extension FKTabBarIndicatorStyle {
 public enum FKTabBarIndicatorStyleKind: String, CaseIterable {
   case none
   case line
-  case backgroundHighlight
-  case gradientHighlight
+  /// Rounded-rect background (`FKTabBarIndicatorStyle.background`).
+  case background
+  /// Rounded-rect background with gradient fill (`FKTabBarIndicatorStyle.gradient`).
+  case gradient
   case pill
   case custom
 }

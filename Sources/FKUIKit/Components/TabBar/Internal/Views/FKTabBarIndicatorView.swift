@@ -11,7 +11,7 @@ final class FKTabBarIndicatorView: UIView {
   }
   /// Fallback tint used by styles that do not provide their own fill colors.
   ///
-  /// For `.line` / `.backgroundHighlight` / `.pill` styles, the configuration's `fill` has priority.
+  /// For line and ``FKTabBarIndicatorStyle/backdrop`` styles, the configuration's `fill` has priority.
   var color: UIColor = .label {
     didSet { applyStyle() }
   }
@@ -49,12 +49,13 @@ final class FKTabBarIndicatorView: UIView {
     switch style {
     case .line(let config):
       fillView.layer.cornerRadius = config.cornerRadius
-    case .pill(let config):
-      fillView.layer.cornerRadius = max(config.cornerRadius, bounds.height * 0.5)
-    case .backgroundHighlight(let config), .gradientHighlight(let config):
-      // Treat `cornerRadius` as an upper bound so callers can get capsule semantics by providing
-      // a sufficiently large value, while still allowing smaller fixed rounded-rect shapes.
-      fillView.layer.cornerRadius = min(config.cornerRadius, bounds.height * 0.5)
+    case .backdrop(let config):
+      switch config.shape {
+      case .pill:
+        fillView.layer.cornerRadius = max(config.cornerRadius, bounds.height * 0.5)
+      case .roundedRect:
+        fillView.layer.cornerRadius = min(config.cornerRadius, bounds.height * 0.5)
+      }
     case .custom(let config):
       // Custom indicators can draw relative to current bounds, so we trigger host rendering here.
       customRenderer?(config.id, bounds, self)
@@ -130,7 +131,7 @@ final class FKTabBarIndicatorView: UIView {
     case .line(let config):
       isHidden = false
       applyFill(config.fill, fallback: color)
-    case .backgroundHighlight(let config), .gradientHighlight(let config), .pill(let config):
+    case .backdrop(let config):
       isHidden = false
       applyFill(config.fill, fallback: color)
       fillView.layer.borderWidth = config.borderWidth

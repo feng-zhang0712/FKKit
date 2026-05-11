@@ -47,7 +47,7 @@ enum FKTabBarIndicatorFrameCalculator {
       case .center: y = base.midY - config.thickness * 0.5
       }
       return CGRect(x: x, y: y, width: width, height: config.thickness)
-    case .backgroundHighlight(let config), .gradientHighlight(let config), .pill(let config):
+    case .backdrop(let config):
       let base = Self.baseItemFrame(for: config.followMode, itemFrame: itemFrame, contentFrame: contentFrame)
       return base.inset(by: UIEdgeInsets(top: config.insets.top, left: config.insets.leading, bottom: config.insets.bottom, right: config.insets.trailing))
     case .custom(let config):

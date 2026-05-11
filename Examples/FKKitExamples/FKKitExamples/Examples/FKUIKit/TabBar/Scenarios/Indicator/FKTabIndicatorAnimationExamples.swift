@@ -202,16 +202,16 @@ final class FKTabBarIndicatorAnimationExampleViewController: UIViewController {
       configuration.appearance.indicatorStyle = .none
     case .line:
       applyLineStyle()
-    case .backgroundHighlight:
-      configuration.appearance.indicatorStyle = .backgroundHighlight(
+    case .background:
+      configuration.appearance.indicatorStyle = FKTabBarIndicatorStyle.background(
         FKTabBarBackgroundIndicatorConfiguration(
           insets: backgroundInsets,
           cornerRadius: backgroundCornerRadius,
           fill: .solid(.tertiarySystemFill)
         )
       )
-    case .gradientHighlight:
-      configuration.appearance.indicatorStyle = .gradientHighlight(
+    case .gradient:
+      configuration.appearance.indicatorStyle = FKTabBarIndicatorStyle.gradient(
         FKTabBarBackgroundIndicatorConfiguration(
           insets: backgroundInsets,
           cornerRadius: backgroundCornerRadius,
@@ -223,7 +223,7 @@ final class FKTabBarIndicatorAnimationExampleViewController: UIViewController {
         )
       )
     case .pill:
-      configuration.appearance.indicatorStyle = .pill(
+      configuration.appearance.indicatorStyle = FKTabBarIndicatorStyle.pill(
         FKTabBarBackgroundIndicatorConfiguration(
           insets: backgroundInsets,
           cornerRadius: 999,

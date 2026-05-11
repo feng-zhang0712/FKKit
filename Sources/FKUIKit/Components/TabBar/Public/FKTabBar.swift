@@ -966,7 +966,7 @@ public final class FKTabBar: UIView {
       belowItems = false
     case .automatic:
       switch style {
-      case .backgroundHighlight, .gradientHighlight, .pill, .custom:
+      case .backdrop, .custom:
         belowItems = true
       case .line:
         belowItems = false
@@ -1230,7 +1230,7 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
     switch resolvedAppearance().indicatorStyle {
     case .line(let config):
       return config.followMode
-    case .backgroundHighlight(let config), .gradientHighlight(let config), .pill(let config):
+    case .backdrop(let config):
       return config.followMode
     case .custom(let config):
       return config.followMode

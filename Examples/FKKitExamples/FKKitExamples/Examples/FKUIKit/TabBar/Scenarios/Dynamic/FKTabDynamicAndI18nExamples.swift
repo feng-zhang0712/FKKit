@@ -110,7 +110,7 @@ final class FKTabBarFKUIKitReuseExampleViewController: UIViewController {
     configuration.appearance.colors.selectedText = .systemTeal
     configuration.appearance.colors.selectedIcon = .systemTeal
     configuration.appearance.colors.indicator = .systemTeal
-    configuration.appearance.indicatorStyle = .pill(
+    configuration.appearance.indicatorStyle = FKTabBarIndicatorStyle.pill(
       FKTabBarBackgroundIndicatorConfiguration(
         insets: .init(top: 6, leading: 8, bottom: 6, trailing: 8),
         cornerRadius: 999,

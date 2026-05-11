@@ -107,7 +107,7 @@ final class FKTabBarPagingProgressExampleViewController: UIViewController {
     // The component supports multiple indicator styles; this page keeps it minimal:
     // underline for classic tabs and pill for background highlight.
     if styleControl.selectedSegmentIndex == 1 {
-      configuration.appearance.indicatorStyle = .pill(
+      configuration.appearance.indicatorStyle = FKTabBarIndicatorStyle.pill(
         FKTabBarBackgroundIndicatorConfiguration(
           insets: .init(top: 6, leading: 8, bottom: 6, trailing: 8),
           cornerRadius: 999,
