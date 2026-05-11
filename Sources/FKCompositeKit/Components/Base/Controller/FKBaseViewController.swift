@@ -1,78 +1,101 @@
-//
-// FKBaseViewController.swift
-// FKCompositeKit
-//
-
+import FKCoreKit
+import FKUIKit
 import UIKit
 
-/// A reusable, non-invasive base view controller for large-scale iOS projects.
-///
-/// The controller standardizes lifecycle orchestration, UI setup entry points, state overlays,
-/// keyboard handling, navigation behavior, and lightweight diagnostics hooks.
+/// A lightweight `UIViewController` base that centralizes common UIKit patterns:
+/// lifecycle entry points, optional state overlays, keyboard forwarding, navigation chrome
+/// snapshot/restore, and analytics-friendly hooks without hard-wiring a specific architecture.
+@MainActor
 open class FKBaseViewController: UIViewController {
 
-  // MARK: - Public Types
+  // MARK: - Public types
 
-  /// Defines navigation bar visibility behavior for the controller.
+  /// Visibility of the navigation bar while this view controller is visible.
   public enum NavigationBarVisibility {
     case visible
     case hidden
   }
 
-  /// Defines navigation bar visual style.
+  /// Navigation bar chrome applied while this view controller is visible.
+  ///
+  /// ``system`` intentionally does **not** mutate `UINavigationBar` appearance so global
+  /// styling from your app delegate or container remains intact. Use ``opaqueDefault`` when
+  /// you need to reset to a standard opaque bar after a themed child screen.
   public enum NavigationBarStyle {
     case system
+    case opaqueDefault
     case transparent
-    case gradient(colors: [UIColor], locations: [NSNumber]? = nil, startPoint: CGPoint = CGPoint(x: 0.0, y: 0.0), endPoint: CGPoint = CGPoint(x: 1.0, y: 0.0))
+    case gradient(
+      colors: [UIColor],
+      locations: [NSNumber]? = nil,
+      startPoint: CGPoint = CGPoint(x: 0.0, y: 0.0),
+      endPoint: CGPoint = CGPoint(x: 1.0, y: 0.0)
+    )
   }
 
-  // MARK: - Public Configuration
+  // MARK: - Public configuration
 
-  /// Controls whether tapping empty space dismisses the keyboard.
+  /// When `true`, taps outside of the first responder dismiss the keyboard.
   public var dismissKeyboardOnTapEnabled: Bool = true {
     didSet { updateTapToDismissGestureState() }
   }
 
-  /// Controls whether vertical scroll bounce is disabled recursively in view hierarchy.
+  /// When `true`, recursively disables vertical/horizontal bounce on scroll views in `view`'s subtree.
   public var disableScrollViewBounceByDefault: Bool = true
 
-  /// Controls whether interactive pop gesture should be disabled for this controller.
+  /// When `true`, disables the navigation controller's interactive pop gesture while this controller is visible.
   public var disablesInteractivePopGesture: Bool = false
 
-  /// Controls navigation bar visibility while this controller is visible.
+  /// Navigation bar visibility while this controller is on-screen (restored when leaving).
   public var navigationBarVisibility: NavigationBarVisibility = .visible
 
-  /// Controls navigation bar style while this controller is visible.
+  /// Navigation bar appearance while this controller is on-screen (restored when leaving).
   public var navigationBarStyle: NavigationBarStyle = .system
 
-  /// Controls preferred status bar style for this controller.
+  /// Preferred status bar style for this controller.
   public var preferredStatusBarAppearance: UIStatusBarStyle = .default {
     didSet { setNeedsStatusBarAppearanceUpdate() }
   }
 
-  /// Controls whether keyboard notifications should be observed.
+  /// When `false`, keyboard notifications are not observed.
   public var keyboardObservationEnabled: Bool = true
 
-  /// Optional analytics and diagnostics hook for page-level events.
-  ///
-  /// Use this closure to integrate with any tracking system without coupling this class
-  /// to a concrete analytics dependency.
-  public var logHandler: ((String, [String: String]) -> Void)?
+  /// When non-nil, assigns `UINavigationBar.prefersLargeTitles` while visible (restored when leaving).
+  public var prefersLargeTitlesWhileVisible: Bool?
 
-  // MARK: - Private UI State
+  /// Optional hook for analytics or diagnostics without coupling to a concrete SDK.
+  public var logHandler: (@MainActor (String, [String: String]) -> Void)?
+
+  /// When `true`, forwards lifecycle markers to ``FKLogger`` at the `.debug` level (in addition to ``logHandler``).
+  public var debugLifecycleLoggingEnabled: Bool = false
+
+  // MARK: - Public state
+
+  /// `true` after the first `viewDidAppear(_:)`.
+  public private(set) var hasCompletedInitialAppearance: Bool = false
+
+  /// `true` between `viewDidAppear` and `viewWillDisappear`.
+  public private(set) var isViewAppeared: Bool = false
+
+  // MARK: - Private UI
 
   private let loadingView = UIActivityIndicatorView(style: .large)
-  private let toastLabel = PaddingLabel()
   private let emptyStateView = FKBaseStateView()
   private let errorStateView = FKBaseStateView()
-  private var toastDismissWorkItem: DispatchWorkItem?
   private var keyboardObservers: [NSObjectProtocol] = []
   private lazy var tapToDismissGesture: UITapGestureRecognizer = {
     let gesture = UITapGestureRecognizer(target: self, action: #selector(handleTapToDismissKeyboard))
     gesture.cancelsTouchesInView = false
     return gesture
   }()
+
   private var hasPerformedBaseSetup = false
+
+  /// Captures navigation chrome before this controller mutates it; restored in `viewWillDisappear`.
+  private var navigationChromeSnapshot: NavigationChromeSnapshot?
+
+  /// `interactivePopGestureRecognizer.isEnabled` immediately before this controller last applied ``disablesInteractivePopGesture`` in `viewWillAppear`.
+  private var interactivePopGestureCapturedBeforeAppearance: Bool?
 
   // MARK: - Init
 
@@ -102,12 +125,20 @@ open class FKBaseViewController: UIViewController {
 
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    applyNavigationConfiguration()
+    captureNavigationChromeSnapshotIfNeeded()
+    applyNavigationConfiguration(animated: animated)
+    updateInteractivePopGestureForCurrentAppearance()
     logLifecycleEvent("viewWillAppear")
   }
 
   open override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    isViewAppeared = true
+    if !hasCompletedInitialAppearance {
+      hasCompletedInitialAppearance = true
+      loadInitialContent()
+      viewDidAppearForTheFirstTime(animated)
+    }
     startKeyboardObservationIfNeeded()
     logLifecycleEvent("viewDidAppear")
   }
@@ -115,63 +146,68 @@ open class FKBaseViewController: UIViewController {
   open override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     stopKeyboardObservationIfNeeded()
+    if isLeavingHierarchyPermanently {
+      restoreNavigationChromeIfNeeded(animated: animated)
+      restoreInteractivePopGestureIfNeeded()
+    }
     logLifecycleEvent("viewWillDisappear")
   }
 
   open override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    isViewAppeared = false
     logLifecycleEvent("viewDidDisappear")
   }
 
   open override func viewSafeAreaInsetsDidChange() {
     super.viewSafeAreaInsetsDidChange()
-    // Keep state overlays pinned to latest safe-area geometry.
     view.setNeedsLayout()
   }
 
-  deinit {}
+  open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    traitCollectionDidChangeHandling(previousTraitCollection)
+  }
 
-  // MARK: - Overridable Entry Points
+  // MARK: - Overridable entry points
 
-  /// Builds subviews and configures view hierarchy.
-  ///
-  /// Subclasses should override this method and keep heavy work out of it.
+  /// Builds the view hierarchy. Prefer lightweight work here; defer heavy I/O to async layers.
   open func setupUI() {}
 
-  /// Activates Auto Layout constraints.
-  ///
-  /// Subclasses should override this method and constrain views created in `setupUI()`.
+  /// Activates layout constraints for views created in ``setupUI()``.
   open func setupConstraints() {}
 
-  /// Binds view model, events, and async data requests.
-  ///
-  /// Subclasses should override this method for business-level bindings.
+  /// Binds view models, user actions, and subscriptions.
   open func setupBindings() {}
 
-  /// Receives keyboard frame updates.
+  /// Called exactly once on the first `viewDidAppear(_:)`, **before** ``viewDidAppearForTheFirstTime(_:)``.
   ///
-  /// - Parameters:
-  ///   - frame: Keyboard end frame in the current window coordinate system.
-  ///   - duration: Animation duration from keyboard notification.
-  ///   - curve: Animation curve from keyboard notification.
+  /// Override to kick off first-page loads or subscriptions. Prefer async work; do not block the main thread.
+  open func loadInitialContent() {}
+
+  /// Called once after the first `viewDidAppear(_:)`, immediately after ``loadInitialContent()``.
+  ///
+  /// Use for UI that must run only after the view is on-screen (e.g. intro animations).
+  open func viewDidAppearForTheFirstTime(_ animated: Bool) {}
+
+  /// Keyboard frame updates (parsed on the main queue).
   open func keyboardWillChange(to frame: CGRect, duration: TimeInterval, curve: UIView.AnimationCurve) {}
 
-  /// Receives keyboard hidden events.
-  ///
-  /// - Parameters:
-  ///   - duration: Animation duration from keyboard notification.
-  ///   - curve: Animation curve from keyboard notification.
+  /// Keyboard will hide (parsed on the main queue).
   open func keyboardWillHide(duration: TimeInterval, curve: UIView.AnimationCurve) {}
 
-  /// Returns supported interface orientations for this controller.
+  /// Supported orientations for this controller.
   open var allowedInterfaceOrientations: UIInterfaceOrientationMask {
     .portrait
   }
 
-  /// Returns preferred orientation when this controller is first presented.
+  /// Preferred orientation when this controller is first presented.
   open var preferredInitialOrientation: UIInterfaceOrientation {
     .portrait
   }
+
+  /// Respond to dynamic type, dark mode, and other trait changes.
+  open func traitCollectionDidChangeHandling(_ previousTraitCollection: UITraitCollection?) {}
 
   open override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
     allowedInterfaceOrientations
@@ -185,9 +221,9 @@ open class FKBaseViewController: UIViewController {
     preferredStatusBarAppearance
   }
 
-  // MARK: - Public UI Tools
+  // MARK: - Public UI helpers
 
-  /// Shows a centered loading indicator and hides empty/error overlays.
+  /// Shows the loading indicator and hides empty/error overlays.
   public func showLoading() {
     hideEmptyView()
     hideErrorView()
@@ -202,8 +238,6 @@ open class FKBaseViewController: UIViewController {
   }
 
   /// Shows a full-screen empty state overlay.
-  ///
-  /// - Parameter message: User-facing message for empty content.
   public func showEmptyView(message: String = "No content available.") {
     hideLoading()
     hideErrorView()
@@ -216,16 +250,11 @@ open class FKBaseViewController: UIViewController {
     emptyStateView.isHidden = true
   }
 
-  /// Shows a full-screen error state overlay.
-  ///
-  /// - Parameters:
-  ///   - message: User-facing error message.
-  ///   - retryTitle: Optional retry button title.
-  ///   - retryHandler: Optional retry callback.
+  /// Shows a full-screen error overlay with an optional retry action.
   public func showErrorView(
     message: String = "Something went wrong.",
     retryTitle: String? = nil,
-    retryHandler: (() -> Void)? = nil
+    retryHandler: (@MainActor () -> Void)? = nil
   ) {
     hideLoading()
     hideEmptyView()
@@ -236,45 +265,18 @@ open class FKBaseViewController: UIViewController {
     errorStateView.isHidden = false
   }
 
-  /// Hides the error state overlay.
+  /// Hides the error overlay.
   public func hideErrorView() {
     errorStateView.isHidden = true
     errorStateView.actionHandler = nil
   }
 
-  /// Shows a short-lived toast message near the bottom safe area.
-  ///
-  /// - Parameter message: Message text shown to user.
+  /// Presents a short banner using ``FKToast`` defaults.
   public func showToast(_ message: String) {
-    toastDismissWorkItem?.cancel()
-    toastLabel.text = message
-    toastLabel.alpha = 0.0
-    toastLabel.isHidden = false
-    view.bringSubviewToFront(toastLabel)
-
-    UIView.animate(withDuration: UIConstants.toastFadeDuration) {
-      self.toastLabel.alpha = 1.0
-    }
-
-    let workItem = DispatchWorkItem { [weak self] in
-      guard let self else { return }
-      UIView.animate(withDuration: UIConstants.toastFadeDuration, animations: {
-        self.toastLabel.alpha = 0.0
-      }, completion: { _ in
-        self.toastLabel.isHidden = true
-      })
-    }
-
-    toastDismissWorkItem = workItem
-    DispatchQueue.main.asyncAfter(deadline: .now() + UIConstants.toastDisplayDuration, execute: workItem)
+    FKToast.show(message)
   }
 
-  /// Configures a custom back button item.
-  ///
-  /// - Parameters:
-  ///   - image: Optional button image.
-  ///   - title: Optional button title.
-  ///   - tintColor: Optional tint color.
+  /// Installs a custom back button on the left navigation item.
   public func configureBackButton(image: UIImage? = nil, title: String? = nil, tintColor: UIColor? = nil) {
     let button = UIButton(type: .system)
     let symbolImage = image ?? UIImage(systemName: "chevron.backward")
@@ -287,12 +289,12 @@ open class FKBaseViewController: UIViewController {
     navigationItem.leftBarButtonItem = UIBarButtonItem(customView: button)
   }
 
-  /// Hides keyboard if current first responder exists.
+  /// Ends editing for the entire `view` subtree.
   public func dismissKeyboard() {
     view.endEditing(true)
   }
 
-  // MARK: - Private Setup
+  // MARK: - Private setup
 
   private func performBaseSetupIfNeeded() {
     guard !hasPerformedBaseSetup else { return }
@@ -301,7 +303,6 @@ open class FKBaseViewController: UIViewController {
     view.backgroundColor = .systemBackground
     setupLoadingView()
     setupStateViews()
-    setupToastView()
     updateTapToDismissGestureState()
   }
 
@@ -338,35 +339,45 @@ open class FKBaseViewController: UIViewController {
     ])
   }
 
-  private func setupToastView() {
-    toastLabel.translatesAutoresizingMaskIntoConstraints = false
-    toastLabel.backgroundColor = UIColor.black.withAlphaComponent(UIConstants.toastBackgroundOpacity)
-    toastLabel.textColor = .white
-    toastLabel.font = .preferredFont(forTextStyle: .footnote)
-    toastLabel.numberOfLines = 0
-    toastLabel.textAlignment = .center
-    toastLabel.layer.cornerRadius = UIConstants.toastCornerRadius
-    toastLabel.layer.masksToBounds = true
-    toastLabel.alpha = 0.0
-    toastLabel.isHidden = true
-    view.addSubview(toastLabel)
-
-    NSLayoutConstraint.activate([
-      toastLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: UIConstants.toastHorizontalMargin),
-      toastLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -UIConstants.toastHorizontalMargin),
-      toastLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      toastLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -UIConstants.toastBottomMargin),
-      toastLabel.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: UIConstants.toastMaxWidthRatio),
-    ])
-  }
-
   private func applyDefaultScrollBouncePolicyIfNeeded() {
     guard disableScrollViewBounceByDefault else { return }
     view.fk_applyBounce(enabled: false)
   }
 
-  private func applyNavigationConfiguration() {
-    navigationController?.setNavigationBarHidden(navigationBarVisibility == .hidden, animated: false)
+  /// `true` when this controller is popped, dismissed, or removed from its parent (not when another controller is pushed on top).
+  private var isLeavingHierarchyPermanently: Bool {
+    isBeingDismissed || isMovingFromParent
+  }
+
+  private func captureNavigationChromeSnapshotIfNeeded() {
+    guard navigationChromeSnapshot == nil, let navigationController else { return }
+    let bar = navigationController.navigationBar
+    navigationChromeSnapshot = NavigationChromeSnapshot(
+      wasNavigationBarHidden: navigationController.isNavigationBarHidden,
+      standardAppearance: bar.standardAppearance,
+      scrollEdgeAppearance: bar.scrollEdgeAppearance,
+      compactAppearance: bar.compactAppearance,
+      prefersLargeTitles: bar.prefersLargeTitles
+    )
+  }
+
+  private func restoreNavigationChromeIfNeeded(animated: Bool) {
+    guard let snapshot = navigationChromeSnapshot, let navigationController else { return }
+    let bar = navigationController.navigationBar
+    navigationController.setNavigationBarHidden(snapshot.wasNavigationBarHidden, animated: animated)
+    bar.standardAppearance = snapshot.standardAppearance
+    bar.scrollEdgeAppearance = snapshot.scrollEdgeAppearance
+    bar.compactAppearance = snapshot.compactAppearance
+    bar.prefersLargeTitles = snapshot.prefersLargeTitles
+    navigationChromeSnapshot = nil
+  }
+
+  private func applyNavigationConfiguration(animated: Bool) {
+    guard let navigationController else { return }
+    navigationController.setNavigationBarHidden(navigationBarVisibility == .hidden, animated: animated)
+    if let prefersLargeTitlesWhileVisible {
+      navigationController.navigationBar.prefersLargeTitles = prefersLargeTitlesWhileVisible
+    }
     applyNavigationBarStyle()
   }
 
@@ -374,15 +385,21 @@ open class FKBaseViewController: UIViewController {
     guard let navigationController else { return }
     switch navigationBarStyle {
     case .system:
-      // Non-invasive default:
-      // Do not override global/project navigation bar appearance unless explicitly requested.
       return
+    case .opaqueDefault:
+      let appearance = UINavigationBarAppearance()
+      appearance.configureWithDefaultBackground()
+      let bar = navigationController.navigationBar
+      bar.standardAppearance = appearance
+      bar.scrollEdgeAppearance = appearance
+      bar.compactAppearance = appearance
     case .transparent:
       let appearance = UINavigationBarAppearance()
       appearance.configureWithTransparentBackground()
-      navigationController.navigationBar.standardAppearance = appearance
-      navigationController.navigationBar.scrollEdgeAppearance = appearance
-      navigationController.navigationBar.compactAppearance = appearance
+      let bar = navigationController.navigationBar
+      bar.standardAppearance = appearance
+      bar.scrollEdgeAppearance = appearance
+      bar.compactAppearance = appearance
     case let .gradient(colors, locations, startPoint, endPoint):
       let appearance = UINavigationBarAppearance()
       appearance.configureWithTransparentBackground()
@@ -393,10 +410,25 @@ open class FKBaseViewController: UIViewController {
         startPoint: startPoint,
         endPoint: endPoint
       )
-      navigationController.navigationBar.standardAppearance = appearance
-      navigationController.navigationBar.scrollEdgeAppearance = appearance
-      navigationController.navigationBar.compactAppearance = appearance
+      let bar = navigationController.navigationBar
+      bar.standardAppearance = appearance
+      bar.scrollEdgeAppearance = appearance
+      bar.compactAppearance = appearance
     }
+  }
+
+  private func updateInteractivePopGestureForCurrentAppearance() {
+    guard navigationController != nil else { return }
+    interactivePopGestureCapturedBeforeAppearance = navigationController?.interactivePopGestureRecognizer?.isEnabled
+    navigationController?.interactivePopGestureRecognizer?.isEnabled = !disablesInteractivePopGesture
+  }
+
+  private func restoreInteractivePopGestureIfNeeded() {
+    guard let navigationController else { return }
+    if let interactivePopGestureCapturedBeforeAppearance {
+      navigationController.interactivePopGestureRecognizer?.isEnabled = interactivePopGestureCapturedBeforeAppearance
+    }
+    interactivePopGestureCapturedBeforeAppearance = nil
   }
 
   private func updateTapToDismissGestureState() {
@@ -404,14 +436,12 @@ open class FKBaseViewController: UIViewController {
       if tapToDismissGesture.view == nil {
         view.addGestureRecognizer(tapToDismissGesture)
       }
-    } else {
-      if tapToDismissGesture.view != nil {
-        view.removeGestureRecognizer(tapToDismissGesture)
-      }
+    } else if tapToDismissGesture.view != nil {
+      view.removeGestureRecognizer(tapToDismissGesture)
     }
   }
 
-  // MARK: - Keyboard Observation
+  // MARK: - Keyboard
 
   private func startKeyboardObservationIfNeeded() {
     guard keyboardObservationEnabled, keyboardObservers.isEmpty else { return }
@@ -430,7 +460,8 @@ open class FKBaseViewController: UIViewController {
         return
       }
       let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
-      let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
+      let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue
+        ?? UIView.AnimationCurve.easeInOut.rawValue
       let curve = UIView.AnimationCurve(rawValue: curveRaw) ?? .easeInOut
       self.keyboardWillChange(to: frame, duration: duration, curve: curve)
     }
@@ -443,7 +474,8 @@ open class FKBaseViewController: UIViewController {
       guard let self else { return }
       let userInfo = notification.userInfo
       let duration = (userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
-      let curveRaw = (userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
+      let curveRaw = (userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue
+        ?? UIView.AnimationCurve.easeInOut.rawValue
       let curve = UIView.AnimationCurve(rawValue: curveRaw) ?? .easeInOut
       self.keyboardWillHide(duration: duration, curve: curve)
     }
@@ -458,11 +490,12 @@ open class FKBaseViewController: UIViewController {
     keyboardObservers.removeAll()
   }
 
-  // Keyboard notifications are parsed inside the observer closures to avoid passing `Notification`
-  // across isolation boundaries under strict concurrency checking.
-
   private func logLifecycleEvent(_ event: String) {
-    logHandler?(event, ["controller": String(describing: type(of: self))])
+    let metadata: [String: String] = ["controller": String(describing: type(of: self))]
+    logHandler?(event, metadata)
+    if debugLifecycleLoggingEnabled {
+      FKLogger.shared.debug("FKBaseViewController.\(event)", metadata: metadata)
+    }
   }
 
   // MARK: - Actions
@@ -480,31 +513,31 @@ open class FKBaseViewController: UIViewController {
   }
 }
 
-// MARK: - Internal UI Types
+// MARK: - Navigation snapshot
+
+private struct NavigationChromeSnapshot {
+  let wasNavigationBarHidden: Bool
+  let standardAppearance: UINavigationBarAppearance
+  let scrollEdgeAppearance: UINavigationBarAppearance?
+  let compactAppearance: UINavigationBarAppearance?
+  let prefersLargeTitles: Bool
+}
+
+// MARK: - Internal constants & helpers
 
 private enum UIConstants {
-  static let toastDisplayDuration: TimeInterval = 1.8
-  static let toastFadeDuration: TimeInterval = 0.22
-  static let toastCornerRadius: CGFloat = 8.0
-  static let toastHorizontalMargin: CGFloat = 24.0
-  static let toastBottomMargin: CGFloat = 20.0
-  static let toastMaxWidthRatio: CGFloat = 0.86
-  static let toastBackgroundOpacity: CGFloat = 0.82
   static let navigationBarGradientSize = CGSize(width: 4.0, height: 88.0)
   static let stateViewHorizontalInset: CGFloat = 32.0
   static let stateViewSpacing: CGFloat = 12.0
   static let stateButtonTopSpacing: CGFloat = 8.0
-  static let labelHorizontalPadding: CGFloat = 12.0
-  static let labelVerticalPadding: CGFloat = 8.0
   static let backButtonContentInsets = UIEdgeInsets(top: 4.0, left: 0.0, bottom: 4.0, right: 0.0)
 }
 
-/// A reusable view that displays simple state content and optional action button.
 private final class FKBaseStateView: UIView {
   let stackView = UIStackView()
   let messageLabel = UILabel()
   let button = UIButton(type: .system)
-  var actionHandler: (() -> Void)?
+  var actionHandler: (@MainActor () -> Void)?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -551,29 +584,6 @@ private final class FKBaseStateView: UIView {
   }
 }
 
-/// A label with content insets for toast presentation.
-private final class PaddingLabel: UILabel {
-  private let contentInsets = UIEdgeInsets(
-    top: UIConstants.labelVerticalPadding,
-    left: UIConstants.labelHorizontalPadding,
-    bottom: UIConstants.labelVerticalPadding,
-    right: UIConstants.labelHorizontalPadding
-  )
-
-  override func drawText(in rect: CGRect) {
-    super.drawText(in: rect.inset(by: contentInsets))
-  }
-
-  override var intrinsicContentSize: CGSize {
-    let size = super.intrinsicContentSize
-    return CGSize(
-      width: size.width + contentInsets.left + contentInsets.right,
-      height: size.height + contentInsets.top + contentInsets.bottom
-    )
-  }
-}
-
-/// Utility factory that builds gradient images for navigation bar backgrounds.
 private enum FKGradientImageFactory {
   static func makeGradientImage(
     colors: [UIColor],
@@ -598,7 +608,6 @@ private enum FKGradientImageFactory {
 }
 
 private extension UIView {
-  /// Recursively applies bounce behavior to all scroll views in the subtree.
   func fk_applyBounce(enabled: Bool) {
     if let scrollView = self as? UIScrollView {
       scrollView.bounces = enabled

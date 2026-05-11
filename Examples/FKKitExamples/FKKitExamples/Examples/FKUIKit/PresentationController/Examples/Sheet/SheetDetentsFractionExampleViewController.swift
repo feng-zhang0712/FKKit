@@ -44,7 +44,7 @@ final class SheetDetentsFractionExampleViewController: FKPresentationExamplePage
       guard let self else { return }
       var configuration = FKPresentationExampleHelpers.bottomSheetConfiguration()
       configuration.sheet.detents = [.fraction(CGFloat(self.smallFraction)), .fraction(CGFloat(self.largeFraction))]
-      configuration.sheet.initialDetentIndex = 0
+      configuration.sheet.initialSelectedDetentIndex = 0
       _ = FKPresentationExampleHelpers.present(from: self, title: "Fraction detents", configuration: configuration)
     }
   }

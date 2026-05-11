@@ -64,9 +64,24 @@ struct FKNetworkExampleDemoTokenRefresher: TokenRefresher, Sendable {
     using currentRefreshToken: String?,
     completion: @escaping (Result<String, NetworkError>) -> Void
   ) {
-    DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 0.25) {
-      completion(.success("fk-examples-access-token"))
+    let delivery = TokenRefreshDelivery(completion)
+    Task {
+      try? await Task.sleep(nanoseconds: 250_000_000)
+      await MainActor.run {
+        delivery.finish(.success("fk-examples-access-token"))
+      }
     }
+  }
+}
+
+/// Boxes the protocol completion so `Task`/`Sendable` contexts do not capture a non-`Sendable` closure.
+private final class TokenRefreshDelivery: @unchecked Sendable {
+  private let completion: (Result<String, NetworkError>) -> Void
+  init(_ completion: @escaping (Result<String, NetworkError>) -> Void) {
+    self.completion = completion
+  }
+  func finish(_ result: Result<String, NetworkError>) {
+    completion(result)
   }
 }
 

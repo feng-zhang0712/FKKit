@@ -34,9 +34,16 @@ enum FKRefreshExampleCommon {
     return UIImage.animatedImage(with: frames, duration: 0.35) ?? frames[0]
   }
 
-  /// Simulates async work; always invokes `completion` on the main queue.
-  static func simulateRequest(delay: TimeInterval, _ completion: @escaping () -> Void) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: completion)
+  /// Simulates async work; always invokes `work` on the main actor after `delay`.
+  ///
+  /// Uses `Task` + `MainActor` instead of `DispatchQueue.asyncAfter` so Refresh callbacks stay compatible with
+  /// Swift 6 default actor isolation (`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`).
+  static func simulateRequest(delay: TimeInterval, _ work: @MainActor @escaping () -> Void) {
+    Task { @MainActor in
+      let nanos = UInt64(max(0, delay) * 1_000_000_000)
+      try? await Task.sleep(nanoseconds: nanos)
+      work()
+    }
   }
 
   /// Async/await helper that mimics a network delay.

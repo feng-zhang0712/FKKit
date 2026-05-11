@@ -18,9 +18,10 @@ final class FKNetworkExampleViewController: UIViewController {
   private let jsonClient: FKNetworkClient
   private let httpBinClient: FKNetworkClient
 
-  private var cancellableTask: Cancellable?
-  private var uploadTask: Cancellable?
-  private var downloadTask: Cancellable?
+  /// Access and cancellation from main only; `nonisolated` deinit can cancel safely.
+  nonisolated(unsafe) private var cancellableTask: Cancellable?
+  nonisolated(unsafe) private var uploadTask: Cancellable?
+  nonisolated(unsafe) private var downloadTask: Cancellable?
   private var storedResumeData: Data?
 
   private var mockModeEnabled = false

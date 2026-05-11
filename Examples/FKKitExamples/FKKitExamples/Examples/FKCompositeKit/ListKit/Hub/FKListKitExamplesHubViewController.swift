@@ -1,34 +1,41 @@
-//
-// FKBaseExamplesHubViewController.swift
-//
-
 import UIKit
 
-/// Entry list for FKCompositeKit base module demos.
-final class FKBaseExamplesHubViewController: UITableViewController {
+/// Entry list for ListKit demos.
+final class FKListKitExamplesHubViewController: UITableViewController {
+
   private enum Row: Int, CaseIterable {
-    case baseViewController
+    case tablePlugin
 
     var title: String {
       switch self {
-      case .baseViewController:
-        return "FKBaseViewController"
+      case .tablePlugin:
+        return "Table + FKListPlugin"
       }
     }
 
     var subtitle: String {
       switch self {
-      case .baseViewController:
-        return "Lifecycle, loading/empty/error/toast, keyboard, navigation style"
+      case .tablePlugin:
+        return "Paging, refresh, skeleton, empty/error, FKListScreen, FKBaseTableViewCell"
+      }
+    }
+
+    func makeDestination() -> UIViewController {
+      switch self {
+      case .tablePlugin:
+        return FKListKitTableExampleViewController()
       }
     }
   }
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "Base"
+    title = "ListKit"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
+    if #available(iOS 15.0, *) {
+      tableView.sectionHeaderTopPadding = 0
+    }
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -38,22 +45,17 @@ final class FKBaseExamplesHubViewController: UITableViewController {
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
     let row = Row.allCases[indexPath.row]
-    var content = cell.defaultContentConfiguration()
-    content.text = row.title
-    content.secondaryText = row.subtitle
-    content.secondaryTextProperties.color = .secondaryLabel
-    cell.contentConfiguration = content
+    var config = cell.defaultContentConfiguration()
+    config.text = row.title
+    config.secondaryText = row.subtitle
+    config.secondaryTextProperties.color = .secondaryLabel
+    cell.contentConfiguration = config
     cell.accessoryType = .disclosureIndicator
     return cell
   }
 
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
-    let destination: UIViewController
-    switch Row.allCases[indexPath.row] {
-    case .baseViewController:
-      destination = FKBaseViewControllerExampleViewController()
-    }
-    navigationController?.pushViewController(destination, animated: true)
+    navigationController?.pushViewController(Row.allCases[indexPath.row].makeDestination(), animated: true)
   }
 }

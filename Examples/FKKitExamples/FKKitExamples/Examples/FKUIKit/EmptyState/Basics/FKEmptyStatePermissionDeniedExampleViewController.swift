@@ -13,7 +13,9 @@ final class FKEmptyStatePermissionDeniedExampleViewController: UIViewController 
   }
 
   deinit {
-    fk_clearEmptyStateActionObservers()
+    MainActor.assumeIsolated {
+      fk_clearEmptyStateActionObservers()
+    }
   }
 
   private func render() {

@@ -77,7 +77,7 @@ extension FKContainerPresentationController {
 
   /// Computes extra content inset reserved for the grabber area.
   func grabberContentInsets() -> UIEdgeInsets {
-    guard configuration.sheet.showsGrabber else { return .zero }
+    guard configuration.sheet.prefersGrabberVisible else { return .zero }
     let padding = configuration.sheet.grabberTopInset + configuration.sheet.grabberSize.height + 8
     switch configuration.layout {
     case .bottomSheet(_):
@@ -91,15 +91,15 @@ extension FKContainerPresentationController {
 
   /// Adds/removes and styles grabber depending on active layout.
   func configureGrabberIfNeeded() {
-    let showsGrabber: Bool
+    let prefersGrabberVisible: Bool
     switch configuration.layout {
     case .bottomSheet(_), .topSheet(_):
-      showsGrabber = configuration.sheet.showsGrabber
+      prefersGrabberVisible = configuration.sheet.prefersGrabberVisible
     default:
-      showsGrabber = false
+      prefersGrabberVisible = false
     }
 
-    if showsGrabber {
+    if prefersGrabberVisible {
       if grabberView.superview == nil {
         wrapperView.addSubview(grabberView)
       }
@@ -158,8 +158,8 @@ extension FKContainerPresentationController {
   /// Resolves current sheet height from active detent values.
   func resolvedSheetHeight(in containerView: UIView, bounds: CGRect, safeInsets: UIEdgeInsets) -> CGFloat {
     recalculateDetentsIfNeeded()
-    if resolvedDetentHeights.indices.contains(currentDetentIndex) {
-      return clampedContentHeight(resolvedDetentHeights[currentDetentIndex], containerView: containerView)
+    if resolvedDetentHeights.indices.contains(selectedDetentIndex) {
+      return clampedContentHeight(resolvedDetentHeights[selectedDetentIndex], containerView: containerView)
     }
     return clampedContentHeight(min(bounds.height * 0.5, max(240, measuredFitContentHeight(in: containerView))), containerView: containerView)
   }
@@ -172,7 +172,7 @@ extension FKContainerPresentationController {
     resolvedDetentHeights = configuration.sheet.detents.map { detent in
       resolve(detent: detent, availableHeight: availableHeight, containerView: containerView)
     }
-    currentDetentIndex = max(0, min(currentDetentIndex, max(0, resolvedDetentHeights.count - 1)))
+    selectedDetentIndex = max(0, min(selectedDetentIndex, max(0, resolvedDetentHeights.count - 1)))
   }
 
   /// Maps a detent definition to a clamped concrete height.

@@ -120,6 +120,7 @@ extension FKContainerPresentationController {
     case .began:
       isPanningSheet = true
       panStartFrame = wrapperView.frame
+      sheetPanBeganDetentIndex = selectedDetentIndex
       sheetPanVelocityY = 0
       if let trackedScrollView {
         trackedScrollView.panGestureRecognizer.isEnabled = true
@@ -131,7 +132,7 @@ extension FKContainerPresentationController {
 
       if let trackedScrollView, !shouldTransferPanFromScrollView(trackedScrollView, translationY: translation.y) {
         // Let inner scroll own this direction while keeping sheet stable.
-        animateToCurrentDetent(animated: false)
+        animateToSelectedDetent(animated: false)
         return
       }
 
@@ -154,12 +155,69 @@ extension FKContainerPresentationController {
       }
 
       let targetIndex = nearestDetentIndex(for: wrapperView.frame, in: containerView, velocityY: velocity.y)
-      setDetentIndex(targetIndex, animated: true)
+      selectDetentIndex(targetIndex, animated: true)
       notifyProgress(0)
       sheetPanVelocityY = 0
 
     default:
       break
+    }
+  }
+
+  /// Same branch predicate as `interactiveBottomSheetFrame` / `interactiveTopSheetFrame` use for dismiss pull vs resize.
+  func sheetDismissPullBranchActive(translationY: CGFloat, in containerView: UIView) -> Bool {
+    let minHeight = resolvedDetentHeights.min() ?? 240
+    let maxHeight = resolvedDetentHeights.max() ?? containerView.bounds.height * 0.9
+
+    switch configuration.layout {
+    case .bottomSheet(_):
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        return sheetPanBeganDetentIndex == 0 && translationY > 0
+      case .systemAligned:
+        if sheetPanBeganDetentIndex == 0, translationY > 0 { return true }
+        guard translationY > 0 else { return false }
+        let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
+        let extraDismissPull = translationY - translationToReachMinHeight
+        guard extraDismissPull > 0 else { return false }
+        let safeInsets = containerSafeInsets(in: containerView)
+        let bottomExtra = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0
+        let bottomY = containerView.bounds.height - bottomExtra
+        let clampedH = min(max(panStartFrame.height - translationY, minHeight), maxHeight)
+        let synthetic = CGRect(x: panStartFrame.minX, y: bottomY - clampedH, width: panStartFrame.width, height: clampedH)
+        return nearestDetentIndex(for: synthetic, in: containerView, velocityY: 0) == 0
+      }
+    case .topSheet(_):
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        return sheetPanBeganDetentIndex == 0 && translationY < 0
+      case .systemAligned:
+        guard translationY < 0 else { return false }
+        let translationAtMin = minHeight - panStartFrame.height
+        let extraDismissPull = translationAtMin - translationY
+        guard extraDismissPull > 0 else { return false }
+        let minY = sheetMinY(in: containerView)
+        let clampedH = min(max(panStartFrame.height + translationY, minHeight), maxHeight)
+        let synthetic = CGRect(x: panStartFrame.minX, y: minY, width: panStartFrame.width, height: clampedH)
+        return nearestDetentIndex(for: synthetic, in: containerView, velocityY: 0) == 0
+      }
+    default:
+      return false
+    }
+  }
+
+  /// Extra translation along the dismiss axis after the sheet has reached min detent height (only meaningful when `sheetDismissPullBranchActive` is true).
+  func sheetDismissExtraPullWhileInBranch(translationY: CGFloat) -> CGFloat {
+    let minHeight = resolvedDetentHeights.min() ?? 240
+    switch configuration.layout {
+    case .bottomSheet(_):
+      let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
+      return max(0, translationY - translationToReachMinHeight)
+    case .topSheet(_):
+      let translationAtMin = minHeight - panStartFrame.height
+      return max(0, translationAtMin - translationY)
+    default:
+      return 0
     }
   }
 
@@ -170,27 +228,42 @@ extension FKContainerPresentationController {
     let bottomY = containerView.bounds.height - bottomExtra
     let minHeight = resolvedDetentHeights.min() ?? 240
     let maxHeight = resolvedDetentHeights.max() ?? containerView.bounds.height * 0.9
+    let dismissThreshold = configuration.sheet.dismissThreshold
 
-    if currentDetentIndex == 0, translationY > 0 {
-      // System-like behavior: at smallest detent, downward drag follows panel translation.
-      frame.origin.y = panStartFrame.origin.y + translationY
-      frame.size.height = panStartFrame.size.height
+    let inDismissPullBranch = sheetDismissPullBranchActive(translationY: translationY, in: containerView)
+
+    if inDismissPullBranch {
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        frame.origin.y = panStartFrame.origin.y + translationY
+        frame.size.height = panStartFrame.size.height
+      case .systemAligned:
+        if sheetPanBeganDetentIndex == 0 {
+          frame.origin.y = panStartFrame.origin.y + translationY
+          frame.size.height = panStartFrame.size.height
+        } else {
+          let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
+          let extraDismissPull = translationY - translationToReachMinHeight
+          frame.size.height = minHeight
+          frame.origin.y = (bottomY - minHeight) + extraDismissPull
+        }
+      }
     } else {
       // Upward drag expands, downward drag contracts toward the next smaller detent.
       frame.size.height = panStartFrame.height - translationY
-      frame.size.height = min(max(frame.size.height, minHeight - configuration.sheet.dismissThreshold), maxHeight + configuration.sheet.dismissThreshold)
+      frame.size.height = min(max(frame.size.height, minHeight - dismissThreshold), maxHeight + dismissThreshold)
       frame.origin.y = bottomY - frame.size.height
     }
 
     let minY = sheetMinY(in: containerView)
     let maxY = sheetMaxY(in: containerView)
-    if currentDetentIndex == 0, translationY > 0 {
+    if inDismissPullBranch {
       // At smallest detent, downward drag is dismiss / off-screen follow-through. Do not cap at
       // `maxY + dismissThreshold` (~44pt) or the sheet stops moving while the finger keeps going
       // (feels "stuck"), then often snaps back on release.
-      frame.origin.y = max(frame.origin.y, minY - configuration.sheet.dismissThreshold)
+      frame.origin.y = max(frame.origin.y, minY - dismissThreshold)
     } else {
-      frame.origin.y = min(max(frame.origin.y, minY - configuration.sheet.dismissThreshold), maxY + configuration.sheet.dismissThreshold)
+      frame.origin.y = min(max(frame.origin.y, minY - dismissThreshold), maxY + dismissThreshold)
     }
     return frame
   }
@@ -215,21 +288,34 @@ extension FKContainerPresentationController {
     let minY = sheetMinY(in: containerView)
     let minHeight = resolvedDetentHeights.min() ?? 240
     let maxHeight = resolvedDetentHeights.max() ?? containerView.bounds.height * 0.9
+    let dismissThreshold = configuration.sheet.dismissThreshold
 
-    if currentDetentIndex == 0, translationY < 0 {
-      // Smallest detent: upward drag moves the panel off the top (dismiss), height unchanged.
-      frame.origin.y = panStartFrame.origin.y + translationY
-      frame.size.height = panStartFrame.size.height
-      // Do not cap upward dismiss travel to ~44pt; allow following the finger off-screen.
-      frame.origin.y = min(frame.origin.y, minY)
+    let inDismissPullBranch = sheetDismissPullBranchActive(translationY: translationY, in: containerView)
+
+    if inDismissPullBranch {
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        frame.origin.y = panStartFrame.origin.y + translationY
+        frame.size.height = panStartFrame.size.height
+      case .systemAligned:
+        let translationAtMin = minHeight - panStartFrame.height
+        let extraDismissPull = translationAtMin - translationY
+        frame.size.height = minHeight
+        frame.origin.y = minY - extraDismissPull
+      }
     } else {
       // Top sheet expands downward: finger down increases height; finger up decreases height.
       // The top edge must stay pinned at `minY` (unlike bottom sheets, there is no separate `maxY`
       // stop for the top edge—`sheetMaxY` collapses to `minY`). Reusing the bottom-sheet Y clamp
       // here is incorrect and can allow the shell to drift downward at large detents.
       frame.size.height = panStartFrame.height + translationY
-      frame.size.height = min(max(frame.size.height, minHeight - configuration.sheet.dismissThreshold), maxHeight + configuration.sheet.dismissThreshold)
+      frame.size.height = min(max(frame.size.height, minHeight - dismissThreshold), maxHeight + dismissThreshold)
       frame.origin.y = minY
+    }
+
+    if inDismissPullBranch {
+      // Do not cap upward dismiss travel to ~44pt; allow following the finger off-screen.
+      frame.origin.y = min(frame.origin.y, minY)
     }
 
     return frame
@@ -272,18 +358,48 @@ extension FKContainerPresentationController {
 
   func sheetShouldDismiss(translationY: CGFloat, velocityY: CGFloat, in containerView: UIView) -> Bool {
     guard configuration.dismissBehavior.allowsSwipe else { return false }
+    let threshold = configuration.sheet.dismissThreshold
+    let velocityThreshold = configuration.sheet.dismissVelocityThreshold
+
     switch configuration.layout {
     case .bottomSheet(_):
-      // Match system sheet: swipe-to-dismiss only from the smallest detent. Larger detents
-      // must shrink via detent snapping first; otherwise any downward translation/velocity
-      // would dismiss instead of stopping at intermediate detents.
-      guard currentDetentIndex == 0 else { return false }
-      if translationY > configuration.sheet.dismissThreshold { return true }
-      if velocityY > configuration.sheet.dismissVelocityThreshold { return true }
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        guard sheetPanBeganDetentIndex == 0 else { return false }
+        if translationY > threshold { return true }
+        if velocityY > velocityThreshold { return true }
+        return false
+      case .systemAligned:
+        if sheetPanBeganDetentIndex == 0 {
+          if translationY > threshold { return true }
+          if velocityY > velocityThreshold { return true }
+          return false
+        }
+        guard sheetDismissPullBranchActive(translationY: translationY, in: containerView) else { return false }
+        let extra = sheetDismissExtraPullWhileInBranch(translationY: translationY)
+        if extra > threshold { return true }
+        if extra > threshold * 0.5, velocityY > velocityThreshold { return true }
+        return false
+      }
     case .topSheet(_):
-      guard currentDetentIndex == 0 else { return false }
-      if translationY < -configuration.sheet.dismissThreshold { return true }
-      if velocityY < -configuration.sheet.dismissVelocityThreshold { return true }
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        guard sheetPanBeganDetentIndex == 0 else { return false }
+        if translationY < -threshold { return true }
+        if velocityY < -velocityThreshold { return true }
+        return false
+      case .systemAligned:
+        if sheetPanBeganDetentIndex == 0 {
+          if translationY < -threshold { return true }
+          if velocityY < -velocityThreshold { return true }
+          return false
+        }
+        guard sheetDismissPullBranchActive(translationY: translationY, in: containerView) else { return false }
+        let extra = sheetDismissExtraPullWhileInBranch(translationY: translationY)
+        if extra > threshold { return true }
+        if extra > threshold * 0.5, velocityY < -velocityThreshold { return true }
+        return false
+      }
     default:
       break
     }
@@ -310,10 +426,10 @@ extension FKContainerPresentationController {
     if abs(velocityY) > 900, resolvedDetentHeights.count >= 2 {
       switch configuration.layout {
       case .bottomSheet(_):
-        return velocityY < 0 ? min(resolvedDetentHeights.count - 1, currentDetentIndex + 1) : max(0, currentDetentIndex - 1)
+        return velocityY < 0 ? min(resolvedDetentHeights.count - 1, selectedDetentIndex + 1) : max(0, selectedDetentIndex - 1)
       case .topSheet(_):
         // Finger down (positive vy) expands toward larger detent; finger up shrinks.
-        return velocityY > 0 ? min(resolvedDetentHeights.count - 1, currentDetentIndex + 1) : max(0, currentDetentIndex - 1)
+        return velocityY > 0 ? min(resolvedDetentHeights.count - 1, selectedDetentIndex + 1) : max(0, selectedDetentIndex - 1)
       default:
         break
       }
@@ -337,26 +453,26 @@ extension FKContainerPresentationController {
     return best
   }
 
-  func setDetentIndex(_ index: Int, animated: Bool) {
+  func selectDetentIndex(_ index: Int, animated: Bool) {
     let clamped = max(0, min(index, max(0, resolvedDetentHeights.count - 1)))
-    if clamped == currentDetentIndex { animateToCurrentDetent(animated: animated); return }
-    currentDetentIndex = clamped
+    if clamped == selectedDetentIndex { animateToSelectedDetent(animated: animated); return }
+    selectedDetentIndex = clamped
     if configuration.sheet.detents.indices.contains(clamped) {
-      notifyDetentDidChange(configuration.sheet.detents[clamped], index: clamped)
+      notifySelectedDetentDidChange(configuration.sheet.detents[clamped], index: clamped)
       if configuration.haptics.isEnabled {
         let generator = UIImpactFeedbackGenerator(style: configuration.haptics.feedbackStyle)
         generator.impactOccurred()
       }
     }
-    animateToCurrentDetent(animated: animated)
+    animateToSelectedDetent(animated: animated)
   }
 
-  func setDetent(_ detent: FKPresentationDetent, animated: Bool) {
+  func selectDetent(_ detent: FKPresentationDetent, animated: Bool) {
     guard let index = configuration.sheet.detents.firstIndex(where: { $0 == detent }) else { return }
-    setDetentIndex(index, animated: animated)
+    selectDetentIndex(index, animated: animated)
   }
 
-  func animateToCurrentDetent(animated: Bool) {
+  func animateToSelectedDetent(animated: Bool) {
     guard containerView != nil else { return }
     let targetFrame = frameOfPresentedViewInContainerView
     let distance = max(
@@ -384,33 +500,54 @@ extension FKContainerPresentationController {
     }
   }
 
+  func sheetOwnsDismissAxisPanFromScrollView(translationY: CGFloat, in containerView: UIView) -> Bool {
+    switch configuration.layout {
+    case .bottomSheet(_):
+      guard translationY > 0 else { return false }
+    case .topSheet(_):
+      guard translationY < 0 else { return false }
+    default:
+      return false
+    }
+
+    switch configuration.sheet.crossDetentSwipeDismissPolicy {
+    case .strictSmallestDetentAtPanStart:
+      return sheetPanBeganDetentIndex == 0
+    case .systemAligned:
+      if sheetPanBeganDetentIndex == 0 { return true }
+      if sheetDismissPullBranchActive(translationY: translationY, in: containerView) { return true }
+      return nearestDetentIndex(for: wrapperView.frame, in: containerView, velocityY: 0) == 0
+    }
+  }
+
   func shouldTransferPanFromScrollView(_ scrollView: UIScrollView, translationY: CGFloat) -> Bool {
     if abs(translationY) < 0.5 { return true }
+    guard let containerView else { return true }
     let atTop = scrollView.contentOffset.y <= -scrollView.adjustedContentInset.top + 0.5
     let maxOffsetY = max(-scrollView.adjustedContentInset.top, scrollView.contentSize.height - scrollView.bounds.height + scrollView.adjustedContentInset.bottom)
     let atBottom = scrollView.contentOffset.y >= maxOffsetY - 0.5
 
     switch configuration.layout {
     case .bottomSheet(_):
-      let canExpandToLargerDetent = currentDetentIndex < max(0, resolvedDetentHeights.count - 1)
+      let canExpandToLargerDetent = selectedDetentIndex < max(0, resolvedDetentHeights.count - 1)
       if translationY < 0 {
         // Upward drag should prioritize detent expansion.
         return canExpandToLargerDetent || atTop
       }
       // Downward: at smallest detent this is dismiss/rubber-band — sheet must own the gesture.
-      if currentDetentIndex == 0 {
+      if sheetOwnsDismissAxisPanFromScrollView(translationY: translationY, in: containerView) {
         return true
       }
       // Larger detent: let inner scroll consume until scrolled to top, then sheet shrinks.
       return atTop
     case .topSheet(_):
-      let canExpandToLargerDetent = currentDetentIndex < max(0, resolvedDetentHeights.count - 1)
+      let canExpandToLargerDetent = selectedDetentIndex < max(0, resolvedDetentHeights.count - 1)
       if translationY > 0 {
         // Finger down expands top sheet toward larger detents.
         return canExpandToLargerDetent || atTop
       }
       // Finger up shrinks; at smallest detent it's dismiss / rubber-band — sheet owns it.
-      if currentDetentIndex == 0 {
+      if sheetOwnsDismissAxisPanFromScrollView(translationY: translationY, in: containerView) {
         return true
       }
       // Larger detent: let inner scroll consume until scrolled to bottom, then sheet shrinks.

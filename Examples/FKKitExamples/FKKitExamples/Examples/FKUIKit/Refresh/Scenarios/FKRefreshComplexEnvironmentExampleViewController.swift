@@ -40,7 +40,8 @@ private final class FKRefreshLargeTitleKeyboardDemoViewController: UIViewControl
     return view
   }()
 
-  private var keyboardObserverTokens: [NSObjectProtocol] = []
+  /// Main-thread only; `nonisolated` deinit can unregister without crossing actor boundaries.
+  nonisolated(unsafe) private var keyboardObserverTokens: [NSObjectProtocol] = []
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -90,18 +91,21 @@ private final class FKRefreshLargeTitleKeyboardDemoViewController: UIViewControl
     let names: [Notification.Name] = [UIResponder.keyboardWillShowNotification, UIResponder.keyboardWillHideNotification]
     keyboardObserverTokens = names.map { name in
       NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] note in
-        self?.handleKeyboard(note)
+        guard let self else { return }
+        guard
+          let frame = note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+          let duration = note.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval
+        else { return }
+        MainActor.assumeIsolated {
+          self.applyKeyboardChange(endFrame: frame, animationDuration: duration)
+        }
       }
     }
   }
 
-  private func handleKeyboard(_ note: Notification) {
-    guard
-      let frame = note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-      let duration = note.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval
-    else { return }
-    let visibleH = max(0, view.convert(frame, from: nil).intersection(view.bounds).height)
-    UIView.animate(withDuration: duration) {
+  private func applyKeyboardChange(endFrame: CGRect, animationDuration: TimeInterval) {
+    let visibleH = max(0, view.convert(endFrame, from: nil).intersection(view.bounds).height)
+    UIView.animate(withDuration: animationDuration) {
       self.tableView.contentInset.bottom = visibleH
       var indicators = self.tableView.verticalScrollIndicatorInsets
       indicators.bottom = visibleH

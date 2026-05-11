@@ -22,11 +22,11 @@ final class FKFilterExamplesHubViewController: UITableViewController {
     var subtitle: String {
       switch self {
       case .full:
-        return "Scrollable strip, constrained tab widths"
+        return "FKFilterController, six FKFilterTab kinds, FKFilterHosting, onSelection logging"
       case .tableHost:
-        return "Three equal columns; empty body"
+        return "Equal strip + FKFilterTableHostExampleViewController placeholder body"
       case .customHost:
-        return "Three equal columns; empty body"
+        return "Equal strip + FKFilterCustomViewHostExampleViewController (knowledge + sort data)"
       }
     }
 

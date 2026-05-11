@@ -8,6 +8,43 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.48.0] - 2026-05-11
+
+### Changed (FKUIKit — Presentation) **Breaking**
+
+- **`FKPresentationController`** / sheet configuration names aligned with **`UISheetPresentationController`**: **`detents`**, **`selectedDetent`** / **`selectedDetentIndex`**, **`selectDetent`**, **`prefersGrabberVisible`**, **`initialSelectedDetentIndex`**; delegate **`presentationController(_:didChangeSelectedDetent:at:)`**; lifecycle **`selectedDetentDidChange`**.
+- Sheet cross-detent interactive dismiss: **`crossDetentSwipeDismissPolicy`** (**`systemAligned`** vs **`strictSmallestDetentAtPanStart`**); container and overlay gesture handling updates; anchor-style dismiss uses fixed height with **Y** translation.
+
+### Changed (FKCompositeKit — ListKit) **Breaking**
+
+- **`FKListStateUIDrivers`** → **`FKListPresentationDrivers`**; **`FKListStateManager`**: `ui` → **`drivers`**, initializer label `ui:` → **`drivers:`**.
+- **`FKListPlugin`**: removed generic parameter; use **`handleSuccess(fetchedThisBatchCount:totalItemCountAfterMerge:animated:)`** instead of `handleSuccess(data:…)`.
+- **`FKListCapable`** → **`FKListScreen`** (`UIViewController` + **`listPlugins`** + **`detachAllListPlugins()`**).
+- **`FKListCellConfigurable`** → **`FKListTableCellConfigurable`** and new **`FKListCollectionCellConfigurable`**.
+- **`FKPageManager`**: removed `DispatchQueue.main.sync` bridging; type is **`@MainActor`** — call only from the main actor (or hop with `MainActor`).
+- **`FKListDisplayedError`**: **`==`** now includes **`image`** identity (`===`).
+- **File layout**: `FKListStateDrivers.swift` → `FKListPresentationDrivers.swift`; removed **`FKListCapable.swift`** / **`FKListCellConfigurable.swift`** in favor of **`FKListScreen.swift`** / **`FKListReusableViews.swift`**.
+
+### Changed (FKCompositeKit — Base cells)
+
+- **`FKBaseTableViewCell`** / **`FKBaseCollectionViewCell`**: annotated **`@MainActor`**; **`prepareForReuse()`** calls **`resetCellContent()`** (override point); **`traitConfigurationDidChange(from:)`** for trait updates; table **`selectionDidChange`** / **`highlightDidChange`**; collection **`highlightStateDidChange`** / **`selectionStateDidChange`**; **`containerView`** uses **`masksToBounds`** when **`cornerRadius > 0`**; new internal **`FKBaseReusableCellCore`** for shared constraints and shadow path.
+
+### Added (FKCompositeKit — Base)
+
+- **`FKBaseCollectionViewController`**: primary **`UICollectionView`**, keyboard-safe layout, optional FKRefresh pull/load-more, prefetch wiring; default vertical **`UICollectionViewFlowLayout`** via **`makeDefaultFlowLayout()`**.
+- **`FKBaseTableLoadMoreState`** extracted for shared table/collection load-more footer state (replaces the table-only nested enum).
+- **`FKBaseSearchIntegration`**: attach/detach **`UISearchController`** on **`navigationItem`**.
+- **`FKBaseViewController`**: **`loadInitialContent()`** — runs once on first **`viewDidAppear`**, before **`viewDidAppearForTheFirstTime(_:)`**.
+- **`Components/Base/README.md`**: documents Base vs Composition vs **ListKit**, refresh overlap warning, and **`loadInitialContent`** timing.
+
+### Changed (Build)
+
+- **Strict concurrency** enforced in CI; examples and project settings aligned with Swift 6 concurrency rules.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **s.version** set to **0.48.0** (Git tag **`0.48.0`**).
+
 ## [0.47.0] - 2026-05-09
 
 ### Fixed (Package)
@@ -1748,7 +1785,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 ### Added (FKCompositeKit FKListKit)
 - **`FKListPlugin`**: composition-first list coordinator for `UITableView` / `UICollectionView` without base controller inheritance.
 - **Pagination + state orchestration** via **`FKPageManager`** and **`FKListStateManager`**: initial skeleton (optional), pull-to-refresh, load-more, empty/error overlays, and load-more failure UX.
-- **List state drivers** (`FKListStateUIDrivers`) for decoupled UI integration (empty state, skeleton host, primary surface, and refresh controls).
+- **List presentation drivers** (`FKListPresentationDrivers`) for decoupled UI integration (empty state, skeleton host, primary surface, and refresh controls).
 
 ### Added (Examples)
 - **`FKListKitTableExampleViewController`**: end-to-end mock demo (random data, empty, failures, 3-page paging, skeleton, empty/error overlays).

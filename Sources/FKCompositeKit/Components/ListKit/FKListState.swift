@@ -1,7 +1,3 @@
-//
-// FKListState.swift
-// FKCompositeKit — FKListKit
-//
 // Canonical list presentation states shared by ``FKListStateManager`` and ``FKListPlugin``.
 //
 

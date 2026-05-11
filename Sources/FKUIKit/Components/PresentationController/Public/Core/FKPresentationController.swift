@@ -25,12 +25,12 @@ public final class FKPresentationController: NSObject {
   public var isPresented: Bool { state == .presented }
   /// Whether a transition is running.
   public var isTransitioning: Bool { state == .presenting || state == .dismissing }
-  /// Current active detent when sheet modes are used.
-  public private(set) var currentDetent: FKPresentationDetent?
-  /// Current detent index when sheet modes are used.
-  public private(set) var currentDetentIndex: Int?
-  /// Available detents for sheet modes.
-  public var availableDetents: [FKPresentationDetent] { configuration.sheet.detents }
+  /// Currently selected detent when sheet modes are used (aligned with `UISheetPresentationController.selectedDetentIdentifier` semantics).
+  public private(set) var selectedDetent: FKPresentationDetent?
+  /// Index of ``selectedDetent`` in ``detents``.
+  public private(set) var selectedDetentIndex: Int?
+  /// Detents the sheet may adopt (aligned with `UISheetPresentationController.detents`).
+  public var detents: [FKPresentationDetent] { configuration.sheet.detents }
 
   private var host: (any FKPresentationHost)!
 
@@ -134,23 +134,23 @@ public final class FKPresentationController: NSObject {
     host.updateLayout(animated: animated, duration: duration, options: options)
   }
 
-  /// Programmatically switches to a target detent when the active mode supports sheet detents.
-  public func setDetent(_ detent: FKPresentationDetent, animated: Bool = true) {
-    guard assertMainThread("setDetent") else { return }
+  /// Selects a detent when the active mode supports sheet detents.
+  public func selectDetent(_ detent: FKPresentationDetent, animated: Bool = true) {
+    guard assertMainThread("selectDetent") else { return }
     if let index = configuration.sheet.detents.firstIndex(of: detent) {
-      setDetent(index: index, animated: animated)
+      selectDetent(at: index, animated: animated)
     }
   }
 
-  /// Programmatically switches to a detent index when sheet modes are active.
-  public func setDetent(index: Int, animated: Bool = true) {
-    guard assertMainThread("setDetent(index:)") else { return }
+  /// Selects a detent by index when sheet modes are active.
+  public func selectDetent(at index: Int, animated: Bool = true) {
+    guard assertMainThread("selectDetent(at:)") else { return }
     let clamped = max(0, min(index, max(0, configuration.sheet.detents.count - 1)))
     guard configuration.sheet.detents.indices.contains(clamped) else { return }
     if host is FKModalPresentationHost {
       (contentController.transitioningDelegate as? FKPresentationTransitioningDelegate)?
         .activeContainerController?
-        .setDetent(configuration.sheet.detents[clamped], animated: animated)
+        .selectDetent(configuration.sheet.detents[clamped], animated: animated)
     }
     // Overlay host currently performs nearest-detent snapping based on drag.
     // Keep API no-op for overlay until explicit programmatic detent API is introduced there.
@@ -182,11 +182,11 @@ public final class FKPresentationController: NSObject {
     handlers.progress?(progress)
   }
 
-  func notifyDetentDidChange(_ detent: FKPresentationDetent, index: Int) {
-    currentDetent = detent
-    currentDetentIndex = index
-    delegate?.presentationController(self, didChangeDetent: detent, index: index)
-    handlers.detentDidChange?(detent, index)
+  func notifySelectedDetentDidChange(_ detent: FKPresentationDetent, index: Int) {
+    selectedDetent = detent
+    selectedDetentIndex = index
+    delegate?.presentationController(self, didChangeSelectedDetent: detent, at: index)
+    handlers.selectedDetentDidChange?(detent, index)
   }
 
   func notifyWillPresent() {

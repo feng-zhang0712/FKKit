@@ -12,6 +12,19 @@ public extension FKPresentationConfiguration {
       case max(CGFloat)
     }
 
+    /// How swipe-to-dismiss eligibility is determined relative to detents during a single sheet pan.
+    ///
+    /// - Note: This only affects top/bottom sheet layouts when `dismissBehavior.allowsSwipe` is enabled.
+    public enum CrossDetentSwipeDismissPolicy: Sendable, Equatable {
+      /// Close to `UISheetPresentationController`: once the interactive geometry reaches the smallest detent,
+      /// further drag in the dismiss direction can dismiss in the **same** gesture (no need to lift and pan again).
+      case systemAligned
+      /// Previous FK behavior: dismiss rubber-banding and end-of-gesture dismiss thresholds apply only when the
+      /// sheet was already at the smallest detent **when the pan began** (`selectedDetentIndex` is not consulted
+      /// mid-gesture for dismiss eligibility).
+      case strictSmallestDetentAtPanStart
+    }
+
     /// Backdrop tuning that reacts to detent state.
     public struct MultiStageBackdropConfiguration {
       /// Enables detent-based backdrop intensity updates.
@@ -31,12 +44,12 @@ public extension FKPresentationConfiguration {
 
     /// Available stopping points for sheet modes.
     public var detents: [FKPresentationDetent]
-    /// Initial detent index used on first display.
-    public var initialDetentIndex: Int
+    /// Selected detent index when the sheet first appears (aligned with ``UISheetPresentationController`` selection semantics).
+    public var initialSelectedDetentIndex: Int
     /// Maximum height ratio used when resolving `.fitContent`.
     public var maximumFitContentHeightFraction: CGFloat
-    /// Enables a grabber/handle in the chrome area.
-    public var showsGrabber: Bool
+    /// Whether the sheet shows the system-like grabber handle (aligned with `UISheetPresentationController.prefersGrabberVisible`).
+    public var prefersGrabberVisible: Bool
     /// Grabber size in points.
     public var grabberSize: CGSize
     /// Grabber top spacing in points.
@@ -59,13 +72,15 @@ public extension FKPresentationConfiguration {
     public var widthPolicy: WidthPolicy
     /// Detent-aware backdrop behavior.
     public var multiStageBackdrop: MultiStageBackdropConfiguration
+    /// Controls whether a single pan can dismiss after shrinking from a larger detent to the smallest detent.
+    public var crossDetentSwipeDismissPolicy: CrossDetentSwipeDismissPolicy
 
     /// Creates a sheet configuration.
     public init(
       detents: [FKPresentationDetent] = [.fitContent, .full],
-      initialDetentIndex: Int = 0,
+      initialSelectedDetentIndex: Int = 0,
       maximumFitContentHeightFraction: CGFloat = 0.9,
-      showsGrabber: Bool = true,
+      prefersGrabberVisible: Bool = true,
       grabberSize: CGSize = .init(width: 36, height: 5),
       grabberTopInset: CGFloat = 8,
       dismissThreshold: CGFloat = 44,
@@ -76,12 +91,13 @@ public extension FKPresentationConfiguration {
       minimumContentHeight: CGFloat? = 180,
       maximumContentHeight: CGFloat? = nil,
       widthPolicy: WidthPolicy = .fill,
-      multiStageBackdrop: MultiStageBackdropConfiguration = .init()
+      multiStageBackdrop: MultiStageBackdropConfiguration = .init(),
+      crossDetentSwipeDismissPolicy: CrossDetentSwipeDismissPolicy = .systemAligned
     ) {
       self.detents = detents.isEmpty ? [.fitContent] : detents
-      self.initialDetentIndex = max(0, min(initialDetentIndex, self.detents.count - 1))
+      self.initialSelectedDetentIndex = max(0, min(initialSelectedDetentIndex, self.detents.count - 1))
       self.maximumFitContentHeightFraction = min(max(maximumFitContentHeightFraction, 0.2), 1)
-      self.showsGrabber = showsGrabber
+      self.prefersGrabberVisible = prefersGrabberVisible
       self.grabberSize = grabberSize
       self.grabberTopInset = max(0, grabberTopInset)
       self.dismissThreshold = max(0, dismissThreshold)
@@ -93,6 +109,7 @@ public extension FKPresentationConfiguration {
       self.maximumContentHeight = maximumContentHeight
       self.widthPolicy = widthPolicy
       self.multiStageBackdrop = multiStageBackdrop
+      self.crossDetentSwipeDismissPolicy = crossDetentSwipeDismissPolicy
     }
   }
 

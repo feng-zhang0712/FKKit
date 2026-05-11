@@ -1,12 +1,15 @@
 # ListKit
 
-**ListKit** groups list-related **state**, **pagination**, and **plugin** helpers used by composite list screens.
+**ListKit** groups list-related **state**, **pagination**, and **plugin** helpers for composite list screens in **FKCompositeKit**. It integrates with **FKUIKit** (empty states, refresh controls, skeleton).
 
 ## Highlights
 
-- **`FKListStateManager`** / **`FKListState`**: coordinates loading / empty / error / content phases (often paired with **`FKUIKit`** empty states and refresh controls).
-- **`FKListPlugin`**: attachable behaviors (e.g. reacting to scroll or lifecycle) without bloating a single view controller.
-- **`FKPageManager`** / **`FKPageManagerCore`**: page index and request orchestration for paged APIs.
-- **`FKListCapable`**, **`FKListCellConfigurable`**, **`FKListConfiguration`**: shared configuration surfaces for list modules.
+- **`FKListStateManager`** / **`FKListState`**: coordinates loading / empty / error / content phases.
+- **`FKListPlugin`**: composition-first coordinator (pagination + refresh + state) **without** subclassing `UIViewController`.
+- **`FKPageManager`** / **`FKPageManagerCore`**: page index and request orchestration (`@MainActor`).
+- **`FKListPresentationDrivers`**: protocol-driven bridges for skeleton, primary surface, empty state host, and refresh.
+- **`FKListScreen`**: adopt on view controllers that retain plugins; use ``detachAllListPlugins()`` from lifecycle.
+- **`FKListTableCellConfigurable`** / **`FKListCollectionCellConfigurable`**: lightweight cell binding contracts.
+- **`FKListConfiguration`**: unified flags for ``FKListPlugin``.
 
-Read type-level documentation in the `.swift` files in this directory; behavior is intentionally kept close to the code to avoid drift.
+Type-level documentation lives in the `.swift` files.

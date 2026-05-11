@@ -258,25 +258,40 @@ final class FKAnchorHostViewController: UIViewController {
         }
       }()
 
-      let startHeight = max(1, panStartFrame.height)
-      // Use real frame/height updates (instead of transform-only translation) so clipping, corners,
-      // shadow path, and content insets stay physically correct during interactive drag.
-      let newHeight = max(0, min(startHeight, startHeight - signedDismissDrag))
-
-      let newFrame = frame(forHeight: newHeight, basedOn: panStartFrame, anchorLineY: currentLayout.anchorLineY, direction: currentLayout.direction)
+      let panelHeight = max(1, panStartFrame.height)
+      // Keep height fixed; slide along Y (same end poses as the old height-collapse path).
+      let slide = min(max(signedDismissDrag, 0), panelHeight)
+      let newY: CGFloat = {
+        switch currentLayout.direction {
+        case .down, .auto:
+          return panStartFrame.origin.y - slide
+        case .up:
+          return panStartFrame.origin.y + slide
+        }
+      }()
+      var newFrame = panStartFrame
+      newFrame.origin.y = newY
+      newFrame.size.height = panelHeight
       wrapperView.frame = newFrame
       cardView.frame = wrapperView.bounds
       contentContainerView.frame = cardView.bounds.inset(by: UIEdgeInsets(configuration.contentInsets))
       updateShadowPath(for: currentLayout.direction)
 
-      let progress = min(max(1 - (newHeight / startHeight), 0), 1)
+      let progress = min(max(slide / panelHeight, 0), 1)
       onProgress?(progress)
       maskView.alpha = max(0, 1 - progress)
     case .ended, .cancelled:
       let velocity = recognizer.velocity(in: view).y
-      let startHeight = max(1, panStartFrame.height)
-      let currentHeight = max(0, wrapperView.frame.height)
-      let progress = min(max(1 - (currentHeight / startHeight), 0), 1)
+      let panelHeight = max(1, panStartFrame.height)
+      let slideAmount: CGFloat = {
+        switch currentLayout.direction {
+        case .down, .auto:
+          return panStartFrame.origin.y - wrapperView.frame.origin.y
+        case .up:
+          return wrapperView.frame.origin.y - panStartFrame.origin.y
+        }
+      }()
+      let progress = min(max(slideAmount / panelHeight, 0), 1)
 
       let shouldDismiss: Bool = {
         if progress > 0.35 { return true }
@@ -305,25 +320,6 @@ final class FKAnchorHostViewController: UIViewController {
     default:
       break
     }
-  }
-
-  private func frame(
-    forHeight height: CGFloat,
-    basedOn baseFrame: CGRect,
-    anchorLineY: CGFloat,
-    direction: FKAnchor.Direction
-  ) -> CGRect {
-    var frame = baseFrame
-    frame.size.height = height
-    switch direction {
-    case .down:
-      frame.origin.y = anchorLineY
-    case .up:
-      frame.origin.y = anchorLineY - height
-    case .auto:
-      frame.origin.y = anchorLineY
-    }
-    return frame
   }
 }
 

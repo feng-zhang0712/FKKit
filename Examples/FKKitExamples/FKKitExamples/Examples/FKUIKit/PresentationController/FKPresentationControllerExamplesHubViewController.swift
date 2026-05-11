@@ -42,7 +42,7 @@ final class FKPresentationControllerExamplesHubViewController: UITableViewContro
       rows: [
         Row(
           title: "Detents — Points",
-          subtitle: "Two fixed heights + programmatic detent switching via `setDetent`.",
+          subtitle: "Two fixed heights + programmatic detent switching via `selectDetent`.",
           make: { SheetDetentsPointsExampleViewController() }
         ),
         Row(
@@ -79,6 +79,11 @@ final class FKPresentationControllerExamplesHubViewController: UITableViewContro
           title: "Swipe to dismiss on/off",
           subtitle: "Compare thresholds and cancellation feel with live controls.",
           make: { SwipeToDismissExampleViewController() }
+        ),
+        Row(
+          title: "Cross-detent swipe dismiss",
+          subtitle: "`sheet.crossDetentSwipeDismissPolicy`: system-like single gesture vs strict-at-pan-start.",
+          make: { CrossDetentSwipeDismissExampleViewController() }
         ),
         Row(
           title: "Background interaction policy",

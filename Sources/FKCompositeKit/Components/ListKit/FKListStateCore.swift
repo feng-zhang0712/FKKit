@@ -1,9 +1,5 @@
-//
-// FKListStateCore.swift
-// FKUIKit — List state
-//
-// Shared types for ``FKListStateManager``: presentation state, content snapshots,
-// portable error descriptions, and default mapping into ``FKEmptyStateConfiguration``.
+// FKCompositeKit — ListKit shared models for ``FKListStateManager`` and ``FKPageManager``.
+// Presentation state, content snapshots, portable errors, and default ``FKEmptyStateConfiguration`` mapping.
 //
 
 import UIKit
@@ -61,7 +57,10 @@ public struct FKListDisplayedError: Equatable {
   }
 
   public static func == (lhs: FKListDisplayedError, rhs: FKListDisplayedError) -> Bool {
-    lhs.profile == rhs.profile && lhs.title == rhs.title && lhs.message == rhs.message
+    lhs.profile == rhs.profile
+      && lhs.title == rhs.title
+      && lhs.message == rhs.message
+      && lhs.image === rhs.image
   }
 
   /// Best-effort mapping from any `Error` (URL errors, cancellation, etc.).
