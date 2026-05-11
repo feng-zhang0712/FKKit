@@ -16,7 +16,7 @@ public struct FKTabBarTextStyle: Equatable {
 
   public init(
     font: UIFont = .systemFont(ofSize: 14, weight: .regular),
-    color: UIColor = .label,
+    color: UIColor = .tertiaryLabel,
     numberOfLines: Int = 1,
     alignment: NSTextAlignment = .center,
     lineBreakMode: NSLineBreakMode = .byTruncatingTail,

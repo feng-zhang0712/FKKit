@@ -23,7 +23,21 @@ final class FKTabBarRTLExampleViewController: UIViewController {
     title = "RTL"
     view.backgroundColor = .systemBackground
 
-    let stack = FKTabBarExampleSupport.makeRootStack(in: view, topInset: 16)
+    tabView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(tabView)
+    NSLayoutConstraint.activate([
+      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      tabView.heightAnchor.constraint(equalToConstant: 56),
+    ])
+
+    let stack = FKTabBarExampleSupport.makeRootStack(
+      in: view,
+      scrollTopBelow: tabView.bottomAnchor,
+      scrollTopSpacing: 16
+    )
+    view.bringSubviewToFront(tabView)
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("RTL in scrollable mode"))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Use the toggles below to validate RTL mirroring, selection auto-scroll, and indicator movement."))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("To validate system RTL: Settings → General → Language & Region (or Xcode scheme Application Language)."))
@@ -68,15 +82,6 @@ final class FKTabBarRTLExampleViewController: UIViewController {
     statusLabel.numberOfLines = 0
     statusLabel.text = "Ready."
     stack.addArrangedSubview(statusLabel)
-
-    tabView.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tabView)
-    NSLayoutConstraint.activate([
-      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      tabView.heightAnchor.constraint(equalToConstant: 56),
-    ])
 
     tabView.onSelectionChanged = { [weak self] item, index, _ in
       self?.appendStatus("selected: \(index) (\(item.titleText ?? item.id))")

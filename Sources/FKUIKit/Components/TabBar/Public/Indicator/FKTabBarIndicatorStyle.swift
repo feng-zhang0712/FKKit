@@ -1,6 +1,6 @@
 import UIKit
 
-/// Follow mode for line indicator frame calculations.
+/// Follow mode for tab bar indicator geometry during selection, paging progress, and strip scrolling.
 public enum FKTabBarIndicatorFollowMode: Equatable {
   /// Always anchors indicator geometry to the currently selected tab frame.
   ///
@@ -46,6 +46,10 @@ public struct FKTabBarLineIndicatorConfiguration: Equatable {
   public var fill: FKTabBarIndicatorFillStyle
   public var leadingInset: CGFloat
   public var trailingInset: CGFloat
+  /// When non-`nil`, the line uses this width (clamped to the span after `leadingInset` / `trailingInset`) and is centered horizontally in that span.
+  ///
+  /// When `nil`, the line spans the full width between insets (existing behavior).
+  public var fixedWidth: CGFloat?
   public var cornerRadius: CGFloat
   /// Follow policy controlling how line indicator reacts to selection, progress, and strip scrolling.
   ///
@@ -56,9 +60,10 @@ public struct FKTabBarLineIndicatorConfiguration: Equatable {
   public init(
     position: FKTabBarLineIndicatorPosition = .bottom,
     thickness: CGFloat = 3,
-    fill: FKTabBarIndicatorFillStyle = .solid(.label),
+    fill: FKTabBarIndicatorFillStyle = .solid(.black),
     leadingInset: CGFloat = 8,
     trailingInset: CGFloat = 8,
+    fixedWidth: CGFloat? = nil,
     cornerRadius: CGFloat = 1.5,
     followMode: FKTabBarIndicatorFollowMode = .trackSelectedFrame
   ) {
@@ -67,6 +72,7 @@ public struct FKTabBarLineIndicatorConfiguration: Equatable {
     self.fill = fill
     self.leadingInset = leadingInset
     self.trailingInset = trailingInset
+    self.fixedWidth = fixedWidth
     self.cornerRadius = cornerRadius
     self.followMode = followMode
   }
@@ -90,6 +96,11 @@ public struct FKTabBarBackgroundIndicatorConfiguration: Equatable {
   public var shadowOpacity: Float
   public var shadowRadius: CGFloat
   public var shadowOffset: CGSize
+  /// Follow policy aligned with ``FKTabBarLineIndicatorConfiguration/followMode`` (default matches line defaults).
+  ///
+  /// Use ``FKTabBarIndicatorFollowMode/trackContentProgress`` so the highlight tracks interactive paging
+  /// between tabs (for example ``FKPagingController`` swipe progress).
+  public var followMode: FKTabBarIndicatorFollowMode
 
   public init(
     insets: NSDirectionalEdgeInsets = .init(top: 4, leading: 6, bottom: 4, trailing: 6),
@@ -100,7 +111,8 @@ public struct FKTabBarBackgroundIndicatorConfiguration: Equatable {
     shadowColor: UIColor = .clear,
     shadowOpacity: Float = 0,
     shadowRadius: CGFloat = 0,
-    shadowOffset: CGSize = .zero
+    shadowOffset: CGSize = .zero,
+    followMode: FKTabBarIndicatorFollowMode = .trackSelectedFrame
   ) {
     self.insets = insets
     self.cornerRadius = cornerRadius
@@ -111,6 +123,19 @@ public struct FKTabBarBackgroundIndicatorConfiguration: Equatable {
     self.shadowOpacity = shadowOpacity
     self.shadowRadius = shadowRadius
     self.shadowOffset = shadowOffset
+    self.followMode = followMode
+  }
+}
+
+/// Configuration for ``FKTabBarIndicatorStyle/custom``.
+public struct FKTabBarCustomIndicatorConfiguration: Equatable {
+  public var id: String
+  /// Same semantics as ``FKTabBarBackgroundIndicatorConfiguration/followMode``.
+  public var followMode: FKTabBarIndicatorFollowMode
+
+  public init(id: String, followMode: FKTabBarIndicatorFollowMode = .trackSelectedFrame) {
+    self.id = id
+    self.followMode = followMode
   }
 }
 
@@ -127,7 +152,14 @@ public enum FKTabBarIndicatorStyle {
   /// Capsule / pill style highlight.
   case pill(FKTabBarBackgroundIndicatorConfiguration)
   /// Host-provided custom indicator.
-  case custom(id: String)
+  case custom(FKTabBarCustomIndicatorConfiguration)
+}
+
+extension FKTabBarIndicatorStyle {
+  /// Builds ``FKTabBarIndicatorStyle/custom(FKTabBarCustomIndicatorConfiguration)`` with defaults aligned to ``FKTabBarLineIndicatorConfiguration``.
+  public static func custom(id: String, followMode: FKTabBarIndicatorFollowMode = .trackSelectedFrame) -> FKTabBarIndicatorStyle {
+    .custom(FKTabBarCustomIndicatorConfiguration(id: id, followMode: followMode))
+  }
 }
 
 /// Case identifier set for `FKTabBarIndicatorStyle`.

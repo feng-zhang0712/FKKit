@@ -32,7 +32,20 @@ final class FKTabBarDynamicTypeExampleViewController: UIViewController {
     title = "Dynamic Type"
     view.backgroundColor = .systemBackground
 
-    let stack = FKTabBarExampleSupport.makeRootStack(in: view, topInset: 16)
+    tabView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(tabView)
+    NSLayoutConstraint.activate([
+      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+    ])
+
+    let stack = FKTabBarExampleSupport.makeRootStack(
+      in: view,
+      scrollTopBelow: tabView.bottomAnchor,
+      scrollTopSpacing: 16
+    )
+    view.bringSubviewToFront(tabView)
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("Dynamic Type strategies"))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Change Larger Text in Settings and switch strategies below to compare truncation, shrinking, wrapping, and height growth."))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("FKTabBar is a UIView component. It reacts to trait changes but does not provide a controller/pager wrapper."))
@@ -48,14 +61,6 @@ final class FKTabBarDynamicTypeExampleViewController: UIViewController {
     infoLabel.numberOfLines = 0
     infoLabel.text = "Strategy: automatic"
     stack.addArrangedSubview(infoLabel)
-
-    tabView.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tabView)
-    NSLayoutConstraint.activate([
-      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-    ])
 
     applyStrategy()
   }

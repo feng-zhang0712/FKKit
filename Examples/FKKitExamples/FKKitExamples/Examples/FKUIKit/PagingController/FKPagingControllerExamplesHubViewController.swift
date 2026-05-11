@@ -1,6 +1,6 @@
 import UIKit
 
-/// Index of `FKPagingController` scenarios: UIKit, SwiftUI, delegate hooks, and dynamic updates.
+/// Index of `FKPagingController` scenarios: UIKit, SwiftUI, delegate hooks, dynamic updates, and tab indicators.
 final class FKPagingControllerExamplesHubViewController: UITableViewController {
   private struct RowModel {
     let title: String
@@ -29,6 +29,11 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         title: "Lazy pages (UIKit)",
         subtitle: "Factory-driven pages, preload range, keepNear cache eviction, creation counter.",
         make: { FKPagingLazyPagesExampleViewController() }
+      ),
+      RowModel(
+        title: "Tab bar indicators",
+        subtitle: "FKTabBar indicator styles with FKPagingController: line progress, highlights, pill, custom z-order.",
+        make: { FKPagingTabBarIndicatorExampleViewController() }
       ),
     ]
     #if canImport(SwiftUI)

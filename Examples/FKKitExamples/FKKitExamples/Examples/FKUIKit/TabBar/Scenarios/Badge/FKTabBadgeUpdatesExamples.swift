@@ -40,7 +40,29 @@ final class FKTabBarBadgeUpdatesExampleViewController: UIViewController {
     tabView.reload(items: items)
     verticalTabView.reload(items: items)
 
-    let stack = FKTabBarExampleSupport.makeRootStack(in: view)
+    tabView.translatesAutoresizingMaskIntoConstraints = false
+    verticalTabView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(tabView)
+    view.addSubview(verticalTabView)
+    NSLayoutConstraint.activate([
+      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      tabView.heightAnchor.constraint(equalToConstant: 56),
+
+      verticalTabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      verticalTabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      verticalTabView.topAnchor.constraint(equalTo: tabView.bottomAnchor, constant: 12),
+      verticalTabView.heightAnchor.constraint(equalToConstant: 76),
+    ])
+
+    let stack = FKTabBarExampleSupport.makeRootStack(
+      in: view,
+      scrollTopBelow: verticalTabView.bottomAnchor,
+      scrollTopSpacing: 16
+    )
+    view.bringSubviewToFront(tabView)
+    view.bringSubviewToFront(verticalTabView)
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("Dot / number / text / none + local updates"))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Tap 'Randomize' to update a few badges via setBadge(at:). FKTabBar is UI-only and does not manage controllers."))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("VoiceOver: selected tabs should read Selected + badge value (if any)."))
@@ -88,22 +110,6 @@ final class FKTabBarBadgeUpdatesExampleViewController: UIViewController {
       self?.clearBadges()
     })
     stack.addArrangedSubview(actions)
-
-    tabView.translatesAutoresizingMaskIntoConstraints = false
-    verticalTabView.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tabView)
-    view.addSubview(verticalTabView)
-    NSLayoutConstraint.activate([
-      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      tabView.heightAnchor.constraint(equalToConstant: 56),
-
-      verticalTabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      verticalTabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      verticalTabView.topAnchor.constraint(equalTo: tabView.bottomAnchor, constant: 12),
-      verticalTabView.heightAnchor.constraint(equalToConstant: 76),
-    ])
 
     // Keep both tab bars in sync so placement tuning is easy to see.
     tabView.onSelectionChanged = { [weak self] _, index, reason in

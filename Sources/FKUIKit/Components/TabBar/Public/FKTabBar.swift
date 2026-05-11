@@ -232,14 +232,15 @@ public final class FKTabBar: UIView {
   public var customIndicatorFrameResolver: ((_ itemFrame: CGRect, _ containerBounds: CGRect) -> CGRect)?
   /// Optional style hook for custom indicator rendering.
   public var customIndicatorStyler: ((_ indicatorView: UIView) -> Void)?
-  /// Optional custom indicator view provider keyed by `.custom(id:)`.
+  /// Optional custom indicator view provider keyed by ``FKTabBarIndicatorStyle/custom``.
   ///
-  /// To fully replace indicator rendering, set `appearance.indicatorStyle = .custom(id:)`
+  /// To fully replace indicator rendering, set `appearance.indicatorStyle` to
+  /// ``FKTabBarIndicatorStyle/custom(id:followMode:)`` (or ``FKTabBarIndicatorStyle/custom(_:)``)
   /// and provide a view here.
   public var indicatorViewProvider: ((_ id: String) -> UIView?)? {
     didSet { indicator.customViewProvider = indicatorViewProvider }
   }
-  /// Optional custom indicator renderer keyed by `.custom(id:)`.
+  /// Optional custom indicator renderer keyed by ``FKTabBarIndicatorStyle/custom``.
   ///
   /// This callback runs from layout time. Avoid expensive drawing and side effects.
   public var indicatorRenderer: ((_ id: String, _ bounds: CGRect, _ indicatorView: UIView) -> Void)? {
@@ -954,15 +955,30 @@ public final class FKTabBar: UIView {
   // MARK: - Accessibility
 
   private func updateIndicatorZOrder(for style: FKTabBarIndicatorStyle) {
-    // Background-like indicators should sit below item content, while line/underline/custom
-    // indicators are expected above content for readability and predictable layering.
-    switch style {
-    case .backgroundHighlight, .gradientHighlight, .pill:
+    if case .none = style { return }
+
+    let order = resolvedAppearance().indicatorZOrder
+    let belowItems: Bool
+    switch order {
+    case .belowTabItems:
+      belowItems = true
+    case .aboveTabItems:
+      belowItems = false
+    case .automatic:
+      switch style {
+      case .backgroundHighlight, .gradientHighlight, .pill, .custom:
+        belowItems = true
+      case .line:
+        belowItems = false
+      case .none:
+        return
+      }
+    }
+
+    if belowItems {
       backgroundHost.insertSubview(indicator, belowSubview: collectionView)
-    case .line, .custom:
+    } else {
       backgroundHost.bringSubviewToFront(indicator)
-    case .none:
-      break
     }
   }
 
@@ -1211,10 +1227,16 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
   }
 
   private func resolvedFollowMode() -> FKTabBarIndicatorFollowMode {
-    if case .line(let config) = resolvedAppearance().indicatorStyle {
+    switch resolvedAppearance().indicatorStyle {
+    case .line(let config):
       return config.followMode
+    case .backgroundHighlight(let config), .gradientHighlight(let config), .pill(let config):
+      return config.followMode
+    case .custom(let config):
+      return config.followMode
+    case .none:
+      return .trackSelectedFrame
     }
-    return .trackSelectedFrame
   }
 
   private func shouldInterpolateIndicatorProgress(for followMode: FKTabBarIndicatorFollowMode) -> Bool {

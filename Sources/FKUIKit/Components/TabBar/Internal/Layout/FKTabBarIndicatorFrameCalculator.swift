@@ -29,17 +29,17 @@ enum FKTabBarIndicatorFrameCalculator {
     case .none:
       return .zero
     case .line(let config):
-      let base: CGRect
-      switch config.followMode {
-      case .trackSelectedFrame, .trackContentProgress, .lockedUntilSettle, .custom:
-        // Progress interpolation (when applicable) happens in `FKTabBar.updateIndicatorFrame`.
-        // Here we only choose between "full item" and "content" anchoring.
-        base = itemFrame
-      case .trackContentFrame:
-        base = contentFrame
+      let base = Self.baseItemFrame(for: config.followMode, itemFrame: itemFrame, contentFrame: contentFrame)
+      let availableWidth = max(0, base.width - config.leadingInset - config.trailingInset)
+      let width: CGFloat
+      let x: CGFloat
+      if let fixed = config.fixedWidth {
+        width = min(max(0, fixed), availableWidth)
+        x = base.minX + config.leadingInset + (availableWidth - width) * 0.5
+      } else {
+        width = availableWidth
+        x = base.minX + config.leadingInset
       }
-      let width = max(0, base.width - config.leadingInset - config.trailingInset)
-      let x = base.minX + config.leadingInset
       let y: CGFloat
       switch config.position {
       case .top: y = base.minY
@@ -48,8 +48,20 @@ enum FKTabBarIndicatorFrameCalculator {
       }
       return CGRect(x: x, y: y, width: width, height: config.thickness)
     case .backgroundHighlight(let config), .gradientHighlight(let config), .pill(let config):
-      return itemFrame.inset(by: UIEdgeInsets(top: config.insets.top, left: config.insets.leading, bottom: config.insets.bottom, right: config.insets.trailing))
-    case .custom:
+      let base = Self.baseItemFrame(for: config.followMode, itemFrame: itemFrame, contentFrame: contentFrame)
+      return base.inset(by: UIEdgeInsets(top: config.insets.top, left: config.insets.leading, bottom: config.insets.bottom, right: config.insets.trailing))
+    case .custom(let config):
+      return Self.baseItemFrame(for: config.followMode, itemFrame: itemFrame, contentFrame: contentFrame)
+    }
+  }
+
+  /// Chooses full tab cell vs. laid-out content bounds before applying style-specific insets or line geometry.
+  private static func baseItemFrame(for followMode: FKTabBarIndicatorFollowMode, itemFrame: CGRect, contentFrame: CGRect) -> CGRect {
+    switch followMode {
+    case .trackContentFrame:
+      return contentFrame
+    case .trackSelectedFrame, .trackContentProgress, .lockedUntilSettle, .custom:
+      // Progress interpolation (when applicable) happens in `FKTabBar.updateIndicatorFrame`.
       return itemFrame
     }
   }

@@ -15,12 +15,12 @@ final class FKTabBarIndicatorView: UIView {
   var color: UIColor = .label {
     didSet { applyStyle() }
   }
-  /// Optional custom view factory for `.custom(id:)` styles.
+  /// Optional custom view factory for ``FKTabBarIndicatorStyle/custom`` styles.
   ///
   /// - Important: The returned view should be lightweight and reusable. The tab bar may call
   ///   this multiple times when styles change, and the view will be hosted and resized to `bounds`.
   var customViewProvider: ((_ id: String) -> UIView?)?
-  /// Optional custom renderer for `.custom(id:)` styles.
+  /// Optional custom renderer for ``FKTabBarIndicatorStyle/custom`` styles.
   ///
   /// This hook is invoked from `layoutSubviews` to allow frame-dependent rendering. Keep it fast;
   /// expensive drawing here can degrade scroll/drag performance.
@@ -55,9 +55,9 @@ final class FKTabBarIndicatorView: UIView {
       // Treat `cornerRadius` as an upper bound so callers can get capsule semantics by providing
       // a sufficiently large value, while still allowing smaller fixed rounded-rect shapes.
       fillView.layer.cornerRadius = min(config.cornerRadius, bounds.height * 0.5)
-    case .custom(let id):
+    case .custom(let config):
       // Custom indicators can draw relative to current bounds, so we trigger host rendering here.
-      customRenderer?(id, bounds, self)
+      customRenderer?(config.id, bounds, self)
     case .none:
       fillView.layer.cornerRadius = 0
     }
@@ -139,10 +139,10 @@ final class FKTabBarIndicatorView: UIView {
       fillView.layer.shadowOpacity = config.shadowOpacity
       fillView.layer.shadowRadius = config.shadowRadius
       fillView.layer.shadowOffset = config.shadowOffset
-    case .custom(let id):
+    case .custom(let config):
       isHidden = false
       fillView.backgroundColor = .clear
-      if let custom = customViewProvider?(id) {
+      if let custom = customViewProvider?(config.id) {
         custom.frame = bounds
         custom.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(custom)

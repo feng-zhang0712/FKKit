@@ -253,6 +253,19 @@ public struct FKTabBarLayoutConfiguration {
 
 // MARK: - Appearance
 
+/// Z-order of the selection indicator relative to tab item views.
+public enum FKTabBarIndicatorZOrder: Equatable {
+  /// Derives placement from `indicatorStyle`.
+  ///
+  /// Background styles (highlight, gradient, pill) and ``FKTabBarIndicatorStyle/custom`` sit below
+  /// tab item content. The line style sits above so the underline remains visible on top of the strip.
+  case automatic
+  /// Always places the indicator below the tab item collection (behind titles and icons).
+  case belowTabItems
+  /// Always places the indicator above the tab item collection.
+  case aboveTabItems
+}
+
 /// Visual appearance tokens for `FKTabBar`.
 public struct FKTabBarAppearance {
   /// Background style.
@@ -300,7 +313,7 @@ public struct FKTabBarAppearance {
 
     public init(
       normalFont: UIFont = .systemFont(ofSize: 14, weight: .regular),
-      selectedFont: UIFont = .systemFont(ofSize: 14, weight: .semibold),
+      selectedFont: UIFont = .systemFont(ofSize: 14, weight: .regular),
       adjustsForContentSizeCategory: Bool = true,
       allowsTwoLineTitle: Bool = false
     ) {
@@ -332,13 +345,13 @@ public struct FKTabBarAppearance {
     public var divider: UIColor
 
     public init(
-      normalText: UIColor = .secondaryLabel,
-      selectedText: UIColor = .label,
+      normalText: UIColor = .tertiaryLabel,
+      selectedText: UIColor = .black,
       disabledText: UIColor = .tertiaryLabel,
-      normalIcon: UIColor = .secondaryLabel,
-      selectedIcon: UIColor = .label,
+      normalIcon: UIColor = .tertiaryLabel,
+      selectedIcon: UIColor = .black,
       disabledIcon: UIColor = .tertiaryLabel,
-      indicator: UIColor = .label,
+      indicator: UIColor = .black,
       divider: UIColor = .separator
     ) {
       self.normalText = normalText
@@ -364,6 +377,12 @@ public struct FKTabBarAppearance {
   public var subtitleConfiguration: FKTabBarTextConfiguration
   /// Indicator rendering style.
   public var indicatorStyle: FKTabBarIndicatorStyle
+  /// Draw order for the indicator relative to tab item content.
+  ///
+  /// Use ``FKTabBarIndicatorZOrder/aboveTabItems`` when a custom indicator must paint on top of tab
+  /// content (for example overlays). ``FKTabBarIndicatorZOrder/automatic`` treats
+  /// ``FKTabBarIndicatorStyle/custom`` like background indicators (below items).
+  public var indicatorZOrder: FKTabBarIndicatorZOrder
   /// Whether a divider is shown.
   public var showsDivider: Bool
   /// Divider edge position.
@@ -379,6 +398,7 @@ public struct FKTabBarAppearance {
     colors: Colors = Colors(),
     subtitleConfiguration: FKTabBarTextConfiguration = .init(),
     indicatorStyle: FKTabBarIndicatorStyle = .line(FKTabBarLineIndicatorConfiguration()),
+    indicatorZOrder: FKTabBarIndicatorZOrder = .automatic,
     showsDivider: Bool = true,
     dividerPosition: DividerPosition = .bottom,
     shadow: Shadow = Shadow()
@@ -388,6 +408,7 @@ public struct FKTabBarAppearance {
     self.colors = colors
     self.subtitleConfiguration = subtitleConfiguration
     self.indicatorStyle = indicatorStyle
+    self.indicatorZOrder = indicatorZOrder
     self.showsDivider = showsDivider
     self.dividerPosition = dividerPosition
     self.shadow = shadow

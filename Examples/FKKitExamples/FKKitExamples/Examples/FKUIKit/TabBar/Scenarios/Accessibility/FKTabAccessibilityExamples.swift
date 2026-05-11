@@ -33,7 +33,21 @@ final class FKTabBarAccessibilityExampleViewController: UIViewController {
     items[4].badge = .none
     tabView.reload(items: items)
 
-    let stack = FKTabBarExampleSupport.makeRootStack(in: view, topInset: 16)
+    tabView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(tabView)
+    NSLayoutConstraint.activate([
+      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      tabView.heightAnchor.constraint(equalToConstant: 56),
+    ])
+
+    let stack = FKTabBarExampleSupport.makeRootStack(
+      in: view,
+      scrollTopBelow: tabView.bottomAnchor,
+      scrollTopSpacing: 16
+    )
+    view.bringSubviewToFront(tabView)
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("VoiceOver checklist"))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Turn on VoiceOver and swipe across tabs. Selected/disabled/badge should be announced correctly."))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("This demo only changes a UIView's state. FKTabBar does not provide any TabBarController."))
@@ -89,15 +103,6 @@ final class FKTabBarAccessibilityExampleViewController: UIViewController {
     statusLabel.numberOfLines = 0
     statusLabel.text = "Ready."
     stack.addArrangedSubview(statusLabel)
-
-    tabView.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tabView)
-    NSLayoutConstraint.activate([
-      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      tabView.heightAnchor.constraint(equalToConstant: 56),
-    ])
 
     tabView.onSelectionChanged = { [weak self] item, idx, _ in
       self?.statusLabel.text = "Selected: \(idx) (\(item.titleText ?? item.id))"

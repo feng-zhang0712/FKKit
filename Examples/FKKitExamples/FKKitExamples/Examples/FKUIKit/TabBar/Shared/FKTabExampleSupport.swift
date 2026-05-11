@@ -74,7 +74,18 @@ enum FKTabBarExampleSupport {
     ]
   }
 
-  static func makeRootStack(in view: UIView, topInset: CGFloat = 66) -> UIStackView {
+  /// Hosts a vertical `UIStackView` inside a full-screen `UIScrollView`.
+  ///
+  /// - Parameters:
+  ///   - topInset: Used when `scrollTopBelow` is `nil`; pins the scroll view top to `safeAreaLayoutGuide` plus this inset.
+  ///   - scrollTopBelow: When non-`nil`, pins the scroll view top to this anchor (for example the bottom of a pinned `FKTabBar`) so scroll content is not covered by overlay tab bars.
+  ///   - scrollTopSpacing: Extra vertical space between `scrollTopBelow` and the scroll view top.
+  static func makeRootStack(
+    in view: UIView,
+    topInset: CGFloat = 66,
+    scrollTopBelow referenceAnchor: NSLayoutYAxisAnchor? = nil,
+    scrollTopSpacing: CGFloat = 16
+  ) -> UIStackView {
     let scrollView = UIScrollView()
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.alwaysBounceVertical = true
@@ -87,8 +98,15 @@ enum FKTabBarExampleSupport {
     view.addSubview(scrollView)
     scrollView.addSubview(stack)
 
+    let scrollTopConstraint: NSLayoutConstraint = {
+      if let referenceAnchor {
+        return scrollView.topAnchor.constraint(equalTo: referenceAnchor, constant: scrollTopSpacing)
+      }
+      return scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: topInset)
+    }()
+
     NSLayoutConstraint.activate([
-      scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: topInset),
+      scrollTopConstraint,
       scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),

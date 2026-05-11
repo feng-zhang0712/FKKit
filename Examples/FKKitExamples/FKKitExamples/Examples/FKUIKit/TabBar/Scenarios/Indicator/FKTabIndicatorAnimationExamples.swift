@@ -7,6 +7,9 @@ final class FKTabBarIndicatorAnimationExampleViewController: UIViewController {
   private var lineFollowMode: FKTabBarIndicatorFollowMode = .trackSelectedFrame
   private var selectedKind: FKTabBarIndicatorStyleKind = .line
   private var lineHorizontalInset: CGFloat = 10
+  /// `0` means automatic full width between insets (`fixedWidth == nil`).
+  private var lineFixedWidthPoints: CGFloat = 0
+  private let lineFixedWidthSliderMaximum: CGFloat = 80
   private var backgroundInsets = NSDirectionalEdgeInsets(top: 6, leading: 6, bottom: 6, trailing: 6)
   private var backgroundCornerRadius: CGFloat = 999
   private var stressWorkItem: DispatchWorkItem?
@@ -63,6 +66,27 @@ final class FKTabBarIndicatorAnimationExampleViewController: UIViewController {
     }, for: .valueChanged)
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Line horizontal inset"))
     stack.addArrangedSubview(lineInsetSlider)
+
+    let lineWidthValueLabel = UILabel()
+    lineWidthValueLabel.font = .preferredFont(forTextStyle: .footnote)
+    lineWidthValueLabel.textColor = .secondaryLabel
+    lineWidthValueLabel.numberOfLines = 0
+
+    let lineWidthSlider = UISlider()
+    lineWidthSlider.minimumValue = 0
+    lineWidthSlider.maximumValue = Float(lineFixedWidthSliderMaximum)
+    lineWidthSlider.value = 0
+    lineWidthSlider.addAction(UIAction { [weak self] action in
+      guard let self, let slider = action.sender as? UISlider else { return }
+      self.lineFixedWidthPoints = CGFloat(slider.value)
+      Self.updateLineFixedWidthLabel(label: lineWidthValueLabel, points: self.lineFixedWidthPoints)
+      self.applyIndicatorStyle()
+    }, for: .valueChanged)
+
+    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Line fixed width (0 = full width between insets; drag to narrow the underline)"))
+    stack.addArrangedSubview(lineWidthValueLabel)
+    stack.addArrangedSubview(lineWidthSlider)
+    Self.updateLineFixedWidthLabel(label: lineWidthValueLabel, points: lineFixedWidthPoints)
 
     let bgInsetTop = makeInsetSlider(title: "Background top inset", value: backgroundInsets.top) { [weak self] v in
       self?.backgroundInsets.top = v
@@ -157,10 +181,19 @@ final class FKTabBarIndicatorAnimationExampleViewController: UIViewController {
         fill: .gradient(colors: [.systemBlue, .systemTeal], startPoint: .zero, endPoint: .init(x: 1, y: 0)),
         leadingInset: lineHorizontalInset,
         trailingInset: lineHorizontalInset,
+        fixedWidth: lineFixedWidthPoints > 0 ? lineFixedWidthPoints : nil,
         cornerRadius: 1.5,
         followMode: lineFollowMode
       )
     )
+  }
+
+  private static func updateLineFixedWidthLabel(label: UILabel, points: CGFloat) {
+    if points <= 0 {
+      label.text = "fixedWidth: auto — underline spans full width between insets"
+    } else {
+      label.text = "fixedWidth: \(Int(points)) pt — centered in tab (clamped if tab is narrower)"
+    }
   }
 
   private func applyIndicatorStyle() {
@@ -198,7 +231,7 @@ final class FKTabBarIndicatorAnimationExampleViewController: UIViewController {
         )
       )
     case .custom:
-      configuration.appearance.indicatorStyle = .custom(id: "demo.custom")
+      configuration.appearance.indicatorStyle = FKTabBarIndicatorStyle.custom(id: "demo.custom")
     }
     tabView.configuration = configuration
   }

@@ -94,7 +94,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
     let baseFont = useSelectedFont ? appearance.typography.selectedFont : appearance.typography.normalFont
 
     let normalTitleColor = item.title.normal.style.color
-    let selectedTitleColor = item.title.selected?.style.color ?? normalTitleColor
+    let selectedTitleColor = item.title.selected?.style.color ?? appearance.colors.selectedText
 
     let textColor: UIColor
     let iconColor: UIColor
