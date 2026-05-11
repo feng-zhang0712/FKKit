@@ -5,7 +5,7 @@ import FKUIKit
 ///
 /// Key highlights:
 /// - Two fixed detents (`.fixed(240)`, `.fixed(520)`).
-/// - Uses `FKPresentationController.setDetent(_:animated:)` from outside the presented controller.
+/// - Uses `FKPresentationController.selectDetent(_:animated:)` from outside the presented controller.
 final class SheetDetentsPointsExampleViewController: FKPresentationExamplePageViewController {
   private var currentController: FKPresentationController?
 
@@ -21,16 +21,16 @@ final class SheetDetentsPointsExampleViewController: FKPresentationExamplePageVi
       guard let self else { return }
       var configuration = FKPresentationExampleHelpers.bottomSheetConfiguration()
       configuration.sheet.detents = [.fixed(240), .fixed(520)]
-      configuration.sheet.initialDetentIndex = 0
+      configuration.sheet.initialSelectedDetentIndex = 0
       self.currentController = FKPresentationExampleHelpers.present(from: self, title: "Points detents", configuration: configuration)
     }
 
     addPrimaryButton(title: "Switch to 240pt") { [weak self] in
-      self?.currentController?.setDetent(.fixed(240), animated: true)
+      self?.currentController?.selectDetent(.fixed(240), animated: true)
     }
 
     addPrimaryButton(title: "Switch to 520pt") { [weak self] in
-      self?.currentController?.setDetent(.fixed(520), animated: true)
+      self?.currentController?.selectDetent(.fixed(520), animated: true)
     }
   }
 }

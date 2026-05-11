@@ -4,10 +4,10 @@ import FKUIKit
 /// Shows how to toggle the sheet grabber and tune its size/inset.
 ///
 /// Key highlights:
-/// - `sheet.showsGrabber` on/off
+/// - `sheet.prefersGrabberVisible` on/off
 /// - Grabber sizing is a small but impactful UX detail.
 final class SheetGrabberExampleViewController: FKPresentationExamplePageViewController {
-  private var showsGrabber = true
+  private var prefersGrabberVisible = true
   private var grabberWidth: Float = 36
   private var grabberTopInset: Float = 8
 
@@ -21,10 +21,10 @@ final class SheetGrabberExampleViewController: FKPresentationExamplePageViewCont
 
     addView(
       FKExampleControls.toggle(
-        title: "Shows grabber",
-        isOn: showsGrabber
+        title: "Prefers grabber visible",
+        isOn: prefersGrabberVisible
       ) { [weak self] isOn in
-        self?.showsGrabber = isOn
+        self?.prefersGrabberVisible = isOn
       }
     )
 
@@ -54,7 +54,7 @@ final class SheetGrabberExampleViewController: FKPresentationExamplePageViewCont
       guard let self else { return }
       var configuration = FKPresentationExampleHelpers.bottomSheetConfiguration()
       configuration.sheet.detents = [.fixed(260), .full]
-      configuration.sheet.showsGrabber = self.showsGrabber
+      configuration.sheet.prefersGrabberVisible = self.prefersGrabberVisible
       configuration.sheet.grabberSize = .init(width: CGFloat(self.grabberWidth), height: 5)
       configuration.sheet.grabberTopInset = CGFloat(self.grabberTopInset)
       _ = FKPresentationExampleHelpers.present(from: self, title: "Grabber", configuration: configuration)

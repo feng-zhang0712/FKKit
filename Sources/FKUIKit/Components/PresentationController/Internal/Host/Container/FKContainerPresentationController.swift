@@ -24,7 +24,7 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
   lazy var panToDismissGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanToDismiss(_:)))
 
   var resolvedDetentHeights: [CGFloat] = []
-  var currentDetentIndex: Int = 0
+  var selectedDetentIndex: Int = 0
   /// Detent index at the start of the active sheet pan; used by `crossDetentSwipeDismissPolicy`.
   var sheetPanBeganDetentIndex: Int = 0
   var panStartFrame: CGRect = .zero
@@ -109,7 +109,7 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     }
     configureContainerBlurIfNeeded()
 
-    currentDetentIndex = configuration.sheet.initialDetentIndex
+    selectedDetentIndex = configuration.sheet.initialSelectedDetentIndex
     recalculateDetentsIfNeeded()
     configureGrabberIfNeeded()
     installGesturesIfNeeded()

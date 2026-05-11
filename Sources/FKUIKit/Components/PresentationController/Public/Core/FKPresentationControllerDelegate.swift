@@ -13,8 +13,8 @@ public protocol FKPresentationControllerDelegate: AnyObject {
   func presentationControllerDidDismiss(_ controller: FKPresentationController)
   /// Called while interactive dismissal progresses.
   func presentationController(_ controller: FKPresentationController, didUpdateProgress progress: CGFloat)
-  /// Called when the active sheet detent changes.
-  func presentationController(_ controller: FKPresentationController, didChangeDetent detent: FKPresentationDetent, index: Int)
+  /// Called when the sheet’s selected detent changes (analogous to `UISheetPresentationControllerDelegate.sheetPresentationControllerDidChangeSelectedDetentIdentifier`).
+  func presentationController(_ controller: FKPresentationController, didChangeSelectedDetent detent: FKPresentationDetent, at index: Int)
 }
 
 public extension FKPresentationControllerDelegate {
@@ -23,7 +23,7 @@ public extension FKPresentationControllerDelegate {
   func presentationControllerWillDismiss(_ controller: FKPresentationController) {}
   func presentationControllerDidDismiss(_ controller: FKPresentationController) {}
   func presentationController(_ controller: FKPresentationController, didUpdateProgress progress: CGFloat) {}
-  func presentationController(_ controller: FKPresentationController, didChangeDetent detent: FKPresentationDetent, index: Int) {}
+  func presentationController(_ controller: FKPresentationController, didChangeSelectedDetent detent: FKPresentationDetent, at index: Int) {}
 }
 
 /// Closure-based lifecycle handlers for teams that prefer lightweight integration.
@@ -38,8 +38,8 @@ public struct FKPresentationLifecycleHandlers {
   public var didDismiss: (@MainActor () -> Void)?
   /// Called while interactive dismissal progresses.
   public var progress: (@MainActor (CGFloat) -> Void)?
-  /// Called when the active sheet detent changes.
-  public var detentDidChange: (@MainActor (_ detent: FKPresentationDetent, _ index: Int) -> Void)?
+  /// Called when the sheet’s selected detent changes.
+  public var selectedDetentDidChange: (@MainActor (_ detent: FKPresentationDetent, _ index: Int) -> Void)?
 
   /// Creates an empty callbacks container with optional closures.
   public init(
@@ -48,13 +48,13 @@ public struct FKPresentationLifecycleHandlers {
     willDismiss: (@MainActor () -> Void)? = nil,
     didDismiss: (@MainActor () -> Void)? = nil,
     progress: (@MainActor (CGFloat) -> Void)? = nil,
-    detentDidChange: (@MainActor (_ detent: FKPresentationDetent, _ index: Int) -> Void)? = nil
+    selectedDetentDidChange: (@MainActor (_ detent: FKPresentationDetent, _ index: Int) -> Void)? = nil
   ) {
     self.willPresent = willPresent
     self.didPresent = didPresent
     self.willDismiss = willDismiss
     self.didDismiss = didDismiss
     self.progress = progress
-    self.detentDidChange = detentDidChange
+    self.selectedDetentDidChange = selectedDetentDidChange
   }
 }

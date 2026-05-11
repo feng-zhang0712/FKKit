@@ -62,7 +62,7 @@ final class CrossDetentSwipeDismissExampleViewController: FKPresentationExampleP
     }
 
     configuration.sheet.detents = [.fixed(260), .large]
-    configuration.sheet.initialDetentIndex = 1
+    configuration.sheet.initialSelectedDetentIndex = 1
     configuration.sheet.crossDetentSwipeDismissPolicy = policy
     configuration.dismissBehavior.allowsSwipe = true
 

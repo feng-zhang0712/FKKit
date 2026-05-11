@@ -20,7 +20,7 @@ public extension FKPresentationConfiguration {
       /// further drag in the dismiss direction can dismiss in the **same** gesture (no need to lift and pan again).
       case systemAligned
       /// Previous FK behavior: dismiss rubber-banding and end-of-gesture dismiss thresholds apply only when the
-      /// sheet was already at the smallest detent **when the pan began** (`currentDetentIndex` is not consulted
+      /// sheet was already at the smallest detent **when the pan began** (`selectedDetentIndex` is not consulted
       /// mid-gesture for dismiss eligibility).
       case strictSmallestDetentAtPanStart
     }
@@ -44,12 +44,12 @@ public extension FKPresentationConfiguration {
 
     /// Available stopping points for sheet modes.
     public var detents: [FKPresentationDetent]
-    /// Initial detent index used on first display.
-    public var initialDetentIndex: Int
+    /// Selected detent index when the sheet first appears (aligned with ``UISheetPresentationController`` selection semantics).
+    public var initialSelectedDetentIndex: Int
     /// Maximum height ratio used when resolving `.fitContent`.
     public var maximumFitContentHeightFraction: CGFloat
-    /// Enables a grabber/handle in the chrome area.
-    public var showsGrabber: Bool
+    /// Whether the sheet shows the system-like grabber handle (aligned with `UISheetPresentationController.prefersGrabberVisible`).
+    public var prefersGrabberVisible: Bool
     /// Grabber size in points.
     public var grabberSize: CGSize
     /// Grabber top spacing in points.
@@ -78,9 +78,9 @@ public extension FKPresentationConfiguration {
     /// Creates a sheet configuration.
     public init(
       detents: [FKPresentationDetent] = [.fitContent, .full],
-      initialDetentIndex: Int = 0,
+      initialSelectedDetentIndex: Int = 0,
       maximumFitContentHeightFraction: CGFloat = 0.9,
-      showsGrabber: Bool = true,
+      prefersGrabberVisible: Bool = true,
       grabberSize: CGSize = .init(width: 36, height: 5),
       grabberTopInset: CGFloat = 8,
       dismissThreshold: CGFloat = 44,
@@ -95,9 +95,9 @@ public extension FKPresentationConfiguration {
       crossDetentSwipeDismissPolicy: CrossDetentSwipeDismissPolicy = .systemAligned
     ) {
       self.detents = detents.isEmpty ? [.fitContent] : detents
-      self.initialDetentIndex = max(0, min(initialDetentIndex, self.detents.count - 1))
+      self.initialSelectedDetentIndex = max(0, min(initialSelectedDetentIndex, self.detents.count - 1))
       self.maximumFitContentHeightFraction = min(max(maximumFitContentHeightFraction, 0.2), 1)
-      self.showsGrabber = showsGrabber
+      self.prefersGrabberVisible = prefersGrabberVisible
       self.grabberSize = grabberSize
       self.grabberTopInset = max(0, grabberTopInset)
       self.dismissThreshold = max(0, dismissThreshold)

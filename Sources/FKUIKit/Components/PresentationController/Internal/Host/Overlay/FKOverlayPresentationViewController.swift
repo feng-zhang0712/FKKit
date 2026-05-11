@@ -19,7 +19,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
   private weak var hostedContentView: UIView?
 
   private var resolvedDetentHeights: [CGFloat] = []
-  private var currentDetentIndex: Int = 0
+  private var selectedDetentIndex: Int = 0
   private var sheetPanBeganDetentIndex: Int = 0
   private var panStartFrame: CGRect = .zero
   private var isPanningSheet: Bool = false
@@ -55,7 +55,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
     installGestures()
     recalculateDetentsIfNeeded()
-    currentDetentIndex = configuration.sheet.initialDetentIndex
+    selectedDetentIndex = configuration.sheet.initialSelectedDetentIndex
   }
 
   func embedContent(_ contentController: UIViewController) {
@@ -189,7 +189,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     case .began:
       isPanningSheet = true
       panStartFrame = wrapperView.frame
-      sheetPanBeganDetentIndex = currentDetentIndex
+      sheetPanBeganDetentIndex = selectedDetentIndex
     case .changed:
       guard isPanningSheet else { return }
       let frame = interactiveSheetFrame(translationY: translation.y)
@@ -209,7 +209,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       }
       // Snap to nearest detent.
       let target = nearestDetentIndex(velocityY: velocity.y)
-      currentDetentIndex = target
+      selectedDetentIndex = target
       UIView.animate(withDuration: 0.26, delay: 0, options: [.curveEaseInOut, .allowUserInteraction]) {
         self.wrapperView.frame = self.frameOfWrapper()
         self.layoutContent()
@@ -294,7 +294,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     resolvedDetentHeights = configuration.sheet.detents.map { detent in
       resolve(detent: detent, availableHeight: availableHeight)
     }
-    currentDetentIndex = max(0, min(currentDetentIndex, max(0, resolvedDetentHeights.count - 1)))
+    selectedDetentIndex = max(0, min(selectedDetentIndex, max(0, resolvedDetentHeights.count - 1)))
   }
 
   private func resolve(detent: FKPresentationDetent, availableHeight: CGFloat) -> CGFloat {
@@ -339,8 +339,8 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private func resolvedSheetHeight(bounds: CGRect, safeInsets: UIEdgeInsets) -> CGFloat {
     recalculateDetentsIfNeeded()
-    if resolvedDetentHeights.indices.contains(currentDetentIndex) {
-      return resolvedDetentHeights[currentDetentIndex]
+    if resolvedDetentHeights.indices.contains(selectedDetentIndex) {
+      return resolvedDetentHeights[selectedDetentIndex]
     }
     return min(bounds.height * 0.5, 320)
   }
@@ -412,6 +412,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       case .strictSmallestDetentAtPanStart:
         return sheetPanBeganDetentIndex == 0 && translationY > 0
       case .systemAligned:
+        if sheetPanBeganDetentIndex == 0, translationY > 0 { return true }
         guard translationY > 0 else { return false }
         let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
         let extraDismissPull = translationY - translationToReachMinHeight
@@ -473,10 +474,15 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
           frame.origin.y = panStartFrame.origin.y + translationY
           frame.size.height = panStartFrame.size.height
         case .systemAligned:
-          let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
-          let extraDismissPull = translationY - translationToReachMinHeight
-          frame.size.height = minHeight
-          frame.origin.y = (bottomY - minHeight) + extraDismissPull
+          if sheetPanBeganDetentIndex == 0 {
+            frame.origin.y = panStartFrame.origin.y + translationY
+            frame.size.height = panStartFrame.size.height
+          } else {
+            let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
+            let extraDismissPull = translationY - translationToReachMinHeight
+            frame.size.height = minHeight
+            frame.origin.y = (bottomY - minHeight) + extraDismissPull
+          }
         }
       } else {
         frame.size.height = panStartFrame.height - translationY
@@ -579,9 +585,9 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     if abs(velocityY) > 900, resolvedDetentHeights.count >= 2 {
       switch configuration.layout {
       case .bottomSheet(_):
-        return velocityY < 0 ? min(resolvedDetentHeights.count - 1, currentDetentIndex + 1) : max(0, currentDetentIndex - 1)
+        return velocityY < 0 ? min(resolvedDetentHeights.count - 1, selectedDetentIndex + 1) : max(0, selectedDetentIndex - 1)
       case .topSheet(_):
-        return velocityY > 0 ? min(resolvedDetentHeights.count - 1, currentDetentIndex + 1) : max(0, currentDetentIndex - 1)
+        return velocityY > 0 ? min(resolvedDetentHeights.count - 1, selectedDetentIndex + 1) : max(0, selectedDetentIndex - 1)
       default:
         break
       }

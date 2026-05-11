@@ -182,7 +182,7 @@ FKPresentationController.present(
 var configuration = FKPresentationConfiguration()
 configuration.layout = .bottomSheet(configuration.sheet)
 configuration.sheet.detents = [.fitContent, .fraction(0.5), .full]
-configuration.sheet.initialDetentIndex = 0
+configuration.sheet.initialSelectedDetentIndex = 0
 
 let controller = FKPresentationController.present(
   contentController: formVC,
@@ -191,9 +191,9 @@ let controller = FKPresentationController.present(
 )
 
 // Later:
-controller.setDetent(.full, animated: true)
+controller.selectDetent(.full, animated: true)
 // or:
-controller.setDetent(index: 1, animated: true)
+controller.selectDetent(at: 1, animated: true)
 ```
 
 ### Backdrop Styles
@@ -277,8 +277,8 @@ let handlers = FKPresentationLifecycleHandlers(
   willDismiss: { print("willDismiss") },
   didDismiss: { print("didDismiss") },
   progress: { progress in print("progress:", progress) },
-  detentDidChange: { detent, index in
-    print("detent changed:", detent, index)
+  selectedDetentDidChange: { detent, index in
+    print("selected detent changed:", detent, index)
   }
 )
 
@@ -319,14 +319,15 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - `FKPresentationController.init(contentController:configuration:delegate:handlers:)`
 - `FKPresentationController.present(from:animated:completion:)`
 - `FKPresentationController.dismiss(animated:completion:)`
-- `FKPresentationController.setDetent(_:animated:)`
-- `FKPresentationController.setDetent(index:animated:)`
+- `FKPresentationController.selectDetent(_:animated:)`
+- `FKPresentationController.selectDetent(at:animated:)`
 - `FKPresentationController.present(contentController:from:configuration:delegate:handlers:animated:completion:)`
+- Runtime sheet state: `FKPresentationController.detents`, `selectedDetent`, `selectedDetentIndex`
 
 ### Configuration Highlights
 
 - Placement: `layout`
-- Sheet behavior: `sheet.detents`, `sheet.initialDetentIndex`, thresholds, magnetic snapping
+- Sheet behavior: `sheet.detents`, `sheet.initialSelectedDetentIndex`, `sheet.prefersGrabberVisible`, thresholds, magnetic snapping
 - Center behavior: `center.size`, margins, interactive dismiss settings
 - Interaction: `dismissBehavior`, `backgroundInteraction`
 - Visuals: `cornerRadius`, `shadow`, `border`, `backdropStyle`, `contentInsets`
@@ -336,7 +337,7 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 
 ## Best Practices
 
-- Keep all presentation operations on main actor (`present`, `dismiss`, `setDetent`).
+- Keep all presentation operations on main actor (`present`, `dismiss`, `selectDetent`).
 - Prefer `.anchor` for in-page dropdown UX where anchor z-order and hierarchy attachment matter.
 - Use `preferredContentSize` on content controllers for predictable fit-content behavior.
 - Use callback/delegate hooks to sync business state with transition state.

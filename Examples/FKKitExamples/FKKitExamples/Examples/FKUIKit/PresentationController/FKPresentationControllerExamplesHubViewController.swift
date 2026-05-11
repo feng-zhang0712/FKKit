@@ -42,7 +42,7 @@ final class FKPresentationControllerExamplesHubViewController: UITableViewContro
       rows: [
         Row(
           title: "Detents — Points",
-          subtitle: "Two fixed heights + programmatic detent switching via `setDetent`.",
+          subtitle: "Two fixed heights + programmatic detent switching via `selectDetent`.",
           make: { SheetDetentsPointsExampleViewController() }
         ),
         Row(

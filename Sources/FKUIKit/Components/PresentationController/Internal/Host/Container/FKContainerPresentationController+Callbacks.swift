@@ -10,7 +10,7 @@ extension FKContainerPresentationController {
   }
 
   /// Forwards detent transitions to delegate/handler pipelines.
-  func notifyDetentDidChange(_ detent: FKPresentationDetent, index: Int) {
-    owner?.notifyDetentDidChange(detent, index: index)
+  func notifySelectedDetentDidChange(_ detent: FKPresentationDetent, index: Int) {
+    owner?.notifySelectedDetentDidChange(detent, index: index)
   }
 }
