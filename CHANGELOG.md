@@ -4,6 +4,17 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Planned
+
+- Optional: Example app under `Examples/` (depending on this package locally)
+
+## [0.48.0] - 2026-05-11
+
+### Changed (FKUIKit — Presentation) **Breaking**
+
+- **`FKPresentationController`** / sheet configuration names aligned with **`UISheetPresentationController`**: **`detents`**, **`selectedDetent`** / **`selectedDetentIndex`**, **`selectDetent`**, **`prefersGrabberVisible`**, **`initialSelectedDetentIndex`**; delegate **`presentationController(_:didChangeSelectedDetent:at:)`**; lifecycle **`selectedDetentDidChange`**.
+- Sheet cross-detent interactive dismiss: **`crossDetentSwipeDismissPolicy`** (**`systemAligned`** vs **`strictSmallestDetentAtPanStart`**); container and overlay gesture handling updates; anchor-style dismiss uses fixed height with **Y** translation.
+
 ### Changed (FKCompositeKit — ListKit) **Breaking**
 
 - **`FKListStateUIDrivers`** → **`FKListPresentationDrivers`**; **`FKListStateManager`**: `ui` → **`drivers`**, initializer label `ui:` → **`drivers:`**.
@@ -26,9 +37,13 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - **`FKBaseViewController`**: **`loadInitialContent()`** — runs once on first **`viewDidAppear`**, before **`viewDidAppearForTheFirstTime(_:)`**.
 - **`Components/Base/README.md`**: documents Base vs Composition vs **ListKit**, refresh overlap warning, and **`loadInitialContent`** timing.
 
-### Planned
+### Changed (Build)
 
-- Optional: Example app under `Examples/` (depending on this package locally)
+- **Strict concurrency** enforced in CI; examples and project settings aligned with Swift 6 concurrency rules.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **s.version** set to **0.48.0** (Git tag **`0.48.0`**).
 
 ## [0.47.0] - 2026-05-09
 

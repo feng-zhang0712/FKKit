@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'FKCoreKit'
-  s.version = '0.47.0'
+  s.version = '0.48.0'
   s.summary = 'FKKit core module: networking, storage, security, utilities, and extensions.'
   s.description = <<-DESC
     Foundation layer for the FKKit family: async helpers, business utilities,
