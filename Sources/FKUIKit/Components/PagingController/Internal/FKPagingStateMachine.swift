@@ -52,4 +52,11 @@ final class FKPagingStateMachine {
     snapshot.toIndex = nil
     snapshot.progress = 0
   }
+
+  /// Bumps ``FKPagingStateSnapshot/transitionToken`` so in-flight `UIPageViewController` completion blocks can no-op safely.
+  @discardableResult
+  func invalidateTransitionToken() -> Int {
+    snapshot.transitionToken &+= 1
+    return snapshot.transitionToken
+  }
 }

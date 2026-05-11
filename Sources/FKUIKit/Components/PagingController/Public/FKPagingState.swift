@@ -1,32 +1,32 @@
 import Foundation
 
-/// Runtime phase for `FKPagingController`.
+/// High-level transition phase exposed by ``FKPagingController``.
 public enum FKPagingPhase: Equatable {
-  /// No active transition.
+  /// No interactive or programmatic transition is active.
   case idle
-  /// User is dragging the paging scroll view.
+  /// User is dragging the internal paging scroll view.
   case dragging
-  /// Transition is decelerating/settling after a drag.
+  /// Scroll view is decelerating after a drag.
   case settling
-  /// Transition is driven by API or tab tap.
+  /// A programmatic page switch (API or tab-driven) is in flight.
   case programmaticSwitch
-  /// Active transition was superseded by a newer request.
+  /// The current transition was superseded or aborted; selection will reconcile on the next event.
   case interrupted
 }
 
-/// Immutable state snapshot emitted by the paging state machine.
+/// Immutable snapshot of ``FKPagingController`` transition state.
 public struct FKPagingStateSnapshot: Equatable {
-  /// Current settled page index.
+  /// Last settled page index.
   public var selectedIndex: Int
-  /// Source index for an in-flight transition.
+  /// Origin index for an in-flight transition, if applicable.
   public var fromIndex: Int?
-  /// Target index for an in-flight transition.
+  /// Destination index for an in-flight transition, if applicable.
   public var toIndex: Int?
-  /// Normalized transition progress in `0...1`.
+  /// Normalized interactive progress in `0...1` while dragging.
   public var progress: CGFloat
   /// Current phase.
   public var phase: FKPagingPhase
-  /// Monotonic token used to reject stale callbacks.
+  /// Monotonic token associated with programmatic transitions (for correlating callbacks).
   public var transitionToken: Int
 
   public init(

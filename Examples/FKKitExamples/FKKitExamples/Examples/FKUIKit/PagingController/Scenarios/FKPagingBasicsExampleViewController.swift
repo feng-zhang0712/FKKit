@@ -1,7 +1,9 @@
 import UIKit
 import FKUIKit
 
-final class FKPagingControllerBasicExampleViewController: UIViewController {
+/// Demonstrates standard eager paging, programmatic navigation, and stress scheduling.
+@MainActor
+final class FKPagingBasicsExampleViewController: UIViewController {
   private let pagingController: FKPagingController
   private var stressWorkItem: DispatchWorkItem?
 
@@ -22,9 +24,9 @@ final class FKPagingControllerBasicExampleViewController: UIViewController {
       )
     )
     let pages: [UIViewController] = [
-      FKPagingDemoPageViewController(color: .systemBlue, titleText: "Home feed"),
+      FKPagingDemoPageViewController(color: .systemBlue, titleText: "Home"),
       FKPagingDemoPageViewController(color: .systemGreen, titleText: "Explore"),
-      FKPagingDemoListViewController(titleText: "Inbox"),
+      FKPagingDemoListViewController(headerTitle: "Inbox"),
       FKPagingDemoPageViewController(color: .systemOrange, titleText: "Profile"),
       FKPagingDemoPageViewController(color: .systemPurple, titleText: "Settings"),
     ]
@@ -45,21 +47,27 @@ final class FKPagingControllerBasicExampleViewController: UIViewController {
   }
 
   @available(*, unavailable)
-  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "Paging + TabBar"
+    title = "Basics"
     view.backgroundColor = .systemBackground
-    embed(pagingController)
-    installVerificationActions()
+    embedFullScreen(pagingController)
+
     let note = UILabel()
     note.font = .preferredFont(forTextStyle: .footnote)
     note.textColor = .secondaryLabel
     note.numberOfLines = 0
-    note.text = "FollowMode is set to trackContentProgress in this demo. Swipe pages and observe smooth indicator interpolation."
+    note.text =
+      "Stress x20 fires 20 rapid programmatic page changes (no animation) to validate the transition queue. For animated paging, use Prev/Next. Swipe works on the pager; Inbox is a nested UITableView."
     note.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(note)
+
+    installToolbarActions()
+
     NSLayoutConstraint.activate([
       note.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
       note.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
@@ -67,9 +75,10 @@ final class FKPagingControllerBasicExampleViewController: UIViewController {
     ])
   }
 
-  private func embed(_ child: UIViewController) {
+  private func embedFullScreen(_ child: UIViewController) {
     addChild(child)
     child.view.translatesAutoresizingMaskIntoConstraints = false
+    child.view.clipsToBounds = true
     view.addSubview(child.view)
     NSLayoutConstraint.activate([
       child.view.topAnchor.constraint(equalTo: view.topAnchor),
@@ -80,7 +89,7 @@ final class FKPagingControllerBasicExampleViewController: UIViewController {
     child.didMove(toParent: self)
   }
 
-  private func installVerificationActions() {
+  private func installToolbarActions() {
     let panel = UIStackView()
     panel.axis = .horizontal
     panel.spacing = 8
@@ -98,18 +107,18 @@ final class FKPagingControllerBasicExampleViewController: UIViewController {
     })
     panel.addArrangedSubview(FKTabBarExampleSupport.actionButton("Stress x20") { [weak self] in
       guard let self else { return }
-      self.stressWorkItem?.cancel()
+      stressWorkItem?.cancel()
       let work = DispatchWorkItem { [weak self] in
         guard let self else { return }
         for step in 0..<20 {
-          DispatchQueue.main.asyncAfter(deadline: .now() + 0.05 * Double(step)) { [weak self] in
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.04 * Double(step)) { [weak self] in
             guard let self else { return }
             let target = (step * 3) % max(1, self.pagingController.pageCount)
-            self.pagingController.setSelectedIndex(target, animated: true)
+            self.pagingController.setSelectedIndex(target, animated: false)
           }
         }
       }
-      self.stressWorkItem = work
+      stressWorkItem = work
       DispatchQueue.main.async(execute: work)
     })
 
@@ -118,72 +127,5 @@ final class FKPagingControllerBasicExampleViewController: UIViewController {
       panel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
       panel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
     ])
-  }
-}
-
-@MainActor
-final class FKPagingDemoPageViewController: UIViewController {
-  private let color: UIColor
-  private let titleText: String
-
-  init(color: UIColor, titleText: String) {
-    self.color = color
-    self.titleText = titleText
-    super.init(nibName: nil, bundle: nil)
-  }
-
-  @available(*, unavailable)
-  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    view.backgroundColor = color
-    let label = UILabel()
-    label.translatesAutoresizingMaskIntoConstraints = false
-    label.text = titleText
-    label.font = .systemFont(ofSize: 30, weight: .bold)
-    label.textColor = .white
-    view.addSubview(label)
-    NSLayoutConstraint.activate([
-      label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-    ])
-  }
-}
-
-@MainActor
-final class FKPagingDemoListViewController: UITableViewController {
-  private let rows = (0..<80).map { "Message \($0)" }
-  private let titleText: String
-
-  init(titleText: String) {
-    self.titleText = titleText
-    super.init(style: .plain)
-  }
-
-  @available(*, unavailable)
-  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-    tableView.backgroundColor = .systemBackground
-    let header = UILabel()
-    header.font = .preferredFont(forTextStyle: .headline)
-    header.textColor = .label
-    header.text = titleText
-    header.textAlignment = .center
-    header.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: 52)
-    tableView.tableHeaderView = header
-  }
-
-  override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    rows.count
-  }
-
-  override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-    cell.textLabel?.text = rows[indexPath.row]
-    return cell
   }
 }

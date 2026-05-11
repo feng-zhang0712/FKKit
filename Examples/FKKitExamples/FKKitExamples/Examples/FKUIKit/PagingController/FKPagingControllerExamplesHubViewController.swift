@@ -1,5 +1,6 @@
 import UIKit
 
+/// Index of `FKPagingController` scenarios: UIKit, SwiftUI, delegate hooks, and dynamic updates.
 final class FKPagingControllerExamplesHubViewController: UITableViewController {
   private struct RowModel {
     let title: String
@@ -7,13 +8,47 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
     let make: () -> UIViewController
   }
 
-  private let rows: [RowModel] = [
-    RowModel(
-      title: "FKPagingController + FKTabBar two-way sync",
-      subtitle: "Verifies tab tap to page switching and interactive page dragging progress feedback to tab indicator.",
-      make: { FKPagingControllerBasicExampleViewController() }
-    ),
-  ]
+  private let rows: [RowModel] = {
+    var list: [RowModel] = [
+      RowModel(
+        title: "Basics (eager)",
+        subtitle: "Two-way tab sync, nested list, Stress x20 queue test (non-animated bursts).",
+        make: { FKPagingBasicsExampleViewController() }
+      ),
+      RowModel(
+        title: "Delegate & configuration",
+        subtitle: "Phase/progress logging, swipe toggle, gesture policy, alwaysCenter tab alignment.",
+        make: { FKPagingDelegateConfigurationExampleViewController() }
+      ),
+      RowModel(
+        title: "Dynamic setContent",
+        subtitle: "Toggle between 3 and 8 tabs to exercise reload + selection preservation.",
+        make: { FKPagingDynamicContentExampleViewController() }
+      ),
+      RowModel(
+        title: "Lazy pages (UIKit)",
+        subtitle: "Factory-driven pages, preload range, keepNear cache eviction, creation counter.",
+        make: { FKPagingLazyPagesExampleViewController() }
+      ),
+    ]
+    #if canImport(SwiftUI)
+    list.append(
+      contentsOf: [
+        RowModel(
+          title: "SwiftUI lazy provider",
+          subtitle: "FKPagingControllerRepresentable with pageCount + factory closure binding.",
+          make: { FKPagingLazySwiftUIExampleViewController() }
+        ),
+        RowModel(
+          title: "SwiftUI representable",
+          subtitle: "Eager pages with $selectedIndex mirrored under the pager.",
+          make: { FKPagingSwiftUIBridgeExampleViewController() }
+        ),
+      ]
+    )
+    #endif
+    return list.sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
+  }()
 
   override func viewDidLoad() {
     super.viewDidLoad()

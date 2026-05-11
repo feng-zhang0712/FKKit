@@ -1,46 +1,61 @@
 import UIKit
 
-/// A high-level paging container that keeps `FKTabBar` and page content synchronized.
+/// Hosts a ``FKTabBar`` above a `UIPageViewController`-powered pager with bidirectional synchronization.
 ///
-/// `FKPagingController` centralizes bidirectional sync, transition state, gesture conflict handling,
-/// and memory-aware page retention. It is designed for production scenarios where rapid taps,
-/// interactive swipes, and dynamic data updates may happen concurrently.
+/// ## Responsibilities
+/// - Keeps tab taps and horizontal paging aligned, including interactive indicator progress.
+/// - Tracks transition phases for analytics or coordinated animations via ``FKPagingControllerDelegate``.
+/// - Optionally lazily constructs pages with configurable caching for large tab sets.
+///
+/// ## Topics
+/// - **Paging**: ``setSelectedIndex(_:animated:)``, swipe gestures controlled by ``FKPagingConfiguration/allowsSwipePaging``.
+/// - **Content updates**: ``setContent(tabs:viewControllers:selectedIndex:)`` and ``setContent(tabs:pageCount:pageProvider:selectedIndex:)``.
 @MainActor
 public final class FKPagingController: UIViewController {
   public weak var delegate: FKPagingControllerDelegate?
 
-  /// Embedded tab header used as the primary page switch affordance.
+  /// Embedded tab strip driving selection affordances and accessibility traits.
   public let tabBar: FKTabBar
-  /// Current selected page index.
+
+  /// Currently selected page index (last settled value during transitions).
   public private(set) var selectedIndex: Int
-  /// Current state snapshot.
+
+  /// Latest structured snapshot from the internal state machine.
   public var stateSnapshot: FKPagingStateSnapshot { stateMachine.snapshot }
-  /// Current effective page count.
+
+  /// `true` while a drag, deceleration, or programmatic animation has not finished settling.
+  public var isTransitionActive: Bool {
+    switch stateMachine.snapshot.phase {
+    case .idle, .interrupted:
+      return false
+    case .dragging, .settling, .programmaticSwitch:
+      return true
+    }
+  }
+
+  /// Number of logical pages (tabs).
   public var pageCount: Int { pageStore.pageCount }
 
-  /// Runtime configuration.
-  ///
-  /// Updating this value applies gesture and layout settings immediately.
+  /// Runtime tuning for swipe behavior, caching, layout, and gestures.
   public var configuration: FKPagingConfiguration {
-    didSet {
-      applyConfiguration()
-    }
+    didSet { applyConfiguration() }
   }
 
   private let pageViewController: UIPageViewController
   private let stateMachine: FKPagingStateMachine
   private let pageStore: FKPagingPageStore
   private let tabCoordinator = FKPagingTabBarCoordinator()
-  private let gestureCoordinator = FKPagingGestureCoordinator()
 
-  private var transitionToken: Int = 0
   private var pendingProgrammaticIndex: Int?
+  /// Latest target requested while a programmatic ``UIPageViewController`` transition is still in flight (last write wins).
+  private var queuedProgrammaticTarget: Int?
+  private var queuedProgrammaticAnimated: Bool = true
   private var scrollView: UIScrollView?
   private var tabHeightConstraint: NSLayoutConstraint?
+  /// Ensures we only call ``UIGestureRecognizer/require(toFail:)`` once per discovered paging scroll view.
+  private var didInstallPagingPanRequiresNavigationPopFailure = false
 
-  /// Creates a paging controller with eagerly provided child view controllers.
-  ///
-  /// - Important: `tabs.count` should match the number of visible pages.
+  /// Builds the pager from eagerly supplied view controllers (recommended for small page counts).
   public init(
     tabs: [FKTabBarItem],
     viewControllers: [UIViewController],
@@ -50,10 +65,11 @@ public final class FKPagingController: UIViewController {
     tabAnimationOptions: FKTabBarAnimationConfiguration? = nil,
     configuration: FKPagingConfiguration = FKPagingConfiguration()
   ) {
-    let safeCount = min(tabs.filter { !$0.isHidden }.count, viewControllers.count)
-    let effectiveTabs = Array(tabs.prefix(safeCount))
+    let hiddenFilteredTabs = tabs.filter { !$0.isHidden }
+    let safeCount = min(hiddenFilteredTabs.count, viewControllers.count)
+    let effectiveTabs = Array(hiddenFilteredTabs.prefix(safeCount))
     self.pageStore = FKPagingPageStore(viewControllers: Array(viewControllers.prefix(safeCount)))
-    self.selectedIndex = max(0, min(selectedIndex, max(0, safeCount - 1)))
+    self.selectedIndex = safeCount > 0 ? max(0, min(selectedIndex, safeCount - 1)) : 0
     self.stateMachine = FKPagingStateMachine(initialIndex: self.selectedIndex)
     self.configuration = configuration
     self.tabBar = FKTabBar(
@@ -72,9 +88,7 @@ public final class FKPagingController: UIViewController {
     commonInit()
   }
 
-  /// Creates a paging controller with lazily created child view controllers.
-  ///
-  /// The lazy variant is recommended for large tab sets because it defers expensive page construction.
+  /// Builds the pager using lazy page construction (recommended for heavier pages).
   public init(
     tabs: [FKTabBarItem],
     pageCount: Int,
@@ -85,10 +99,11 @@ public final class FKPagingController: UIViewController {
     tabAnimationOptions: FKTabBarAnimationConfiguration? = nil,
     configuration: FKPagingConfiguration = FKPagingConfiguration()
   ) {
-    let safeCount = min(tabs.filter { !$0.isHidden }.count, max(0, pageCount))
-    let effectiveTabs = Array(tabs.prefix(safeCount))
+    let hiddenFilteredTabs = tabs.filter { !$0.isHidden }
+    let safeCount = min(hiddenFilteredTabs.count, max(0, pageCount))
+    let effectiveTabs = Array(hiddenFilteredTabs.prefix(safeCount))
     self.pageStore = FKPagingPageStore(pageCount: safeCount, provider: pageProvider)
-    self.selectedIndex = max(0, min(selectedIndex, max(0, safeCount - 1)))
+    self.selectedIndex = safeCount > 0 ? max(0, min(selectedIndex, safeCount - 1)) : 0
     self.stateMachine = FKPagingStateMachine(initialIndex: self.selectedIndex)
     self.configuration = configuration
     self.tabBar = FKTabBar(
@@ -117,8 +132,12 @@ public final class FKPagingController: UIViewController {
     view.backgroundColor = .systemBackground
     setupHierarchy()
     installInitialPage()
-    applyConfiguration()
     preloadAndCompact(at: selectedIndex)
+  }
+
+  public override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    attachScrollViewIfNeeded()
   }
 
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -128,9 +147,7 @@ public final class FKPagingController: UIViewController {
     })
   }
 
-  /// Programmatically switches to the requested page.
-  ///
-  /// Newer requests supersede older unfinished requests using transition tokens.
+  /// Selects a page programmatically. Overlapping animated requests are queued and applied sequentially.
   public func setSelectedIndex(_ index: Int, animated: Bool = true) {
     guard pageCount > 0 else { return }
     let target = min(max(0, index), pageCount - 1)
@@ -141,38 +158,60 @@ public final class FKPagingController: UIViewController {
     beginProgrammaticTransition(to: target, animated: animated)
   }
 
-  /// Replaces tabs and pages, preserving selection when possible.
-  ///
-  /// If current selection is out of bounds after update, it is clamped.
+  /// Replaces tabs and synchronous pages, preserving selection when possible (clamped when out of range).
   public func setContent(
     tabs: [FKTabBarItem],
     viewControllers: [UIViewController],
     selectedIndex: Int? = nil
   ) {
-    let safeCount = min(tabs.filter { !$0.isHidden }.count, viewControllers.count)
-    let effectiveTabs = Array(tabs.prefix(safeCount))
+    let hiddenFilteredTabs = tabs.filter { !$0.isHidden }
+    let safeCount = min(hiddenFilteredTabs.count, viewControllers.count)
+    let effectiveTabs = Array(hiddenFilteredTabs.prefix(safeCount))
+    cancelProgrammaticTransitionPipeline()
     pageStore.reset(pageCount: safeCount, provider: nil, controllers: Array(viewControllers.prefix(safeCount)))
     tabBar.reload(items: effectiveTabs, updatePolicy: .preserveSelection)
     let target = selectedIndex ?? min(self.selectedIndex, max(0, safeCount - 1))
-    self.selectedIndex = min(max(0, target), max(0, safeCount - 1))
+    self.selectedIndex = safeCount > 0 ? min(max(0, target), safeCount - 1) : 0
     stateMachine.settle(at: self.selectedIndex)
-    if let current = pageStore.controller(at: self.selectedIndex) {
-      pageViewController.setViewControllers([current], direction: .forward, animated: false)
-    }
+    applyPageHostContent()
+    tabCoordinator.syncSettled(index: self.selectedIndex, animated: false)
+    preloadAndCompact(at: self.selectedIndex)
+    notifyPhase()
+  }
+
+  /// Replaces tabs and switches to lazy page provisioning (drops eager instances held by the previous mode).
+  public func setContent(
+    tabs: [FKTabBarItem],
+    pageCount: Int,
+    pageProvider: @escaping (Int) -> UIViewController,
+    selectedIndex: Int? = nil
+  ) {
+    let hiddenFilteredTabs = tabs.filter { !$0.isHidden }
+    let safeCount = min(hiddenFilteredTabs.count, max(0, pageCount))
+    let effectiveTabs = Array(hiddenFilteredTabs.prefix(safeCount))
+    cancelProgrammaticTransitionPipeline()
+    pageStore.reset(pageCount: safeCount, provider: pageProvider, controllers: [])
+    tabBar.reload(items: effectiveTabs, updatePolicy: .preserveSelection)
+    let target = selectedIndex ?? min(self.selectedIndex, max(0, safeCount - 1))
+    self.selectedIndex = safeCount > 0 ? min(max(0, target), safeCount - 1) : 0
+    stateMachine.settle(at: self.selectedIndex)
+    applyPageHostContent()
     tabCoordinator.syncSettled(index: self.selectedIndex, animated: false)
     preloadAndCompact(at: self.selectedIndex)
     notifyPhase()
   }
 }
 
-@MainActor
+// MARK: - Tab coordinator
+
 extension FKPagingController: FKPagingTabBarCoordinatorDelegate {
   func pagingCoordinatorDidRequestSwitch(to index: Int, animated: Bool) {
     setSelectedIndex(index, animated: animated)
   }
 }
 
-@MainActor
+// MARK: - UIPageViewController
+
 extension FKPagingController: UIPageViewControllerDataSource, UIPageViewControllerDelegate {
   public func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
     guard let index = pageStore.index(of: viewController), index > 0 else { return nil }
@@ -192,6 +231,7 @@ extension FKPagingController: UIPageViewControllerDataSource, UIPageViewControll
   ) {
     if !finished {
       stateMachine.interrupt()
+      applyPageHostContent()
       notifyPhase()
       return
     }
@@ -199,6 +239,7 @@ extension FKPagingController: UIPageViewControllerDataSource, UIPageViewControll
           let current = pageViewController.viewControllers?.first,
           let index = pageStore.index(of: current) else {
       stateMachine.settle(at: selectedIndex)
+      applyPageHostContent()
       notifyPhase()
       return
     }
@@ -206,7 +247,8 @@ extension FKPagingController: UIPageViewControllerDataSource, UIPageViewControll
   }
 }
 
-@MainActor
+// MARK: - Interactive scrolling
+
 extension FKPagingController: UIScrollViewDelegate {
   public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
     guard configuration.allowsSwipePaging else { return }
@@ -219,7 +261,10 @@ extension FKPagingController: UIScrollViewDelegate {
     guard pendingProgrammaticIndex == nil else { return }
     guard pageCount > 1 else { return }
     let width = max(1, scrollView.bounds.width)
-    let delta = scrollView.contentOffset.x - width
+    var delta = scrollView.contentOffset.x - width
+    if view.effectiveUserInterfaceLayoutDirection == .rightToLeft {
+      delta = -delta
+    }
     guard abs(delta) > 0.0001 else { return }
     let direction = delta > 0 ? 1 : -1
     let from = selectedIndex
@@ -240,6 +285,8 @@ extension FKPagingController: UIScrollViewDelegate {
   }
 }
 
+// MARK: - Private
+
 private extension FKPagingController {
   func commonInit() {
     tabCoordinator.delegate = self
@@ -255,6 +302,7 @@ private extension FKPagingController {
     view.addSubview(tabBar)
     view.addSubview(pageViewController.view)
     pageViewController.didMove(toParent: self)
+    pageViewController.view.clipsToBounds = true
 
     tabHeightConstraint = tabBar.heightAnchor.constraint(equalToConstant: configuration.tabBarHeight)
     tabHeightConstraint?.isActive = true
@@ -269,40 +317,116 @@ private extension FKPagingController {
       pageViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
     ])
 
-    scrollView = pageViewController.view.subviews.first(where: { $0 is UIScrollView }) as? UIScrollView
+    attachScrollViewIfNeeded()
+  }
+
+  func attachScrollViewIfNeeded() {
+    guard scrollView == nil else { return }
+    let found = pageViewController.view.subviews.first(where: { $0 is UIScrollView }) as? UIScrollView
+    scrollView = found
     scrollView?.delegate = self
-    scrollView?.panGestureRecognizer.delegate = gestureCoordinator
+    didInstallPagingPanRequiresNavigationPopFailure = false
+    applyGesturePolicyToPagingScrollView()
   }
 
   func installInitialPage() {
-    guard let first = pageStore.controller(at: selectedIndex) else { return }
-    pageViewController.setViewControllers([first], direction: .forward, animated: false)
+    applyPageHostContent()
+    guard pageCount > 0, pageStore.controller(at: selectedIndex) != nil else { return }
     tabCoordinator.syncSettled(index: selectedIndex, animated: false)
+  }
+
+  /// Clears or restores hosted controllers whenever page count or storage mode changes.
+  func applyPageHostContent() {
+    applyConfiguration()
+    guard pageCount > 0, let current = pageStore.controller(at: selectedIndex) else {
+      pageViewController.setViewControllers(nil, direction: .forward, animated: false, completion: nil)
+      return
+    }
+    let direction = Self.pageNavigationDirection(
+      from: selectedIndex,
+      to: selectedIndex,
+      layoutDirection: view.effectiveUserInterfaceLayoutDirection
+    )
+    pageViewController.setViewControllers([current], direction: direction, animated: false, completion: nil)
   }
 
   func beginProgrammaticTransition(to target: Int, animated: Bool) {
     guard let targetController = pageStore.controller(at: target) else { return }
     if target == selectedIndex {
+      cancelProgrammaticTransitionPipeline()
       settle(at: target, animatedTab: false)
+      applyPageHostContent()
       return
     }
-    transitionToken = stateMachine.beginProgrammaticSwitch(from: selectedIndex, to: target)
+    if pendingProgrammaticIndex == target {
+      return
+    }
+    // UIPageViewController asserts if `setViewControllers` is invoked again before an animated transition settles.
+    if pendingProgrammaticIndex != nil {
+      queuedProgrammaticTarget = target
+      queuedProgrammaticAnimated = animated
+      return
+    }
+    let token = stateMachine.beginProgrammaticSwitch(from: selectedIndex, to: target)
     pendingProgrammaticIndex = target
     notifyPhase()
-    let token = transitionToken
-    let direction: UIPageViewController.NavigationDirection = target > selectedIndex ? .forward : .reverse
+    let direction = Self.pageNavigationDirection(
+      from: selectedIndex,
+      to: target,
+      layoutDirection: view.effectiveUserInterfaceLayoutDirection
+    )
     pageViewController.setViewControllers([targetController], direction: direction, animated: animated) { [weak self] finished in
       guard let self else { return }
-      guard token == self.transitionToken else { return }
+      if token != self.stateMachine.snapshot.transitionToken {
+        self.applyPageHostContent()
+        return
+      }
       guard finished || !animated else {
         self.stateMachine.interrupt()
         self.pendingProgrammaticIndex = nil
+        self.applyPageHostContent()
         self.notifyPhase()
+        self.drainProgrammaticTransitionQueue()
         return
       }
       self.pendingProgrammaticIndex = nil
       self.settle(at: target, animatedTab: animated)
+      self.drainProgrammaticTransitionQueue()
     }
+  }
+
+  func cancelProgrammaticTransitionPipeline() {
+    let hadPipelineWork = pendingProgrammaticIndex != nil || queuedProgrammaticTarget != nil
+    pendingProgrammaticIndex = nil
+    queuedProgrammaticTarget = nil
+    if hadPipelineWork {
+      _ = stateMachine.invalidateTransitionToken()
+    }
+  }
+
+  /// Maps logical forward/reverse paging to `UIPageViewController.NavigationDirection` under RTL layout.
+  static func pageNavigationDirection(
+    from: Int,
+    to: Int,
+    layoutDirection: UIUserInterfaceLayoutDirection
+  ) -> UIPageViewController.NavigationDirection {
+    let forward = to > from
+    switch layoutDirection {
+    case .rightToLeft:
+      return forward ? .reverse : .forward
+    case .leftToRight:
+      return forward ? .forward : .reverse
+    @unknown default:
+      return forward ? .forward : .reverse
+    }
+  }
+
+  func drainProgrammaticTransitionQueue() {
+    guard let next = queuedProgrammaticTarget else { return }
+    queuedProgrammaticTarget = nil
+    let nextAnimated = queuedProgrammaticAnimated
+    guard next != selectedIndex else { return }
+    beginProgrammaticTransition(to: next, animated: nextAnimated)
   }
 
   func settle(at index: Int, animatedTab: Bool) {
@@ -313,7 +437,7 @@ private extension FKPagingController {
     delegate?.pagingController(self, didSettleAt: index)
     if UIAccessibility.isVoiceOverRunning {
       let currentItem = tabBar.items[safe: index]
-      let spoken = currentItem?.accessibilityLabel ?? currentItem?.title ?? "\(index + 1)"
+      let spoken = currentItem?.accessibilityLabel ?? currentItem?.titleText ?? "\(index + 1)"
       UIAccessibility.post(notification: .announcement, argument: spoken)
     }
     notifyPhase()
@@ -326,9 +450,14 @@ private extension FKPagingController {
 
   func applyConfiguration() {
     tabHeightConstraint?.constant = configuration.tabBarHeight
-    pageViewController.dataSource = configuration.allowsSwipePaging ? self : nil
-    scrollView?.isScrollEnabled = configuration.allowsSwipePaging
-    gestureCoordinator.policy = configuration.gesturePolicy
+    if pageCount == 0 {
+      pageViewController.dataSource = nil
+      scrollView?.isScrollEnabled = false
+    } else {
+      pageViewController.dataSource = configuration.allowsSwipePaging ? self : nil
+      scrollView?.isScrollEnabled = configuration.allowsSwipePaging
+    }
+    applyGesturePolicyToPagingScrollView()
     if configuration.tabAlignment == .alwaysCenter {
       var layout = tabBar.layoutConfiguration ?? FKTabBarLayoutConfiguration()
       layout.selectionScrollPosition = .center
@@ -338,5 +467,30 @@ private extension FKPagingController {
 
   func notifyPhase() {
     delegate?.pagingController(self, didChangePhase: stateMachine.snapshot.phase)
+  }
+
+  /// UIKit forbids assigning a custom object as ``UIScrollView/panGestureRecognizer`` delegate; use `require(toFail:)` instead.
+  func applyGesturePolicyToPagingScrollView() {
+    guard let scrollView else { return }
+    switch configuration.gesturePolicy {
+    case .preferNavigationBackGesture:
+      guard !didInstallPagingPanRequiresNavigationPopFailure,
+            let pop = nearestNavigationInteractivePopGestureRecognizer() else { return }
+      scrollView.panGestureRecognizer.require(toFail: pop)
+      didInstallPagingPanRequiresNavigationPopFailure = true
+    case .exclusive:
+      break
+    }
+  }
+
+  func nearestNavigationInteractivePopGestureRecognizer() -> UIGestureRecognizer? {
+    var controller: UIViewController? = self
+    while let current = controller {
+      if let pop = current.navigationController?.interactivePopGestureRecognizer {
+        return pop
+      }
+      controller = current.parent
+    }
+    return nil
   }
 }

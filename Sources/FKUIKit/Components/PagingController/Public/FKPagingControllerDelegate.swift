@@ -1,13 +1,13 @@
 import Foundation
 
-/// Callback surface for observing page transitions.
+/// Observes page lifecycle and interactive transition progress for ``FKPagingController``.
 @MainActor
 public protocol FKPagingControllerDelegate: AnyObject {
-  /// Called when controller phase changes.
+  /// Called whenever ``FKPagingController/stateSnapshot``’s phase changes.
   func pagingController(_ controller: FKPagingController, didChangePhase phase: FKPagingPhase)
-  /// Called when interactive transition updates.
+  /// Called during interactive swipes while the tab indicator tracks fractional progress.
   func pagingController(_ controller: FKPagingController, didUpdateProgress progress: CGFloat, from fromIndex: Int, to toIndex: Int)
-  /// Called when controller settles at a final page.
+  /// Called after the container settles on a page (interactive or programmatic).
   func pagingController(_ controller: FKPagingController, didSettleAt index: Int)
 }
 
