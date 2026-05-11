@@ -25,6 +25,8 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
 
   var resolvedDetentHeights: [CGFloat] = []
   var currentDetentIndex: Int = 0
+  /// Detent index at the start of the active sheet pan; used by `crossDetentSwipeDismissPolicy`.
+  var sheetPanBeganDetentIndex: Int = 0
   var panStartFrame: CGRect = .zero
   var isPanningSheet: Bool = false
   var sheetPanVelocityY: CGFloat = 0

@@ -12,6 +12,19 @@ public extension FKPresentationConfiguration {
       case max(CGFloat)
     }
 
+    /// How swipe-to-dismiss eligibility is determined relative to detents during a single sheet pan.
+    ///
+    /// - Note: This only affects top/bottom sheet layouts when `dismissBehavior.allowsSwipe` is enabled.
+    public enum CrossDetentSwipeDismissPolicy: Sendable, Equatable {
+      /// Close to `UISheetPresentationController`: once the interactive geometry reaches the smallest detent,
+      /// further drag in the dismiss direction can dismiss in the **same** gesture (no need to lift and pan again).
+      case systemAligned
+      /// Previous FK behavior: dismiss rubber-banding and end-of-gesture dismiss thresholds apply only when the
+      /// sheet was already at the smallest detent **when the pan began** (`currentDetentIndex` is not consulted
+      /// mid-gesture for dismiss eligibility).
+      case strictSmallestDetentAtPanStart
+    }
+
     /// Backdrop tuning that reacts to detent state.
     public struct MultiStageBackdropConfiguration {
       /// Enables detent-based backdrop intensity updates.
@@ -59,6 +72,8 @@ public extension FKPresentationConfiguration {
     public var widthPolicy: WidthPolicy
     /// Detent-aware backdrop behavior.
     public var multiStageBackdrop: MultiStageBackdropConfiguration
+    /// Controls whether a single pan can dismiss after shrinking from a larger detent to the smallest detent.
+    public var crossDetentSwipeDismissPolicy: CrossDetentSwipeDismissPolicy
 
     /// Creates a sheet configuration.
     public init(
@@ -76,7 +91,8 @@ public extension FKPresentationConfiguration {
       minimumContentHeight: CGFloat? = 180,
       maximumContentHeight: CGFloat? = nil,
       widthPolicy: WidthPolicy = .fill,
-      multiStageBackdrop: MultiStageBackdropConfiguration = .init()
+      multiStageBackdrop: MultiStageBackdropConfiguration = .init(),
+      crossDetentSwipeDismissPolicy: CrossDetentSwipeDismissPolicy = .systemAligned
     ) {
       self.detents = detents.isEmpty ? [.fitContent] : detents
       self.initialDetentIndex = max(0, min(initialDetentIndex, self.detents.count - 1))
@@ -93,6 +109,7 @@ public extension FKPresentationConfiguration {
       self.maximumContentHeight = maximumContentHeight
       self.widthPolicy = widthPolicy
       self.multiStageBackdrop = multiStageBackdrop
+      self.crossDetentSwipeDismissPolicy = crossDetentSwipeDismissPolicy
     }
   }
 

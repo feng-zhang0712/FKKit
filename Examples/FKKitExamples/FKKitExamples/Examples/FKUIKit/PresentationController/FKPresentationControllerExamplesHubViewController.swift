@@ -81,6 +81,11 @@ final class FKPresentationControllerExamplesHubViewController: UITableViewContro
           make: { SwipeToDismissExampleViewController() }
         ),
         Row(
+          title: "Cross-detent swipe dismiss",
+          subtitle: "`sheet.crossDetentSwipeDismissPolicy`: system-like single gesture vs strict-at-pan-start.",
+          make: { CrossDetentSwipeDismissExampleViewController() }
+        ),
+        Row(
           title: "Background interaction policy",
           subtitle: "Allow or block touches to the presenting UI (powerful but risky).",
           make: { BackgroundInteractionPolicyExampleViewController() }

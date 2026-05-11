@@ -20,6 +20,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private var resolvedDetentHeights: [CGFloat] = []
   private var currentDetentIndex: Int = 0
+  private var sheetPanBeganDetentIndex: Int = 0
   private var panStartFrame: CGRect = .zero
   private var isPanningSheet: Bool = false
 
@@ -188,6 +189,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     case .began:
       isPanningSheet = true
       panStartFrame = wrapperView.frame
+      sheetPanBeganDetentIndex = currentDetentIndex
     case .changed:
       guard isPanningSheet else { return }
       let frame = interactiveSheetFrame(translationY: translation.y)
@@ -396,6 +398,61 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   // MARK: - Sheet interaction helpers
 
+  private func sheetDismissPullBranchActive(translationY: CGFloat) -> Bool {
+    let bounds = view.bounds
+    let minHeight = resolvedDetentHeights.min() ?? 240
+    let maxHeight = resolvedDetentHeights.max() ?? bounds.height * 0.9
+    let safeInsets = containerSafeInsets()
+    let bottomExtra = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0
+    let bottomY = bounds.height - bottomExtra
+
+    switch configuration.layout {
+    case .bottomSheet(_):
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        return sheetPanBeganDetentIndex == 0 && translationY > 0
+      case .systemAligned:
+        guard translationY > 0 else { return false }
+        let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
+        let extraDismissPull = translationY - translationToReachMinHeight
+        guard extraDismissPull > 0 else { return false }
+        let clampedH = min(max(panStartFrame.height - translationY, minHeight), maxHeight)
+        let synthetic = CGRect(x: panStartFrame.minX, y: bottomY - clampedH, width: panStartFrame.width, height: clampedH)
+        return nearestDetentIndex(for: synthetic, velocityY: 0) == 0
+      }
+    case .topSheet(_):
+      let minY = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        return sheetPanBeganDetentIndex == 0 && translationY < 0
+      case .systemAligned:
+        guard translationY < 0 else { return false }
+        let translationAtMin = minHeight - panStartFrame.height
+        let extraDismissPull = translationAtMin - translationY
+        guard extraDismissPull > 0 else { return false }
+        let clampedH = min(max(panStartFrame.height + translationY, minHeight), maxHeight)
+        let synthetic = CGRect(x: panStartFrame.minX, y: minY, width: panStartFrame.width, height: clampedH)
+        return nearestDetentIndex(for: synthetic, velocityY: 0) == 0
+      }
+    default:
+      return false
+    }
+  }
+
+  private func sheetDismissExtraPullWhileInBranch(translationY: CGFloat) -> CGFloat {
+    let minHeight = resolvedDetentHeights.min() ?? 240
+    switch configuration.layout {
+    case .bottomSheet(_):
+      let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
+      return max(0, translationY - translationToReachMinHeight)
+    case .topSheet(_):
+      let translationAtMin = minHeight - panStartFrame.height
+      return max(0, translationAtMin - translationY)
+    default:
+      return 0
+    }
+  }
+
   private func interactiveSheetFrame(translationY: CGFloat) -> CGRect {
     var frame = panStartFrame
     let bounds = view.bounds
@@ -405,23 +462,44 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
     let minHeight = resolvedDetentHeights.min() ?? 240
     let maxHeight = resolvedDetentHeights.max() ?? bounds.height * 0.9
+    let dismissThreshold = configuration.sheet.dismissThreshold
 
     switch configuration.layout {
     case .bottomSheet(_):
-      if currentDetentIndex == 0, translationY > 0 {
-        frame.origin.y = panStartFrame.origin.y + translationY
+      let inDismissPullBranch = sheetDismissPullBranchActive(translationY: translationY)
+      if inDismissPullBranch {
+        switch configuration.sheet.crossDetentSwipeDismissPolicy {
+        case .strictSmallestDetentAtPanStart:
+          frame.origin.y = panStartFrame.origin.y + translationY
+          frame.size.height = panStartFrame.size.height
+        case .systemAligned:
+          let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
+          let extraDismissPull = translationY - translationToReachMinHeight
+          frame.size.height = minHeight
+          frame.origin.y = (bottomY - minHeight) + extraDismissPull
+        }
       } else {
         frame.size.height = panStartFrame.height - translationY
-        frame.size.height = min(max(frame.size.height, minHeight - configuration.sheet.dismissThreshold), maxHeight + configuration.sheet.dismissThreshold)
+        frame.size.height = min(max(frame.size.height, minHeight - dismissThreshold), maxHeight + dismissThreshold)
         frame.origin.y = bottomY - frame.size.height
       }
     case .topSheet(_):
       let minY = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
-      if currentDetentIndex == 0, translationY < 0 {
-        frame.origin.y = panStartFrame.origin.y + translationY
+      let inDismissPullBranch = sheetDismissPullBranchActive(translationY: translationY)
+      if inDismissPullBranch {
+        switch configuration.sheet.crossDetentSwipeDismissPolicy {
+        case .strictSmallestDetentAtPanStart:
+          frame.origin.y = panStartFrame.origin.y + translationY
+          frame.size.height = panStartFrame.size.height
+        case .systemAligned:
+          let translationAtMin = minHeight - panStartFrame.height
+          let extraDismissPull = translationAtMin - translationY
+          frame.size.height = minHeight
+          frame.origin.y = minY - extraDismissPull
+        }
       } else {
         frame.size.height = panStartFrame.height + translationY
-        frame.size.height = min(max(frame.size.height, minHeight - configuration.sheet.dismissThreshold), maxHeight + configuration.sheet.dismissThreshold)
+        frame.size.height = min(max(frame.size.height, minHeight - dismissThreshold), maxHeight + dismissThreshold)
         frame.origin.y = minY
       }
     default:
@@ -450,19 +528,54 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private func sheetShouldDismiss(translationY: CGFloat, velocityY: CGFloat) -> Bool {
     guard configuration.dismissBehavior.allowsSwipe else { return false }
+    let threshold = configuration.sheet.dismissThreshold
+    let velocityThreshold = configuration.sheet.dismissVelocityThreshold
+
     switch configuration.layout {
     case .bottomSheet(_):
-      guard currentDetentIndex == 0 else { return false }
-      return translationY > configuration.sheet.dismissThreshold || velocityY > configuration.sheet.dismissVelocityThreshold
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        guard sheetPanBeganDetentIndex == 0 else { return false }
+        if translationY > threshold { return true }
+        if velocityY > velocityThreshold { return true }
+        return false
+      case .systemAligned:
+        if sheetPanBeganDetentIndex == 0 {
+          if translationY > threshold { return true }
+          if velocityY > velocityThreshold { return true }
+          return false
+        }
+        guard sheetDismissPullBranchActive(translationY: translationY) else { return false }
+        let extra = sheetDismissExtraPullWhileInBranch(translationY: translationY)
+        if extra > threshold { return true }
+        if extra > threshold * 0.5, velocityY > velocityThreshold { return true }
+        return false
+      }
     case .topSheet(_):
-      guard currentDetentIndex == 0 else { return false }
-      return translationY < -configuration.sheet.dismissThreshold || velocityY < -configuration.sheet.dismissVelocityThreshold
+      switch configuration.sheet.crossDetentSwipeDismissPolicy {
+      case .strictSmallestDetentAtPanStart:
+        guard sheetPanBeganDetentIndex == 0 else { return false }
+        if translationY < -threshold { return true }
+        if velocityY < -velocityThreshold { return true }
+        return false
+      case .systemAligned:
+        if sheetPanBeganDetentIndex == 0 {
+          if translationY < -threshold { return true }
+          if velocityY < -velocityThreshold { return true }
+          return false
+        }
+        guard sheetDismissPullBranchActive(translationY: translationY) else { return false }
+        let extra = sheetDismissExtraPullWhileInBranch(translationY: translationY)
+        if extra > threshold { return true }
+        if extra > threshold * 0.5, velocityY < -velocityThreshold { return true }
+        return false
+      }
     default:
       return false
     }
   }
 
-  private func nearestDetentIndex(velocityY: CGFloat) -> Int {
+  private func nearestDetentIndex(for frame: CGRect, velocityY: CGFloat) -> Int {
     if abs(velocityY) > 900, resolvedDetentHeights.count >= 2 {
       switch configuration.layout {
       case .bottomSheet(_):
@@ -480,9 +593,9 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     let currentHeight: CGFloat = {
       switch configuration.layout {
       case .bottomSheet(_):
-        return bounds.height - wrapperView.frame.minY - bottomExtra
+        return bounds.height - frame.minY - bottomExtra
       default:
-        return wrapperView.frame.height
+        return frame.height
       }
     }()
     var best = 0
@@ -495,6 +608,10 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       }
     }
     return best
+  }
+
+  private func nearestDetentIndex(velocityY: CGFloat) -> Int {
+    nearestDetentIndex(for: wrapperView.frame, velocityY: velocityY)
   }
 
   // MARK: UIGestureRecognizerDelegate
