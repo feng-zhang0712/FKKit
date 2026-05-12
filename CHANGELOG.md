@@ -8,6 +8,25 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.49.0] - 2026-05-12
+
+### Added (FKUIKit)
+
+- **`FKPagingController`**: swipe paging across child view controllers with **`FKTabBar`** synchronization; **`FKPagingConfiguration`** (retention, gestures, tab alignment); SwiftUI **`FKPagingControllerRepresentable`**. Sources under `Sources/FKUIKit/Components/PagingController/`.
+
+### Changed (FKUIKit — TabBar) **Breaking**
+
+- Indicator layering and **follow** modes; expanded indicator/paging samples.
+- Unified **backdrop indicator** API and **corner shape** configuration — update custom call sites accordingly.
+
+### Changed (Documentation)
+
+- **`README.md`**: Swift badge aligned with tools version, CI status badge, Contributing / Support / Security sections, example app link, module map updates for paging.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.49.0** (Git tag **`0.49.0`**).
+
 ## [0.48.0] - 2026-05-11
 
 ### Changed (FKUIKit — Presentation) **Breaking**
@@ -2057,7 +2076,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.44.2...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.49.0...HEAD
+[0.49.0]: https://github.com/feng-zhang0712/FKKit/compare/0.48.0...0.49.0
 [0.44.2]: https://github.com/feng-zhang0712/FKKit/compare/0.44.1...0.44.2
 [0.44.1]: https://github.com/feng-zhang0712/FKKit/compare/0.44.0...0.44.1
 [0.44.0]: https://github.com/feng-zhang0712/FKKit/compare/0.43.17...0.44.0

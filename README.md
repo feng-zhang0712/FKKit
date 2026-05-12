@@ -79,6 +79,7 @@ FKKit/
 │  │     ├─ EmptyState/
 │  │     ├─ ExpandableText/
 │  │     ├─ MultiPicker/
+│  │     ├─ PagingController/
 │  │     ├─ PresentationController/
 │  │     ├─ Refresh/
 │  │     ├─ Skeleton/
@@ -125,6 +126,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `EmptyState`: loading/empty/error overlay (`Public` / `Internal` / `Extension`) plus **`FKEmptyStateCoreLite`** (resolver + i18n); `import FKUIKit` re-exports CoreLite.
 - `ExpandableText`: long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; sources under `Public/`, `Internal/`, `Extension/` with `FKExpandableText.defaultConfiguration` and layout cache (see component README).
 - `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
+- `PagingController`: **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress; includes **`FKPagingConfiguration`** (retention, gestures, tab alignment) and SwiftUI **`FKPagingControllerRepresentable`** (`Public/` + `Internal/` under `Sources/FKUIKit/Components/PagingController/`).
 - `PresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
 - `Refresh`: pull-to-refresh and load-more controls for scroll views.
 - `Skeleton`: skeleton loading system for views/lists/containers with animation options.
@@ -161,7 +163,7 @@ This module keeps **deep docs next to sources** (`README.md` per major folder); 
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.48.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.49.0")
 ],
 targets: [
   .target(
@@ -178,7 +180,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKEmptyStateCoreLite`, `FKUIKit`, `FKCompositeKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.48.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKEmptyStateCoreLite`, `FKUIKit`, `FKCompositeKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.49.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — **`docs/RELEASING.md`**.
 
@@ -187,10 +189,10 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKEmptyStateCoreLite', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.48.0'
-pod 'FKCoreKit',           :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.48.0'
-pod 'FKUIKit',             :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.48.0'
-pod 'FKCompositeKit',      :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.48.0'
+pod 'FKEmptyStateCoreLite', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.49.0'
+pod 'FKCoreKit',           :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.49.0'
+pod 'FKUIKit',             :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.49.0'
+pod 'FKCompositeKit',      :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.49.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKEmptyStateCoreLite`; `FKCompositeKit` → `FKCoreKit`, `FKUIKit`).
