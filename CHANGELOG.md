@@ -8,6 +8,36 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.50.0] - 2026-05-13
+
+### Added (FKUIKit)
+
+- **`FKLayerShadowStyle`** / **`FKLayerBorderStyle`** in `Sources/FKUIKit/Core/Appearance/` with **`CALayer.fk_applyShadow`** / **`fk_applyBorder`** helpers for shared layer chrome.
+
+### Changed (FKUIKit — Presentation) **Breaking**
+
+- **`FKPresentationConfiguration`**: **`shadow`** and **`border`** use **`FKLayerShadowStyle`** / **`FKLayerBorderStyle`**; nested shadow/border configuration types removed; defaults are **`.none`**.
+
+### Changed (FKUIKit — TabBar) **Breaking**
+
+- **`FKTabBarAppearance`**, backdrop indicator, and related styling use **`FKLayerShadowStyle`** / **`FKLayerBorderStyle`** instead of nested shadow structs.
+
+### Changed (FKUIKit — MultiPicker) **Breaking**
+
+- **`FKMultiPickerContainerStyle`**: **`shadow`** is a single **`FKLayerShadowStyle`**; default **`.none`**.
+
+### Changed (FKUIKit — Button) **Breaking**
+
+- **`FKButtonAppearance`**: **`border`** / **`shadow`** use **`FKLayerShadowStyle`** / **`FKLayerBorderStyle`**; **`FKButtonBorderStyle`** and **`FKButtonShadowStyle`** removed; **`FKButtonAppearanceOverride.shadow`** is one optional **`FKLayerShadowStyle`**.
+
+### Changed (FKUIKit — Refresh)
+
+- **`FKDefaultRefreshContentView`**: horizontal vs vertical default content layout via **`FKDefaultRefreshContentLayout`** and **`FKRefreshConfiguration.defaultContentLayout`** (default horizontal).
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.50.0** (Git tag **`0.50.0`**).
+
 ## [0.49.0] - 2026-05-12
 
 ### Added (FKUIKit)
@@ -2076,7 +2106,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.49.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.50.0...HEAD
+[0.50.0]: https://github.com/feng-zhang0712/FKKit/compare/0.49.0...0.50.0
 [0.49.0]: https://github.com/feng-zhang0712/FKKit/compare/0.48.0...0.49.0
 [0.44.2]: https://github.com/feng-zhang0712/FKKit/compare/0.44.1...0.44.2
 [0.44.1]: https://github.com/feng-zhang0712/FKKit/compare/0.44.0...0.44.1
