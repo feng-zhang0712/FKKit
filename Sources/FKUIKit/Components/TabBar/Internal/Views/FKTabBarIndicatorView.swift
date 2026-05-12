@@ -134,12 +134,8 @@ final class FKTabBarIndicatorView: UIView {
     case .backdrop(let config):
       isHidden = false
       applyFill(config.fill, fallback: color)
-      fillView.layer.borderWidth = config.borderWidth
-      fillView.layer.borderColor = config.borderColor.cgColor
-      fillView.layer.shadowColor = config.shadowColor.cgColor
-      fillView.layer.shadowOpacity = config.shadowOpacity
-      fillView.layer.shadowRadius = config.shadowRadius
-      fillView.layer.shadowOffset = config.shadowOffset
+      fillView.layer.fk_applyBorder(config.border)
+      fillView.layer.fk_applyShadow(config.shadow, path: nil)
     case .custom(let config):
       isHidden = false
       fillView.backgroundColor = .clear

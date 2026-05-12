@@ -1,48 +1,6 @@
 import UIKit
 
 public extension FKPresentationConfiguration {
-  /// Shadow appearance used by the presented container.
-  struct ShadowConfiguration {
-    /// Shadow color.
-    public var color: UIColor
-    /// Shadow opacity.
-    public var opacity: Float
-    /// Shadow blur radius.
-    public var radius: CGFloat
-    /// Shadow offset.
-    public var offset: CGSize
-
-    /// Creates a shadow configuration.
-    public init(
-      color: UIColor = .black,
-      opacity: Float = 0.18,
-      radius: CGFloat = 16,
-      offset: CGSize = .init(width: 0, height: 8)
-    ) {
-      self.color = color
-      self.opacity = opacity
-      self.radius = radius
-      self.offset = offset
-    }
-  }
-
-  /// Border appearance for the presented container.
-  struct BorderConfiguration {
-    /// Whether border is drawn.
-    public var isEnabled: Bool
-    /// Border color.
-    public var color: UIColor
-    /// Border width.
-    public var width: CGFloat
-
-    /// Creates a border configuration.
-    public init(isEnabled: Bool = false, color: UIColor? = nil, width: CGFloat = 1) {
-      self.isEnabled = isEnabled
-      self.color = color ?? UIColor.separator
-      self.width = max(0, width)
-    }
-  }
-
   /// Haptics behavior around lifecycle transitions.
   struct HapticsConfiguration {
     /// Whether haptics are generated.

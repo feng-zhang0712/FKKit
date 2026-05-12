@@ -257,10 +257,8 @@ private extension FKMultiPicker {
     containerView.backgroundColor = containerStyle.backgroundColor
     containerView.layer.cornerRadius = containerStyle.cornerRadius
     containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-    containerView.layer.shadowColor = containerStyle.shadowColor.cgColor
-    containerView.layer.shadowOpacity = containerStyle.shadowOpacity
-    containerView.layer.shadowRadius = containerStyle.shadowRadius
-    containerView.layer.shadowOffset = containerStyle.shadowOffset
+    containerView.layer.masksToBounds = false
+    containerView.layer.fk_applyShadow(containerStyle.shadow, path: nil)
 
     toolbarView.backgroundColor = containerStyle.backgroundColor
     titleLabel.text = toolbarStyle.title

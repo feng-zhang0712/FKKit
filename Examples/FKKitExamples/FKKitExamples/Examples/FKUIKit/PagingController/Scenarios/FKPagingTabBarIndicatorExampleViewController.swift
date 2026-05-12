@@ -202,10 +202,7 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
               startPoint: .init(x: 0, y: 0.5),
               endPoint: .init(x: 1, y: 0.5)
             ),
-            shadowColor: .black,
-            shadowOpacity: 0.12,
-            shadowRadius: 4,
-            shadowOffset: .init(width: 0, height: 2),
+            shadow: .custom(color: .black, opacity: 0.12, radius: 4, offset: CGSize(width: 0, height: 2)),
             followMode: .trackContentProgress
           )
         )

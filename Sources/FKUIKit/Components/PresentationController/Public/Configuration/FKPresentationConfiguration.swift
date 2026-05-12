@@ -9,9 +9,9 @@ public struct FKPresentationConfiguration {
   /// Container corner radius.
   public var cornerRadius: CGFloat
   /// Container shadow appearance.
-  public var shadow: ShadowConfiguration
+  public var shadow: FKLayerShadowStyle
   /// Container border appearance.
-  public var border: BorderConfiguration
+  public var border: FKLayerBorderStyle
   /// Backdrop visual style.
   public var backdropStyle: FKBackdropStyle
   /// Background interaction policy.
@@ -81,8 +81,8 @@ public struct FKPresentationConfiguration {
     layout: Layout = .bottomSheet(.init()),
     safeAreaPolicy: FKSafeAreaPolicy = .contentRespectsSafeArea,
     cornerRadius: CGFloat = 16,
-    shadow: ShadowConfiguration = .init(),
-    border: BorderConfiguration = .init(),
+    shadow: FKLayerShadowStyle = .presentationDefault,
+    border: FKLayerBorderStyle = .none,
     backdropStyle: FKBackdropStyle = .dim(alpha: 0.35),
     backgroundInteraction: BackgroundInteractionConfiguration = .init(),
     zeroDimBackdropBehavior: ZeroDimBackdropBehavior = .dismissable,

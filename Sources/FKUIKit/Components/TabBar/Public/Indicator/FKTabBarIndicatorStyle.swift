@@ -97,12 +97,8 @@ public struct FKTabBarBackgroundIndicatorConfiguration: Equatable {
   public var shape: FKTabBarBackgroundIndicatorShape
   /// Fill style for selected background (solid or gradient).
   public var fill: FKTabBarIndicatorFillStyle
-  public var borderColor: UIColor
-  public var borderWidth: CGFloat
-  public var shadowColor: UIColor
-  public var shadowOpacity: Float
-  public var shadowRadius: CGFloat
-  public var shadowOffset: CGSize
+  public var border: FKLayerBorderStyle
+  public var shadow: FKLayerShadowStyle
   /// Follow policy aligned with ``FKTabBarLineIndicatorConfiguration/followMode`` (default matches line defaults).
   ///
   /// Use ``FKTabBarIndicatorFollowMode/trackContentProgress`` so the highlight tracks interactive paging
@@ -114,24 +110,16 @@ public struct FKTabBarBackgroundIndicatorConfiguration: Equatable {
     cornerRadius: CGFloat = 999,
     shape: FKTabBarBackgroundIndicatorShape = .roundedRect,
     fill: FKTabBarIndicatorFillStyle = .solid(UIColor.secondarySystemFill),
-    borderColor: UIColor = .clear,
-    borderWidth: CGFloat = 0,
-    shadowColor: UIColor = .clear,
-    shadowOpacity: Float = 0,
-    shadowRadius: CGFloat = 0,
-    shadowOffset: CGSize = .zero,
+    border: FKLayerBorderStyle = .none,
+    shadow: FKLayerShadowStyle = .none,
     followMode: FKTabBarIndicatorFollowMode = .trackSelectedFrame
   ) {
     self.insets = insets
     self.cornerRadius = cornerRadius
     self.shape = shape
     self.fill = fill
-    self.borderColor = borderColor
-    self.borderWidth = borderWidth
-    self.shadowColor = shadowColor
-    self.shadowOpacity = shadowOpacity
-    self.shadowRadius = shadowRadius
-    self.shadowOffset = shadowOffset
+    self.border = border
+    self.shadow = shadow
     self.followMode = followMode
   }
 }

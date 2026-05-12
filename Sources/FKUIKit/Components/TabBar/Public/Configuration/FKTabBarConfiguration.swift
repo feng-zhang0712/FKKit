@@ -280,26 +280,6 @@ public struct FKTabBarAppearance {
     case bottom
   }
 
-  /// Shadow tokens for bar surface.
-  public struct Shadow: Equatable {
-    public var color: UIColor
-    public var opacity: Float
-    public var radius: CGFloat
-    public var offset: CGSize
-
-    public init(
-      color: UIColor = .black,
-      opacity: Float = 0,
-      radius: CGFloat = 0,
-      offset: CGSize = .zero
-    ) {
-      self.color = color
-      self.opacity = opacity
-      self.radius = radius
-      self.offset = offset
-    }
-  }
-
   /// Typography tokens.
   public struct Typography: Equatable {
     /// Title font for non-selected items.
@@ -387,10 +367,10 @@ public struct FKTabBarAppearance {
   public var showsDivider: Bool
   /// Divider edge position.
   public var dividerPosition: DividerPosition
-  /// Surface shadow styling.
+  /// Surface shadow styling (``FKLayerShadowStyle``).
   ///
   /// Use a subtle top-edge style to mimic system tab bars when docked at screen bottom.
-  public var shadow: Shadow
+  public var shadow: FKLayerShadowStyle
 
   public init(
     backgroundStyle: BackgroundStyle = .solid(.systemBackground),
@@ -401,7 +381,7 @@ public struct FKTabBarAppearance {
     indicatorZOrder: FKTabBarIndicatorZOrder = .automatic,
     showsDivider: Bool = true,
     dividerPosition: DividerPosition = .bottom,
-    shadow: Shadow = Shadow()
+    shadow: FKLayerShadowStyle = .none
   ) {
     self.backgroundStyle = backgroundStyle
     self.typography = typography

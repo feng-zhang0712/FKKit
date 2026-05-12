@@ -83,9 +83,9 @@ final class FKTabBarReplaceUITabBarExampleViewController: UIViewController {
     shadow.addAction(UIAction { [weak self] _ in
       guard let self else { return }
       if shadow.selectedSegmentIndex == 0 {
-        self.configuration.appearance.shadow = .init(color: .black, opacity: 0.12, radius: 10, offset: .init(width: 0, height: -2))
+        self.configuration.appearance.shadow = .custom(color: .black, opacity: 0.12, radius: 10, offset: CGSize(width: 0, height: -2))
       } else {
-        self.configuration.appearance.shadow = .init(color: .black, opacity: 0, radius: 0, offset: .zero)
+        self.configuration.appearance.shadow = .none
       }
       self.tabView.configuration = self.configuration
     }, for: .valueChanged)
@@ -109,7 +109,7 @@ final class FKTabBarReplaceUITabBarExampleViewController: UIViewController {
     configuration.appearance.backgroundStyle = .solid(.secondarySystemBackground)
     configuration.appearance.showsDivider = true
     configuration.appearance.dividerPosition = .top
-    configuration.appearance.shadow = .init(color: .black, opacity: 0.12, radius: 10, offset: .init(width: 0, height: -2))
+    configuration.appearance.shadow = .custom(color: .black, opacity: 0.12, radius: 10, offset: CGSize(width: 0, height: -2))
     tabView.configuration = configuration
 
     bottomConstraint = tabView.bottomAnchor.constraint(equalTo: view.bottomAnchor)

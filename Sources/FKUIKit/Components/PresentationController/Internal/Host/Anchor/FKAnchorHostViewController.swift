@@ -68,20 +68,14 @@ final class FKAnchorHostViewController: UIViewController {
 
     // Wrapper + card: shadow on `wrapperView` (must not clip); corner + clip on `cardView`.
     wrapperView.backgroundColor = .clear
-    wrapperView.layer.shadowColor = configuration.shadow.color.cgColor
-    wrapperView.layer.shadowOpacity = configuration.shadow.opacity
-    wrapperView.layer.shadowRadius = configuration.shadow.radius
-    wrapperView.layer.shadowOffset = configuration.shadow.offset
     wrapperView.layer.masksToBounds = false
+    wrapperView.layer.fk_applyShadow(configuration.shadow, path: nil)
 
     cardView.backgroundColor = .systemBackground
     cardView.layer.cornerRadius = configuration.cornerRadius
     cardView.layer.masksToBounds = true
 
-    if configuration.border.isEnabled {
-      cardView.layer.borderColor = configuration.border.color.cgColor
-      cardView.layer.borderWidth = configuration.border.width
-    }
+    cardView.layer.fk_applyBorder(configuration.border)
 
     contentContainerView.backgroundColor = .clear
 
@@ -159,15 +153,14 @@ final class FKAnchorHostViewController: UIViewController {
   }
 
   private func updateShadowPath(for direction: FKAnchor.Direction) {
-    let shouldShowShadow = configuration.shadow.opacity > 0 && configuration.shadow.radius > 0
-    if !shouldShowShadow {
+    guard let shadow = configuration.shadow.resolvedParameters else {
       wrapperView.layer.shadowOpacity = 0
       wrapperView.layer.shadowPath = nil
       return
     }
 
     let b = cardView.bounds
-    let radius = configuration.shadow.radius
+    let radius = shadow.radius
     let stripThickness = max(2, radius * 2)
     let rect: CGRect = {
       switch direction {

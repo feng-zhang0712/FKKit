@@ -48,10 +48,15 @@ final class ContainerAppearanceTuningExampleViewController: FKPresentationExampl
       configuration.sheet.detents = [.fixed(320), .full]
 
       configuration.cornerRadius = CGFloat(self.cornerRadius)
-      configuration.shadow.opacity = self.shadowOpacity
-      configuration.shadow.radius = CGFloat(self.shadowRadius)
-      configuration.border.isEnabled = self.borderEnabled
-      configuration.border.width = CGFloat(self.borderWidth)
+      configuration.shadow = .custom(
+        color: .black,
+        opacity: self.shadowOpacity,
+        radius: CGFloat(self.shadowRadius),
+        offset: CGSize(width: 0, height: 8)
+      )
+      configuration.border = self.borderEnabled
+        ? .custom(color: .separator, width: CGFloat(self.borderWidth))
+        : .none
 
       _ = FKPresentationExampleHelpers.present(from: self, title: "Appearance", configuration: configuration)
     }

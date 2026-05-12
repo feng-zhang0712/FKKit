@@ -199,13 +199,9 @@ class AnchorSingleExampleBaseViewController: UIViewController {
     configuration.backdropStyle = .dim(color: .black, alpha: CGFloat(maskAlpha))
     configuration.cornerRadius = CGFloat(cornerRadius)
     if showsShadow {
-      configuration.shadow.opacity = 0.18
-      configuration.shadow.radius = 16
-      configuration.shadow.offset = .init(width: 0, height: 8)
+      configuration.shadow = .presentationDefault
     } else {
-      configuration.shadow.opacity = 0
-      configuration.shadow.radius = 0
-      configuration.shadow.offset = .zero
+      configuration.shadow = .none
     }
 
     let content = FKExampleLabelContentViewController(text: spec.popupContentText)

@@ -12,18 +12,9 @@ extension FKContainerPresentationController {
     }
     wrapperView.layer.cornerRadius = configuration.cornerRadius
     wrapperView.layer.masksToBounds = false
-    wrapperView.layer.shadowColor = configuration.shadow.color.cgColor
-    wrapperView.layer.shadowOpacity = configuration.shadow.opacity
-    wrapperView.layer.shadowRadius = configuration.shadow.radius
-    wrapperView.layer.shadowOffset = configuration.shadow.offset
-    wrapperView.layer.shadowPath = UIBezierPath(roundedRect: wrapperView.bounds, cornerRadius: configuration.cornerRadius).cgPath
-
-    if configuration.border.isEnabled {
-      wrapperView.layer.borderColor = configuration.border.color.cgColor
-      wrapperView.layer.borderWidth = configuration.border.width
-    } else {
-      wrapperView.layer.borderWidth = 0
-    }
+    let shadowPath = UIBezierPath(roundedRect: wrapperView.bounds, cornerRadius: configuration.cornerRadius).cgPath
+    wrapperView.layer.fk_applyShadow(configuration.shadow, path: shadowPath)
+    wrapperView.layer.fk_applyBorder(configuration.border)
   }
 
   /// Resolves container safe-area participation from selected policy.

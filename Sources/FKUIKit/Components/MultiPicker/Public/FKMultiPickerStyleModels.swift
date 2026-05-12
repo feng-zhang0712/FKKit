@@ -73,26 +73,17 @@ public struct FKMultiPickerContainerStyle: Hashable {
   public var backgroundColor: UIColor
   public var maskColor: UIColor
   public var cornerRadius: CGFloat
-  public var shadowColor: UIColor
-  public var shadowOpacity: Float
-  public var shadowRadius: CGFloat
-  public var shadowOffset: CGSize
+  public var shadow: FKLayerShadowStyle
 
   public init(
     backgroundColor: UIColor = .systemBackground,
     maskColor: UIColor = UIColor.black.withAlphaComponent(0.35),
     cornerRadius: CGFloat = 16,
-    shadowColor: UIColor = .black,
-    shadowOpacity: Float = 0.1,
-    shadowRadius: CGFloat = 10,
-    shadowOffset: CGSize = CGSize(width: 0, height: -2)
+    shadow: FKLayerShadowStyle = .custom(color: .black, opacity: 0.1, radius: 10, offset: CGSize(width: 0, height: -2))
   ) {
     self.backgroundColor = backgroundColor
     self.maskColor = maskColor
     self.cornerRadius = max(0, cornerRadius)
-    self.shadowColor = shadowColor
-    self.shadowOpacity = max(0, shadowOpacity)
-    self.shadowRadius = max(0, shadowRadius)
-    self.shadowOffset = shadowOffset
+    self.shadow = shadow
   }
 }

@@ -110,15 +110,7 @@ final class AnchorBlurExampleViewController: FKPresentationBlurExampleBaseViewCo
     configuration.dismissBehavior = .init(allowsTapOutside: true, allowsSwipe: true, allowsBackdropTap: true)
     configuration.cornerRadius = CGFloat(cornerRadius)
     configuration.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
-    if showsShadow {
-      configuration.shadow.opacity = 0.18
-      configuration.shadow.radius = 16
-      configuration.shadow.offset = .init(width: 0, height: 8)
-    } else {
-      configuration.shadow.opacity = 0
-      configuration.shadow.radius = 0
-      configuration.shadow.offset = .zero
-    }
+    configuration.shadow = showsShadow ? .presentationDefault : .none
     applyCommonBlurConfiguration(to: &configuration)
 
     let content = FKExampleLabelContentViewController(text: "Top anchor popup blur", usesTransparentBackground: true)

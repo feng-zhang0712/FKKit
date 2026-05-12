@@ -317,9 +317,10 @@ public final class FKTabBar: UIView {
     assertMainThreadInDebug()
     super.layoutSubviews()
     backgroundHost.frame = bounds
-    backgroundHost.layer.shadowPath = UIBezierPath(rect: backgroundHost.bounds).cgPath
     collectionView.frame = backgroundHost.bounds
     let ap = resolvedAppearance()
+    let shadowPath = UIBezierPath(rect: backgroundHost.bounds).cgPath
+    backgroundHost.layer.shadowPath = ap.shadow.resolvedParameters != nil ? shadowPath : nil
     let dividerHeight: CGFloat = ap.showsDivider ? 1 / UIScreen.main.scale : 0
     let dividerY: CGFloat
     switch ap.dividerPosition {
@@ -711,12 +712,9 @@ public final class FKTabBar: UIView {
     }
     divider.isHidden = !ap.showsDivider
     divider.backgroundColor = ap.colors.divider
-    backgroundHost.layer.shadowColor = ap.shadow.color.cgColor
-    backgroundHost.layer.shadowOpacity = ap.shadow.opacity
-    backgroundHost.layer.shadowRadius = ap.shadow.radius
-    backgroundHost.layer.shadowOffset = ap.shadow.offset
     backgroundHost.layer.masksToBounds = false
-    backgroundHost.layer.shadowPath = UIBezierPath(rect: backgroundHost.bounds).cgPath
+    let shadowPath = UIBezierPath(rect: backgroundHost.bounds).cgPath
+    backgroundHost.layer.fk_applyShadow(ap.shadow, path: shadowPath)
     indicator.style = ap.indicatorStyle
     indicator.color = ap.colors.indicator
     customIndicatorStyler?(indicator)
