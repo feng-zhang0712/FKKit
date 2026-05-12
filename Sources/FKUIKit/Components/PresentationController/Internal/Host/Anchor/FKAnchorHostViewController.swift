@@ -153,14 +153,21 @@ final class FKAnchorHostViewController: UIViewController {
   }
 
   private func updateShadowPath(for direction: FKAnchor.Direction) {
-    guard let shadow = configuration.shadow.resolvedParameters else {
+    let radius: CGFloat
+    switch configuration.shadow {
+    case .none:
+      wrapperView.layer.shadowOpacity = 0
+      wrapperView.layer.shadowPath = nil
+      return
+    case .custom(_, let opacity, let r, _) where opacity > 0 && r > 0:
+      radius = r
+    default:
       wrapperView.layer.shadowOpacity = 0
       wrapperView.layer.shadowPath = nil
       return
     }
 
     let b = cardView.bounds
-    let radius = shadow.radius
     let stripThickness = max(2, radius * 2)
     let rect: CGRect = {
       switch direction {

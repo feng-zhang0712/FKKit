@@ -199,7 +199,7 @@ class AnchorSingleExampleBaseViewController: UIViewController {
     configuration.backdropStyle = .dim(color: .black, alpha: CGFloat(maskAlpha))
     configuration.cornerRadius = CGFloat(cornerRadius)
     if showsShadow {
-      configuration.shadow = .presentationDefault
+      configuration.shadow = .custom(color: .black, opacity: 0.18, radius: 16, offset: CGSize(width: 0, height: 8))
     } else {
       configuration.shadow = .none
     }

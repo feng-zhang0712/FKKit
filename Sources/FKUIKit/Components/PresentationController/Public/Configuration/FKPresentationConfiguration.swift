@@ -81,7 +81,7 @@ public struct FKPresentationConfiguration {
     layout: Layout = .bottomSheet(.init()),
     safeAreaPolicy: FKSafeAreaPolicy = .contentRespectsSafeArea,
     cornerRadius: CGFloat = 16,
-    shadow: FKLayerShadowStyle = .presentationDefault,
+    shadow: FKLayerShadowStyle = .none,
     border: FKLayerBorderStyle = .none,
     backdropStyle: FKBackdropStyle = .dim(alpha: 0.35),
     backgroundInteraction: BackgroundInteractionConfiguration = .init(),

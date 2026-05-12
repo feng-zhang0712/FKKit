@@ -320,7 +320,11 @@ public final class FKTabBar: UIView {
     collectionView.frame = backgroundHost.bounds
     let ap = resolvedAppearance()
     let shadowPath = UIBezierPath(rect: backgroundHost.bounds).cgPath
-    backgroundHost.layer.shadowPath = ap.shadow.resolvedParameters != nil ? shadowPath : nil
+    if case .custom(_, let opacity, let radius, _) = ap.shadow, opacity > 0, radius > 0 {
+      backgroundHost.layer.shadowPath = shadowPath
+    } else {
+      backgroundHost.layer.shadowPath = nil
+    }
     let dividerHeight: CGFloat = ap.showsDivider ? 1 / UIScreen.main.scale : 0
     let dividerY: CGFloat
     switch ap.dividerPosition {
