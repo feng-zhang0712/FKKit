@@ -1,5 +1,13 @@
 import UIKit
 
+/// Arrangement of arrow / spinner and message text in ``FKDefaultRefreshContentView``.
+public enum FKDefaultRefreshContentLayout: Sendable {
+  /// Indicator and label in one row (default).
+  case horizontal
+  /// Indicator above the label.
+  case vertical
+}
+
 /// Visual and behavioral knobs shared by pull-to-refresh and load-more (thresholds, timing, copy, footer rules).
 public struct FKRefreshConfiguration: Sendable {
 
@@ -36,6 +44,9 @@ public struct FKRefreshConfiguration: Sendable {
 
   /// Localizable / brand copy for the default content view.
   public var texts: FKRefreshText
+
+  /// Row vs column layout for arrow / spinner and label in ``FKDefaultRefreshContentView``.
+  public var defaultContentLayout: FKDefaultRefreshContentLayout
 
   // MARK: - Behaviour
 
@@ -81,6 +92,7 @@ public struct FKRefreshConfiguration: Sendable {
     messageFontSize: CGFloat = 12,
     messageFontWeight: UIFont.Weight = .regular,
     texts: FKRefreshText = .default,
+    defaultContentLayout: FKDefaultRefreshContentLayout = .horizontal,
     shouldKeepExpandedWhileRefreshing: Bool = true,
     isSilentRefresh: Bool = false,
     isHapticFeedbackEnabled: Bool = true,
@@ -102,6 +114,7 @@ public struct FKRefreshConfiguration: Sendable {
     self.messageFontSize = max(8, messageFontSize)
     self.messageFontWeight = messageFontWeight
     self.texts = texts
+    self.defaultContentLayout = defaultContentLayout
     self.shouldKeepExpandedWhileRefreshing = shouldKeepExpandedWhileRefreshing
     self.isSilentRefresh = isSilentRefresh
     self.isHapticFeedbackEnabled = isHapticFeedbackEnabled

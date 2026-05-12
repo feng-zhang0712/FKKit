@@ -44,6 +44,11 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
         factory: { FKRefreshConfigurationDemoViewController() }
       ),
       DemoItem(
+        title: "Default indicator layout",
+        subtitle: "Goal: arrow/spinner vs label axis. Params: FKRefreshConfiguration.defaultContentLayout. Expect: horizontal default; vertical legacy stack.",
+        factory: { FKRefreshContentLayoutDemoViewController() }
+      ),
+      DemoItem(
         title: "Custom dots view",
         subtitle: "Goal: custom indicator animation. Params: FKRefreshContentView protocol. Expect: progress-driven visuals stay in sync.",
         factory: { FKRefreshDotsDemoViewController() }

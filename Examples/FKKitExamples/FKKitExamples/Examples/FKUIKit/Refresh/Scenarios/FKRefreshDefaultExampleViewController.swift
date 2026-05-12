@@ -35,10 +35,11 @@ final class FKRefreshDefaultDemoViewController: UIViewController {
 
   private lazy var controlPanel: UIView = {
     let panel = UIView()
-    panel.backgroundColor = .secondarySystemGroupedBackground
+    panel.backgroundColor = .clear
     panel.translatesAutoresizingMaskIntoConstraints = false
 
     let caption = UILabel()
+    caption.backgroundColor = .clear
     caption.text = "Next request simulates"
     caption.font = .preferredFont(forTextStyle: .caption1)
     caption.textColor = .secondaryLabel
@@ -87,7 +88,7 @@ final class FKRefreshDefaultDemoViewController: UIViewController {
     view.backgroundColor = .systemGroupedBackground
 
     let statusBar = UIView()
-    statusBar.backgroundColor = .secondarySystemBackground
+    statusBar.backgroundColor = .clear
     statusBar.translatesAutoresizingMaskIntoConstraints = false
     statusBar.addSubview(statusLabel)
 

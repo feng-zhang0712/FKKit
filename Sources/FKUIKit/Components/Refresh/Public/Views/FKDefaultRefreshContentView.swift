@@ -3,7 +3,7 @@ import UIKit
 /// Built-in indicator: arrow that rotates into a spinner plus status label driven by ``FKRefreshText``.
 public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
 
-  /// Hosts the arrow layer and spinner so they share one vertical slot above the label (avoids overlap).
+  /// Hosts the arrow layer and spinner in one slot beside or above the label (avoids overlap).
   private let indicatorHost = UIView()
   private let spinner = UIActivityIndicatorView(style: .medium)
   private let arrowLayer = CAShapeLayer()
@@ -59,9 +59,6 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
     label.adjustsFontForContentSizeCategory = true
     label.lineBreakMode = .byWordWrapping
 
-    stackView.axis = .vertical
-    stackView.alignment = .center
-    stackView.spacing = 6
     stackView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(stackView)
     stackView.addArrangedSubview(indicatorHost)
@@ -74,8 +71,8 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
       stackView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 8),
       stackView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -8),
 
-      indicatorHost.widthAnchor.constraint(greaterThanOrEqualToConstant: 36),
-      indicatorHost.heightAnchor.constraint(equalToConstant: 28),
+      indicatorHost.widthAnchor.constraint(equalToConstant: 28),
+      indicatorHost.heightAnchor.constraint(equalToConstant: 26),
 
       spinner.centerXAnchor.constraint(equalTo: indicatorHost.centerXAnchor),
       spinner.centerYAnchor.constraint(equalTo: indicatorHost.centerYAnchor),
@@ -84,6 +81,8 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
     retryButton.isHidden = true
     retryButton.setContentHuggingPriority(.required, for: .vertical)
     retryButton.addTarget(self, action: #selector(handleRetryTap), for: .touchUpInside)
+
+    applyContentLayout()
 
     addGestureRecognizer(retryTapGesture)
     semanticContentAttribute = .unspecified
@@ -99,7 +98,7 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
   private func updateArrowPath() {
     let b = indicatorHost.bounds
     guard b.width > 0, b.height > 0 else { return }
-    let size: CGFloat = 20
+    let size: CGFloat = 16
     let cx = b.midX
     let cy = b.midY
     let r = size / 2
@@ -205,6 +204,26 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
     label.font = UIFontMetrics(forTextStyle: .footnote).scaledFont(for: base)
     retryButton.titleLabel?.font = UIFontMetrics(forTextStyle: .footnote).scaledFont(for: base)
     applyTint(configuration.tintColor)
+    applyContentLayout()
+  }
+
+  private func applyContentLayout() {
+    switch configuration.defaultContentLayout {
+    case .horizontal:
+      stackView.axis = .horizontal
+      stackView.alignment = .center
+      stackView.spacing = 8
+      label.textAlignment = .natural
+      label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+      retryButton.setContentHuggingPriority(.required, for: .horizontal)
+    case .vertical:
+      stackView.axis = .vertical
+      stackView.alignment = .center
+      stackView.spacing = 6
+      label.textAlignment = .center
+      label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+      retryButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    }
   }
 
   private func showArrow(rotated: Bool, animated: Bool) {
