@@ -1,9 +1,10 @@
 # FKKit
 
 [![iOS](https://img.shields.io/badge/iOS-15.0%2B-blue.svg)](https://developer.apple.com/ios/)
-[![Swift](https://img.shields.io/badge/Swift-6.2%2B-orange.svg)](https://swift.org/)
+[![Swift](https://img.shields.io/badge/Swift-6.0%2B-orange.svg)](https://swift.org/)
 [![SPM](https://img.shields.io/badge/SPM-supported-brightgreen.svg)](https://swift.org/package-manager/)
 [![CocoaPods](https://img.shields.io/badge/CocoaPods-supported-ee3322.svg)](https://cocoapods.org/)
+[![CI](https://github.com/feng-zhang0712/FKKit/actions/workflows/ci.yml/badge.svg)](https://github.com/feng-zhang0712/FKKit/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
 ## Table of Contents
@@ -19,6 +20,9 @@
 - [Installation (SPM)](#installation-spm)
 - [Installation (CocoaPods)](#installation-cocoapods)
 - [Usage](#usage)
+- [Contributing](#contributing)
+- [Support](#support)
+- [Security](#security)
 - [Branching & Collaboration (Recommended)](#branching--collaboration-recommended)
 - [License](#license)
 - [Changelog](#changelog)
@@ -44,7 +48,7 @@ In addition, the package exposes a small Foundation-only product for EmptyState 
 - Continuous integration via **GitHub Actions**: builds and runs **unit tests** for the Swift package on **iOS Simulator** on selected branches and PRs (see `.github/workflows/ci.yml`).
 - Modular architecture with clear package products.
 - Protocol-oriented design in multiple components for extensibility and testability.
-- Example project included for direct integration reference.
+- Example app under [`Examples/FKKitExamples`](Examples/FKKitExamples) for direct integration reference.
 
 ## Module Structure
 
@@ -238,6 +242,18 @@ let pageManager = FKPageManager()
 ```
 
 For complete usage and advanced APIs, refer to each module README in `Sources/...`.
+
+## Contributing
+
+Pull requests are welcome. Open PRs against **`develop`**, keep changes focused, and ensure **`FKCoreKit`** tests pass (locally with Xcode / `xcodebuild`, or via CI). Branch naming, git hooks, commit message conventions, and release flow: [Branching & Collaboration (Recommended)](#branching--collaboration-recommended).
+
+## Support
+
+File bug reports and feature requests in [GitHub Issues](https://github.com/feng-zhang0712/FKKit/issues).
+
+## Security
+
+Please report security vulnerabilities through [GitHub private security advisories](https://github.com/feng-zhang0712/FKKit/security/advisories/new) instead of public issues.
 
 ## Branching & Collaboration (Recommended)
 
