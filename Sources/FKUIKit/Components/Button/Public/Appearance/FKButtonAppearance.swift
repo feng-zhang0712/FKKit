@@ -36,20 +36,6 @@ public enum FKButtonShadowPathStrategy: Equatable, Sendable {
   case none
 }
 
-/// Border style.
-public struct FKButtonBorderStyle: Equatable, Sendable {
-  public let width: CGFloat
-  public let color: UIColor
-
-  public init(width: CGFloat = 0, color: UIColor = .clear) {
-    self.width = max(0, width)
-    self.color = color
-  }
-
-  public static let `default` = FKButtonBorderStyle()
-  public static let clear = FKButtonBorderStyle()
-}
-
 /// Corner style.
 public struct FKButtonCornerStyle: Equatable, Sendable {
   public let corner: FKButtonCorner
@@ -91,34 +77,14 @@ public struct FKButtonInteractionStyle: Equatable, Sendable {
   public static let `default` = FKButtonInteractionStyle()
 }
 
-/// Shadow parameters.
-public struct FKButtonShadowStyle: Equatable, Sendable {
-  public let color: UIColor
-  public let opacity: Float
-  public let offset: CGSize
-  public let radius: CGFloat
-
-  public init(
-    color: UIColor = .black,
-    opacity: Float = 0.18,
-    offset: CGSize = CGSize(width: 0, height: 2),
-    radius: CGFloat = 4
-  ) {
-    self.color = color
-    self.opacity = opacity
-    self.offset = offset
-    self.radius = radius
-  }
-}
-
 /// Per-state appearance model.
 public struct FKButtonAppearance: Equatable, Sendable {
   public var cornerStyle: FKButtonCornerStyle
-  public var border: FKButtonBorderStyle
+  public var border: FKLayerBorderStyle
   public var backgroundColor: UIColor
   public var backgroundGradient: FKButtonLinearGradient?
   public var alpha: CGFloat
-  public var shadow: FKButtonShadowStyle?
+  public var shadow: FKLayerShadowStyle
   public var shadowPathStrategy: FKButtonShadowPathStrategy
   public var contentInsets: NSDirectionalEdgeInsets
   public var clipsToBounds: Bool?
@@ -127,11 +93,11 @@ public struct FKButtonAppearance: Equatable, Sendable {
   /// Creates an appearance.
   public init(
     cornerStyle: FKButtonCornerStyle = .default,
-    border: FKButtonBorderStyle = .default,
+    border: FKLayerBorderStyle = .none,
     backgroundColor: UIColor = .clear,
     backgroundGradient: FKButtonLinearGradient? = nil,
     alpha: CGFloat = 1.0,
-    shadow: FKButtonShadowStyle? = nil,
+    shadow: FKLayerShadowStyle = .none,
     shadowPathStrategy: FKButtonShadowPathStrategy = .automatic,
     contentInsets: NSDirectionalEdgeInsets = .init(top: 7, leading: 12, bottom: 7, trailing: 12),
     clipsToBounds: Bool? = nil,
@@ -179,7 +145,7 @@ public struct FKButtonAppearance: Equatable, Sendable {
   ) -> FKButtonAppearance {
     FKButtonAppearance(
       cornerStyle: cornerStyle,
-      border: FKButtonBorderStyle(width: 0, color: borderColor),
+      border: .none,
       backgroundColor: backgroundColor
     )
   }
@@ -191,13 +157,13 @@ public struct FKButtonAppearance: Equatable, Sendable {
   ) -> FKButtonAppearance {
     FKButtonAppearance(
       cornerStyle: cornerStyle,
-      border: FKButtonBorderStyle(width: borderWidth, color: borderColor),
+      border: .custom(color: borderColor, width: borderWidth),
       backgroundColor: .clear
     )
   }
 
   public static func ghost(cornerStyle: FKButtonCornerStyle = .default) -> FKButtonAppearance {
-    FKButtonAppearance(cornerStyle: cornerStyle, border: .clear, backgroundColor: .clear)
+    FKButtonAppearance(cornerStyle: cornerStyle, border: .none, backgroundColor: .clear)
   }
 
   public static let `default` = FKButtonAppearance()
@@ -226,11 +192,11 @@ public struct FKButtonStateAppearances: Equatable, Sendable {
 /// Partial appearance override model.
 public struct FKButtonAppearanceOverride: Equatable, Sendable {
   public var cornerStyle: FKButtonCornerStyle?
-  public var border: FKButtonBorderStyle?
+  public var border: FKLayerBorderStyle?
   public var backgroundColor: UIColor?
   public var backgroundGradient: FKButtonLinearGradient??
   public var alpha: CGFloat?
-  public var shadow: FKButtonShadowStyle??
+  public var shadow: FKLayerShadowStyle?
   public var shadowPathStrategy: FKButtonShadowPathStrategy?
   public var contentInsets: NSDirectionalEdgeInsets?
   public var clipsToBounds: Bool??
@@ -238,11 +204,11 @@ public struct FKButtonAppearanceOverride: Equatable, Sendable {
 
   public init(
     cornerStyle: FKButtonCornerStyle? = nil,
-    border: FKButtonBorderStyle? = nil,
+    border: FKLayerBorderStyle? = nil,
     backgroundColor: UIColor? = nil,
     backgroundGradient: FKButtonLinearGradient?? = nil,
     alpha: CGFloat? = nil,
-    shadow: FKButtonShadowStyle?? = nil,
+    shadow: FKLayerShadowStyle? = nil,
     shadowPathStrategy: FKButtonShadowPathStrategy? = nil,
     contentInsets: NSDirectionalEdgeInsets? = nil,
     clipsToBounds: Bool?? = nil,

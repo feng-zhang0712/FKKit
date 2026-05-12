@@ -18,3 +18,5 @@ extension CALayer {
     }
   }
 }
+
+extension FKLayerBorderStyle: @unchecked Sendable {}

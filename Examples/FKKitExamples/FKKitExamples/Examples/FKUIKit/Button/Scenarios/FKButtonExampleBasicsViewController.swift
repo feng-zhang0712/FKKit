@@ -81,8 +81,8 @@ final class FKButtonExampleBasicsViewController: FKButtonExampleScrollViewContro
     stack.spacing = 10
     let appearances = makeStatefulAppearance(
       normal: .init(foregroundColor: .label, backgroundColor: .tertiarySystemBackground, borderColor: .separator, shadow: nil),
-      selected: .init(foregroundColor: .white, backgroundColor: .systemGreen, borderColor: .systemGreen, shadow: .init(color: .systemGreen, opacity: 0.18, offset: CGSize(width: 0, height: 3), radius: 6)),
-      highlighted: .init(foregroundColor: .white, backgroundColor: .systemGreen, borderColor: .systemGreen, shadow: .init(color: .systemGreen, opacity: 0.18, offset: CGSize(width: 0, height: 3), radius: 6)),
+      selected: .init(foregroundColor: .white, backgroundColor: .systemGreen, borderColor: .systemGreen, shadow: .custom(color: .systemGreen, opacity: 0.18, radius: 6, offset: CGSize(width: 0, height: 3))),
+      highlighted: .init(foregroundColor: .white, backgroundColor: .systemGreen, borderColor: .systemGreen, shadow: .custom(color: .systemGreen, opacity: 0.18, radius: 6, offset: CGSize(width: 0, height: 3))),
       disabled: .init(foregroundColor: .secondaryLabel, backgroundColor: .systemGray6, borderColor: .tertiarySystemFill, shadow: nil)
     )
     let normalBtn = makeIconButton(systemName: "star.fill", appearances: appearances)
@@ -123,8 +123,8 @@ final class FKButtonExampleBasicsViewController: FKButtonExampleScrollViewContro
     stack.spacing = 10
     let appearances = makeStatefulAppearance(
       normal: .init(foregroundColor: .label, backgroundColor: .tertiarySystemBackground, borderColor: .separator, shadow: nil),
-      selected: .init(foregroundColor: .white, backgroundColor: .systemOrange, borderColor: .systemOrange, shadow: .init(color: .systemOrange, opacity: 0.2, offset: CGSize(width: 0, height: 3), radius: 6)),
-      highlighted: .init(foregroundColor: .white, backgroundColor: .systemOrange, borderColor: .systemOrange, shadow: .init(color: .systemOrange, opacity: 0.2, offset: CGSize(width: 0, height: 3), radius: 6)),
+      selected: .init(foregroundColor: .white, backgroundColor: .systemOrange, borderColor: .systemOrange, shadow: .custom(color: .systemOrange, opacity: 0.2, radius: 6, offset: CGSize(width: 0, height: 3))),
+      highlighted: .init(foregroundColor: .white, backgroundColor: .systemOrange, borderColor: .systemOrange, shadow: .custom(color: .systemOrange, opacity: 0.2, radius: 6, offset: CGSize(width: 0, height: 3))),
       disabled: .init(foregroundColor: .secondaryLabel, backgroundColor: .systemGray6, borderColor: .tertiarySystemFill, shadow: nil)
     )
     let leading = makeCompositionButton(title: "Leading", kind: .textAndImage(.leading), leading: "paperplane.fill", trailing: nil, appearances: appearances)

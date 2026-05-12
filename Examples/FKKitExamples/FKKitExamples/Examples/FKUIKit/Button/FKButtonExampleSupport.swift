@@ -16,7 +16,7 @@ enum FKButtonExampleSupport {
     let foregroundColor: UIColor
     let backgroundColor: UIColor
     let borderColor: UIColor
-    let shadow: FKButton.Shadow?
+    let shadow: FKLayerShadowStyle?
   }
 
   struct StatefulAppearances {
@@ -51,9 +51,9 @@ enum FKButtonExampleSupport {
     func makeAppearance(from spec: ButtonVisualSpec) -> FKButton.Appearance {
       FKButton.Appearance(
         cornerStyle: .init(corner: corner),
-        border: .init(width: borderWidth, color: spec.borderColor),
+        border: borderWidth > 0 ? .custom(color: spec.borderColor, width: borderWidth) : .none,
         backgroundColor: spec.backgroundColor,
-        shadow: spec.shadow,
+        shadow: spec.shadow ?? .none,
         contentInsets: insets
       )
     }

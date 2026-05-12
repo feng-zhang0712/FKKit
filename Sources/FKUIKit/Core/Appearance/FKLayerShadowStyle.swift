@@ -27,3 +27,5 @@ extension CALayer {
     }
   }
 }
+
+extension FKLayerShadowStyle: @unchecked Sendable {}

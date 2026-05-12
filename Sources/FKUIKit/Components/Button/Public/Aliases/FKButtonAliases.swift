@@ -14,9 +14,9 @@ public extension FKButton {
   typealias StateAppearances = FKButtonStateAppearances
   typealias AppearanceOverride = FKButtonAppearanceOverride
   typealias CornerStyle = FKButtonCornerStyle
-  typealias Border = FKButtonBorderStyle
+  typealias Border = FKLayerBorderStyle
   typealias Interaction = FKButtonInteractionStyle
-  typealias Shadow = FKButtonShadowStyle
+  typealias Shadow = FKLayerShadowStyle
   typealias ShadowPathStrategy = FKButtonShadowPathStrategy
   typealias Corner = FKButtonCorner
   typealias LoadingPresentationStyle = FKButtonLoadingPresentation

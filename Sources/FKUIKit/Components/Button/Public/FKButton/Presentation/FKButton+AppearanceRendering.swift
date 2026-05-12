@@ -32,23 +32,19 @@ extension FKButton {
       backgroundGradientLayer.isHidden = true
       backgroundColor = appearance.backgroundColor
     }
-    layer.borderWidth = appearance.border.width
-    layer.borderColor = appearance.border.color.cgColor
+    layer.fk_applyBorder(appearance.border)
     layer.cornerCurve = appearance.cornerStyle.curve
     layer.maskedCorners = appearance.cornerStyle.maskedCorners
     applyCornerMetrics(using: appearance)
-    
-    if let shadow = appearance.shadow {
-      layer.shadowOffset = shadow.offset
-      layer.shadowRadius = shadow.radius
-      layer.shadowOpacity = shadow.opacity
-      layer.shadowColor = shadow.color.cgColor
-      layer.masksToBounds = false
-      updateShadowPath(using: appearance)
-    } else {
-      layer.shadowOpacity = 0
-      layer.shadowPath = nil
+
+    switch appearance.shadow {
+    case .none:
+      layer.fk_applyShadow(.none, path: nil)
       layer.masksToBounds = true
+    case .custom:
+      layer.masksToBounds = false
+      layer.fk_applyShadow(appearance.shadow, path: nil)
+      updateShadowPath(using: appearance)
     }
     
     let insets = appearance.contentInsets
@@ -73,13 +69,13 @@ extension FKButton {
     if let clipsToBounds = appearance.clipsToBounds {
       self.clipsToBounds = clipsToBounds
     } else {
-      self.clipsToBounds = (appearance.shadow == nil)
+      self.clipsToBounds = (appearance.shadow == .none)
     }
   }
 
   /// Rebuilds `layer.shadowPath` from current bounds and corner settings when enabled.
   func updateShadowPath(using appearance: Appearance) {
-    guard appearance.shadow != nil, appearance.shadowPathStrategy == .automatic else {
+    guard appearance.shadowPathStrategy == .automatic, case .custom = appearance.shadow else {
       layer.shadowPath = nil
       return
     }

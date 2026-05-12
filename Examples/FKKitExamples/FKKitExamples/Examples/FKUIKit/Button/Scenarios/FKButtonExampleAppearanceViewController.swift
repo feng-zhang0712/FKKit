@@ -19,7 +19,7 @@ final class FKButtonExampleAppearanceViewController: FKButtonExampleScrollViewCo
     let b = FKButton()
     b.content = .init(kind: .textOnly)
     b.setTitle(.init(text: "Gradient button", font: .systemFont(ofSize: 15, weight: .semibold), color: .white), for: .normal)
-    b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(14)), border: .init(width: 1, color: UIColor.white.withAlphaComponent(0.35)), backgroundColor: .clear, backgroundGradient: g)))
+    b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(14)), border: .custom(color: UIColor.white.withAlphaComponent(0.35), width: 1), backgroundColor: .clear, backgroundGradient: g)))
     b.heightAnchor.constraint(equalToConstant: 48).isActive = true
     b.widthAnchor.constraint(equalToConstant: 260).isActive = true
     addTap(b, name: "Appearance gradient")
@@ -61,7 +61,7 @@ final class FKButtonExampleAppearanceViewController: FKButtonExampleScrollViewCo
       b.content = .init(kind: .textAndImage(.leading))
       b.setTitle(.init(text: label, font: .systemFont(ofSize: 14, weight: .semibold), color: .label), for: .normal)
       b.setImage(.init(systemName: "star.fill", tintColor: .systemYellow, fixedSize: CGSize(width: 22, height: 22), spacingToTitle: spacing), slot: .leading, for: .normal)
-      b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(10)), border: .init(width: 1, color: .separator), backgroundColor: .tertiarySystemBackground)))
+      b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(10)), border: .custom(color: .separator, width: 1), backgroundColor: .tertiarySystemBackground)))
       b.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       b.widthAnchor.constraint(equalToConstant: 260).isActive = true
       return b

@@ -38,7 +38,7 @@ final class FKButtonExampleLayoutViewController: FKButtonExampleScrollViewContro
     b.axis = .vertical
     b.setTitle(.init(text: "Upload", font: .systemFont(ofSize: 14, weight: .semibold), color: .label), for: .normal)
     b.setCenterImage(.init(systemName: "arrow.up.circle.fill", tintColor: .systemBlue, spacingToTitle: 8), for: .normal)
-    b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(12)), border: .init(width: 1, color: .separator), backgroundColor: .tertiarySystemBackground)))
+    b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(12)), border: .custom(color: .separator, width: 1), backgroundColor: .tertiarySystemBackground)))
     b.heightAnchor.constraint(equalToConstant: 88).isActive = true
     b.widthAnchor.constraint(equalToConstant: 180).isActive = true
     addTap(b, name: "Layout vertical")
@@ -70,7 +70,7 @@ final class FKButtonExampleLayoutViewController: FKButtonExampleScrollViewContro
       let b = FKButton()
       b.content = .init(kind: .textOnly)
       b.setTitle(.init(text: text, font: .systemFont(ofSize: 14, weight: .medium), color: .label), for: .normal)
-      b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(10)), border: .init(width: 1, color: .separator), backgroundColor: .tertiarySystemBackground)))
+      b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(10)), border: .custom(color: .separator, width: 1), backgroundColor: .tertiarySystemBackground)))
       b.heightAnchor.constraint(equalToConstant: FKButtonExampleSupport.Metrics.buttonHeight).isActive = true
       addTap(b, name: "Layout width")
       stack.addArrangedSubview(horizontallyCentered(b))
@@ -86,7 +86,7 @@ final class FKButtonExampleLayoutViewController: FKButtonExampleScrollViewContro
     b.content = .init(kind: .textOnly)
     b.setTitle(.init(text: "Title", font: .systemFont(ofSize: 15, weight: .semibold), color: .label), for: .normal)
     b.setSubtitle(.init(text: "Subtitle text", font: .systemFont(ofSize: 12, weight: .regular), color: .secondaryLabel), for: .normal)
-    b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(12)), border: .init(width: 1, color: .separator), backgroundColor: .tertiarySystemBackground, contentInsets: .init(top: 10, leading: 14, bottom: 10, trailing: 14))))
+    b.setAppearances(.init(normal: .init(cornerStyle: .init(corner: .fixed(12)), border: .custom(color: .separator, width: 1), backgroundColor: .tertiarySystemBackground, contentInsets: .init(top: 10, leading: 14, bottom: 10, trailing: 14))))
     b.heightAnchor.constraint(greaterThanOrEqualToConstant: 60).isActive = true
     b.widthAnchor.constraint(equalToConstant: 240).isActive = true
     addTap(b, name: "Layout subtitle")
@@ -107,7 +107,7 @@ final class FKButtonExampleLayoutViewController: FKButtonExampleScrollViewContro
       .init(
         normal: .init(
           cornerStyle: .init(corner: .fixed(12)),
-          border: .init(width: 1, color: .separator),
+          border: .custom(color: .separator, width: 1),
           backgroundColor: .tertiarySystemBackground,
           contentInsets: .init(top: 10, leading: 14, bottom: 10, trailing: 14)
         )
@@ -151,7 +151,7 @@ final class FKButtonExampleLayoutViewController: FKButtonExampleScrollViewContro
       .init(
         normal: .init(
           cornerStyle: .init(corner: .fixed(12)),
-          border: .init(width: 1, color: .separator),
+          border: .custom(color: .separator, width: 1),
           backgroundColor: .tertiarySystemBackground,
           contentInsets: .init(top: 10, leading: 14, bottom: 10, trailing: 14)
         )

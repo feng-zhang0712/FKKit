@@ -51,8 +51,8 @@ final class FKButtonExampleAdvancedViewController: FKButtonExampleScrollViewCont
   }
 
   private static func templateStateAppearancesForGlobalStyleExample() -> FKButton.StateAppearances {
-    let normal = FKButton.Appearance(cornerStyle: .init(corner: .capsule), border: .init(width: 0, color: .clear), backgroundColor: .systemGreen)
-    let selected = FKButton.Appearance(cornerStyle: .init(corner: .capsule), border: .init(width: 0, color: .clear), backgroundColor: .systemMint)
+    let normal = FKButton.Appearance(cornerStyle: .init(corner: .capsule), border: .none, backgroundColor: .systemGreen)
+    let selected = FKButton.Appearance(cornerStyle: .init(corner: .capsule), border: .none, backgroundColor: .systemMint)
     return .init(normal: normal, selected: selected, highlighted: selected, disabled: normal.merged(with: .init(alpha: 0.45)))
   }
 }
