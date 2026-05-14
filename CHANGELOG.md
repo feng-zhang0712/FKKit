@@ -8,6 +8,20 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.50.1] - 2026-05-14
+
+### Fixed (FKUIKit)
+
+- **Presentation**: Apply the configured **`cornerRadius`** to **`contentContainerView`** in **`FKContainerPresentationController`** and **`FKOverlayPresentationViewController`** so opaque presented content does not cover rounded chrome when **`wrapperView`** cannot clip for shadows (notably center modals with **`containerRespectsSafeArea`**).
+
+### Changed (Examples)
+
+- **Center modal basics**: default **`FKPresentationConfiguration.safeAreaPolicy`** to **`containerRespectsSafeArea`** for easier regression checks.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.50.1** (Git tag **`0.50.1`**).
+
 ## [0.50.0] - 2026-05-13
 
 ### Added (FKUIKit)
@@ -2106,7 +2120,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.50.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.50.1...HEAD
+[0.50.1]: https://github.com/feng-zhang0712/FKKit/compare/0.50.0...0.50.1
 [0.50.0]: https://github.com/feng-zhang0712/FKKit/compare/0.49.0...0.50.0
 [0.49.0]: https://github.com/feng-zhang0712/FKKit/compare/0.48.0...0.49.0
 [0.44.2]: https://github.com/feng-zhang0712/FKKit/compare/0.44.1...0.44.2
