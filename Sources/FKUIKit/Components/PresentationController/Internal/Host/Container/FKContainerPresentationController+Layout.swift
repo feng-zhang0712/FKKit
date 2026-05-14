@@ -6,15 +6,19 @@ extension FKContainerPresentationController {
 
   /// Applies corner radius, border and shadow on the wrapper shell.
   func applyContainerAppearance() {
+    let radius = configuration.cornerRadius
     if let containerBlurView {
       containerBlurView.frame = wrapperView.bounds
-      containerBlurView.maskedCornerRadius = configuration.cornerRadius
+      containerBlurView.maskedCornerRadius = radius
     }
-    wrapperView.layer.cornerRadius = configuration.cornerRadius
+    wrapperView.layer.cornerRadius = radius
     wrapperView.layer.masksToBounds = false
-    let shadowPath = UIBezierPath(roundedRect: wrapperView.bounds, cornerRadius: configuration.cornerRadius).cgPath
+    let shadowPath = UIBezierPath(roundedRect: wrapperView.bounds, cornerRadius: radius).cgPath
     wrapperView.layer.fk_applyShadow(configuration.shadow, path: shadowPath)
     wrapperView.layer.fk_applyBorder(configuration.border)
+    // `wrapperView` cannot clip (shadow). Match `FKAnchorHostViewController`’s `cardView` pattern so
+    // opaque presented content does not paint over the rounded chrome when it fills the wrapper.
+    contentContainerView.layer.cornerRadius = radius
   }
 
   /// Resolves container safe-area participation from selected policy.

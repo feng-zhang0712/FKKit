@@ -33,6 +33,7 @@ final class CenterModalBasicsExampleViewController: FKPresentationExamplePageVie
       guard let self else { return }
       var configuration = FKPresentationConfiguration.default
       configuration.layout = .center(configuration.center)
+      configuration.safeAreaPolicy = .containerRespectsSafeArea
       configuration.center.size = {
         switch self.sizeChoice {
         case .fixedCompact:

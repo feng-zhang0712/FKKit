@@ -257,11 +257,13 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
   }
 
   private func applyAppearance() {
-    wrapperView.layer.cornerRadius = configuration.cornerRadius
+    let radius = configuration.cornerRadius
+    wrapperView.layer.cornerRadius = radius
     wrapperView.layer.masksToBounds = false
-    let shadowPath = UIBezierPath(roundedRect: wrapperView.bounds, cornerRadius: configuration.cornerRadius).cgPath
+    let shadowPath = UIBezierPath(roundedRect: wrapperView.bounds, cornerRadius: radius).cgPath
     wrapperView.layer.fk_applyShadow(configuration.shadow, path: shadowPath)
     wrapperView.layer.fk_applyBorder(configuration.border)
+    contentContainerView.layer.cornerRadius = radius
   }
 
   private func updatePassthroughHitTesting() {
