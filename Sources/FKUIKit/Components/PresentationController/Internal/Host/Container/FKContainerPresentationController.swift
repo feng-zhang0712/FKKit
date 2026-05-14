@@ -149,7 +149,11 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     backdropView.frame = containerView?.bounds ?? .zero
 
     // During sheet dragging, keep the live interactive frame instead of snapping back to detent.
-    if !isPanningSheet && !keepsInteractiveFrameForDismissal {
+    // While a presentation/dismissal transition is active, `FKPresentationAnimator` owns the presented
+    // view’s geometry (`bounds`/`center`/`transform` for center, or `frame` for sheets). Assigning
+    // `wrapperView.frame` here would fight that animation and can desync chrome vs hosted content.
+    if !isPanningSheet && !keepsInteractiveFrameForDismissal,
+       presentedViewController.transitionCoordinator == nil {
       wrapperView.frame = frameOfPresentedViewInContainerView
     }
     layoutContentContainer()

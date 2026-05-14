@@ -85,11 +85,11 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
     let end = finalState(for: baseFrame, style: style)
 
     if isPresentation {
-      apply(state: start, to: animatingView)
+      apply(state: start, to: animatingView, family: style.family)
     }
 
     if animationConfiguration.preset == .none || style.duration == 0 {
-      apply(state: isPresentation ? end : start, to: animatingView)
+      apply(state: isPresentation ? end : start, to: animatingView, family: style.family)
       transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
       let fallback = UIViewPropertyAnimator(duration: 0, curve: .linear) {}
       cachedAnimator = fallback
@@ -110,9 +110,9 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
       animations: { [weak self] in
         guard let self else { return }
         if self.isPresentation {
-          self.apply(state: end, to: animatingView)
+          self.apply(state: end, to: animatingView, family: style.family)
         } else {
-          self.apply(state: start, to: animatingView)
+          self.apply(state: start, to: animatingView, family: style.family)
         }
       }
     )
@@ -152,10 +152,21 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
     )
   }
 
-  private func apply(state: State, to view: UIView) {
-    view.frame = state.frame
+  private func apply(state: State, to view: UIView, family: FKAnimationStyleResolver.Family) {
     view.alpha = state.alpha
-    view.transform = state.transform
+    switch family {
+    case .alertLikeCenter:
+      // Do not drive `frame` while `transform` carries scale: UIKit treats `frame` as undefined under
+      // a non-identity `transform`, and layout passes that assign `frame` can desync chrome vs content.
+      // `bounds` + fixed `center` keeps the card midpoint stable; scale uses the default anchorPoint
+      // (0.5, 0.5), i.e. zoom in/out around the panel center — not the top-left.
+      view.bounds = CGRect(origin: .zero, size: state.frame.size)
+      view.center = CGPoint(x: state.frame.midX, y: state.frame.midY)
+      view.transform = state.transform
+    case .sheetLike:
+      view.transform = .identity
+      view.frame = state.frame
+    }
   }
 
   private func initialFrame(for baseFrame: CGRect) -> CGRect {
