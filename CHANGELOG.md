@@ -8,6 +8,27 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.50.2] - 2026-05-15
+
+### Added (FKCompositeKit — Filter)
+
+- **`FKFilterTwoColumnRightSectionHeaderBehavior`**: passive titles, section collapse via header tap, or selectable section header that clears item picks and forwards selection.
+- **`FKFilterTwoColumnSingleSelectionScope`** and **`FKFilterTwoColumnRightHeaderStyle`**: shared configuration for two-column **list** and **grid** panels.
+- **`FKFilterTwoColumnListSectionHeaderView`**: custom right-hand table section headers when header behavior is non-standard.
+- **`FKFilterPanelFactory`**: builds **`singleList`** panels from registered sources.
+
+### Changed (FKCompositeKit — Filter)
+
+- **`FKFilterTwoColumnListViewController`** / **`FKFilterTwoColumnGridViewController`**: configuration uses **`rightSectionHeaderBehavior`**; section collapse integrates **`FKFilterSection/isCollapsed`**; list supports grouped-style chrome options alongside grid behavior parity.
+
+### Changed (Examples)
+
+- Filter examples: hub entries for dropdown and per-panel **Example** flows; directories shortened to **`Dropdown/`**, **`TwoColumnList/`**, **`TwoColumnGrid/`**, **`ChipsPanel/`**, **`SingleListPanel/`** with consistent **Example** type names.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.50.2** (Git tag **`0.50.2`**).
+
 ## [0.50.1] - 2026-05-14
 
 ### Fixed (FKUIKit)
@@ -2120,7 +2141,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.50.1...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.50.2...HEAD
+[0.50.2]: https://github.com/feng-zhang0712/FKKit/compare/0.50.1...0.50.2
 [0.50.1]: https://github.com/feng-zhang0712/FKKit/compare/0.50.0...0.50.1
 [0.50.0]: https://github.com/feng-zhang0712/FKKit/compare/0.49.0...0.50.0
 [0.49.0]: https://github.com/feng-zhang0712/FKKit/compare/0.48.0...0.49.0
