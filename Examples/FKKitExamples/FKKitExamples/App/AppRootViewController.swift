@@ -14,6 +14,14 @@ final class AppRootViewController: UINavigationController {
     applySystemNavigationBarAppearance()
   }
 
+  override var childForStatusBarStyle: UIViewController? {
+    topViewController
+  }
+
+  override var childForStatusBarHidden: UIViewController? {
+    topViewController
+  }
+
   /// Uses an opaque navigation bar background, similar to the Settings app.
   private func applySystemNavigationBarAppearance() {
     let appearance = UINavigationBarAppearance()
