@@ -455,9 +455,8 @@ private final class FKBaseExampleStatusBarViewController: FKBaseViewController {
   /// White title + tint on the gradient “black bar” used for the `.lightContent` demo.
   private func applyLightStatusBarDemoNavigationChrome() {
     navigationController?.navigationBar.tintColor = .white
-    guard let current = navigationItem.standardAppearance,
-      let base = current.copy() as? UINavigationBarAppearance
-    else { return }
+    guard let current = navigationItem.standardAppearance else { return }
+    let base = current.copy()
     base.titleTextAttributes = [.foregroundColor: UIColor.white]
     base.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
     navigationItem.standardAppearance = base

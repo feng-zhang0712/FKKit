@@ -7,10 +7,14 @@ import UIKit
 /// - Right: sections for the selected category (`sectionsByCategoryID[selectedCategoryID]`)
 ///
 /// Capabilities:
-/// - Section header display (and optional header selection)
-/// - Single-select scope:
-///   - `.withinSection`: single selection only affects the tapped section
-///   - `.globalAcrossSections`: single selection clears other sections (useful for "course catalog" style)
+/// - Right-hand ``UITableView`` style (``Configuration/rightTableViewStyle``), including ``UITableView/Style/grouped``
+///   / ``UITableView/Style/insetGrouped`` with optional ``Configuration/rightGroupedTableConfiguration``
+/// - Section header display; ``Configuration/rightSectionHeaderBehavior`` chooses passive titles, collapse toggles, or selectable headers.
+/// - Optional **section collapse**: ``FKFilterTwoColumnRightSectionHeaderBehavior/togglesSectionCollapse`` toggles
+///   ``FKFilterSection/isCollapsed`` from the header; default collapsed state is stored per section in the model.
+/// - Single-select scope (``FKFilterTwoColumnSingleSelectionScope``; typealias ``SingleSelectionScope``):
+///   - ``FKFilterTwoColumnSingleSelectionScope/withinSection``: single selection only affects the tapped section
+///   - ``FKFilterTwoColumnSingleSelectionScope/globalAcrossSections``: single selection clears other sections (useful for "course catalog" style)
 /// - Height controlled via `Configuration.heightBehavior`
 public final class FKFilterTwoColumnListViewController: UIViewController {
   public typealias LeftCellContentConfiguration = (
@@ -26,33 +30,39 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
     _ section: FKFilterSection
   ) -> Void
 
-  public enum SingleSelectionScope {
-    case withinSection
-    case globalAcrossSections
-  }
+  public typealias SingleSelectionScope = FKFilterTwoColumnSingleSelectionScope
+  public typealias RightHeaderStyle = FKFilterTwoColumnRightHeaderStyle
 
-  public struct RightHeaderStyle {
-    public var normalTextColor: UIColor
-    public var selectedTextColor: UIColor
-    public var font: UIFont
-    public var contentInsets: UIEdgeInsets
-    public var minimumHeight: CGFloat
+  /// Options applied when ``Configuration/rightTableViewStyle`` is ``UITableView/Style/grouped`` or
+  /// ``UITableView/Style/insetGrouped`` (ignored for ``UITableView/Style/plain`` and other styles).
+  public struct RightGroupedTableConfiguration {
+    /// iOS 15+. When `nil`, UIKit’s default padding is used.
+    public var sectionHeaderTopPadding: CGFloat?
+    /// Per-section footer height on the right table (e.g. spacing between grouped sections). `0` hides footers.
+    public var sectionFooterHeight: CGFloat
+    /// Background for the custom interactive right header (when ``Configuration/rightSectionHeaderBehavior`` is not ``FKFilterTwoColumnRightSectionHeaderBehavior/standard``).
+    /// When `nil`, ``Configuration/rightBackgroundColor`` is used.
+    public var selectableSectionHeaderBackgroundColor: UIColor?
+    /// When non-nil and the right table is grouped, overrides ``Configuration/rightBackgroundColor`` for
+    /// ``UITableView/backgroundColor`` so the scroll view can show grouped chrome.
+    public var tableBackgroundColor: UIColor?
+
+    /// When non-nil and the right table is grouped, used as ``UITableViewCell/backgroundColor`` for built-in
+    /// right cells (ignored when ``Configuration/configureRightCell`` is set).
+    public var cellBackgroundColor: UIColor?
 
     public init(
-      normalTextColor: UIColor = .secondaryLabel,
-      selectedTextColor: UIColor = .systemRed,
-      font: UIFont = {
-        let base = UIFont.preferredFont(forTextStyle: .subheadline)
-        return UIFont.systemFont(ofSize: base.pointSize, weight: .semibold)
-      }(),
-      contentInsets: UIEdgeInsets = .init(top: 10, left: 16, bottom: 10, right: 16),
-      minimumHeight: CGFloat = 44
+      sectionHeaderTopPadding: CGFloat? = nil,
+      sectionFooterHeight: CGFloat = 0,
+      selectableSectionHeaderBackgroundColor: UIColor? = nil,
+      tableBackgroundColor: UIColor? = nil,
+      cellBackgroundColor: UIColor? = nil
     ) {
-      self.normalTextColor = normalTextColor
-      self.selectedTextColor = selectedTextColor
-      self.font = font
-      self.contentInsets = contentInsets
-      self.minimumHeight = minimumHeight
+      self.sectionHeaderTopPadding = sectionHeaderTopPadding
+      self.sectionFooterHeight = sectionFooterHeight
+      self.selectableSectionHeaderBackgroundColor = selectableSectionHeaderBackgroundColor
+      self.tableBackgroundColor = tableBackgroundColor
+      self.cellBackgroundColor = cellBackgroundColor
     }
   }
 
@@ -64,9 +74,16 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
     public var rightCellStyle: FKFilterListCellStyle
     public var leftBackgroundColor: UIColor
     public var rightBackgroundColor: UIColor
+    /// Style of the **right-hand** options table (``.plain``, ``.grouped``, ``.insetGrouped``, …).
+    public var rightTableViewStyle: UITableView.Style
+    /// Used only when ``rightTableViewStyle`` is grouped or inset grouped.
+    public var rightGroupedTableConfiguration: RightGroupedTableConfiguration?
     public var rightSeparatorInset: UIEdgeInsets
     public var rightSectionHeaderStyle: RightHeaderStyle
-    public var allowsSelectingSectionHeader: Bool
+    /// How titled right-hand section headers respond to taps.
+    public var rightSectionHeaderBehavior: FKFilterTwoColumnRightSectionHeaderBehavior
+    /// Chevron beside the title when ``rightSectionHeaderBehavior`` is ``FKFilterTwoColumnRightSectionHeaderBehavior/togglesSectionCollapse``.
+    public var showsSectionCollapseDisclosureIndicator: Bool
     public var singleSelectionScope: SingleSelectionScope
     public var heightBehavior: FKFilterPanelHeightBehavior
     /// Optional hook for left table cell customization.
@@ -85,9 +102,12 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
       rightCellStyle: FKFilterListCellStyle = .init(),
       leftBackgroundColor: UIColor = UIColor.systemGray6.withAlphaComponent(0.6),
       rightBackgroundColor: UIColor = .systemBackground,
+      rightTableViewStyle: UITableView.Style = .plain,
+      rightGroupedTableConfiguration: RightGroupedTableConfiguration? = nil,
       rightSeparatorInset: UIEdgeInsets = .init(top: 0, left: 16, bottom: 0, right: 16),
       rightSectionHeaderStyle: RightHeaderStyle = .init(),
-      allowsSelectingSectionHeader: Bool = false,
+      rightSectionHeaderBehavior: FKFilterTwoColumnRightSectionHeaderBehavior = .standard,
+      showsSectionCollapseDisclosureIndicator: Bool = true,
       singleSelectionScope: SingleSelectionScope = .withinSection,
       heightBehavior: FKFilterPanelHeightBehavior = .automatic(
         minimum: 120,
@@ -104,9 +124,12 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
       self.rightCellStyle = rightCellStyle
       self.leftBackgroundColor = leftBackgroundColor
       self.rightBackgroundColor = rightBackgroundColor
+      self.rightTableViewStyle = rightTableViewStyle
+      self.rightGroupedTableConfiguration = rightGroupedTableConfiguration
       self.rightSeparatorInset = rightSeparatorInset
       self.rightSectionHeaderStyle = rightSectionHeaderStyle
-      self.allowsSelectingSectionHeader = allowsSelectingSectionHeader
+      self.rightSectionHeaderBehavior = rightSectionHeaderBehavior
+      self.showsSectionCollapseDisclosureIndicator = showsSectionCollapseDisclosureIndicator
       self.singleSelectionScope = singleSelectionScope
       self.heightBehavior = heightBehavior
       self.configureLeftCell = configureLeftCell
@@ -117,7 +140,7 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
       .init(
         rowHeight: 46,
         sectionHeaderHeight: 44,
-        allowsSelectingSectionHeader: true,
+        rightSectionHeaderBehavior: .selectableSectionHeader,
         singleSelectionScope: .globalAcrossSections,
         heightBehavior: .automatic(
           minimum: 120,
@@ -135,7 +158,7 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
   private let allowsMultipleSelection: Bool
 
   private let leftTable = UITableView(frame: .zero, style: .plain)
-  private let rightTable = UITableView(frame: .zero, style: .plain)
+  private let rightTable: UITableView
   private var selectedHeaderSectionID: FKFilterID?
   /// Avoids redundant anchor relayout when computed height is unchanged (reduces flicker).
   private var lastPublishedPreferredHeight: CGFloat?
@@ -155,6 +178,7 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
     self.onChange = onChange
     self.onSelection = onSelection
     self.allowsMultipleSelection = allowsMultipleSelection
+    self.rightTable = UITableView(frame: .zero, style: configuration.rightTableViewStyle)
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -169,14 +193,21 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
   private func resolvedPreferredContentHeight() -> CGFloat {
     let leftRows = model.categories.count
     let sections = rightSections()
-    let rightRows = sections.reduce(0) { partial, sec in partial + sec.items.count }
+    let rightRows = sections.reduce(0) { partial, sec in
+      partial + (sec.isCollapsed ? 0 : sec.items.count)
+    }
     let titledSectionCount = sections.filter { ($0.title ?? "").isEmpty == false }.count
-    let sectionHeaderHeight = max(configuration.sectionHeaderHeight, Self.fallbackSizingSectionHeaderHeight)
-    let rightChrome = CGFloat(titledSectionCount) * sectionHeaderHeight
+    let perHeaderHeight = max(
+      configuration.sectionHeaderHeight,
+      max(configuration.rightSectionHeaderStyle.minimumHeight, Self.fallbackSizingSectionHeaderHeight)
+    )
+    let rightChrome = CGFloat(titledSectionCount) * perHeaderHeight
+    let groupFooterH = rightGroupedSectionFooterHeight()
+    let rightFooterChrome = groupFooterH > 0 ? CGFloat(sections.count) * groupFooterH : 0
     let rowHeight = max(configuration.rowHeight, Self.fallbackSizingRowHeight)
     let body = max(
       CGFloat(leftRows) * rowHeight,
-      CGFloat(rightRows) * rowHeight + rightChrome
+      CGFloat(rightRows) * rowHeight + rightChrome + rightFooterChrome
     )
     let estimated = max(body, 120)
     return configuration.heightBehavior.resolvedHeight(for: estimated)
@@ -206,7 +237,7 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
     rightTable.delegate = self
     rightTable.separatorInset = configuration.rightSeparatorInset
     rightTable.translatesAutoresizingMaskIntoConstraints = false
-    rightTable.backgroundColor = configuration.rightBackgroundColor
+    applyRightTableChrome()
     rightTable.rowHeight = max(configuration.rowHeight, Self.fallbackSizingRowHeight)
     view.addSubview(rightTable)
 
@@ -237,6 +268,82 @@ public final class FKFilterTwoColumnListViewController: UIViewController {
     guard sections.indices.contains(index) else { return nil }
     return sections[index]
   }
+
+  private func isRightTableGroupedStyle() -> Bool {
+    switch configuration.rightTableViewStyle {
+    case .grouped, .insetGrouped: return true
+    default: return false
+    }
+  }
+
+  /// Effective per-section footer height when the right table is grouped and a value is configured.
+  private func rightGroupedSectionFooterHeight() -> CGFloat {
+    guard isRightTableGroupedStyle() else { return 0 }
+    let h = configuration.rightGroupedTableConfiguration?.sectionFooterHeight ?? 0
+    return max(0, h)
+  }
+
+  private func applyRightTableChrome() {
+    let bg = configuration.rightGroupedTableConfiguration?.tableBackgroundColor ?? configuration.rightBackgroundColor
+    rightTable.backgroundColor = bg
+    guard isRightTableGroupedStyle() else { return }
+    if #available(iOS 15.0, *) {
+      if let padding = configuration.rightGroupedTableConfiguration?.sectionHeaderTopPadding {
+        rightTable.sectionHeaderTopPadding = padding
+      }
+    }
+  }
+
+  private func rightSelectableHeaderBackgroundColor() -> UIColor {
+    configuration.rightGroupedTableConfiguration?.selectableSectionHeaderBackgroundColor
+      ?? configuration.rightBackgroundColor
+  }
+
+  private func usesInteractiveRightSectionHeaders() -> Bool {
+    configuration.rightSectionHeaderBehavior != .standard
+  }
+
+  /// Header tap handling aligned with ``FKFilterTwoColumnGridViewController`` (collapse vs selection are mutually exclusive modes).
+  private func handleRightSectionHeaderTap(sectionIndex: Int) {
+    switch configuration.rightSectionHeaderBehavior {
+    case .standard:
+      return
+    case .togglesSectionCollapse:
+      guard let catID = selectedCategoryID else { return }
+      var sections = model.sectionsByCategoryID[catID] ?? []
+      guard sections.indices.contains(sectionIndex) else { return }
+      sections[sectionIndex].isCollapsed.toggle()
+      selectedHeaderSectionID = nil
+      model.sectionsByCategoryID[catID] = sections
+      onChange(model)
+      UIView.performWithoutAnimation {
+        rightTable.reloadSections(IndexSet(integer: sectionIndex), with: .automatic)
+      }
+      publishPreferredContentSizeUpdate()
+      return
+    case .selectableSectionHeader:
+      break
+    }
+
+    guard let catID = selectedCategoryID else { return }
+    var sections = model.sectionsByCategoryID[catID] ?? []
+    guard sections.indices.contains(sectionIndex) else { return }
+    let target = sections[sectionIndex]
+    selectedHeaderSectionID = target.id
+
+    for sIdx in sections.indices {
+      for i in sections[sIdx].items.indices {
+        sections[sIdx].items[i].isSelected = false
+      }
+    }
+    model.sectionsByCategoryID[catID] = sections
+    rightTable.reloadData()
+    onChange(model)
+
+    let headerTitle = target.title ?? ""
+    let headerItem = FKFilterOptionItem(id: target.id, title: headerTitle, isSelected: true)
+    onSelection?(.init(sectionID: target.id, item: headerItem, effectiveSelectionMode: .single))
+  }
 }
 
 extension FKFilterTwoColumnListViewController: UITableViewDataSource, UITableViewDelegate {
@@ -247,11 +354,12 @@ extension FKFilterTwoColumnListViewController: UITableViewDataSource, UITableVie
 
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     if tableView === leftTable { return model.categories.count }
-    return rightSections()[section].items.count
+    let sec = rightSections()[section]
+    return sec.isCollapsed ? 0 : sec.items.count
   }
 
   public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    guard tableView === rightTable, configuration.allowsSelectingSectionHeader == false else { return nil }
+    guard tableView === rightTable, !usesInteractiveRightSectionHeaders() else { return nil }
     return rightSections()[section].title
   }
 
@@ -260,7 +368,21 @@ extension FKFilterTwoColumnListViewController: UITableViewDataSource, UITableVie
     guard let modelSection = self.section(at: section), let title = modelSection.title, title.isEmpty == false else {
       return 0
     }
-    return max(configuration.sectionHeaderHeight, Self.fallbackSizingSectionHeaderHeight)
+    let headerMin = max(configuration.rightSectionHeaderStyle.minimumHeight, Self.fallbackSizingSectionHeaderHeight)
+    return max(configuration.sectionHeaderHeight, headerMin)
+  }
+
+  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    guard tableView === rightTable else { return 0 }
+    let h = rightGroupedSectionFooterHeight()
+    return h > 0 ? h : 0
+  }
+
+  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    guard tableView === rightTable, rightGroupedSectionFooterHeight() > 0 else { return nil }
+    let footer = UIView()
+    footer.backgroundColor = .clear
+    return footer
   }
 
   public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -268,34 +390,24 @@ extension FKFilterTwoColumnListViewController: UITableViewDataSource, UITableVie
     guard let modelSection = self.section(at: section), let title = modelSection.title, title.isEmpty == false else {
       return nil
     }
-    guard configuration.allowsSelectingSectionHeader else { return nil }
-
-    let header = UIControl()
-    header.backgroundColor = configuration.rightBackgroundColor
-    header.tag = section
-    header.addAction(UIAction(handler: { [weak self] _ in
-      self?.handleRightHeaderTap(sectionIndex: section)
-    }), for: .touchUpInside)
-
-    let label = UILabel()
-    label.translatesAutoresizingMaskIntoConstraints = false
-    label.text = title
-    label.numberOfLines = 2
-    label.adjustsFontForContentSizeCategory = true
-    label.font = configuration.rightSectionHeaderStyle.font
-    label.textColor = (selectedHeaderSectionID == modelSection.id)
-      ? configuration.rightSectionHeaderStyle.selectedTextColor
-      : configuration.rightSectionHeaderStyle.normalTextColor
-    header.addSubview(label)
-
-    let insets = configuration.rightSectionHeaderStyle.contentInsets
-    NSLayoutConstraint.activate([
-      label.topAnchor.constraint(equalTo: header.topAnchor, constant: insets.top),
-      label.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: insets.left),
-      label.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -insets.right),
-      label.bottomAnchor.constraint(equalTo: header.bottomAnchor, constant: -insets.bottom),
-      header.heightAnchor.constraint(greaterThanOrEqualToConstant: configuration.rightSectionHeaderStyle.minimumHeight),
-    ])
+    guard usesInteractiveRightSectionHeaders() else { return nil }
+    let header = FKFilterTwoColumnListSectionHeaderView()
+    header.backgroundColor = rightSelectableHeaderBackgroundColor()
+    let isHeaderSelectionHighlighted = configuration.rightSectionHeaderBehavior == .selectableSectionHeader
+      && (selectedHeaderSectionID == modelSection.id)
+    let wantsTap = configuration.rightSectionHeaderBehavior != .standard
+    let tapHandler: (() -> Void)? = wantsTap ? { [weak self] in
+      self?.handleRightSectionHeaderTap(sectionIndex: section)
+    } : nil
+    header.apply(
+      title: title,
+      style: configuration.rightSectionHeaderStyle,
+      isHeaderSelectionHighlighted: isHeaderSelectionHighlighted,
+      isCollapsed: modelSection.isCollapsed,
+      showsCollapseDisclosure: configuration.rightSectionHeaderBehavior == .togglesSectionCollapse
+        && configuration.showsSectionCollapseDisclosureIndicator,
+      tapAction: tapHandler
+    )
     return header
   }
 
@@ -354,7 +466,11 @@ extension FKFilterTwoColumnListViewController: UITableViewDataSource, UITableVie
     } else {
       cell.textLabel?.textColor = configuration.rightCellStyle.normalTextColor
     }
-    cell.backgroundColor = configuration.rightCellStyle.rowBackgroundColor
+    if isRightTableGroupedStyle(), let groupedCell = configuration.rightGroupedTableConfiguration?.cellBackgroundColor {
+      cell.backgroundColor = groupedCell
+    } else {
+      cell.backgroundColor = configuration.rightCellStyle.rowBackgroundColor
+    }
     cell.isUserInteractionEnabled = item.isEnabled
     cell.accessoryType = .none
     return cell
@@ -429,30 +545,6 @@ extension FKFilterTwoColumnListViewController: UITableViewDataSource, UITableVie
     }
     onChange(model)
     onSelection?(.init(sectionID: sec.id, item: tapped, effectiveSelectionMode: effectiveMode))
-  }
-
-  private func handleRightHeaderTap(sectionIndex: Int) {
-    guard configuration.allowsSelectingSectionHeader else { return }
-    guard let catID = selectedCategoryID else { return }
-    guard var sections = model.sectionsByCategoryID[catID] else { return }
-    guard sections.indices.contains(sectionIndex) else { return }
-
-    let target = sections[sectionIndex]
-    selectedHeaderSectionID = target.id
-
-    // Header selection has priority in this mode: clear all row selections.
-    for sIdx in sections.indices {
-      for i in sections[sIdx].items.indices {
-        sections[sIdx].items[i].isSelected = false
-      }
-    }
-    model.sectionsByCategoryID[catID] = sections
-    rightTable.reloadData()
-    onChange(model)
-
-    let title = target.title ?? ""
-    let headerItem = FKFilterOptionItem(id: target.id, title: title, isSelected: true)
-    onSelection?(.init(sectionID: target.id, item: headerItem, effectiveSelectionMode: .single))
   }
 }
 

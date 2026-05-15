@@ -49,15 +49,17 @@ enum FKFilterExampleAppearance {
   static func makeHubFilterConfiguration() -> FKFilterConfiguration<String> {
     FKFilterConfiguration(
       anchoredDropdown: hubAnchoredConfiguration(),
-      defaultTabStrip: filterTabStrip
+      defaultTabStrip: filterTabStrip,
+      panelLoadingTitle: "Loading…"
     )
   }
 
-  /// ``FKFilterController`` defaults for the three equal-width tab demos.
+  /// ``FKFilterController`` defaults for equal-width tab demos.
   static func makeEqualThreeFilterConfiguration() -> FKFilterConfiguration<String> {
     FKFilterConfiguration(
       anchoredDropdown: equalThreeAnchoredConfiguration(),
-      defaultTabStrip: filterTabStrip
+      defaultTabStrip: filterTabStrip,
+      panelLoadingTitle: "Loading…"
     )
   }
 
@@ -84,4 +86,57 @@ enum FKFilterExampleAppearance {
     return cfg
   }
 
+  // MARK: - Anchored dropdown variants (dropdown demos)
+
+  static func makeFilterConfiguration(anchored: FKAnchoredDropdownConfiguration) -> FKFilterConfiguration<String> {
+    FKFilterConfiguration(
+      anchoredDropdown: anchored,
+      defaultTabStrip: filterTabStrip,
+      panelLoadingTitle: "Loading…"
+    )
+  }
+
+  /// Same tab strip as equal-three, but each tab switch dismisses and re-presents the panel shell.
+  static func equalThreeDismissThenPresent() -> FKAnchoredDropdownConfiguration {
+    var cfg = equalThreeAnchoredConfiguration()
+    cfg.switchAnimationStyle = .dismissThenPresent(dismissAnimated: true, presentAnimated: true)
+    return cfg
+  }
+
+  /// Vertical slide when swapping tabs in place.
+  static func equalThreeSlideVerticalSwitch() -> FKAnchoredDropdownConfiguration {
+    var cfg = equalThreeAnchoredConfiguration()
+    cfg.switchAnimationStyle = .replaceInPlace(animation: .slideVertical(direction: .down, duration: 0.22))
+    return cfg
+  }
+
+  /// Darker dimming behind the anchored panel.
+  static func equalThreeStrongBackdrop() -> FKAnchoredDropdownConfiguration {
+    var cfg = equalThreeAnchoredConfiguration()
+    cfg.presentationConfiguration.backdropStyle = .dim(alpha: 0.52)
+    return cfg
+  }
+
+  /// Invisible dim + passthrough hits on the presenting screen (see ``FKPresentationConfiguration/ZeroDimBackdropBehavior``).
+  static func equalThreePassthroughBackdrop() -> FKAnchoredDropdownConfiguration {
+    var cfg = equalThreeAnchoredConfiguration()
+    cfg.presentationConfiguration.backdropStyle = .dim(alpha: 0)
+    cfg.presentationConfiguration.zeroDimBackdropBehavior = .passthrough
+    cfg.presentationConfiguration.backgroundInteraction = .init(isEnabled: true, showsBackdropWhenEnabled: false)
+    return cfg
+  }
+
+  /// Rebuilds panel view controllers whenever a tab is opened (no per-tab cache).
+  static func equalThreeRecreateContent() -> FKAnchoredDropdownConfiguration {
+    var cfg = equalThreeAnchoredConfiguration()
+    cfg.contentCachingPolicy = .recreate
+    return cfg
+  }
+
+  /// Slower relayout when ``preferredContentSize`` changes (e.g. two-column panels).
+  static func equalThreeSlowLayoutAnimation() -> FKAnchoredDropdownConfiguration {
+    var cfg = equalThreeAnchoredConfiguration()
+    cfg.presentationLayoutAnimation = .init(duration: 0.42)
+    return cfg
+  }
 }

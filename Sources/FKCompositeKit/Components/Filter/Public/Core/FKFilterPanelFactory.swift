@@ -25,6 +25,10 @@ public final class FKFilterPanelFactory {
       onChange: (FKFilterSection) -> Void,
       configuration: FKFilterSingleListViewController.Configuration = .init()
     )
+    /// App-provided panel (e.g. knowledge catalog with a custom layout).
+    case custom(
+      make: @MainActor (_ allowsMultipleSelection: Bool, _ onSelection: @escaping (FKFilterPanelSelection) -> Void) -> UIViewController?
+    )
   }
 
   public var sourcesByPanelKind: [FKFilterPanelKind: PanelSource]
@@ -98,6 +102,9 @@ public final class FKFilterPanelFactory {
         },
         allowsMultipleSelection: allowsMultipleSelection
       )
+    case let .custom(make):
+      guard let custom = make(allowsMultipleSelection, onSelection) else { return loadingPanel() }
+      panel = custom
     }
     return wrapsPanelWithTopHairline
       ? FKFilterTopHairlineWrapperViewController(contentVC: panel)
