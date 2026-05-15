@@ -13,11 +13,11 @@ final class FKFilterExampleState {
 
   init() {}
 
-  /// All six panels populated (full hub demo).
+  /// All six panels populated (scrollable strip demo).
   static func presetFullHub() -> FKFilterExampleState {
     let s = FKFilterExampleState()
-    s.knowledgeModel = FKFilterExampleStaticData.knowledgeTwoColumn
-    s.courseModel = FKFilterExampleStaticData.courseTwoColumn
+    s.knowledgeModel = FKFilterExampleStaticData.catalogTwoColumn
+    s.courseModel = FKFilterExampleStaticData.trainingTwoColumn
     s.fileTypeSections = FKFilterExampleStaticData.fileTypeSections
     s.platformSections = FKFilterExampleStaticData.platformSections
     s.tagsSections = FKFilterExampleStaticData.tagsSections
@@ -25,19 +25,28 @@ final class FKFilterExampleState {
     return s
   }
 
-  /// Equal-width strip: platform + course grid + tags.
+  /// Equal-width strip: scope · training grid · tags.
   static func presetEqualBusiness() -> FKFilterExampleState {
     let s = FKFilterExampleState()
-    s.courseModel = FKFilterExampleStaticData.courseTwoColumn
+    s.courseModel = FKFilterExampleStaticData.trainingTwoColumn
     s.platformSections = FKFilterExampleStaticData.platformSections
     s.tagsSections = FKFilterExampleStaticData.tagsSections
     return s
   }
 
-  /// Equal-width strip: knowledge tree + file types + sort.
+  /// Equal-width strip: browse list · formats · sort.
   static func presetEqualKnowledge() -> FKFilterExampleState {
     let s = FKFilterExampleState()
-    s.knowledgeModel = FKFilterExampleStaticData.knowledgeTwoColumn
+    s.knowledgeModel = FKFilterExampleStaticData.catalogTwoColumn
+    s.fileTypeSections = FKFilterExampleStaticData.fileTypeSections
+    s.sortSection = FKFilterExampleStaticData.sortSection
+    return s
+  }
+
+  /// Three compact tabs for animation / backdrop experiments.
+  static func presetCompactThree() -> FKFilterExampleState {
+    let s = FKFilterExampleState()
+    s.knowledgeModel = FKFilterExampleStaticData.catalogTwoColumn
     s.fileTypeSections = FKFilterExampleStaticData.fileTypeSections
     s.sortSection = FKFilterExampleStaticData.sortSection
     return s

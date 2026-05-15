@@ -1,87 +1,93 @@
 import Foundation
 import FKCompositeKit
 
-/// Local-only catalog for Filter examples (no async / “network” simulation).
+/// Local-only catalog for Filter dropdown demos (English copy).
 enum FKFilterExampleStaticData {
-  static let knowledgeTwoColumn: FKFilterTwoColumnModel = {
-    let all = FKFilterTwoColumnModel.Category(id: .init(rawValue: "all"), title: "全部")
-    let laws = FKFilterTwoColumnModel.Category(id: .init(rawValue: "laws"), title: "法规库")
-    let cases = FKFilterTwoColumnModel.Category(id: .init(rawValue: "cases"), title: "案例库")
+  /// Two-column list: browse by top-level category.
+  static let catalogTwoColumn: FKFilterTwoColumnModel = {
+    let all = FKFilterTwoColumnModel.Category(id: .init(rawValue: "cat.all"), title: "All", isSelected: true)
+    let regulations = FKFilterTwoColumnModel.Category(id: .init(rawValue: "cat.reg"), title: "Regulations", isSelected: false)
+    let cases = FKFilterTwoColumnModel.Category(id: .init(rawValue: "cat.case"), title: "Cases", isSelected: false)
     let allSections: [FKFilterSection] = []
-    let lawSections: [FKFilterSection] = [
-      .init(id: .init(rawValue: "laws-1"), selectionMode: .single, items: [.init(id: .init(rawValue: "laws-item-all"), title: "全部")]),
+    let regulationSections: [FKFilterSection] = [
+      .init(
+        id: .init(rawValue: "reg.sec1"),
+        title: "Topics",
+        selectionMode: .single,
+        items: [
+          .init(id: .init(rawValue: "reg.all"), title: "All", isSelected: true),
+          .init(id: .init(rawValue: "reg.disclosure"), title: "Disclosure", isSelected: false),
+          .init(id: .init(rawValue: "reg.trading"), title: "Market conduct", isSelected: false),
+        ]
+      ),
     ]
     let caseSections: [FKFilterSection] = [
       .init(
-        id: .init(rawValue: "cases-1"),
+        id: .init(rawValue: "case.sec1"),
+        title: "Practice areas",
         selectionMode: .single,
         items: [
-          .init(id: .init(rawValue: "cases-item-all"), title: "全部"),
-          .init(id: .init(rawValue: "cases-item-1"), title: "职业道德准则"),
-          .init(id: .init(rawValue: "cases-item-2"), title: "行业荣辱观"),
+          .init(id: .init(rawValue: "case.all"), title: "All", isSelected: true),
+          .init(id: .init(rawValue: "case.ethics"), title: "Ethics", isSelected: false),
+          .init(id: .init(rawValue: "case.enforcement"), title: "Enforcement", isSelected: false),
         ]
       ),
     ]
     return FKFilterTwoColumnModel(
-      categories: [all, laws, cases],
-      sectionsByCategoryID: [all.id: allSections, laws.id: lawSections, cases.id: caseSections]
+      categories: [all, regulations, cases],
+      sectionsByCategoryID: [all.id: allSections, regulations.id: regulationSections, cases.id: caseSections]
     )
   }()
 
-  static let courseTwoColumn: FKFilterTwoColumnModel = {
-    let a = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-a"), title: "党建引领、行业规范")
-    let b = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-b"), title: "法律规范")
-    let c = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-c"), title: "专业技能")
-    let d = FKFilterTwoColumnModel.Category(id: .init(rawValue: "course-d"), title: "证监会网校")
+  /// Two-column grid: training categories with titled sections (supports header collapse demos).
+  static let trainingTwoColumn: FKFilterTwoColumnModel = {
+    let leadership = FKFilterTwoColumnModel.Category(id: .init(rawValue: "tr.lead"), title: "Leadership", isSelected: true)
+    let compliance = FKFilterTwoColumnModel.Category(id: .init(rawValue: "tr.comp"), title: "Compliance", isSelected: false)
+    let skills = FKFilterTwoColumnModel.Category(id: .init(rawValue: "tr.skill"), title: "Professional skills", isSelected: false)
+    let webSchool = FKFilterTwoColumnModel.Category(id: .init(rawValue: "tr.web"), title: "Web school", isSelected: false)
     let simpleAll: [FKFilterSection] = [
-      .init(id: .init(rawValue: "course-all-only"), selectionMode: .single, items: [.init(id: .init(rawValue: "course-all"), title: "全部")]),
+      .init(id: .init(rawValue: "tr.all"), selectionMode: .single, items: [.init(id: .init(rawValue: "tr.all.item"), title: "All", isSelected: true)]),
     ]
-    let cswSections: [FKFilterSection] = [
+    let webSections: [FKFilterSection] = [
       .init(
-        id: .init(rawValue: "csw-1"),
-        title: "政治能力提升",
+        id: .init(rawValue: "tr.sec1"),
+        title: "Policy updates",
         selectionMode: .single,
         items: [
-          .init(id: .init(rawValue: "csw-1-1"), title: "党的二十大"),
-          .init(id: .init(rawValue: "csw-1-2"), title: "党务干部"),
-          .init(id: .init(rawValue: "csw-1-3"), title: "一把手"),
-          .init(id: .init(rawValue: "csw-1-4"), title: "十九届六中全会"),
-          .init(id: .init(rawValue: "csw-1-5"), title: "十九届五中全会"),
-          .init(id: .init(rawValue: "csw-1-6"), title: "...")
+          .init(id: .init(rawValue: "tr.p1"), title: "Annual priorities", isSelected: true),
+          .init(id: .init(rawValue: "tr.p2"), title: "Supervisory letters", isSelected: false),
+          .init(id: .init(rawValue: "tr.p3"), title: "Risk alerts", isSelected: false),
         ]
       ),
       .init(
-        id: .init(rawValue: "csw-2"),
-        title: "监管业务培训",
+        id: .init(rawValue: "tr.sec2"),
+        title: "Product lines",
         selectionMode: .single,
         items: [
-          .init(id: .init(rawValue: "csw-2-1"), title: "发行上市"),
-          .init(id: .init(rawValue: "csw-2-2"), title: "新三板"),
-          .init(id: .init(rawValue: "csw-2-3"), title: "机构业务"),
-          .init(id: .init(rawValue: "csw-2-4"), title: "期货业务"),
-          .init(id: .init(rawValue: "csw-2-5"), title: "稽查处罚"),
-          .init(id: .init(rawValue: "csw-2-6"), title: "...")
+          .init(id: .init(rawValue: "tr.l1"), title: "Equities", isSelected: false),
+          .init(id: .init(rawValue: "tr.l2"), title: "Fixed income", isSelected: false),
+          .init(id: .init(rawValue: "tr.l3"), title: "Derivatives", isSelected: false),
         ]
       ),
       .init(
-        id: .init(rawValue: "csw-3"),
-        title: "最新政策法规",
+        id: .init(rawValue: "tr.sec3"),
+        title: "Reference (empty)",
         selectionMode: .single,
         items: []
       ),
       .init(
-        id: .init(rawValue: "csw-4"),
-        title: "其他",
+        id: .init(rawValue: "tr.sec4"),
+        title: "Electives",
         selectionMode: .single,
         items: [
-          .init(id: .init(rawValue: "csw-4-1"), title: "心理健康与心理..."),
-          .init(id: .init(rawValue: "csw-4-2"), title: "碳达峰碳中和"),
+          .init(id: .init(rawValue: "tr.e1"), title: "Well-being", isSelected: false),
+          .init(id: .init(rawValue: "tr.e2"), title: "ESG overview", isSelected: false),
         ]
       ),
     ]
     return FKFilterTwoColumnModel(
-      categories: [a, b, c, d],
-      sectionsByCategoryID: [a.id: simpleAll, b.id: simpleAll, c.id: simpleAll, d.id: cswSections]
+      categories: [leadership, compliance, skills, webSchool],
+      sectionsByCategoryID: [leadership.id: simpleAll, compliance.id: simpleAll, skills.id: simpleAll, webSchool.id: webSections]
     )
   }()
 
@@ -90,18 +96,16 @@ enum FKFilterExampleStaticData {
       id: .init(rawValue: "file-types"),
       selectionMode: .single,
       items: [
-        .init(id: .init(rawValue: "file-all"), title: "全部"),
-        .init(id: .init(rawValue: "file-word"), title: "Word"),
-        .init(id: .init(rawValue: "file-excel"), title: "Excel"),
-        .init(id: .init(rawValue: "file-ppt"), title: "PPT"),
-        .init(id: .init(rawValue: "file-pdf"), title: "PDF"),
-        .init(id: .init(rawValue: "file-mp3"), title: "MP3"),
-        .init(id: .init(rawValue: "file-mp4"), title: "MP4"),
-        .init(id: .init(rawValue: "file-h5"), title: "H5"),
-        .init(id: .init(rawValue: "file-image"), title: "图片"),
-        .init(id: .init(rawValue: "file-other"), title: "其他"),
+        .init(id: .init(rawValue: "file-all"), title: "All", isSelected: true),
+        .init(id: .init(rawValue: "file-word"), title: "Word", isSelected: false),
+        .init(id: .init(rawValue: "file-excel"), title: "Excel", isSelected: false),
+        .init(id: .init(rawValue: "file-ppt"), title: "PowerPoint", isSelected: false),
+        .init(id: .init(rawValue: "file-pdf"), title: "PDF", isSelected: false),
+        .init(id: .init(rawValue: "file-media"), title: "Audio / video", isSelected: false),
+        .init(id: .init(rawValue: "file-image"), title: "Images", isSelected: false),
+        .init(id: .init(rawValue: "file-other"), title: "Other", isSelected: false),
       ]
-    )
+    ),
   ]
 
   static let platformSections: [FKFilterSection] = [
@@ -109,12 +113,12 @@ enum FKFilterExampleStaticData {
       id: .init(rawValue: "platform"),
       selectionMode: .single,
       items: [
-        .init(id: .init(rawValue: "platform-all"), title: "全部"),
-        .init(id: .init(rawValue: "platform-total"), title: "总平台"),
-        .init(id: .init(rawValue: "platform-local"), title: "本机构"),
-        .init(id: .init(rawValue: "platform-other"), title: "其他机构"),
+        .init(id: .init(rawValue: "platform-all"), title: "All", isSelected: true),
+        .init(id: .init(rawValue: "platform-global"), title: "Global catalog", isSelected: false),
+        .init(id: .init(rawValue: "platform-local"), title: "This organization", isSelected: false),
+        .init(id: .init(rawValue: "platform-partner"), title: "Partner sites", isSelected: false),
       ]
-    )
+    ),
   ]
 
   static let tagsSections: [FKFilterSection] = [
@@ -122,41 +126,27 @@ enum FKFilterExampleStaticData {
       id: .init(rawValue: "tags"),
       selectionMode: .multiple,
       items: [
-        .init(id: .init(rawValue: "tag-all"), title: "全部"),
-        .init(id: .init(rawValue: "tag-ib"), title: "投资银行"),
-        .init(id: .init(rawValue: "tag-vip"), title: "畅学专享课"),
-        .init(id: .init(rawValue: "tag-sell"), title: "证券承销与保荐"),
-        .init(id: .init(rawValue: "tag-investment-research"), title: "投资研究"),
-        .init(id: .init(rawValue: "tag-ethics"), title: "职业道德"),
-        .init(id: .init(rawValue: "tag-risk-management"), title: "风险管理"),
-        .init(id: .init(rawValue: "tag-securities-brokerage"), title: "证券经纪"),
-        .init(id: .init(rawValue: "tag-it-management"), title: "信息技术管理"),
-        .init(id: .init(rawValue: "tag-culture"), title: "文化建设"),
-        .init(id: .init(rawValue: "tag-investment-advisory"), title: "投资顾问"),
-        .init(id: .init(rawValue: "tag-compliance"), title: "合规管理"),
-        .init(id: .init(rawValue: "tag-derivatives"), title: "金融衍生品"),
-        .init(id: .init(rawValue: "tag-wealth"), title: "财富管理"),
-        .init(id: .init(rawValue: "tag-party"), title: "党建引领"),
-        .init(id: .init(rawValue: "tag-merger"), title: "并购重组"),
-        .init(id: .init(rawValue: "tag-asset-management"), title: "资产管理"),
-        .init(id: .init(rawValue: "tag-investor-protection"), title: "投资者保护"),
-        .init(id: .init(rawValue: "tag-comprehensive-regulation"), title: "综合性法规"),
-        .init(id: .init(rawValue: "tag-operation"), title: "运营管理"),
-        .init(id: .init(rawValue: "tag-bond"), title: "债券业务"),
-        .init(id: .init(rawValue: "tag-credit"), title: "信用业务"),
-        .init(id: .init(rawValue: "tag-custody"), title: "托管业务"),
-        .init(id: .init(rawValue: "tag-other"), title: "其他"),
+        .init(id: .init(rawValue: "tag-all"), title: "All", isSelected: false),
+        .init(id: .init(rawValue: "tag-ib"), title: "Investment banking", isSelected: false),
+        .init(id: .init(rawValue: "tag-research"), title: "Equity research", isSelected: false),
+        .init(id: .init(rawValue: "tag-risk"), title: "Risk", isSelected: false),
+        .init(id: .init(rawValue: "tag-compliance"), title: "Compliance", isSelected: false),
+        .init(id: .init(rawValue: "tag-wealth"), title: "Wealth management", isSelected: false),
+        .init(id: .init(rawValue: "tag-tech"), title: "Technology", isSelected: false),
+        .init(id: .init(rawValue: "tag-ops"), title: "Operations", isSelected: false),
+        .init(id: .init(rawValue: "tag-esg"), title: "ESG", isSelected: false),
+        .init(id: .init(rawValue: "tag-other"), title: "Other", isSelected: false),
       ]
-    )
+    ),
   ]
 
   static let sortSection: FKFilterSection = .init(
     id: .init(rawValue: "sort"),
     selectionMode: .single,
     items: [
-      .init(id: .init(rawValue: "sort-latest"), title: "最新"),
-      .init(id: .init(rawValue: "sort-hot"), title: "最热"),
-      .init(id: .init(rawValue: "sort-good"), title: "好评"),
+      .init(id: .init(rawValue: "sort-latest"), title: "Newest", isSelected: true),
+      .init(id: .init(rawValue: "sort-popular"), title: "Popular", isSelected: false),
+      .init(id: .init(rawValue: "sort-rated"), title: "Top rated", isSelected: false),
     ]
   )
 }

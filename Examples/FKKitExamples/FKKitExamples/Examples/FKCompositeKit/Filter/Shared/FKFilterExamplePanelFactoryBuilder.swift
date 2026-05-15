@@ -25,7 +25,8 @@ enum FKFilterExamplePanelFactoryBuilder {
           configuration: .init(
             itemHeight: 36,
             itemColumns: 2,
-            pillStyle: FKFilterExampleAppearance.panelPillStyle
+            pillStyle: FKFilterExampleAppearance.panelPillStyle,
+            rightSectionHeaderBehavior: .selectableSectionHeader
           )
         ),
         .gridPrimary: .chips(
