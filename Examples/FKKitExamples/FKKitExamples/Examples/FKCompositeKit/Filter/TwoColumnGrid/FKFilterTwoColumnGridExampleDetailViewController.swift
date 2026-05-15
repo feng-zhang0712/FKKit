@@ -1,14 +1,14 @@
 import FKCompositeKit
 import UIKit
 
-final class FKFilterTwoColumnGridShowcaseDetailViewController: UIViewController {
+final class FKFilterTwoColumnGridExampleDetailViewController: UIViewController {
 
-  private let scenario: FKFilterTwoColumnGridShowcaseScenario
+  private let exampleCase: FKFilterTwoColumnGridExampleCase
   private let logView = UITextView()
   private let panelContainer = UIView()
 
-  init(scenario: FKFilterTwoColumnGridShowcaseScenario) {
-    self.scenario = scenario
+  init(exampleCase: FKFilterTwoColumnGridExampleCase) {
+    self.exampleCase = exampleCase
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -20,7 +20,7 @@ final class FKFilterTwoColumnGridShowcaseDetailViewController: UIViewController 
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
-    title = scenario.menuTitle
+    title = exampleCase.menuTitle
 
     logView.translatesAutoresizingMaskIntoConstraints = false
     logView.isEditable = false
@@ -45,7 +45,7 @@ final class FKFilterTwoColumnGridShowcaseDetailViewController: UIViewController 
       panelContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
     ])
 
-    let spec = scenario.makeSpec()
+    let spec = exampleCase.makeSpec()
     let panel = FKFilterTwoColumnGridViewController(
       model: spec.model,
       configuration: spec.configuration,

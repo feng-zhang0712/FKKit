@@ -1,14 +1,14 @@
 import FKCompositeKit
 import UIKit
 
-struct FKFilterTwoColumnGridShowcasePanelSpec {
+struct FKFilterTwoColumnGridExamplePanelSpec {
   let model: FKFilterTwoColumnModel
   let configuration: FKFilterTwoColumnGridViewController.Configuration
   let allowsMultipleSelection: Bool
   let deliversSelectionEvents: Bool
 }
 
-enum FKFilterTwoColumnGridShowcaseScenario: Int, CaseIterable {
+enum FKFilterTwoColumnGridExampleCase: Int, CaseIterable {
   case baselineDefaults
   case sectionCollapsePlain
   case sectionCollapseInsetGroupedChrome
@@ -68,7 +68,7 @@ enum FKFilterTwoColumnGridShowcaseScenario: Int, CaseIterable {
     }
   }
 
-  func makeSpec() -> FKFilterTwoColumnGridShowcasePanelSpec {
+  func makeSpec() -> FKFilterTwoColumnGridExamplePanelSpec {
     switch self {
     case .baselineDefaults:
       return .init(model: Self.gridCatalogModel(), configuration: .init(), allowsMultipleSelection: false, deliversSelectionEvents: true)

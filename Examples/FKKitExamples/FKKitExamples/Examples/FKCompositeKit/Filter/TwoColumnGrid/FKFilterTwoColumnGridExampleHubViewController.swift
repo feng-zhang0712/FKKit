@@ -1,38 +1,44 @@
 import UIKit
 
-final class FKFilterSingleListPanelShowcaseHubViewController: UITableViewController {
+final class FKFilterTwoColumnGridExampleHubViewController: UITableViewController {
 
-  private static let sectionSpec: [(title: String, scenarios: [FKFilterSingleListPanelShowcaseScenario])] = [
+  private static let sectionSpec: [(title: String, examples: [FKFilterTwoColumnGridExampleCase])] = [
+    (
+      "Baseline",
+      [.baselineDefaults]
+    ),
+    (
+      "Section headers",
+      [
+        .sectionCollapsePlain,
+        .sectionCollapseInsetGroupedChrome,
+        .collapseChevronHidden,
+        .headerSelectionWithoutCollapse,
+      ]
+    ),
     (
       "Selection",
       [
-        .baselineSingle,
-        .multipleSelection,
+        .globalSingleAcrossSections,
+        .withinSectionSingle,
+        .multipleSelectionTabAndSections,
       ]
     ),
     (
-      "Cell content",
+      "Customization",
       [
-        .subtitles,
-        .attributedTitle,
-        .disabledRow,
-        .darkCellStyle,
-      ]
-    ),
-    (
-      "Layout & hooks",
-      [
-        .showsFooter,
-        .wideSeparatorInset,
-        .configureCellAccessory,
-        .tallRows,
+        .customLeftAndItemCells,
+        .narrowLeftColumn,
+        .singleColumnDense,
+        .fourColumnsWide,
+        .disabledPillItem,
       ]
     ),
     (
       "Height",
       [
-        .heightFixed,
-        .heightCapped,
+        .heightBehaviorFixed,
+        .heightBehaviorCapped,
       ]
     ),
     (
@@ -47,7 +53,7 @@ final class FKFilterSingleListPanelShowcaseHubViewController: UITableViewControl
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "Single-list panel showcase"
+    title = "Two-column grid examples"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
     tableView.estimatedRowHeight = 88
@@ -59,7 +65,7 @@ final class FKFilterSingleListPanelShowcaseHubViewController: UITableViewControl
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    Self.sectionSpec[section].scenarios.count
+    Self.sectionSpec[section].examples.count
   }
 
   override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -67,11 +73,11 @@ final class FKFilterSingleListPanelShowcaseHubViewController: UITableViewControl
   }
 
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let scenario = Self.sectionSpec[indexPath.section].scenarios[indexPath.row]
+    let exampleCase = Self.sectionSpec[indexPath.section].examples[indexPath.row]
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
     var config = UIListContentConfiguration.subtitleCell()
-    config.text = scenario.menuTitle
-    config.secondaryText = scenario.menuSubtitle
+    config.text = exampleCase.menuTitle
+    config.secondaryText = exampleCase.menuSubtitle
     config.secondaryTextProperties.color = .secondaryLabel
     cell.contentConfiguration = config
     cell.accessoryType = .disclosureIndicator
@@ -80,9 +86,9 @@ final class FKFilterSingleListPanelShowcaseHubViewController: UITableViewControl
 
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
-    let scenario = Self.sectionSpec[indexPath.section].scenarios[indexPath.row]
+    let exampleCase = Self.sectionSpec[indexPath.section].examples[indexPath.row]
     navigationController?.pushViewController(
-      FKFilterSingleListPanelShowcaseDetailViewController(scenario: scenario),
+      FKFilterTwoColumnGridExampleDetailViewController(exampleCase: exampleCase),
       animated: true
     )
   }

@@ -1,57 +1,57 @@
 import UIKit
 
-/// Table entry list for Filter panel showcases and dropdown demos.
+/// Table entry list for Filter panel and anchored-dropdown examples.
 final class FKFilterExamplesHubViewController: UITableViewController {
 
   private enum Row: Int, CaseIterable {
-    case dropdownFilterDemos
-    case twoColumnListShowcase
-    case twoColumnGridShowcase
-    case chipsPanelShowcase
-    case singleListPanelShowcase
+    case dropdownFilterExamples
+    case twoColumnListExamples
+    case twoColumnGridExamples
+    case chipsPanelExamples
+    case singleListPanelExamples
 
     var title: String {
       switch self {
-      case .dropdownFilterDemos:
-        return "Dropdown filter demos"
-      case .twoColumnListShowcase:
-        return "Two-column list showcase"
-      case .twoColumnGridShowcase:
-        return "Two-column grid showcase"
-      case .chipsPanelShowcase:
-        return "Chips panel showcase"
-      case .singleListPanelShowcase:
-        return "Single-list panel showcase"
+      case .dropdownFilterExamples:
+        return "Dropdown filter examples"
+      case .twoColumnListExamples:
+        return "Two-column list examples"
+      case .twoColumnGridExamples:
+        return "Two-column grid examples"
+      case .chipsPanelExamples:
+        return "Chips panel examples"
+      case .singleListPanelExamples:
+        return "Single-list panel examples"
       }
     }
 
     var subtitle: String {
       switch self {
-      case .dropdownFilterDemos:
+      case .dropdownFilterExamples:
         return "Anchored dropdown patterns: tab layout, transitions, backdrop, and panel caching."
-      case .twoColumnListShowcase:
-        return "Isolated FKFilterTwoColumnListViewController scenarios."
-      case .twoColumnGridShowcase:
-        return "Isolated FKFilterTwoColumnGridViewController scenarios."
-      case .chipsPanelShowcase:
-        return "Isolated FKFilterChipsViewController scenarios."
-      case .singleListPanelShowcase:
-        return "Isolated FKFilterSingleListViewController scenarios."
+      case .twoColumnListExamples:
+        return "Isolated FKFilterTwoColumnListViewController configurations."
+      case .twoColumnGridExamples:
+        return "Isolated FKFilterTwoColumnGridViewController configurations."
+      case .chipsPanelExamples:
+        return "Isolated FKFilterChipsViewController configurations."
+      case .singleListPanelExamples:
+        return "Isolated FKFilterSingleListViewController configurations."
       }
     }
 
     func makeViewController() -> UIViewController {
       switch self {
-      case .dropdownFilterDemos:
-        return FKFilterDropdownDemosHubViewController()
-      case .twoColumnListShowcase:
-        return FKFilterTwoColumnListShowcaseHubViewController()
-      case .twoColumnGridShowcase:
-        return FKFilterTwoColumnGridShowcaseHubViewController()
-      case .chipsPanelShowcase:
-        return FKFilterChipsPanelShowcaseHubViewController()
-      case .singleListPanelShowcase:
-        return FKFilterSingleListPanelShowcaseHubViewController()
+      case .dropdownFilterExamples:
+        return FKFilterDropdownExamplesHubViewController()
+      case .twoColumnListExamples:
+        return FKFilterTwoColumnListExampleHubViewController()
+      case .twoColumnGridExamples:
+        return FKFilterTwoColumnGridExampleHubViewController()
+      case .chipsPanelExamples:
+        return FKFilterChipsPanelExampleHubViewController()
+      case .singleListPanelExamples:
+        return FKFilterSingleListPanelExampleHubViewController()
       }
     }
   }

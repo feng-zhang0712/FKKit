@@ -1,14 +1,14 @@
 import FKCompositeKit
 import UIKit
 
-final class FKFilterSingleListPanelShowcaseDetailViewController: UIViewController {
+final class FKFilterSingleListPanelExampleDetailViewController: UIViewController {
 
-  private let scenario: FKFilterSingleListPanelShowcaseScenario
+  private let exampleCase: FKFilterSingleListPanelExampleCase
   private let logView = UITextView()
   private let panelContainer = UIView()
 
-  init(scenario: FKFilterSingleListPanelShowcaseScenario) {
-    self.scenario = scenario
+  init(exampleCase: FKFilterSingleListPanelExampleCase) {
+    self.exampleCase = exampleCase
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -20,7 +20,7 @@ final class FKFilterSingleListPanelShowcaseDetailViewController: UIViewControlle
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
-    title = scenario.menuTitle
+    title = exampleCase.menuTitle
 
     logView.translatesAutoresizingMaskIntoConstraints = false
     logView.isEditable = false
@@ -45,7 +45,7 @@ final class FKFilterSingleListPanelShowcaseDetailViewController: UIViewControlle
       panelContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
     ])
 
-    let spec = scenario.makeSpec()
+    let spec = exampleCase.makeSpec()
     let panel = FKFilterSingleListViewController(
       section: spec.section,
       configuration: spec.configuration,

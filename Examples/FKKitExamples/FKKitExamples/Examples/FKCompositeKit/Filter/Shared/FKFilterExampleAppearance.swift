@@ -45,7 +45,7 @@ enum FKFilterExampleAppearance {
     )
   }
 
-  /// ``FKFilterController`` defaults for the six-tab hub demo.
+  /// ``FKFilterController`` defaults for the six-tab hub example.
   static func makeHubFilterConfiguration() -> FKFilterConfiguration<String> {
     FKFilterConfiguration(
       anchoredDropdown: hubAnchoredConfiguration(),
@@ -54,7 +54,7 @@ enum FKFilterExampleAppearance {
     )
   }
 
-  /// ``FKFilterController`` defaults for equal-width tab demos.
+  /// ``FKFilterController`` defaults for equal-width tab examples.
   static func makeEqualThreeFilterConfiguration() -> FKFilterConfiguration<String> {
     FKFilterConfiguration(
       anchoredDropdown: equalThreeAnchoredConfiguration(),
@@ -86,7 +86,7 @@ enum FKFilterExampleAppearance {
     return cfg
   }
 
-  // MARK: - Anchored dropdown variants (dropdown demos)
+  // MARK: - Anchored dropdown variants (dropdown examples)
 
   static func makeFilterConfiguration(anchored: FKAnchoredDropdownConfiguration) -> FKFilterConfiguration<String> {
     FKFilterConfiguration(

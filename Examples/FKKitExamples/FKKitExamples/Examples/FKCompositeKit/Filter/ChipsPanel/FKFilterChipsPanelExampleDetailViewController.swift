@@ -1,14 +1,14 @@
 import FKCompositeKit
 import UIKit
 
-final class FKFilterChipsPanelShowcaseDetailViewController: UIViewController {
+final class FKFilterChipsPanelExampleDetailViewController: UIViewController {
 
-  private let scenario: FKFilterChipsPanelShowcaseScenario
+  private let exampleCase: FKFilterChipsPanelExampleCase
   private let logView = UITextView()
   private let panelContainer = UIView()
 
-  init(scenario: FKFilterChipsPanelShowcaseScenario) {
-    self.scenario = scenario
+  init(exampleCase: FKFilterChipsPanelExampleCase) {
+    self.exampleCase = exampleCase
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -20,7 +20,7 @@ final class FKFilterChipsPanelShowcaseDetailViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
-    title = scenario.menuTitle
+    title = exampleCase.menuTitle
 
     logView.translatesAutoresizingMaskIntoConstraints = false
     logView.isEditable = false
@@ -45,7 +45,7 @@ final class FKFilterChipsPanelShowcaseDetailViewController: UIViewController {
       panelContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
     ])
 
-    let spec = scenario.makeSpec()
+    let spec = exampleCase.makeSpec()
     let panel = FKFilterChipsViewController(
       sections: spec.sections,
       configuration: spec.configuration,

@@ -1,14 +1,14 @@
 import FKCompositeKit
 import UIKit
 
-struct FKFilterChipsPanelShowcasePanelSpec {
+struct FKFilterChipsPanelExamplePanelSpec {
   let sections: [FKFilterSection]
   let configuration: FKFilterChipsViewController.Configuration
   let allowsMultipleSelection: Bool
   let deliversSelectionEvents: Bool
 }
 
-enum FKFilterChipsPanelShowcaseScenario: Int, CaseIterable {
+enum FKFilterChipsPanelExampleCase: Int, CaseIterable {
   case baselineSingleSection
   case twoSectionsSingleSelect
   case multipleSelectionTabAndSections
@@ -59,7 +59,7 @@ enum FKFilterChipsPanelShowcaseScenario: Int, CaseIterable {
     }
   }
 
-  func makeSpec() -> FKFilterChipsPanelShowcasePanelSpec {
+  func makeSpec() -> FKFilterChipsPanelExamplePanelSpec {
     switch self {
     case .baselineSingleSection:
       return .init(sections: Self.oneSectionChips(), configuration: .init(), allowsMultipleSelection: false, deliversSelectionEvents: true)

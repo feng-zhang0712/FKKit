@@ -1,7 +1,7 @@
 import UIKit
 import FKCompositeKit
 
-/// Demo-only helpers on top of ``FKFilterHosting`` (debug logging).
+/// Example-only helpers on top of ``FKFilterHosting`` (debug logging).
 enum FKFilterExampleChrome {
   /// Optional console trace for ``FKFilterController/onSelection``.
   @MainActor

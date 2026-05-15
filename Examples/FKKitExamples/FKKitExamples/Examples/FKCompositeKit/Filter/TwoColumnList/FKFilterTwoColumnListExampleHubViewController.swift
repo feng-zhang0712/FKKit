@@ -1,9 +1,9 @@
 import UIKit
 
-/// Entry table for every ``FKFilterTwoColumnListShowcaseScenario`` (self-contained, no shared Filter demo state).
-final class FKFilterTwoColumnListShowcaseHubViewController: UITableViewController {
+/// Entry table for every ``FKFilterTwoColumnListExampleCase`` (self-contained, no shared example host state).
+final class FKFilterTwoColumnListExampleHubViewController: UITableViewController {
 
-  private static let sectionSpec: [(title: String, scenarios: [FKFilterTwoColumnListShowcaseScenario])] = [
+  private static let sectionSpec: [(title: String, examples: [FKFilterTwoColumnListExampleCase])] = [
     (
       "Baseline & table style",
       [
@@ -68,7 +68,7 @@ final class FKFilterTwoColumnListShowcaseHubViewController: UITableViewControlle
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "Two-column list showcase"
+    title = "Two-column list examples"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
     tableView.estimatedRowHeight = 96
@@ -80,7 +80,7 @@ final class FKFilterTwoColumnListShowcaseHubViewController: UITableViewControlle
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    Self.sectionSpec[section].scenarios.count
+    Self.sectionSpec[section].examples.count
   }
 
   override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -88,11 +88,11 @@ final class FKFilterTwoColumnListShowcaseHubViewController: UITableViewControlle
   }
 
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let scenario = Self.sectionSpec[indexPath.section].scenarios[indexPath.row]
+    let exampleCase = Self.sectionSpec[indexPath.section].examples[indexPath.row]
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
     var config = UIListContentConfiguration.subtitleCell()
-    config.text = scenario.menuTitle
-    config.secondaryText = scenario.menuSubtitle
+    config.text = exampleCase.menuTitle
+    config.secondaryText = exampleCase.menuSubtitle
     config.secondaryTextProperties.color = .secondaryLabel
     cell.contentConfiguration = config
     cell.accessoryType = .disclosureIndicator
@@ -101,8 +101,8 @@ final class FKFilterTwoColumnListShowcaseHubViewController: UITableViewControlle
 
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
-    let scenario = Self.sectionSpec[indexPath.section].scenarios[indexPath.row]
-    let detail = FKFilterTwoColumnListShowcaseDetailViewController(scenario: scenario)
+    let exampleCase = Self.sectionSpec[indexPath.section].examples[indexPath.row]
+    let detail = FKFilterTwoColumnListExampleDetailViewController(exampleCase: exampleCase)
     navigationController?.pushViewController(detail, animated: true)
   }
 }
