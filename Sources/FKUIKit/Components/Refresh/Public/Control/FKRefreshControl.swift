@@ -103,7 +103,10 @@ public final class FKRefreshControl: UIView {
     self.actionHandler = action
     self.asyncActionHandler = asyncAction
     self.clock = clock
-    super.init(frame: .zero)
+    let placeholderWidth = max(UIScreen.main.bounds.width, 320)
+    super.init(
+      frame: CGRect(x: 0, y: 0, width: placeholderWidth, height: configuration.expandedHeight)
+    )
     clipsToBounds = true
     embedContentView(cv)
     wireRetryTapIfNeeded(cv)
@@ -138,6 +141,7 @@ public final class FKRefreshControl: UIView {
     captureScrollViewBaselines(scrollView)
     translatesAutoresizingMaskIntoConstraints = true
     scrollView.addSubview(self)
+    scrollView.layoutIfNeeded()
     setupFrameForKind()
     startObserving()
     if kind == .loadMore {
@@ -375,6 +379,35 @@ public final class FKRefreshControl: UIView {
 
   // MARK: - Frame setup
 
+  /// Avoids `bounds.width == 0` during early layout (common for `UITableView` before first layout pass),
+  /// which makes `FKDefaultRefreshContentView`’s Auto Layout unsatisfiable against `NSAutoresizingMaskLayoutConstraint`.
+  ///
+  /// Do **not** call `scrollView.layoutIfNeeded()` here: it runs from `layoutSubviews` / KVO while `contentInset`
+  /// is animating and can pick a transient width. Also cap by `superview.bounds` so we never use a width larger
+  /// than the hosting container (e.g. fallback to screen/window while the table is narrower). Otherwise
+  /// `FKDefaultRefreshContentView` centers in an over-wide header and the table clips the left slice — looks
+  /// shifted to the right after release.
+  private func resolvedScrollViewWidth(_ scrollView: UIScrollView) -> CGFloat {
+    var w = scrollView.bounds.width
+    if w <= 0.5 { w = scrollView.frame.width }
+    if w <= 0.5, let superview = scrollView.superview, superview.bounds.width > 0.5 {
+      w = superview.bounds.width
+    }
+    if w <= 0.5, let window = scrollView.window, window.bounds.width > 0.5 {
+      w = window.bounds.width
+    }
+    if w <= 0.5 {
+      w = max(UIScreen.main.bounds.width, 320)
+    }
+    if let superview = scrollView.superview {
+      let cap = superview.bounds.width
+      if cap > 0.5 {
+        w = min(w, cap)
+      }
+    }
+    return w
+  }
+
   private func captureScrollViewBaselines(_ scrollView: UIScrollView) {
     baselineContentInset = scrollView.contentInset
     baselineVerticalIndicatorInsets = scrollView.verticalScrollIndicatorInsets
@@ -384,12 +417,13 @@ public final class FKRefreshControl: UIView {
     guard let scrollView else { return }
     let h = configuration.expandedHeight
     let safePad = footerSafePadding(for: scrollView)
+    let width = resolvedScrollViewWidth(scrollView)
     switch kind {
     case .pullToRefresh:
       frame = CGRect(
         x: 0,
         y: -h,
-        width: scrollView.bounds.width,
+        width: width,
         height: h
       )
     case .loadMore:
@@ -397,7 +431,7 @@ public final class FKRefreshControl: UIView {
       frame = CGRect(
         x: 0,
         y: contentH,
-        width: scrollView.bounds.width,
+        width: width,
         height: h + safePad
       )
     }
@@ -566,9 +600,10 @@ public final class FKRefreshControl: UIView {
     var f = frame
     let newY = max(contentH, scrollView.bounds.height)
     let newH = configuration.expandedHeight + safePad
-    if f.origin.y != newY || f.size.width != scrollView.bounds.width || f.size.height != newH {
+    let width = resolvedScrollViewWidth(scrollView)
+    if f.origin.y != newY || f.size.width != width || f.size.height != newH {
       f.origin.y = newY
-      f.size.width = scrollView.bounds.width
+      f.size.width = width
       f.size.height = newH
       frame = f
     }
@@ -911,8 +946,9 @@ public final class FKRefreshControl: UIView {
     super.layoutSubviews()
     guard let scrollView else { return }
     var f = frame
-    f.size.width = scrollView.bounds.width
-    if f.size.width != frame.size.width {
+    let w = resolvedScrollViewWidth(scrollView)
+    if f.size.width != w {
+      f.size.width = w
       frame = f
     }
   }
