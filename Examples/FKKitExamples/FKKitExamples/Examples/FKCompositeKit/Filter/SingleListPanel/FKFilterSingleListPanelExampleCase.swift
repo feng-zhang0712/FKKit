@@ -1,14 +1,14 @@
 import FKCompositeKit
 import UIKit
 
-struct FKFilterSingleListPanelShowcasePanelSpec {
+struct FKFilterSingleListPanelExamplePanelSpec {
   let section: FKFilterSection
   let configuration: FKFilterSingleListViewController.Configuration
   let allowsMultipleSelection: Bool
   let deliversSelectionEvents: Bool
 }
 
-enum FKFilterSingleListPanelShowcaseScenario: Int, CaseIterable {
+enum FKFilterSingleListPanelExampleCase: Int, CaseIterable {
   case baselineSingle
   case multipleSelection
   case subtitles
@@ -59,7 +59,7 @@ enum FKFilterSingleListPanelShowcaseScenario: Int, CaseIterable {
     }
   }
 
-  func makeSpec() -> FKFilterSingleListPanelShowcasePanelSpec {
+  func makeSpec() -> FKFilterSingleListPanelExamplePanelSpec {
     switch self {
     case .baselineSingle:
       return .init(section: Self.basicSection(), configuration: .init(), allowsMultipleSelection: false, deliversSelectionEvents: true)

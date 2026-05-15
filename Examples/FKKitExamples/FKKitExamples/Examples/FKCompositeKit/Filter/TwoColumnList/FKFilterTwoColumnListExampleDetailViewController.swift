@@ -2,15 +2,15 @@ import FKCompositeKit
 import UIKit
 
 /// Hosts a single ``FKFilterTwoColumnListViewController`` plus a small event log.
-final class FKFilterTwoColumnListShowcaseDetailViewController: UIViewController {
+final class FKFilterTwoColumnListExampleDetailViewController: UIViewController {
 
-  private let scenario: FKFilterTwoColumnListShowcaseScenario
+  private let exampleCase: FKFilterTwoColumnListExampleCase
   private let logView = UITextView()
   private let panelContainer = UIView()
   private var panel: FKFilterTwoColumnListViewController?
 
-  init(scenario: FKFilterTwoColumnListShowcaseScenario) {
-    self.scenario = scenario
+  init(exampleCase: FKFilterTwoColumnListExampleCase) {
+    self.exampleCase = exampleCase
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -22,7 +22,7 @@ final class FKFilterTwoColumnListShowcaseDetailViewController: UIViewController 
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
-    title = scenario.menuTitle
+    title = exampleCase.menuTitle
 
     logView.translatesAutoresizingMaskIntoConstraints = false
     logView.isEditable = false
@@ -54,7 +54,7 @@ final class FKFilterTwoColumnListShowcaseDetailViewController: UIViewController 
   }
 
   private func installPanel() {
-    let spec = scenario.makeSpec()
+    let spec = exampleCase.makeSpec()
     let panelVC = FKFilterTwoColumnListViewController(
       model: spec.model,
       configuration: spec.configuration,

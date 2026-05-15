@@ -13,7 +13,7 @@ final class FKFilterExampleState {
 
   init() {}
 
-  /// All six panels populated (scrollable strip demo).
+  /// All six panels populated (scrollable strip example).
   static func presetFullHub() -> FKFilterExampleState {
     let s = FKFilterExampleState()
     s.knowledgeModel = FKFilterExampleStaticData.catalogTwoColumn

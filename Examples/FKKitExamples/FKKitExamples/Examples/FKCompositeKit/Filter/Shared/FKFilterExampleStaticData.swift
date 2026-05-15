@@ -1,7 +1,7 @@
 import Foundation
 import FKCompositeKit
 
-/// Local-only catalog for Filter dropdown demos (English copy).
+/// Local-only catalog for Filter dropdown examples (English copy).
 enum FKFilterExampleStaticData {
   /// Two-column list: browse by top-level category.
   static let catalogTwoColumn: FKFilterTwoColumnModel = {
@@ -39,7 +39,7 @@ enum FKFilterExampleStaticData {
     )
   }()
 
-  /// Two-column grid: training categories with titled sections (supports header collapse demos).
+  /// Two-column grid: training categories with titled sections (supports header collapse examples).
   static let trainingTwoColumn: FKFilterTwoColumnModel = {
     let leadership = FKFilterTwoColumnModel.Category(id: .init(rawValue: "tr.lead"), title: "Leadership", isSelected: true)
     let compliance = FKFilterTwoColumnModel.Category(id: .init(rawValue: "tr.comp"), title: "Compliance", isSelected: false)

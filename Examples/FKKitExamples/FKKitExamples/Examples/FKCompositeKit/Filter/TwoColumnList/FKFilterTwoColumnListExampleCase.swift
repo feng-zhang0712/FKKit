@@ -1,8 +1,8 @@
 import FKCompositeKit
 import UIKit
 
-/// Describes one isolated ``FKFilterTwoColumnListViewController`` configuration for the showcase hub.
-enum FKFilterTwoColumnListShowcaseScenario: Int, CaseIterable {
+/// Describes one isolated ``FKFilterTwoColumnListViewController`` configuration for the list examples hub.
+enum FKFilterTwoColumnListExampleCase: Int, CaseIterable {
   case baselinePlainDefaults
   case plainStyleExplicit
   case insetGroupedFullGroupedConfiguration
@@ -118,7 +118,7 @@ enum FKFilterTwoColumnListShowcaseScenario: Int, CaseIterable {
     }
   }
 
-  func makeSpec() -> FKFilterTwoColumnListShowcasePanelSpec {
+  func makeSpec() -> FKFilterTwoColumnListExamplePanelSpec {
     switch self {
     case .baselinePlainDefaults:
       return .init(
@@ -370,7 +370,7 @@ enum FKFilterTwoColumnListShowcaseScenario: Int, CaseIterable {
       )
     case .sectionCollapsePlainDefaults:
       return .init(
-        model: Self.collapseDemonstrationModel(),
+        model: Self.collapseSampleModel(),
         configuration: .init(
           rightSectionHeaderBehavior: .togglesSectionCollapse
         ),
@@ -379,7 +379,7 @@ enum FKFilterTwoColumnListShowcaseScenario: Int, CaseIterable {
       )
     case .sectionCollapseInsetGroupedMixedInitial:
       return .init(
-        model: Self.collapseDemonstrationModel(),
+        model: Self.collapseSampleModel(),
         configuration: .init(
           rightTableViewStyle: .insetGrouped,
           rightGroupedTableConfiguration: .init(
@@ -394,7 +394,7 @@ enum FKFilterTwoColumnListShowcaseScenario: Int, CaseIterable {
       )
     case .sectionCollapseChevronHidden:
       return .init(
-        model: Self.collapseDemonstrationModel(),
+        model: Self.collapseSampleModel(),
         configuration: .init(
           rightSectionHeaderBehavior: .togglesSectionCollapse,
           showsSectionCollapseDisclosureIndicator: false
@@ -411,7 +411,7 @@ enum FKFilterTwoColumnListShowcaseScenario: Int, CaseIterable {
   private static let catBeta = FKFilterID(rawValue: "cat.beta")
   private static let catEmpty = FKFilterID(rawValue: "cat.empty")
 
-  private static func collapseDemonstrationModel() -> FKFilterTwoColumnModel {
+  private static func collapseSampleModel() -> FKFilterTwoColumnModel {
     let categories: [FKFilterTwoColumnModel.Category] = [
       .init(id: catAlpha, title: "Catalog", isSelected: true),
     ]
@@ -486,7 +486,7 @@ enum FKFilterTwoColumnListShowcaseScenario: Int, CaseIterable {
 
   private static func globalScopeModel() -> FKFilterTwoColumnModel {
     let categories: [FKFilterTwoColumnModel.Category] = [
-      .init(id: catAlpha, title: "Scope demo", isSelected: true),
+      .init(id: catAlpha, title: "Scope sample", isSelected: true),
     ]
     let sections: [FKFilterID: [FKFilterSection]] = [
       catAlpha: [
@@ -688,7 +688,7 @@ enum FKFilterTwoColumnListShowcaseScenario: Int, CaseIterable {
   }
 }
 
-struct FKFilterTwoColumnListShowcasePanelSpec {
+struct FKFilterTwoColumnListExamplePanelSpec {
   let model: FKFilterTwoColumnModel
   let configuration: FKFilterTwoColumnListViewController.Configuration
   let allowsMultipleSelection: Bool

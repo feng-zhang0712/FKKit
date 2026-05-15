@@ -2,7 +2,7 @@ import FKCompositeKit
 import UIKit
 
 /// Individual anchored-dropdown + ``FKFilterController`` patterns (English data, ``FKFilterExampleStaticData``).
-enum FKFilterDropdownAnchoredDemo: Int, CaseIterable {
+enum FKFilterDropdownAnchoredExample: Int, CaseIterable {
   /// Six panel kinds with a scrollable, intrinsic-width tab strip.
   case scrollableSixPanels
   /// Equal tabs: scope · course grid · multi-select tags.
@@ -151,17 +151,17 @@ enum FKFilterDropdownAnchoredDemo: Int, CaseIterable {
   }
 }
 
-/// Hosts ``FKFilterController`` for a single ``FKFilterDropdownAnchoredDemo`` pattern.
-final class FKFilterDropdownAnchoredPatternViewController: UIViewController {
-  private let demo: FKFilterDropdownAnchoredDemo
-  private let demoState: FKFilterExampleState
+/// Hosts ``FKFilterController`` for a single ``FKFilterDropdownAnchoredExample`` pattern.
+final class FKFilterDropdownAnchoredExampleViewController: UIViewController {
+  private let anchoredExample: FKFilterDropdownAnchoredExample
+  private let filterState: FKFilterExampleState
   private let tabStrip = FKFilterExampleTabStripView()
   private var tagsTabTitle = "Topics"
   private var filterHost: FKFilterController<String>!
 
-  init(demo: FKFilterDropdownAnchoredDemo) {
-    self.demo = demo
-    self.demoState = demo.initialState
+  init(anchoredExample: FKFilterDropdownAnchoredExample) {
+    self.anchoredExample = anchoredExample
+    self.filterState = anchoredExample.initialState
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -172,14 +172,14 @@ final class FKFilterDropdownAnchoredPatternViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = demo.screenTitle
+    title = anchoredExample.screenTitle
     view.backgroundColor = .systemBackground
 
     let panelFactory: FKFilterPanelFactory
-    if demo.usesTagsTitleCallback {
+    if anchoredExample.usesTagsTitleCallback {
       panelFactory = FKFilterExamplePanelFactoryBuilder.makeFactory(
-        bindingTo: demoState,
-        filterConfiguration: demo.filterConfiguration,
+        bindingTo: filterState,
+        filterConfiguration: anchoredExample.filterConfiguration,
         onTagsSelectionEmptied: { [weak self] in
           guard let self else { return }
           self.tagsTabTitle = "Topics"
@@ -188,16 +188,16 @@ final class FKFilterDropdownAnchoredPatternViewController: UIViewController {
       )
     } else {
       panelFactory = FKFilterExamplePanelFactoryBuilder.makeFactory(
-        bindingTo: demoState,
-        filterConfiguration: demo.filterConfiguration
+        bindingTo: filterState,
+        filterConfiguration: anchoredExample.filterConfiguration
       )
     }
 
-    let tabs = demo.makeTabs(tagsTitle: { [weak self] in self?.tagsTabTitle ?? "Topics" })
+    let tabs = anchoredExample.makeTabs(tagsTitle: { [weak self] in self?.tagsTabTitle ?? "Topics" })
     filterHost = FKFilterController(
       tabs: tabs,
       panelFactory: panelFactory,
-      filterConfiguration: demo.filterConfiguration,
+      filterConfiguration: anchoredExample.filterConfiguration,
       tabBarHost: tabStrip
     )
 
@@ -209,7 +209,7 @@ final class FKFilterDropdownAnchoredPatternViewController: UIViewController {
       logSelection: true
     ) else { return }
     FKFilterExampleChrome.installBodyPlaceholder(below: strip.bottomAnchor, in: self)
-    let tabIDs = demo.makeTabs(tagsTitle: { [weak self] in self?.tagsTabTitle ?? "Topics" }).map(\.id)
+    let tabIDs = anchoredExample.makeTabs(tagsTitle: { [weak self] in self?.tagsTabTitle ?? "Topics" }).map(\.id)
     tabIDs.forEach { filterHost.invalidateCachedPanelContent(for: $0) }
   }
 }

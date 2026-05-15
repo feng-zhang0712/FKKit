@@ -1,8 +1,8 @@
 import UIKit
 
-final class FKFilterChipsPanelShowcaseHubViewController: UITableViewController {
+final class FKFilterChipsPanelExampleHubViewController: UITableViewController {
 
-  private static let sectionSpec: [(title: String, scenarios: [FKFilterChipsPanelShowcaseScenario])] = [
+  private static let sectionSpec: [(title: String, examples: [FKFilterChipsPanelExampleCase])] = [
     (
       "Structure & selection",
       [
@@ -49,7 +49,7 @@ final class FKFilterChipsPanelShowcaseHubViewController: UITableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "Chips panel showcase"
+    title = "Chips panel examples"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
     tableView.estimatedRowHeight = 88
@@ -61,7 +61,7 @@ final class FKFilterChipsPanelShowcaseHubViewController: UITableViewController {
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    Self.sectionSpec[section].scenarios.count
+    Self.sectionSpec[section].examples.count
   }
 
   override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -69,11 +69,11 @@ final class FKFilterChipsPanelShowcaseHubViewController: UITableViewController {
   }
 
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let scenario = Self.sectionSpec[indexPath.section].scenarios[indexPath.row]
+    let exampleCase = Self.sectionSpec[indexPath.section].examples[indexPath.row]
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
     var config = UIListContentConfiguration.subtitleCell()
-    config.text = scenario.menuTitle
-    config.secondaryText = scenario.menuSubtitle
+    config.text = exampleCase.menuTitle
+    config.secondaryText = exampleCase.menuSubtitle
     config.secondaryTextProperties.color = .secondaryLabel
     cell.contentConfiguration = config
     cell.accessoryType = .disclosureIndicator
@@ -82,9 +82,9 @@ final class FKFilterChipsPanelShowcaseHubViewController: UITableViewController {
 
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
-    let scenario = Self.sectionSpec[indexPath.section].scenarios[indexPath.row]
+    let exampleCase = Self.sectionSpec[indexPath.section].examples[indexPath.row]
     navigationController?.pushViewController(
-      FKFilterChipsPanelShowcaseDetailViewController(scenario: scenario),
+      FKFilterChipsPanelExampleDetailViewController(exampleCase: exampleCase),
       animated: true
     )
   }

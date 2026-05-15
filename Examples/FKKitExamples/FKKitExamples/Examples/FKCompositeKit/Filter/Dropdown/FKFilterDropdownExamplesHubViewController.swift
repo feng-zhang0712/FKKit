@@ -1,9 +1,9 @@
 import UIKit
 
 /// Anchored-dropdown filter patterns: tab strip layout, tab-switch transitions, backdrop, and content caching.
-final class FKFilterDropdownDemosHubViewController: UITableViewController {
+final class FKFilterDropdownExamplesHubViewController: UITableViewController {
 
-  private static let sectionSpec: [(title: String, demos: [FKFilterDropdownAnchoredDemo])] = [
+  private static let sectionSpec: [(title: String, examples: [FKFilterDropdownAnchoredExample])] = [
     (
       "Tab strip & panel mix",
       [.scrollableSixPanels]
@@ -32,7 +32,7 @@ final class FKFilterDropdownDemosHubViewController: UITableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "Dropdown filter demos"
+    title = "Dropdown filter examples"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
     tableView.estimatedRowHeight = 88
@@ -44,7 +44,7 @@ final class FKFilterDropdownDemosHubViewController: UITableViewController {
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    Self.sectionSpec[section].demos.count
+    Self.sectionSpec[section].examples.count
   }
 
   override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -52,11 +52,11 @@ final class FKFilterDropdownDemosHubViewController: UITableViewController {
   }
 
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let demo = Self.sectionSpec[indexPath.section].demos[indexPath.row]
+    let example = Self.sectionSpec[indexPath.section].examples[indexPath.row]
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
     var config = UIListContentConfiguration.subtitleCell()
-    config.text = demo.menuTitle
-    config.secondaryText = demo.menuSubtitle
+    config.text = example.menuTitle
+    config.secondaryText = example.menuSubtitle
     config.secondaryTextProperties.color = .secondaryLabel
     cell.contentConfiguration = config
     cell.accessoryType = .disclosureIndicator
@@ -65,7 +65,10 @@ final class FKFilterDropdownDemosHubViewController: UITableViewController {
 
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
-    let demo = Self.sectionSpec[indexPath.section].demos[indexPath.row]
-    navigationController?.pushViewController(FKFilterDropdownAnchoredPatternViewController(demo: demo), animated: true)
+    let example = Self.sectionSpec[indexPath.section].examples[indexPath.row]
+    navigationController?.pushViewController(
+      FKFilterDropdownAnchoredExampleViewController(anchoredExample: example),
+      animated: true
+    )
   }
 }
