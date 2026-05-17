@@ -20,6 +20,20 @@ public enum FKFilterSelectionMode: Sendable {
   }
 }
 
+/// How taps on a **titled** right-hand section header behave in ``FKFilterTwoColumnListViewController`` and
+/// ``FKFilterTwoColumnGridViewController``.
+///
+/// Modes are mutually exclusive: pick exactly one. ``standard`` matches passive UIKit section titles on the list panel
+/// (or a non-interactive collection header on the grid).
+public enum FKFilterTwoColumnRightSectionHeaderBehavior: Sendable, Hashable {
+  /// Title only; header is not interactive.
+  case standard
+  /// Tap toggles ``FKFilterSection/isCollapsed`` for that section.
+  case togglesSectionCollapse
+  /// Tap selects the section as a header row: clears item selections and forwards ``FKFilterPanelSelection``.
+  case selectableSectionHeader
+}
+
 /// Payload emitted by a panel when the user changes the selection (before host adds tab id / panel kind).
 public struct FKFilterPanelSelection: Sendable {
   public let sectionID: FKFilterID?
@@ -86,18 +100,22 @@ public struct FKFilterSection: Hashable, Sendable {
   public let id: FKFilterID
   public var title: String?
   public var selectionMode: FKFilterSelectionMode
+  /// When `true`, two-column list/grid panels hide that section’s option rows until the user expands it from the section header (when ``FKFilterTwoColumnRightSectionHeaderBehavior/togglesSectionCollapse`` is configured).
+  public var isCollapsed: Bool
   public var items: [FKFilterOptionItem]
 
   public init(
     id: FKFilterID,
     title: String? = nil,
     selectionMode: FKFilterSelectionMode,
-    items: [FKFilterOptionItem]
+    items: [FKFilterOptionItem],
+    isCollapsed: Bool = false
   ) {
     self.id = id
     self.title = title
     self.selectionMode = selectionMode
     self.items = items
+    self.isCollapsed = isCollapsed
   }
 }
 

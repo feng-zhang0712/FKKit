@@ -66,7 +66,8 @@ final class FKBaseCompositionExampleViewController: UIViewController,
     hint.numberOfLines = 0
     hint.font = .preferredFont(forTextStyle: .footnote)
     hint.textColor = .secondaryLabel
-    hint.text = "This screen does not inherit FKBaseViewController. Composite handles keyboard + nav chrome + tap-to-dismiss."
+    hint.text =
+      "This screen does not inherit FKBaseViewController. Composite handles keyboard + nav chrome + tap-to-dismiss. The buttons below toggle the navigation bar appearance on the shared UINavigationController (transparent / opaque / restore from the snapshot captured at first appearance)."
 
     field.borderStyle = .roundedRect
     field.placeholder = "Focus to test keyboard forwarding"

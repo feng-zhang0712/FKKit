@@ -71,6 +71,8 @@ final class FKFilterTwoColumnGridHeaderView: UICollectionReusableView {
   static let reuseID = "FKFilterTwoColumnGridHeaderView"
 
   private let titleLabel = UILabel()
+  private let chevron = UIImageView()
+  private let row = UIStackView()
   private var topConstraint: NSLayoutConstraint?
   private var bottomConstraint: NSLayoutConstraint?
   private var leadingConstraint: NSLayoutConstraint?
@@ -82,12 +84,26 @@ final class FKFilterTwoColumnGridHeaderView: UICollectionReusableView {
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
     titleLabel.adjustsFontForContentSizeCategory = true
     titleLabel.numberOfLines = 2
-    addSubview(titleLabel)
+    titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-    topConstraint = titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10)
-    bottomConstraint = titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10)
-    leadingConstraint = titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12)
-    trailingConstraint = titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12)
+    chevron.translatesAutoresizingMaskIntoConstraints = false
+    chevron.tintColor = .secondaryLabel
+    chevron.setContentHuggingPriority(.required, for: .horizontal)
+    chevron.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+    row.translatesAutoresizingMaskIntoConstraints = false
+    row.axis = .horizontal
+    row.alignment = .center
+    row.spacing = 8
+    row.isUserInteractionEnabled = false
+    row.addArrangedSubview(titleLabel)
+    row.addArrangedSubview(chevron)
+    addSubview(row)
+
+    topConstraint = row.topAnchor.constraint(equalTo: topAnchor, constant: 10)
+    bottomConstraint = row.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10)
+    leadingConstraint = row.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12)
+    trailingConstraint = row.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12)
     NSLayoutConstraint.activate([
       topConstraint,
       bottomConstraint,
@@ -105,17 +121,29 @@ final class FKFilterTwoColumnGridHeaderView: UICollectionReusableView {
   func apply(
     title: String,
     style: FKFilterTwoColumnGridViewController.Configuration.RightHeaderStyle,
-    isSelected: Bool,
+    isHeaderSelectionHighlighted: Bool,
+    isCollapsed: Bool,
+    showsCollapseDisclosure: Bool,
     tapAction: (() -> Void)?
   ) {
     titleLabel.text = title
     titleLabel.font = style.font
-    titleLabel.textColor = isSelected ? style.selectedTextColor : style.normalTextColor
+    titleLabel.textColor = isHeaderSelectionHighlighted ? style.selectedTextColor : style.normalTextColor
     topConstraint?.constant = style.contentInsets.top
     bottomConstraint?.constant = -style.contentInsets.bottom
     leadingConstraint?.constant = style.contentInsets.left
     trailingConstraint?.constant = -style.contentInsets.right
     self.tapAction = tapAction
+
+    if showsCollapseDisclosure {
+      chevron.isHidden = false
+      chevron.image = UIImage(
+        systemName: isCollapsed ? "chevron.forward" : "chevron.down",
+        withConfiguration: UIImage.SymbolConfiguration(scale: .small)
+      )
+    } else {
+      chevron.isHidden = true
+    }
   }
 
   @objc private func onTap() {
@@ -123,6 +151,16 @@ final class FKFilterTwoColumnGridHeaderView: UICollectionReusableView {
   }
 }
 
+/// Two-column panel controller: left category list (`UITableView`) + right grid (`UICollectionView`).
+///
+/// This is the "course-like" layout:
+/// - Right side groups options by `FKFilterSection` and renders items as pill buttons in a grid.
+/// - Section headers can be shown; ``Configuration/rightSectionHeaderBehavior`` controls collapse vs header selection vs passive titles.
+/// - Single-select scope: ``FKFilterTwoColumnSingleSelectionScope`` (typealias ``SingleSelectionScope``).
+///
+/// Use when you want:
+/// - Better density than a table list
+/// - Reusable cells and smooth scrolling for larger datasets
 public final class FKFilterTwoColumnGridViewController: UIViewController {
   public typealias LeftCellContentConfiguration = (
     _ cell: UITableViewCell,
@@ -137,45 +175,10 @@ public final class FKFilterTwoColumnGridViewController: UIViewController {
     _ section: FKFilterSection
   ) -> Void
 
-  /// Two-column panel controller: left category list (`UITableView`) + right grid (`UICollectionView`).
-  ///
-  /// This is the "course-like" layout:
-  /// - Right side groups options by `FKFilterSection` and renders items as pill buttons in a grid.
-  /// - Section headers can be shown, and optionally become selectable (header tap clears pill selections).
-  ///
-  /// Use when you want:
-  /// - Better density than a table list
-  /// - Reusable cells and smooth scrolling for larger datasets
-  public enum SingleSelectionScope {
-    case withinSection
-    case globalAcrossSections
-  }
+  public typealias SingleSelectionScope = FKFilterTwoColumnSingleSelectionScope
 
   public struct Configuration {
-    public struct RightHeaderStyle {
-      public var normalTextColor: UIColor
-      public var selectedTextColor: UIColor
-      public var font: UIFont
-      public var contentInsets: UIEdgeInsets
-      public var minimumHeight: CGFloat
-
-      public init(
-        normalTextColor: UIColor = .label,
-        selectedTextColor: UIColor = .systemRed,
-        font: UIFont = {
-          let base = UIFont.preferredFont(forTextStyle: .subheadline)
-          return UIFont.systemFont(ofSize: base.pointSize, weight: .semibold)
-        }(),
-        contentInsets: UIEdgeInsets = .init(top: 8, left: 8, bottom: 8, right: 8),
-        minimumHeight: CGFloat = 36
-      ) {
-        self.normalTextColor = normalTextColor
-        self.selectedTextColor = selectedTextColor
-        self.font = font
-        self.contentInsets = contentInsets
-        self.minimumHeight = minimumHeight
-      }
-    }
+    public typealias RightHeaderStyle = FKFilterTwoColumnRightHeaderStyle
 
     public var leftRowHeight: CGFloat
     public var leftColumnWidthRatio: CGFloat
@@ -189,7 +192,10 @@ public final class FKFilterTwoColumnGridViewController: UIViewController {
     public var itemColumns: Int
     public var pillStyle: FKFilterPillStyle
     public var rightHeaderStyle: RightHeaderStyle
-    public var allowsSelectingSectionHeader: Bool
+    /// How titled section headers respond to taps (mutually exclusive with ``standard`` as the passive default).
+    public var rightSectionHeaderBehavior: FKFilterTwoColumnRightSectionHeaderBehavior
+    /// Chevron in the section header when ``rightSectionHeaderBehavior`` is ``FKFilterTwoColumnRightSectionHeaderBehavior/togglesSectionCollapse``.
+    public var showsSectionCollapseDisclosureIndicator: Bool
     public var singleSelectionScope: SingleSelectionScope
     public var heightBehavior: FKFilterPanelHeightBehavior
     /// Optional hook for left table cell customization.
@@ -213,7 +219,8 @@ public final class FKFilterTwoColumnGridViewController: UIViewController {
       itemColumns: Int = 2,
       pillStyle: FKFilterPillStyle = .init(cornerRadius: 6, contentInsets: .init(top: 8, left: 10, bottom: 8, right: 10)),
       rightHeaderStyle: RightHeaderStyle = .init(),
-      allowsSelectingSectionHeader: Bool = true,
+      rightSectionHeaderBehavior: FKFilterTwoColumnRightSectionHeaderBehavior = .standard,
+      showsSectionCollapseDisclosureIndicator: Bool = true,
       singleSelectionScope: SingleSelectionScope = .globalAcrossSections,
       heightBehavior: FKFilterPanelHeightBehavior = .automatic(
         minimum: 100,
@@ -235,7 +242,8 @@ public final class FKFilterTwoColumnGridViewController: UIViewController {
       self.itemColumns = max(itemColumns, 1)
       self.pillStyle = pillStyle
       self.rightHeaderStyle = rightHeaderStyle
-      self.allowsSelectingSectionHeader = allowsSelectingSectionHeader
+      self.rightSectionHeaderBehavior = rightSectionHeaderBehavior
+      self.showsSectionCollapseDisclosureIndicator = showsSectionCollapseDisclosureIndicator
       self.singleSelectionScope = singleSelectionScope
       self.heightBehavior = heightBehavior
       self.configureLeftCell = configureLeftCell
@@ -297,7 +305,7 @@ public final class FKFilterTwoColumnGridViewController: UIViewController {
     let sections = rightSections()
     let leftBody = CGFloat(model.categories.count) * configuration.leftRowHeight
     let headerCount = sections.filter { ($0.title ?? "").isEmpty == false }.count
-    let itemCount = sections.reduce(0) { $0 + $1.items.count }
+    let itemCount = sections.reduce(0) { $0 + ($1.isCollapsed ? 0 : $1.items.count) }
     let rows = ceil(CGFloat(max(itemCount, 1)) / CGFloat(configuration.itemColumns))
     let rightBody = rows * configuration.itemHeight + max(rows - 1, 0) * configuration.lineSpacing
     let rightHeaders = CGFloat(headerCount) * max(configuration.rightHeaderStyle.minimumHeight, 1)
@@ -346,7 +354,24 @@ public final class FKFilterTwoColumnGridViewController: UIViewController {
   }
 
   private func handleHeaderTap(sectionIndex: Int) {
-    guard configuration.allowsSelectingSectionHeader else { return }
+    switch configuration.rightSectionHeaderBehavior {
+    case .standard:
+      return
+    case .togglesSectionCollapse:
+      guard let catID = selectedCategoryID else { return }
+      var sections = model.sectionsByCategoryID[catID] ?? []
+      guard sections.indices.contains(sectionIndex) else { return }
+      sections[sectionIndex].isCollapsed.toggle()
+      selectedHeaderSectionID = nil
+      model.sectionsByCategoryID[catID] = sections
+      onChange(model)
+      rightCollectionView.reloadSections(IndexSet(integer: sectionIndex))
+      publishPreferredContentSizeUpdate()
+      return
+    case .selectableSectionHeader:
+      break
+    }
+
     guard let catID = selectedCategoryID else { return }
     var sections = model.sectionsByCategoryID[catID] ?? []
     guard sections.indices.contains(sectionIndex) else { return }
@@ -458,7 +483,8 @@ extension FKFilterTwoColumnGridViewController: UICollectionViewDataSource, UICol
   }
 
   public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    rightSections()[section].items.count
+    let sec = rightSections()[section]
+    return sec.isCollapsed ? 0 : sec.items.count
   }
 
   public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -532,14 +558,19 @@ extension FKFilterTwoColumnGridViewController: UICollectionViewDataSource, UICol
     }
     let section = rightSections()[indexPath.section]
     let title = section.title ?? ""
-    let isSelected = selectedHeaderSectionID == section.id
-    let tapHandler: (() -> Void)? = configuration.allowsSelectingSectionHeader ? { [weak self] in
+    let isHeaderSelectionHighlighted = configuration.rightSectionHeaderBehavior == .selectableSectionHeader
+      && (selectedHeaderSectionID == section.id)
+    let wantsTap = configuration.rightSectionHeaderBehavior != .standard
+    let tapHandler: (() -> Void)? = wantsTap ? { [weak self] in
       self?.handleHeaderTap(sectionIndex: indexPath.section)
     } : nil
     header.apply(
       title: title,
       style: configuration.rightHeaderStyle,
-      isSelected: isSelected,
+      isHeaderSelectionHighlighted: isHeaderSelectionHighlighted,
+      isCollapsed: section.isCollapsed,
+      showsCollapseDisclosure: configuration.rightSectionHeaderBehavior == .togglesSectionCollapse
+        && configuration.showsSectionCollapseDisclosureIndicator,
       tapAction: tapHandler
     )
     return header

@@ -152,23 +152,37 @@ public final class FKCompositeKeyboardObservation {
 @MainActor
 public final class FKCompositeNavigationChrome {
   public var visibility: FKBaseViewController.NavigationBarVisibility = .visible
-  public var style: FKBaseViewController.NavigationBarStyle = .system
+  public var style: FKBaseViewController.NavigationBarStyle = .system {
+    didSet {
+      guard let navigationController = activeNavigationController else { return }
+      applyStyle(on: navigationController)
+    }
+  }
   public var prefersLargeTitlesWhileVisible: Bool?
 
   private var snapshot: FKNavigationChromeSnapshot?
+  /// Set while the host is in a navigation stack so mutating ``style`` can re-apply without waiting for the next `viewWillAppear`.
+  private weak var activeNavigationController: UINavigationController?
 
   public init() {}
 
   public func viewWillAppear(on viewController: UIViewController, animated: Bool) {
-    guard let navigationController = viewController.navigationController else { return }
+    guard let navigationController = viewController.navigationController else {
+      activeNavigationController = nil
+      return
+    }
+    activeNavigationController = navigationController
     if snapshot == nil {
       let bar = navigationController.navigationBar
       snapshot = FKNavigationChromeSnapshot(
         wasNavigationBarHidden: navigationController.isNavigationBarHidden,
-        standardAppearance: bar.standardAppearance,
-        scrollEdgeAppearance: bar.scrollEdgeAppearance,
-        compactAppearance: bar.compactAppearance,
-        prefersLargeTitles: bar.prefersLargeTitles
+        standardAppearance: FKCompositeNavigationChromeAppearanceCopying.copied(bar.standardAppearance),
+        scrollEdgeAppearance: FKCompositeNavigationChromeAppearanceCopying.copiedIfPresent(bar.scrollEdgeAppearance),
+        compactAppearance: FKCompositeNavigationChromeAppearanceCopying.copiedIfPresent(bar.compactAppearance),
+        compactScrollEdgeAppearance: FKCompositeNavigationChromeAppearanceCopying
+          .copiedCompactScrollEdgeIfPresent(from: bar),
+        prefersLargeTitles: bar.prefersLargeTitles,
+        isTranslucent: bar.isTranslucent
       )
     }
     navigationController.setNavigationBarHidden(visibility == .hidden, animated: animated)
@@ -179,28 +193,47 @@ public final class FKCompositeNavigationChrome {
   }
 
   public func viewWillDisappear(on viewController: UIViewController, animated: Bool) {
+    activeNavigationController = nil
     guard isLeavingHierarchyPermanently(viewController) else { return }
     restoreIfNeeded(on: viewController, animated: animated)
   }
 
   private func applyStyle(on navigationController: UINavigationController) {
+    let bar = navigationController.navigationBar
     switch style {
     case .system:
-      return
+      guard let snapshot else { return }
+      bar.standardAppearance = FKCompositeNavigationChromeAppearanceCopying.copied(snapshot.standardAppearance)
+      bar.scrollEdgeAppearance = FKCompositeNavigationChromeAppearanceCopying.copiedIfPresent(
+        snapshot.scrollEdgeAppearance
+      )
+      bar.compactAppearance = FKCompositeNavigationChromeAppearanceCopying.copiedIfPresent(snapshot.compactAppearance)
+      if #available(iOS 15.0, *) {
+        bar.compactScrollEdgeAppearance = FKCompositeNavigationChromeAppearanceCopying.copiedIfPresent(
+          snapshot.compactScrollEdgeAppearance
+        )
+      }
+      bar.isTranslucent = snapshot.isTranslucent
     case .opaqueDefault:
       let appearance = UINavigationBarAppearance()
       appearance.configureWithDefaultBackground()
-      let bar = navigationController.navigationBar
       bar.standardAppearance = appearance
       bar.scrollEdgeAppearance = appearance
       bar.compactAppearance = appearance
+      if #available(iOS 15.0, *) {
+        bar.compactScrollEdgeAppearance = appearance
+      }
+      bar.isTranslucent = false
     case .transparent:
       let appearance = UINavigationBarAppearance()
       appearance.configureWithTransparentBackground()
-      let bar = navigationController.navigationBar
       bar.standardAppearance = appearance
       bar.scrollEdgeAppearance = appearance
       bar.compactAppearance = appearance
+      if #available(iOS 15.0, *) {
+        bar.compactScrollEdgeAppearance = appearance
+      }
+      bar.isTranslucent = true
     case let .gradient(colors, locations, startPoint, endPoint):
       let appearance = UINavigationBarAppearance()
       appearance.configureWithTransparentBackground()
@@ -211,10 +244,13 @@ public final class FKCompositeNavigationChrome {
         startPoint: startPoint,
         endPoint: endPoint
       )
-      let bar = navigationController.navigationBar
       bar.standardAppearance = appearance
       bar.scrollEdgeAppearance = appearance
       bar.compactAppearance = appearance
+      if #available(iOS 15.0, *) {
+        bar.compactScrollEdgeAppearance = appearance
+      }
+      bar.isTranslucent = true
     }
   }
 
@@ -222,10 +258,18 @@ public final class FKCompositeNavigationChrome {
     guard let snapshot, let navigationController = viewController.navigationController else { return }
     let bar = navigationController.navigationBar
     navigationController.setNavigationBarHidden(snapshot.wasNavigationBarHidden, animated: animated)
-    bar.standardAppearance = snapshot.standardAppearance
-    bar.scrollEdgeAppearance = snapshot.scrollEdgeAppearance
-    bar.compactAppearance = snapshot.compactAppearance
+    bar.standardAppearance = FKCompositeNavigationChromeAppearanceCopying.copied(snapshot.standardAppearance)
+    bar.scrollEdgeAppearance = FKCompositeNavigationChromeAppearanceCopying.copiedIfPresent(
+      snapshot.scrollEdgeAppearance
+    )
+    bar.compactAppearance = FKCompositeNavigationChromeAppearanceCopying.copiedIfPresent(snapshot.compactAppearance)
+    if #available(iOS 15.0, *) {
+      bar.compactScrollEdgeAppearance = FKCompositeNavigationChromeAppearanceCopying.copiedIfPresent(
+        snapshot.compactScrollEdgeAppearance
+      )
+    }
     bar.prefersLargeTitles = snapshot.prefersLargeTitles
+    bar.isTranslucent = snapshot.isTranslucent
     self.snapshot = nil
   }
 
@@ -241,21 +285,39 @@ public final class FKCompositeInteractivePopGesture {
   public var disablesInteractivePopGesture: Bool = false
 
   private var capturedBeforeAppearance: Bool?
+  private var capturedContentPopBeforeAppearance: Bool?
 
   public init() {}
 
   public func viewWillAppear(on viewController: UIViewController) {
-    guard viewController.navigationController != nil else { return }
-    capturedBeforeAppearance = viewController.navigationController?.interactivePopGestureRecognizer?.isEnabled
-    viewController.navigationController?.interactivePopGestureRecognizer?.isEnabled = !disablesInteractivePopGesture
+    guard let navigationController = viewController.navigationController else { return }
+    capturedBeforeAppearance = navigationController.interactivePopGestureRecognizer?.isEnabled
+    if #available(iOS 26.0, *) {
+      capturedContentPopBeforeAppearance =
+        navigationController.interactiveContentPopGestureRecognizer?.isEnabled
+    }
+    let allow = !disablesInteractivePopGesture
+    navigationController.interactivePopGestureRecognizer?.isEnabled = allow
+    if #available(iOS 26.0, *) {
+      navigationController.interactiveContentPopGestureRecognizer?.isEnabled = allow
+    }
   }
 
   public func viewWillDisappear(on viewController: UIViewController) {
     guard isLeavingHierarchyPermanently(viewController) else { return }
-    if let capturedBeforeAppearance, let navigationController = viewController.navigationController {
-      navigationController.interactivePopGestureRecognizer?.isEnabled = capturedBeforeAppearance
+    if let navigationController = viewController.navigationController {
+      if let capturedBeforeAppearance {
+        navigationController.interactivePopGestureRecognizer?.isEnabled = capturedBeforeAppearance
+      }
+      if #available(iOS 26.0, *) {
+        if let capturedContentPopBeforeAppearance {
+          navigationController.interactiveContentPopGestureRecognizer?.isEnabled =
+            capturedContentPopBeforeAppearance
+        }
+      }
     }
     capturedBeforeAppearance = nil
+    capturedContentPopBeforeAppearance = nil
   }
 
   private func isLeavingHierarchyPermanently(_ viewController: UIViewController) -> Bool {
@@ -322,12 +384,33 @@ public enum FKCompositeScrollBounce {
 
 // MARK: - Private types
 
+private enum FKCompositeNavigationChromeAppearanceCopying {
+  static func copied(_ appearance: UINavigationBarAppearance) -> UINavigationBarAppearance {
+    guard let copy = appearance.copy() as? UINavigationBarAppearance else { return appearance }
+    return copy
+  }
+
+  static func copiedIfPresent(_ appearance: UINavigationBarAppearance?) -> UINavigationBarAppearance? {
+    guard let appearance else { return nil }
+    return copied(appearance)
+  }
+
+  static func copiedCompactScrollEdgeIfPresent(from bar: UINavigationBar) -> UINavigationBarAppearance? {
+    if #available(iOS 15.0, *) {
+      return copiedIfPresent(bar.compactScrollEdgeAppearance)
+    }
+    return nil
+  }
+}
+
 private struct FKNavigationChromeSnapshot {
   let wasNavigationBarHidden: Bool
   let standardAppearance: UINavigationBarAppearance
   let scrollEdgeAppearance: UINavigationBarAppearance?
   let compactAppearance: UINavigationBarAppearance?
+  let compactScrollEdgeAppearance: UINavigationBarAppearance?
   let prefersLargeTitles: Bool
+  let isTranslucent: Bool
 }
 
 private enum FKCompositionUIConstants {

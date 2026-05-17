@@ -18,9 +18,13 @@ open class FKBaseViewController: UIViewController {
 
   /// Navigation bar chrome applied while this view controller is visible.
   ///
-  /// ``system`` intentionally does **not** mutate `UINavigationBar` appearance so global
-  /// styling from your app delegate or container remains intact. Use ``opaqueDefault`` when
-  /// you need to reset to a standard opaque bar after a themed child screen.
+  /// Custom styles (``opaqueDefault``, ``transparent``, ``gradient``) apply to this controller’s
+  /// ``UINavigationItem`` so `UINavigationController` can interpolate during interactive transitions.
+  ///
+  /// ``system`` clears those per-item overrides and restores the navigation **bar** from the snapshot
+  /// captured on this controller’s first ``viewWillAppear`` (deep-copied appearances, translucency,
+  /// and compact scroll-edge when available). When no snapshot exists, ``system`` only clears the item
+  /// overrides.
   public enum NavigationBarStyle {
     case system
     case opaqueDefault
@@ -44,24 +48,52 @@ open class FKBaseViewController: UIViewController {
   public var disableScrollViewBounceByDefault: Bool = true
 
   /// When `true`, disables the navigation controller's interactive pop gesture while this controller is visible.
-  public var disablesInteractivePopGesture: Bool = false
+  ///
+  /// On recent iOS releases, toggling `interactivePopGestureRecognizer.isEnabled` alone is not always honored.
+  /// From iOS 26, ``UINavigationController/interactiveContentPopGestureRecognizer`` also drives interactive pops and
+  /// must be toggled together with ``UINavigationController/interactivePopGestureRecognizer``.
+  /// ``FKBaseViewController`` installs a one-time gesture delegate on the parent ``UINavigationController`` that
+  /// consults the top ``FKBaseViewController`` and returns `false` from `gestureRecognizerShouldBegin` while
+  /// this flag is `true`, forwarding other cases to UIKit’s original delegate. On iOS 26+, the same policy is
+  /// applied to ``UINavigationController/interactiveContentPopGestureRecognizer`` in addition to
+  /// ``UINavigationController/interactivePopGestureRecognizer``.
+  public var disablesInteractivePopGesture: Bool = false {
+    didSet {
+      applyInteractivePopGestureOnlyIfOnScreen()
+    }
+  }
 
   /// Navigation bar visibility while this controller is on-screen (restored when leaving).
-  public var navigationBarVisibility: NavigationBarVisibility = .visible
+  public var navigationBarVisibility: NavigationBarVisibility = .visible {
+    didSet {
+      reapplyNavigationChromeIfOnScreen()
+    }
+  }
 
   /// Navigation bar appearance while this controller is on-screen (restored when leaving).
-  public var navigationBarStyle: NavigationBarStyle = .system
+  public var navigationBarStyle: NavigationBarStyle = .system {
+    didSet {
+      reapplyNavigationChromeIfOnScreen()
+    }
+  }
 
   /// Preferred status bar style for this controller.
   public var preferredStatusBarAppearance: UIStatusBarStyle = .default {
-    didSet { setNeedsStatusBarAppearanceUpdate() }
+    didSet {
+      setNeedsStatusBarAppearanceUpdate()
+      navigationController?.setNeedsStatusBarAppearanceUpdate()
+    }
   }
 
   /// When `false`, keyboard notifications are not observed.
   public var keyboardObservationEnabled: Bool = true
 
   /// When non-nil, assigns `UINavigationBar.prefersLargeTitles` while visible (restored when leaving).
-  public var prefersLargeTitlesWhileVisible: Bool?
+  public var prefersLargeTitlesWhileVisible: Bool? {
+    didSet {
+      reapplyNavigationChromeIfOnScreen()
+    }
+  }
 
   /// Optional hook for analytics or diagnostics without coupling to a concrete SDK.
   public var logHandler: (@MainActor (String, [String: String]) -> Void)?
@@ -94,8 +126,10 @@ open class FKBaseViewController: UIViewController {
   /// Captures navigation chrome before this controller mutates it; restored in `viewWillDisappear`.
   private var navigationChromeSnapshot: NavigationChromeSnapshot?
 
-  /// `interactivePopGestureRecognizer.isEnabled` immediately before this controller last applied ``disablesInteractivePopGesture`` in `viewWillAppear`.
+  /// `interactivePopGestureRecognizer.isEnabled` (and on iOS 26+ `interactiveContentPopGestureRecognizer.isEnabled`)
+  /// immediately before this controller last applied ``disablesInteractivePopGesture`` in `viewWillAppear`.
   private var interactivePopGestureCapturedBeforeAppearance: Bool?
+  private var interactiveContentPopGestureCapturedBeforeAppearance: Bool?
 
   // MARK: - Init
 
@@ -125,6 +159,9 @@ open class FKBaseViewController: UIViewController {
 
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    if let navigationController {
+      FKNavigationInteractivePopGestureInstaller.installIfNeeded(on: navigationController)
+    }
     captureNavigationChromeSnapshotIfNeeded()
     applyNavigationConfiguration(animated: animated)
     updateInteractivePopGestureForCurrentAppearance()
@@ -140,6 +177,7 @@ open class FKBaseViewController: UIViewController {
       viewDidAppearForTheFirstTime(animated)
     }
     startKeyboardObservationIfNeeded()
+    synchronizeInteractivePopGestureAfterNavigationChromeChange()
     logLifecycleEvent("viewDidAppear")
   }
 
@@ -354,10 +392,12 @@ open class FKBaseViewController: UIViewController {
     let bar = navigationController.navigationBar
     navigationChromeSnapshot = NavigationChromeSnapshot(
       wasNavigationBarHidden: navigationController.isNavigationBarHidden,
-      standardAppearance: bar.standardAppearance,
-      scrollEdgeAppearance: bar.scrollEdgeAppearance,
-      compactAppearance: bar.compactAppearance,
-      prefersLargeTitles: bar.prefersLargeTitles
+      standardAppearance: Self.copiedNavigationBarAppearance(bar.standardAppearance),
+      scrollEdgeAppearance: Self.copiedNavigationBarAppearanceIfPresent(bar.scrollEdgeAppearance),
+      compactAppearance: Self.copiedNavigationBarAppearanceIfPresent(bar.compactAppearance),
+      compactScrollEdgeAppearance: Self.copiedCompactScrollEdgeAppearanceIfPresent(bar),
+      prefersLargeTitles: bar.prefersLargeTitles,
+      isTranslucent: bar.isTranslucent
     )
   }
 
@@ -365,10 +405,14 @@ open class FKBaseViewController: UIViewController {
     guard let snapshot = navigationChromeSnapshot, let navigationController else { return }
     let bar = navigationController.navigationBar
     navigationController.setNavigationBarHidden(snapshot.wasNavigationBarHidden, animated: animated)
-    bar.standardAppearance = snapshot.standardAppearance
-    bar.scrollEdgeAppearance = snapshot.scrollEdgeAppearance
-    bar.compactAppearance = snapshot.compactAppearance
+    bar.standardAppearance = Self.copiedNavigationBarAppearance(snapshot.standardAppearance)
+    bar.scrollEdgeAppearance = Self.copiedNavigationBarAppearanceIfPresent(snapshot.scrollEdgeAppearance)
+    bar.compactAppearance = Self.copiedNavigationBarAppearanceIfPresent(snapshot.compactAppearance)
+    if #available(iOS 15.0, *) {
+      bar.compactScrollEdgeAppearance = Self.copiedNavigationBarAppearanceIfPresent(snapshot.compactScrollEdgeAppearance)
+    }
     bar.prefersLargeTitles = snapshot.prefersLargeTitles
+    bar.isTranslucent = snapshot.isTranslucent
     navigationChromeSnapshot = nil
   }
 
@@ -377,29 +421,49 @@ open class FKBaseViewController: UIViewController {
     navigationController.setNavigationBarHidden(navigationBarVisibility == .hidden, animated: animated)
     if let prefersLargeTitlesWhileVisible {
       navigationController.navigationBar.prefersLargeTitles = prefersLargeTitlesWhileVisible
+    } else if let snapshot = navigationChromeSnapshot {
+      navigationController.navigationBar.prefersLargeTitles = snapshot.prefersLargeTitles
     }
     applyNavigationBarStyle()
+    setNeedsStatusBarAppearanceUpdate()
+    navigationController.setNeedsStatusBarAppearanceUpdate()
+    synchronizeInteractivePopGestureAfterNavigationChromeChange()
+  }
+
+  /// Re-applies navigation chrome when public flags change while this controller is already on-screen.
+  private func reapplyNavigationChromeIfOnScreen() {
+    guard isViewAppeared, navigationController != nil, viewIfLoaded?.window != nil else { return }
+    applyNavigationConfiguration(animated: true)
+  }
+
+  /// Updates only the pop gesture when ``disablesInteractivePopGesture`` toggles at runtime (without touching the snapshot).
+  private func applyInteractivePopGestureOnlyIfOnScreen() {
+    guard isViewAppeared, let navigationController, viewIfLoaded?.window != nil else { return }
+    applyInteractivePopGesturesAllowingPop(!disablesInteractivePopGesture, on: navigationController)
   }
 
   private func applyNavigationBarStyle() {
     guard let navigationController else { return }
+    let bar = navigationController.navigationBar
     switch navigationBarStyle {
     case .system:
-      return
+      clearPerViewControllerNavigationItemAppearances()
+      guard let snapshot = navigationChromeSnapshot else { return }
+      bar.standardAppearance = Self.copiedNavigationBarAppearance(snapshot.standardAppearance)
+      bar.scrollEdgeAppearance = Self.copiedNavigationBarAppearanceIfPresent(snapshot.scrollEdgeAppearance)
+      bar.compactAppearance = Self.copiedNavigationBarAppearanceIfPresent(snapshot.compactAppearance)
+      if #available(iOS 15.0, *) {
+        bar.compactScrollEdgeAppearance = Self.copiedNavigationBarAppearanceIfPresent(snapshot.compactScrollEdgeAppearance)
+      }
+      bar.isTranslucent = snapshot.isTranslucent
     case .opaqueDefault:
       let appearance = UINavigationBarAppearance()
       appearance.configureWithDefaultBackground()
-      let bar = navigationController.navigationBar
-      bar.standardAppearance = appearance
-      bar.scrollEdgeAppearance = appearance
-      bar.compactAppearance = appearance
+      applySharedNavigationBarChrome(bar: bar, item: navigationItem, appearance: appearance, translucent: false)
     case .transparent:
       let appearance = UINavigationBarAppearance()
       appearance.configureWithTransparentBackground()
-      let bar = navigationController.navigationBar
-      bar.standardAppearance = appearance
-      bar.scrollEdgeAppearance = appearance
-      bar.compactAppearance = appearance
+      applySharedNavigationBarChrome(bar: bar, item: navigationItem, appearance: appearance, translucent: true)
     case let .gradient(colors, locations, startPoint, endPoint):
       let appearance = UINavigationBarAppearance()
       appearance.configureWithTransparentBackground()
@@ -410,17 +474,77 @@ open class FKBaseViewController: UIViewController {
         startPoint: startPoint,
         endPoint: endPoint
       )
-      let bar = navigationController.navigationBar
-      bar.standardAppearance = appearance
-      bar.scrollEdgeAppearance = appearance
-      bar.compactAppearance = appearance
+      applySharedNavigationBarChrome(bar: bar, item: navigationItem, appearance: appearance, translucent: true)
     }
   }
 
+  /// Per-`UINavigationItem` chrome lets `UINavigationController` interpolate styles during interactive pops.
+  /// Bar-level `isTranslucent` still follows the active style because UIKit has no per-item translucency flag.
+  private func applySharedNavigationBarChrome(
+    bar: UINavigationBar,
+    item: UINavigationItem,
+    appearance: UINavigationBarAppearance,
+    translucent: Bool
+  ) {
+    item.standardAppearance = appearance
+    item.scrollEdgeAppearance = appearance
+    item.compactAppearance = appearance
+    if #available(iOS 15.0, *) {
+      item.compactScrollEdgeAppearance = appearance
+    }
+    bar.isTranslucent = translucent
+  }
+
+  private func clearPerViewControllerNavigationItemAppearances() {
+    navigationItem.standardAppearance = nil
+    navigationItem.scrollEdgeAppearance = nil
+    navigationItem.compactAppearance = nil
+    if #available(iOS 15.0, *) {
+      navigationItem.compactScrollEdgeAppearance = nil
+    }
+  }
+
+  /// `setNavigationBarHidden` can reset the pop gesture after layout; re-sync once the transition has settled.
+  private func synchronizeInteractivePopGestureAfterNavigationChromeChange() {
+    guard let navigationController, viewIfLoaded?.window != nil else { return }
+    applyInteractivePopGesturesAllowingPop(!disablesInteractivePopGesture, on: navigationController)
+  }
+
+  /// Applies ``disablesInteractivePopGesture`` to both edge and (iOS 26+) content interactive pop recognizers.
+  private func applyInteractivePopGesturesAllowingPop(_ allow: Bool, on navigationController: UINavigationController) {
+    navigationController.interactivePopGestureRecognizer?.isEnabled = allow
+    if #available(iOS 26.0, *) {
+      navigationController.interactiveContentPopGestureRecognizer?.isEnabled = allow
+    }
+  }
+
+  private static func copiedNavigationBarAppearance(_ appearance: UINavigationBarAppearance) -> UINavigationBarAppearance {
+    guard let copy = appearance.copy() as? UINavigationBarAppearance else {
+      return appearance
+    }
+    return copy
+  }
+
+  private static func copiedNavigationBarAppearanceIfPresent(_ appearance: UINavigationBarAppearance?) -> UINavigationBarAppearance? {
+    guard let appearance else { return nil }
+    return copiedNavigationBarAppearance(appearance)
+  }
+
+  private static func copiedCompactScrollEdgeAppearanceIfPresent(_ bar: UINavigationBar) -> UINavigationBarAppearance? {
+    if #available(iOS 15.0, *) {
+      return copiedNavigationBarAppearanceIfPresent(bar.compactScrollEdgeAppearance)
+    }
+    return nil
+  }
+
   private func updateInteractivePopGestureForCurrentAppearance() {
-    guard navigationController != nil else { return }
-    interactivePopGestureCapturedBeforeAppearance = navigationController?.interactivePopGestureRecognizer?.isEnabled
-    navigationController?.interactivePopGestureRecognizer?.isEnabled = !disablesInteractivePopGesture
+    guard let navigationController else { return }
+    interactivePopGestureCapturedBeforeAppearance = navigationController.interactivePopGestureRecognizer?.isEnabled
+    if #available(iOS 26.0, *) {
+      interactiveContentPopGestureCapturedBeforeAppearance =
+        navigationController.interactiveContentPopGestureRecognizer?.isEnabled
+    }
+    applyInteractivePopGesturesAllowingPop(!disablesInteractivePopGesture, on: navigationController)
   }
 
   private func restoreInteractivePopGestureIfNeeded() {
@@ -428,7 +552,14 @@ open class FKBaseViewController: UIViewController {
     if let interactivePopGestureCapturedBeforeAppearance {
       navigationController.interactivePopGestureRecognizer?.isEnabled = interactivePopGestureCapturedBeforeAppearance
     }
+    if #available(iOS 26.0, *) {
+      if let interactiveContentPopGestureCapturedBeforeAppearance {
+        navigationController.interactiveContentPopGestureRecognizer?.isEnabled =
+          interactiveContentPopGestureCapturedBeforeAppearance
+      }
+    }
     interactivePopGestureCapturedBeforeAppearance = nil
+    interactiveContentPopGestureCapturedBeforeAppearance = nil
   }
 
   private func updateTapToDismissGestureState() {
@@ -513,6 +644,85 @@ open class FKBaseViewController: UIViewController {
   }
 }
 
+// MARK: - Interactive pop (gesture delegate)
+
+/// Installs a forwarding `UIGestureRecognizerDelegate` once per `UINavigationController` so
+/// ``FKBaseViewController/disablesInteractivePopGesture`` is enforced even when `isEnabled` is reset by UIKit.
+/// On iOS 26+, the same delegate is attached to ``UINavigationController/interactiveContentPopGestureRecognizer``.
+@MainActor
+private enum FKNavigationInteractivePopGestureInstaller {
+  private static let installs = NSMapTable<AnyObject, AnyObject>(
+    keyOptions: .weakMemory,
+    valueOptions: .strongMemory
+  )
+
+  static func installIfNeeded(on navigationController: UINavigationController) {
+    guard let pop = navigationController.interactivePopGestureRecognizer else { return }
+    if installs.object(forKey: navigationController) != nil { return }
+    if pop.delegate is FKNavigationInteractivePopGestureDelegate { return }
+
+    var originalContentPopDelegate: UIGestureRecognizerDelegate?
+    if #available(iOS 26.0, *) {
+      originalContentPopDelegate =
+        navigationController.interactiveContentPopGestureRecognizer?.delegate as? UIGestureRecognizerDelegate
+    }
+
+    let interceptor = FKNavigationInteractivePopGestureDelegate(
+      navigationController: navigationController,
+      originalPopGestureDelegate: pop.delegate as? UIGestureRecognizerDelegate,
+      originalContentPopGestureDelegate: originalContentPopDelegate
+    )
+    pop.delegate = interceptor
+    if #available(iOS 26.0, *) {
+      navigationController.interactiveContentPopGestureRecognizer?.delegate = interceptor
+    }
+    installs.setObject(interceptor, forKey: navigationController)
+  }
+}
+
+@MainActor
+private final class FKNavigationInteractivePopGestureDelegate: NSObject, UIGestureRecognizerDelegate {
+  weak var navigationController: UINavigationController?
+  weak var originalPopGestureDelegate: UIGestureRecognizerDelegate?
+  weak var originalContentPopGestureDelegate: UIGestureRecognizerDelegate?
+
+  init(
+    navigationController: UINavigationController,
+    originalPopGestureDelegate: UIGestureRecognizerDelegate?,
+    originalContentPopGestureDelegate: UIGestureRecognizerDelegate?
+  ) {
+    self.navigationController = navigationController
+    self.originalPopGestureDelegate = originalPopGestureDelegate
+    self.originalContentPopGestureDelegate = originalContentPopGestureDelegate
+    super.init()
+  }
+
+  func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    guard let nc = navigationController else { return false }
+    if let top = nc.topViewController as? FKBaseViewController, top.disablesInteractivePopGesture {
+      return false
+    }
+
+    if gestureRecognizer === nc.interactivePopGestureRecognizer {
+      if let originalPopGestureDelegate {
+        return originalPopGestureDelegate.gestureRecognizerShouldBegin?(gestureRecognizer) ?? true
+      }
+      return nc.viewControllers.count > 1
+    }
+
+    if #available(iOS 26.0, *) {
+      if gestureRecognizer === nc.interactiveContentPopGestureRecognizer {
+        if let originalContentPopGestureDelegate {
+          return originalContentPopGestureDelegate.gestureRecognizerShouldBegin?(gestureRecognizer) ?? true
+        }
+        return nc.viewControllers.count > 1
+      }
+    }
+
+    return true
+  }
+}
+
 // MARK: - Navigation snapshot
 
 private struct NavigationChromeSnapshot {
@@ -520,7 +730,9 @@ private struct NavigationChromeSnapshot {
   let standardAppearance: UINavigationBarAppearance
   let scrollEdgeAppearance: UINavigationBarAppearance?
   let compactAppearance: UINavigationBarAppearance?
+  let compactScrollEdgeAppearance: UINavigationBarAppearance?
   let prefersLargeTitles: Bool
+  let isTranslucent: Bool
 }
 
 // MARK: - Internal constants & helpers
