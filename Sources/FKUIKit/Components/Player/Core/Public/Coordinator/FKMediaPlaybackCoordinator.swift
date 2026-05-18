@@ -156,6 +156,18 @@ public final class FKMediaPlaybackCoordinator: FKMediaNowPlayingCommandTarget {
     return true
   }
 
+  /// Loads a specific playlist entry by index.
+  @discardableResult
+  public func jumpToPlaylistItem(at index: Int) -> Bool {
+    guard let playlist, playlist.items.indices.contains(index) else { return false }
+    guard index != currentPlaylistIndex else { return true }
+    currentPlaylistIndex = index
+    let item = playlist.items[index]
+    loadItem(item, presentationMode: presentationMode)
+    delegate?.mediaPlaybackCoordinator(self, didAdvanceTo: item, at: index, in: playlist)
+    return true
+  }
+
   /// Loads a single media item and clears any active playlist.
   public func load(_ item: FKMediaItem, presentationMode: FKMediaPresentationMode) {
     playlist = nil

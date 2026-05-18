@@ -20,7 +20,7 @@ public struct FKVideoUIConfiguration: Sendable, Equatable {
 
   public init(
     theme: FKVideoPlayerTheme = .automatic,
-    controlsAutoHideInterval: TimeInterval = 3.0,
+    controlsAutoHideInterval: TimeInterval = 5.0,
     showsRemainingTime: Bool = false,
     gestureSeekSeconds: TimeInterval = 10.0,
     allowsPictureInPicture: Bool = true,

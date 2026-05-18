@@ -12,7 +12,11 @@ final class FKAudioPlayerPlaygroundExampleViewController: FKAudioPlayerExampleSh
     super.viewDidLoad()
 
     let caption = FKAudioPlayerExampleLayout.makeCaptionLabel(
-      "Adjust fade duration and playback rate. Rate memory applies when `remembersRatePerItem` is enabled."
+      """
+      Fade controls cross-track transitions. The Rate slider sets playback speed (0.5×–2×) on the bound \
+      player; the transport “1.0x” button cycles presets and mirrors the current rate. Rate memory applies \
+      when `remembersRatePerItem` is enabled.
+      """
     )
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)
@@ -40,6 +44,7 @@ final class FKAudioPlayerPlaygroundExampleViewController: FKAudioPlayerExampleSh
     rateSlider.addAction(UIAction { [weak self] action in
       guard let self, let slider = action.sender as? UISlider else { return }
       self.player.rate = slider.value
+      self.playerView.syncPlaybackRateDisplay()
       self.refreshSettingsLabel()
     }, for: .valueChanged)
 
@@ -94,6 +99,7 @@ final class FKAudioPlayerPlaygroundExampleViewController: FKAudioPlayerExampleSh
 
   override func audioPlayer(_ player: FKAudioPlayer, didChangeItem item: FKAudioItem?, index: Int?) {
     super.audioPlayer(player, didChangeItem: item, index: index)
+    playerView.syncPlaybackRateDisplay()
     refreshSettingsLabel()
   }
 }

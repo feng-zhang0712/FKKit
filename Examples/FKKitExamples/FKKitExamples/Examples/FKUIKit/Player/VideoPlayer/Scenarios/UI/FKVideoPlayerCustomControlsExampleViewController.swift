@@ -22,8 +22,10 @@ final class FKVideoPlayerCustomControlsExampleViewController: FKVideoPlayerExamp
     ])
     finalizeLayout(topAnchor: caption.bottomAnchor)
 
-    playerView.setDefaultControlView(FKVideoPlayerExampleMinimalControlView())
+    let customControls = FKVideoPlayerExampleMinimalControlView()
+    playerView.setDefaultControlView(customControls)
     player.load(FKVideoPlayerExampleCatalog.progressiveItem())
     player.play()
+    playerView.revealControls(animated: false)
   }
 }

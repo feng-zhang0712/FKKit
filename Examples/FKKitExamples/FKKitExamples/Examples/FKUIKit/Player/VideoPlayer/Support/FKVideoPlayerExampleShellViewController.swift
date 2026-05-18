@@ -27,9 +27,6 @@ class FKVideoPlayerExampleShellViewController: UIViewController, FKVideoPlayerDe
     player.delegate = self
     // Examples always start from the beginning; Core resume is for production apps.
     player.configuration.media.playback.resumePlaybackEnabled = false
-    // Easier to inspect controls in demos (library default is 3s).
-    player.configuration.ui.controlsAutoHideInterval = 5
-
     playerContainer.backgroundColor = .black
     playerContainer.layer.cornerRadius = 12
     playerContainer.clipsToBounds = true

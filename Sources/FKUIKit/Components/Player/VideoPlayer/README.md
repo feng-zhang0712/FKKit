@@ -110,7 +110,7 @@ public protocol FKVideoPlayerDelegate: AnyObject {
 
 | UI setting | Default |
 |------------|---------|
-| `controlsAutoHideInterval` | `3.0` s |
+| `controlsAutoHideInterval` | `5.0` s |
 | `showsRemainingTime` | `false` |
 | `gestureSeekSeconds` | `10.0` |
 | `allowsPictureInPicture` | `true` |

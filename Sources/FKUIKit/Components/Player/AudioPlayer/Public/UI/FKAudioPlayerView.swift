@@ -163,6 +163,14 @@ public final class FKAudioPlayerView: UIView {
     )
   }
 
+  /// Refreshes the transport rate label after external rate changes (e.g. playground sliders).
+  public func syncPlaybackRateDisplay() {
+    controlsView.syncPlaybackRateDisplay()
+  }
+
+  /// Suggested height when embedding in Auto Layout or SwiftUI hosts (standard chrome, no lyrics).
+  public static var standardPreferredHeight: CGFloat { 360 }
+
   public func reset() {
     artworkView.image = nil
     titleLabel.text = nil

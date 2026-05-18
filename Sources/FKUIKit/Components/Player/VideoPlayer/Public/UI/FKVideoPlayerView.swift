@@ -97,6 +97,10 @@ public final class FKVideoPlayerView: UIView {
     addSubview(view)
     bringOptionalOverlaysAboveControlBar()
     airPlayPresenter.bringToFront(on: self)
+    if let player {
+      view.bind(player: player)
+      syncControlState()
+    }
   }
 
   public func apply(uiConfiguration: FKVideoUIConfiguration) {
@@ -118,6 +122,15 @@ public final class FKVideoPlayerView: UIView {
     }
     pictureInPictureController.configure(player: player, playerLayer: playerLayer)
     refreshChrome()
+    syncControlState()
+    revealControls(animated: false)
+  }
+
+  /// Shows transport controls and restarts the auto-hide timer.
+  public func revealControls(animated: Bool = true) {
+    controlsHideWorkItem?.cancel()
+    controlView?.setControlsVisible(true, animated: animated)
+    scheduleControlsAutoHide(visible: true)
   }
 
   public func reloadSubtitles(for item: FKVideoItem) {
@@ -247,7 +260,7 @@ public final class FKVideoPlayerView: UIView {
     if host.presentedViewController is FKVideoPlayerViewController {
       host.dismiss(animated: true)
     } else {
-      preFullscreenSuperview = superview
+      capturePreFullscreenHostIfNeeded()
       let fullscreen = FKVideoPlayerViewController(player: player, embeddedView: self)
       host.present(fullscreen, animated: true)
       player.delegate?.videoPlayer(player, didToggleFullscreen: true)
@@ -479,17 +492,45 @@ public final class FKVideoPlayerView: UIView {
     player?.load(item)
   }
 
-  func restoreAfterFullscreen() {
-    guard let parent = preFullscreenSuperview else { return }
+  /// Records the inline host before reparenting for fullscreen (idempotent).
+  func capturePreFullscreenHostIfNeeded() {
+    if preFullscreenSuperview == nil {
+      preFullscreenSuperview = superview
+    }
+  }
+
+  /// Returns the embedded view to its inline container after fullscreen dismiss.
+  func restoreAfterFullscreen(fallbackParent: UIView? = nil) {
+    guard superview != nil else { return }
+    let parent = preFullscreenSuperview ?? fallbackParent
+    guard let parent else { return }
     removeFromSuperview()
-    translatesAutoresizingMaskIntoConstraints = true
-    autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    frame = parent.bounds
+    translatesAutoresizingMaskIntoConstraints = false
     parent.addSubview(self)
+    NSLayoutConstraint.activate([
+      topAnchor.constraint(equalTo: parent.topAnchor),
+      leadingAnchor.constraint(equalTo: parent.leadingAnchor),
+      trailingAnchor.constraint(equalTo: parent.trailingAnchor),
+      bottomAnchor.constraint(equalTo: parent.bottomAnchor),
+    ])
+    preFullscreenSuperview = nil
     setNeedsLayout()
     layoutIfNeeded()
+    player?.rebindVideoOutput()
     player?.bind(to: self)
-    preFullscreenSuperview = nil
+    revealControls(animated: false)
+  }
+
+  private func syncControlState() {
+    guard let player else { return }
+    controlView?.update(
+      state: player.state,
+      currentTime: player.currentTime,
+      duration: player.duration,
+      buffered: player.bufferedTimeRanges,
+      isLive: player.isLive,
+      liveLatency: player.liveLatencySeconds
+    )
   }
 
   private func applyTheme() {

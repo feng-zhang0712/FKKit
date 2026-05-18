@@ -255,6 +255,11 @@ public final class FKAudioControlsView: UIView {
     }
   }
 
+  /// Updates the rate button title from the bound player's current ``FKAudioPlayer/rate``.
+  public func syncPlaybackRateDisplay() {
+    updateRateTitle()
+  }
+
   private func updateRateTitle() {
     guard let player else { return }
     rateButton.setTitle(String(format: "%.1fx", player.rate), for: .normal)

@@ -5,13 +5,15 @@ import UIKit
 @MainActor
 final class FKVideoPlayerPlaylistExampleViewController: FKVideoPlayerExampleShellViewController {
 
+  private var pendingChapterIndex: Int?
+
   override func viewDidLoad() {
     title = "Playlist"
     showsEventLog = true
     super.viewDidLoad()
 
     let caption = FKVideoPlayerExampleLayout.makeCaptionLabel(
-      "Episode 3 enables skip intro/outro. Use Next/Previous or wait for auto-advance."
+      "Episode 3 includes chapters. Jump switches to Episode 3, then seeks to chapter 2 (Middle)."
     )
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)
@@ -23,8 +25,7 @@ final class FKVideoPlayerPlaylistExampleViewController: FKVideoPlayerExampleShel
       self?.player.playNextInPlaylist()
     })
     let chapters = FKVideoPlayerExampleLayout.makePrimaryButton("Jump to chapter 2", action: UIAction { [weak self] _ in
-      guard let chapter = self?.player.currentItem?.chapters.dropFirst().first else { return }
-      self?.player.seek(to: chapter.time, completion: nil)
+      self?.jumpToEpisodeThreeChapterTwo()
     })
 
     let row = UIStackView(arrangedSubviews: [previous, next, chapters])
@@ -41,5 +42,42 @@ final class FKVideoPlayerPlaylistExampleViewController: FKVideoPlayerExampleShel
 
     player.load(playlist: FKVideoPlayerExampleCatalog.playlist())
     player.play()
+  }
+
+  private func jumpToEpisodeThreeChapterTwo() {
+    let episodeThreeIndex = 2
+    let chapterIndex = 1
+    guard FKVideoPlayerExampleCatalog.playlist().items[episodeThreeIndex].chapters.indices.contains(chapterIndex) else {
+      return
+    }
+
+    if player.currentItem?.id == "episode.3" {
+      player.seekToChapter(at: chapterIndex)
+      return
+    }
+
+    pendingChapterIndex = chapterIndex
+    player.playPlaylistItem(at: episodeThreeIndex)
+  }
+
+  override func videoPlayer(
+    _ player: FKVideoPlayer,
+    didAdvanceTo item: FKVideoItem?,
+    at index: Int,
+    in playlist: FKVideoPlaylist?
+  ) {
+    super.videoPlayer(player, didAdvanceTo: item, at: index, in: playlist)
+    guard let chapterIndex = pendingChapterIndex, item?.id == "episode.3" else { return }
+    pendingChapterIndex = nil
+    player.seekToChapter(at: chapterIndex)
+  }
+
+  override func videoPlayer(_ player: FKVideoPlayer, didChangeState state: FKMediaPlaybackState) {
+    super.videoPlayer(player, didChangeState: state)
+    guard case .ready = state,
+          let chapterIndex = pendingChapterIndex,
+          player.currentItem?.id == "episode.3" else { return }
+    pendingChapterIndex = nil
+    player.seekToChapter(at: chapterIndex)
   }
 }

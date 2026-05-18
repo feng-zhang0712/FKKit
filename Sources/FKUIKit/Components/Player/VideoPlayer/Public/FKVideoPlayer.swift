@@ -161,6 +161,31 @@ public final class FKVideoPlayer: NSObject {
     syncPlaylistIndexFromCoordinator()
   }
 
+  /// Jumps to a playlist entry by index when a playlist is active.
+  @discardableResult
+  public func playPlaylistItem(at index: Int) -> Bool {
+    guard playlist != nil else { return false }
+    let didJump = coordinator.jumpToPlaylistItem(at: index)
+    if didJump {
+      syncPlaylistIndexFromCoordinator()
+    }
+    return didJump
+  }
+
+  /// Seeks to a chapter on the current item when chapter metadata is present.
+  public func seekToChapter(at index: Int) {
+    guard let chapters = currentItem?.chapters, chapters.indices.contains(index) else { return }
+    seek(to: chapters[index].time, completion: nil)
+  }
+
+  /// Re-attaches the video output layer on the bound view (e.g. after fullscreen reparenting).
+  public func rebindVideoOutput() {
+    guard let boundView else { return }
+    coordinator.attachRenderTarget(.playerLayer(boundView.playerLayer))
+    boundView.setNeedsLayout()
+    boundView.layoutIfNeeded()
+  }
+
   /// Display names of embedded legible (subtitle) tracks, if available.
   public var embeddedSubtitleTrackNames: [String] {
     guard let group = coordinator.avPlayerItem?.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) else {
@@ -314,6 +339,7 @@ extension FKVideoPlayer: FKMediaPlaybackCoordinatorDelegate {
 
     if case .ready = state {
       applySkipIntroIfNeeded()
+      rebindVideoOutput()
     }
 
   }

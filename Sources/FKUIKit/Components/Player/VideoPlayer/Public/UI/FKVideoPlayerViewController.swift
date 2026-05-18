@@ -6,6 +6,7 @@ public final class FKVideoPlayerViewController: UIViewController {
 
   public let player: FKVideoPlayer
   private let embeddedView: FKVideoPlayerView?
+  private weak var embeddedReturnSuperview: UIView?
   private let playerView: FKVideoPlayerView
   public init(player: FKVideoPlayer, embeddedView: FKVideoPlayerView? = nil) {
     self.player = player
@@ -39,6 +40,8 @@ public final class FKVideoPlayerViewController: UIViewController {
       ])
       player.bind(to: playerView)
     } else {
+      embeddedReturnSuperview = playerView.superview
+      playerView.capturePreFullscreenHostIfNeeded()
       playerView.removeFromSuperview()
       playerView.translatesAutoresizingMaskIntoConstraints = false
       view.addSubview(playerView)
@@ -48,6 +51,8 @@ public final class FKVideoPlayerViewController: UIViewController {
         playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
       ])
+      player.bind(to: playerView)
+      playerView.revealControls(animated: false)
     }
   }
 
@@ -58,7 +63,7 @@ public final class FKVideoPlayerViewController: UIViewController {
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     guard isBeingDismissed else { return }
-    embeddedView?.restoreAfterFullscreen()
+    embeddedView?.restoreAfterFullscreen(fallbackParent: embeddedReturnSuperview)
     player.delegate?.videoPlayer(player, didToggleFullscreen: false)
   }
 }

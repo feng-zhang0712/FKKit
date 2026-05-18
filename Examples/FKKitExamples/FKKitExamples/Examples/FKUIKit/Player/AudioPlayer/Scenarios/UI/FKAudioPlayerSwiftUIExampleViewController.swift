@@ -19,12 +19,20 @@ final class FKAudioPlayerSwiftUIExampleViewController: UIViewController {
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)
 
+    let card = UIView()
+    card.backgroundColor = .secondarySystemGroupedBackground
+    card.layer.cornerRadius = 12
+    card.clipsToBounds = true
+    card.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(card)
+
     let hosting = UIHostingController(
       rootView: FKAudioPlayerSwiftUIView(player: player, style: .standard)
     )
     addChild(hosting)
     hosting.view.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(hosting.view)
+    hosting.view.backgroundColor = .clear
+    card.addSubview(hosting.view)
     hosting.didMove(toParent: self)
 
     NSLayoutConstraint.activate([
@@ -32,10 +40,15 @@ final class FKAudioPlayerSwiftUIExampleViewController: UIViewController {
       caption.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
       caption.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
 
-      hosting.view.topAnchor.constraint(equalTo: caption.bottomAnchor, constant: 12),
-      hosting.view.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
-      hosting.view.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
-      hosting.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
+      card.topAnchor.constraint(equalTo: caption.bottomAnchor, constant: 12),
+      card.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+      card.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+      card.heightAnchor.constraint(equalToConstant: FKAudioPlayerView.standardPreferredHeight),
+
+      hosting.view.topAnchor.constraint(equalTo: card.topAnchor),
+      hosting.view.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+      hosting.view.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+      hosting.view.bottomAnchor.constraint(equalTo: card.bottomAnchor),
     ])
 
     player.load(FKAudioPlayerExampleCatalog.trackOne(), autoPlay: true)
