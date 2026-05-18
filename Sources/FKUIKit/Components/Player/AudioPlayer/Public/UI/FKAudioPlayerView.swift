@@ -14,6 +14,9 @@ public final class FKAudioPlayerView: UIView {
   private let style: FKAudioPlayerViewStyle
   private weak var player: FKAudioPlayer?
 
+  /// When `false`, lyrics are not laid out inside the player chrome (use an external ``FKAudioLyricsView``).
+  public var embedsLyricsInLayout = true
+
   private let artworkView = UIImageView()
   private let titleLabel = UILabel()
   private let artistLabel = UILabel()
@@ -119,7 +122,8 @@ public final class FKAudioPlayerView: UIView {
 
   public func setLyrics(lines: [FKAudioLyricLine]) {
     lyricsView.setLines(lines)
-    lyricsView.isHidden = style != .standard || lines.isEmpty
+    let showsLyrics = embedsLyricsInLayout && style == .standard && !lines.isEmpty
+    lyricsView.isHidden = !showsLyrics
     setNeedsLayout()
   }
 
@@ -173,7 +177,7 @@ public final class FKAudioPlayerView: UIView {
   private func setupViews() {
     artworkView.contentMode = .scaleAspectFill
     artworkView.clipsToBounds = true
-    artworkView.layer.cornerRadius = style == .miniBar ? 6 : 12
+    artworkView.layer.cornerRadius = style == .miniBar ? 8 : 12
     artworkView.backgroundColor = .secondarySystemFill
 
     titleLabel.font = .systemFont(ofSize: style == .miniBar ? 14 : 20, weight: .semibold)
@@ -197,6 +201,7 @@ public final class FKAudioPlayerView: UIView {
 
     if style == .miniBar {
       controlsView.layoutStyle = .miniBar
+      controlsView.isUserInteractionEnabled = true
       queueModeButton.isHidden = true
       sleepButton.isHidden = true
       lyricsView.isHidden = true
@@ -205,20 +210,32 @@ public final class FKAudioPlayerView: UIView {
   }
 
   private func layoutMiniBar(width: CGFloat, height: CGFloat) {
-    let padding: CGFloat = 10
-    let artworkSize: CGFloat = 44
+    let artworkSize = FKAudioMiniBarChromeMetrics.artworkSize
+    let playSize = FKAudioMiniBarChromeMetrics.playButtonSize
+    let gap = FKAudioMiniBarChromeMetrics.itemSpacing
+    let textWidth = FKAudioMiniBarChromeMetrics.textWidth(for: width)
+
+    let artworkY = (height - artworkSize) / 2
     artworkView.frame = CGRect(
-      x: padding,
-      y: (height - artworkSize) / 2,
+      x: FKAudioMiniBarChromeMetrics.leadingInset,
+      y: artworkY,
       width: artworkSize,
       height: artworkSize
     )
-    let playReserve: CGFloat = 54
-    let textX = artworkView.frame.maxX + 10
-    let textWidth = max(0, width - textX - playReserve)
-    titleLabel.frame = CGRect(x: textX, y: 12, width: textWidth, height: 18)
-    artistLabel.frame = CGRect(x: textX, y: 30, width: textWidth, height: 14)
+
+    let textX = artworkView.frame.maxX + gap
+    let titleHeight: CGFloat = 18
+    let artistHeight: CGFloat = 15
+    let textBlockHeight = titleHeight + 2 + artistHeight
+    let textY = (height - textBlockHeight) / 2
+    titleLabel.frame = CGRect(x: textX, y: textY, width: textWidth, height: titleHeight)
+    artistLabel.frame = CGRect(x: textX, y: textY + titleHeight + 2, width: textWidth, height: artistHeight)
+
+    let playX = width - FKAudioMiniBarChromeMetrics.trailingInset - playSize
+    let playY = (height - playSize) / 2
     controlsView.frame = CGRect(x: 0, y: 0, width: width, height: height)
+    controlsView.playPauseButton.frame = CGRect(x: playX, y: playY, width: playSize, height: playSize)
+    controlsView.syncMiniBarPlaySpinner()
     lyricsView.isHidden = true
   }
 
@@ -227,7 +244,8 @@ public final class FKAudioPlayerView: UIView {
     let bottomInset = safe.bottom
     let reservedBottom = controlsHeight + bottomInset
     let availableHeader = max(120, height - reservedBottom)
-    let artSize = min(width - 48, availableHeader * 0.52)
+    let artworkScale: CGFloat = embedsLyricsInLayout ? 0.52 : 0.38
+    let artSize = min(width - 48, availableHeader * artworkScale)
 
     artworkView.frame = CGRect(x: (width - artSize) / 2, y: safe.top + 16, width: artSize, height: artSize)
     titleLabel.frame = CGRect(x: 24, y: artworkView.frame.maxY + 12, width: width - 48, height: 28)
@@ -239,11 +257,16 @@ public final class FKAudioPlayerView: UIView {
     let actualControlsHeight = min(controlsHeight, height - controlsY)
     controlsView.frame = CGRect(x: 0, y: controlsY, width: width, height: actualControlsHeight)
 
-    let lyricsTop = artistLabel.frame.maxY + 12
-    let lyricsMaxHeight = max(0, controlsY - lyricsTop - 8)
-    let lyricsHeight = min(max(44, height * 0.18), lyricsMaxHeight)
-    lyricsView.frame = CGRect(x: 0, y: lyricsTop, width: width, height: lyricsHeight)
-    lyricsView.isUserInteractionEnabled = !lyricsView.isHidden && lyricsHeight >= 44
+    if embedsLyricsInLayout, !lyricsView.isHidden {
+      let lyricsTop = artistLabel.frame.maxY + 12
+      let lyricsMaxHeight = max(0, controlsY - lyricsTop - 8)
+      let lyricsHeight = min(max(44, height * 0.18), lyricsMaxHeight)
+      lyricsView.frame = CGRect(x: 0, y: lyricsTop, width: width, height: lyricsHeight)
+      lyricsView.isUserInteractionEnabled = lyricsHeight >= 44
+    } else {
+      lyricsView.frame = .zero
+      lyricsView.isUserInteractionEnabled = false
+    }
   }
 
   private func layoutCompact(width: CGFloat, height: CGFloat, safe: UIEdgeInsets) {

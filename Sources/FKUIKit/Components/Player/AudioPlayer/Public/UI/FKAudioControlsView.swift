@@ -11,7 +11,12 @@ public enum FKAudioControlsLayoutStyle: Sendable {
 public final class FKAudioControlsView: UIView {
 
   public var isControlsLocked = false
-  public var layoutStyle: FKAudioControlsLayoutStyle = .standard
+  public var layoutStyle: FKAudioControlsLayoutStyle = .standard {
+    didSet {
+      guard oldValue != layoutStyle else { return }
+      syncSubviewsForLayoutStyle()
+    }
+  }
 
   let playPauseButton = UIButton(type: .system)
   let previousButton = UIButton(type: .system)
@@ -21,10 +26,11 @@ public final class FKAudioControlsView: UIView {
   let bufferProgressView = UIProgressView(progressViewStyle: .bar)
   let currentTimeLabel = UILabel()
   let durationLabel = UILabel()
-  private let playPauseSpinner = UIActivityIndicatorView(style: .medium)
+  private var playPauseSpinner: UIActivityIndicatorView?
 
   private weak var player: FKAudioPlayer?
   private var isScrubbing = false
+  private var standardChromeInstalled = false
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -48,18 +54,14 @@ public final class FKAudioControlsView: UIView {
 
     bufferProgressView.progressTintColor = .tertiaryLabel
     bufferProgressView.trackTintColor = .quaternarySystemFill
-    playPauseSpinner.hidesWhenStopped = true
 
     playPauseButton.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
     previousButton.addTarget(self, action: #selector(playPrevious), for: .touchUpInside)
     nextButton.addTarget(self, action: #selector(playNext), for: .touchUpInside)
     rateButton.addTarget(self, action: #selector(cycleRate), for: .touchUpInside)
 
-    playPauseButton.addSubview(playPauseSpinner)
-    [
-      previousButton, playPauseButton, nextButton, rateButton,
-      currentTimeLabel, durationLabel, bufferProgressView, progressSlider,
-    ].forEach { addSubview($0) }
+    addSubview(playPauseButton)
+    syncSubviewsForLayoutStyle()
   }
 
   @available(*, unavailable)
@@ -114,47 +116,67 @@ public final class FKAudioControlsView: UIView {
     playPauseButton.frame = CGRect(x: width / 2 - 22, y: buttonY, width: buttonSize, height: buttonSize)
     nextButton.frame = CGRect(x: width / 2 + 56, y: buttonY, width: buttonSize, height: buttonSize)
     rateButton.frame = CGRect(x: width - 64, y: buttonY + 8, width: 52, height: 28)
-    playPauseSpinner.center = CGPoint(x: playPauseButton.bounds.midX, y: playPauseButton.bounds.midY)
+    playPauseSpinner?.center = CGPoint(x: playPauseButton.bounds.midX, y: playPauseButton.bounds.midY)
   }
 
   private func layoutMiniBarControls() {
-    let width = bounds.width
-    let height = bounds.height
-    let playSize: CGFloat = 40
-    let rightInset: CGFloat = 10
-    let progressLeft: CGFloat = 60
-
-    previousButton.isHidden = true
-    nextButton.isHidden = true
-    rateButton.isHidden = true
-    currentTimeLabel.isHidden = true
-    durationLabel.isHidden = true
-    bufferProgressView.isHidden = true
-    progressSlider.isHidden = false
-    playPauseButton.isHidden = false
-
-    let playX = width - rightInset - playSize
-    let playY = max(4, (height - 12 - playSize) / 2)
-    playPauseButton.frame = CGRect(x: playX, y: playY, width: playSize, height: playSize)
-    progressSlider.frame = CGRect(
-      x: progressLeft,
-      y: height - 12,
-      width: max(0, playX - progressLeft - 6),
-      height: 20
-    )
-    playPauseSpinner.center = CGPoint(x: playPauseButton.bounds.midX, y: playPauseButton.bounds.midY)
+    syncMiniBarPlaySpinner()
+    // Play button frame is positioned by ``FKAudioPlayerView`` for mini-bar chrome.
   }
 
-  private func applyLayoutVisibility() {
-    let isMini = layoutStyle == .miniBar
-    previousButton.isHidden = isMini
-    nextButton.isHidden = isMini
-    rateButton.isHidden = isMini
-    currentTimeLabel.isHidden = isMini
-    durationLabel.isHidden = isMini
-    bufferProgressView.isHidden = isMini
-    progressSlider.isHidden = false
-    playPauseButton.isHidden = false
+  func syncMiniBarPlaySpinner() {
+    guard layoutStyle == .miniBar, let spinner = playPauseSpinner else { return }
+    spinner.center = CGPoint(x: playPauseButton.bounds.midX, y: playPauseButton.bounds.midY)
+  }
+
+  private func syncSubviewsForLayoutStyle() {
+    switch layoutStyle {
+    case .standard:
+      installStandardChromeIfNeeded()
+    case .miniBar:
+      uninstallStandardChromeIfNeeded()
+    }
+  }
+
+  private func installStandardChromeIfNeeded() {
+    guard !standardChromeInstalled else { return }
+    standardChromeInstalled = true
+    [
+      previousButton, nextButton, rateButton,
+      currentTimeLabel, durationLabel, bufferProgressView, progressSlider,
+    ].forEach { addSubview($0) }
+  }
+
+  private func uninstallStandardChromeIfNeeded() {
+    guard standardChromeInstalled else { return }
+    standardChromeInstalled = false
+    [
+      previousButton, nextButton, rateButton,
+      currentTimeLabel, durationLabel, bufferProgressView, progressSlider,
+    ].forEach { $0.removeFromSuperview() }
+    setPlaySpinnerVisible(false, tint: playPauseButton.tintColor ?? .systemBlue)
+  }
+
+  private func setPlaySpinnerVisible(_ visible: Bool, tint: UIColor) {
+    if visible {
+      let spinner: UIActivityIndicatorView
+      if let existing = playPauseSpinner {
+        spinner = existing
+      } else {
+        let created = UIActivityIndicatorView(style: .medium)
+        created.hidesWhenStopped = true
+        playPauseButton.addSubview(created)
+        playPauseSpinner = created
+        spinner = created
+      }
+      spinner.color = tint
+      spinner.center = CGPoint(x: playPauseButton.bounds.midX, y: playPauseButton.bounds.midY)
+      spinner.startAnimating()
+    } else {
+      playPauseSpinner?.stopAnimating()
+      playPauseSpinner?.removeFromSuperview()
+      playPauseSpinner = nil
+    }
   }
 
   /// Minimum height for the Apple Music–style progress + time + transport layout.
@@ -162,7 +184,7 @@ public final class FKAudioControlsView: UIView {
 
   public func bind(player: FKAudioPlayer) {
     self.player = player
-    applyLayoutVisibility()
+    syncSubviewsForLayoutStyle()
     applyTheme(player.configuration.ui.resolvedTintColor(traitCollection: traitCollection))
     updateRateTitle()
     configureAccessibility()
@@ -182,9 +204,11 @@ public final class FKAudioControlsView: UIView {
     for button in [playPauseButton, previousButton, nextButton, rateButton] {
       button.tintColor = tint
     }
-    progressSlider.tintColor = tint
-    bufferProgressView.progressTintColor = tint.withAlphaComponent(0.35)
-    playPauseSpinner.color = tint
+    if standardChromeInstalled {
+      progressSlider.tintColor = tint
+      bufferProgressView.progressTintColor = tint.withAlphaComponent(0.35)
+    }
+    playPauseSpinner?.color = tint
   }
 
   public func update(
@@ -193,15 +217,15 @@ public final class FKAudioControlsView: UIView {
     duration: TimeInterval,
     buffered: [ClosedRange<TimeInterval>]
   ) {
-    if !isScrubbing {
+    if standardChromeInstalled, !isScrubbing {
       let maxDuration = max(duration, 1)
       progressSlider.value = Float(currentTime / maxDuration)
       let end = buffered.map(\.upperBound).max() ?? 0
       bufferProgressView.progress = Float(min(1, end / maxDuration))
+      currentTimeLabel.text = formatTime(currentTime)
+      durationLabel.text = formatTime(duration)
+      progressSlider.isEnabled = duration > 0 && !isControlsLocked
     }
-    currentTimeLabel.text = formatTime(currentTime)
-    durationLabel.text = formatTime(duration)
-    progressSlider.isEnabled = duration > 0 && !isControlsLocked
     let isPreparing = state == .preparing
     let isBuffering = state == .buffering
     let showsPlaySpinner = isPreparing || isBuffering
@@ -211,14 +235,15 @@ public final class FKAudioControlsView: UIView {
     nextButton.isEnabled = !isControlsLocked && !isPreparing
     rateButton.isEnabled = !isControlsLocked
 
+    let tint = playPauseButton.tintColor ?? .systemBlue
     if showsPlaySpinner {
       playPauseButton.setImage(nil, for: .normal)
-      playPauseSpinner.startAnimating()
+      setPlaySpinnerVisible(true, tint: tint)
       playPauseButton.accessibilityLabel = isBuffering
         ? FKAudioPlayerStrings.pause
         : FKAudioPlayerStrings.play
     } else {
-      playPauseSpinner.stopAnimating()
+      setPlaySpinnerVisible(false, tint: tint)
       switch state {
       case .playing:
         playPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)

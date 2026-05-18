@@ -12,7 +12,7 @@ final class FKAudioPlayerMiniBarExampleViewController: FKAudioPlayerExampleShell
     super.viewDidLoad()
 
     let caption = FKAudioPlayerExampleLayout.makeCaptionLabel(
-      "Standard player chrome above; tap the mini bar to open the Now Playing page."
+      "Standard player chrome above; tap the pill mini bar (outside the play button) to open Now Playing."
     )
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)
@@ -25,9 +25,9 @@ final class FKAudioPlayerMiniBarExampleViewController: FKAudioPlayerExampleShell
       caption.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
       caption.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
 
-      miniBar.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
-      miniBar.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
-      miniBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
+      miniBar.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor, constant: 12),
+      miniBar.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor, constant: -12),
+      miniBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
     ])
     finalizeLayout(topAnchor: caption.bottomAnchor)
 
@@ -35,12 +35,4 @@ final class FKAudioPlayerMiniBarExampleViewController: FKAudioPlayerExampleShell
     player.load(FKAudioPlayerExampleCatalog.trackOne(), autoPlay: true)
   }
 
-  override func audioPlayer(
-    _ player: FKAudioPlayer,
-    didUpdateTime current: TimeInterval,
-    duration: TimeInterval
-  ) {
-    super.audioPlayer(player, didUpdateTime: current, duration: duration)
-    miniBar.updateProgress(current: current, duration: duration)
-  }
 }

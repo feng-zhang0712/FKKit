@@ -1,19 +1,52 @@
 import UIKit
 
+enum FKAudioMiniBarChromeMetrics {
+  static let barHeight: CGFloat = 52
+  static let artworkSize: CGFloat = 34
+  static let playButtonSize: CGFloat = 36
+  static let itemSpacing: CGFloat = 12
+  static let leadingInset: CGFloat = 20
+  static let trailingInset: CGFloat = 20
+
+  static func textWidth(for barWidth: CGFloat) -> CGFloat {
+    let reserved = leadingInset + artworkSize + itemSpacing + itemSpacing + playButtonSize + trailingInset
+    return max(72, barWidth - reserved)
+  }
+}
+
 /// Compact bottom mini player bar for tab-based apps.
 @MainActor
 public final class FKAudioMiniBar: UIView {
 
   private let contentView = FKAudioPlayerView(style: .miniBar)
   private weak var player: FKAudioPlayer?
+  private lazy var openNowPlayingTap: UITapGestureRecognizer = {
+    let tap = UITapGestureRecognizer(target: self, action: #selector(openNowPlaying))
+    tap.delegate = self
+    return tap
+  }()
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
-    backgroundColor = .secondarySystemBackground
+    backgroundColor = .clear
+    clipsToBounds = false
     layer.shadowColor = UIColor.black.cgColor
-    layer.shadowOpacity = 0.12
-    layer.shadowRadius = 8
-    layer.shadowOffset = CGSize(width: 0, height: -2)
+    layer.shadowOpacity = 0.14
+    layer.shadowRadius = 12
+    layer.shadowOffset = CGSize(width: 0, height: 4)
+    installContentViewIfNeeded()
+  }
+
+  public override func layoutSubviews() {
+    super.layoutSubviews()
+    let radius = bounds.height / 2
+    contentView.layer.cornerRadius = radius
+  }
+
+  private func installContentViewIfNeeded() {
+    guard contentView.superview == nil else { return }
+    contentView.backgroundColor = .secondarySystemGroupedBackground
+    contentView.clipsToBounds = true
     contentView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(contentView)
     NSLayoutConstraint.activate([
@@ -22,8 +55,7 @@ public final class FKAudioMiniBar: UIView {
       contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
       contentView.bottomAnchor.constraint(equalTo: bottomAnchor),
     ])
-    let tap = UITapGestureRecognizer(target: self, action: #selector(openNowPlaying))
-    addGestureRecognizer(tap)
+    addGestureRecognizer(openNowPlayingTap)
   }
 
   @available(*, unavailable)
@@ -32,10 +64,16 @@ public final class FKAudioMiniBar: UIView {
   }
 
   public override var intrinsicContentSize: CGSize {
-    CGSize(width: UIView.noIntrinsicMetric, height: 60)
+    CGSize(width: UIView.noIntrinsicMetric, height: FKAudioMiniBarChromeMetrics.barHeight)
+  }
+
+  public override func didMoveToSuperview() {
+    super.didMoveToSuperview()
+    installContentViewIfNeeded()
   }
 
   public func bind(player: FKAudioPlayer) {
+    installContentViewIfNeeded()
     self.player = player
     contentView.bind(player: player)
   }
@@ -80,5 +118,19 @@ public final class FKAudioMiniBar: UIView {
       responder = current.next
     }
     return nil
+  }
+}
+
+extension FKAudioMiniBar: UIGestureRecognizerDelegate {
+
+  public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+    var view: UIView? = touch.view
+    while let current = view {
+      if current is UIButton {
+        return false
+      }
+      view = current.superview
+    }
+    return true
   }
 }

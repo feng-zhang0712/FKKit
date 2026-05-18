@@ -27,6 +27,12 @@ class FKAudioPlayerExampleShellViewController: UIViewController, FKAudioPlayerDe
   /// Height of the player card relative to the safe area (default `0.4`).
   var playerHeightMultiplier: CGFloat = 0.4
 
+  /// When true, lyrics render in a panel below the player card instead of inside ``FKAudioPlayerView``.
+  var usesExternalLyricsPanel = false
+
+  private var externalLyricsView: FKAudioLyricsView?
+  private let externalLyricsContainer = UIView()
+
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemGroupedBackground
@@ -47,6 +53,10 @@ class FKAudioPlayerExampleShellViewController: UIViewController, FKAudioPlayerDe
       playerView.bottomAnchor.constraint(equalTo: playerContainer.bottomAnchor),
     ])
     player.bind(to: playerView)
+    if usesExternalLyricsPanel {
+      playerView.embedsLyricsInLayout = false
+      configureExternalLyricsPanel()
+    }
 
     footerStack.axis = .vertical
     footerStack.spacing = 12
@@ -61,22 +71,73 @@ class FKAudioPlayerExampleShellViewController: UIViewController, FKAudioPlayerDe
     }
 
     view.addSubview(playerContainer)
+    if usesExternalLyricsPanel {
+      view.addSubview(externalLyricsContainer)
+    }
     view.addSubview(footerStack)
+  }
+
+  private func configureExternalLyricsPanel() {
+    externalLyricsContainer.backgroundColor = .secondarySystemGroupedBackground
+    externalLyricsContainer.layer.cornerRadius = 12
+    externalLyricsContainer.clipsToBounds = true
+    externalLyricsContainer.translatesAutoresizingMaskIntoConstraints = false
+
+    let lyricsView = FKAudioLyricsView()
+    lyricsView.translatesAutoresizingMaskIntoConstraints = false
+    externalLyricsContainer.addSubview(lyricsView)
+    NSLayoutConstraint.activate([
+      lyricsView.topAnchor.constraint(equalTo: externalLyricsContainer.topAnchor, constant: 8),
+      lyricsView.leadingAnchor.constraint(equalTo: externalLyricsContainer.leadingAnchor),
+      lyricsView.trailingAnchor.constraint(equalTo: externalLyricsContainer.trailingAnchor),
+      lyricsView.bottomAnchor.constraint(equalTo: externalLyricsContainer.bottomAnchor, constant: -8),
+    ])
+    externalLyricsView = lyricsView
+  }
+
+  /// Ensures the external lyrics panel exists when enabled after `viewDidLoad` (subclasses may flip the flag late).
+  private func ensureExternalLyricsPanelAttached() {
+    guard usesExternalLyricsPanel else { return }
+    playerView.embedsLyricsInLayout = false
+    if externalLyricsView == nil {
+      configureExternalLyricsPanel()
+    }
+    if externalLyricsContainer.superview == nil {
+      view.insertSubview(externalLyricsContainer, belowSubview: footerStack)
+    }
   }
 
   /// Call after `viewDidLoad` once subclasses build their caption or controls.
   func finalizeLayout(topAnchor: NSLayoutYAxisAnchor) {
-    NSLayoutConstraint.activate([
+    ensureExternalLyricsPanelAttached()
+
+    var constraints: [NSLayoutConstraint] = [
       playerContainer.topAnchor.constraint(equalTo: topAnchor, constant: 12),
       playerContainer.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
       playerContainer.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
       playerContainer.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: playerHeightMultiplier),
+    ]
 
-      footerStack.topAnchor.constraint(equalTo: playerContainer.bottomAnchor, constant: 12),
+    let footerTopAnchor: NSLayoutYAxisAnchor
+    if usesExternalLyricsPanel {
+      constraints += [
+        externalLyricsContainer.topAnchor.constraint(equalTo: playerContainer.bottomAnchor, constant: 12),
+        externalLyricsContainer.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+        externalLyricsContainer.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+        externalLyricsContainer.heightAnchor.constraint(equalToConstant: 168),
+      ]
+      footerTopAnchor = externalLyricsContainer.bottomAnchor
+    } else {
+      footerTopAnchor = playerContainer.bottomAnchor
+    }
+
+    constraints += [
+      footerStack.topAnchor.constraint(equalTo: footerTopAnchor, constant: 12),
       footerStack.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
       footerStack.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
       footerStack.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
-    ])
+    ]
+    NSLayoutConstraint.activate(constraints)
   }
 
   func appendLog(_ message: String) {
@@ -119,8 +180,13 @@ class FKAudioPlayerExampleShellViewController: UIViewController, FKAudioPlayerDe
   }
 
   func audioPlayer(_ player: FKAudioPlayer, didUpdateLyricsLine index: Int?) {
+    externalLyricsView?.highlightLine(at: index)
     guard showsEventLog else { return }
     appendLog("lyrics line → \(index.map(String.init) ?? "nil")")
+  }
+
+  func audioPlayer(_ player: FKAudioPlayer, didLoadLyrics lines: [FKAudioLyricLine]) {
+    externalLyricsView?.setLines(lines)
   }
 
   func audioPlayer(_ player: FKAudioPlayer, didChangeQueueIndex index: Int?) {

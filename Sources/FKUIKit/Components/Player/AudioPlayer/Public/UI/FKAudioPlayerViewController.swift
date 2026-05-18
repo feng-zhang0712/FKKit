@@ -6,6 +6,7 @@ public final class FKAudioPlayerViewController: UIViewController {
 
   public let player: FKAudioPlayer
   private let playerView: FKAudioPlayerView
+  private let standaloneCloseButton = UIButton(type: .system)
 
   public init(player: FKAudioPlayer, style: FKAudioPlayerViewStyle = .standard) {
     self.player = player
@@ -21,11 +22,6 @@ public final class FKAudioPlayerViewController: UIViewController {
   public override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
-    navigationItem.rightBarButtonItem = UIBarButtonItem(
-      barButtonSystemItem: .close,
-      target: self,
-      action: #selector(closeTapped)
-    )
 
     playerView.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(playerView)
@@ -35,19 +31,50 @@ public final class FKAudioPlayerViewController: UIViewController {
       playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       playerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
     ])
-    playerView.bind(player: player)
     player.attachChrome(playerView)
+
+    if navigationController != nil {
+      navigationItem.leftBarButtonItem = UIBarButtonItem(
+        barButtonSystemItem: .close,
+        target: self,
+        action: #selector(closeTapped)
+      )
+    } else {
+      configureStandaloneCloseButton()
+    }
   }
 
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    player.detachChrome(playerView)
     if isBeingDismissed, let boundView = player.boundView {
       player.syncChrome(with: boundView)
     }
   }
 
+  private func configureStandaloneCloseButton() {
+    var config = UIButton.Configuration.plain()
+    config.image = UIImage(systemName: "xmark.circle.fill")
+    config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 28, weight: .regular)
+    standaloneCloseButton.configuration = config
+    standaloneCloseButton.tintColor = .secondaryLabel
+    standaloneCloseButton.accessibilityLabel = FKAudioPlayerStrings.close
+    standaloneCloseButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+    standaloneCloseButton.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(standaloneCloseButton)
+    NSLayoutConstraint.activate([
+      standaloneCloseButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+      standaloneCloseButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
+    ])
+    view.bringSubviewToFront(standaloneCloseButton)
+  }
+
   @objc
   private func closeTapped() {
-    dismiss(animated: true)
+    if let navigationController, navigationController.viewControllers.first != self {
+      navigationController.popViewController(animated: true)
+    } else {
+      dismiss(animated: true)
+    }
   }
 }

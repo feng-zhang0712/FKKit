@@ -7,10 +7,12 @@ final class FKAudioPlayerPlainLyricsExampleViewController: FKAudioPlayerExampleS
 
   override func viewDidLoad() {
     title = "Plain lyrics"
+    usesExternalLyricsPanel = true
+    playerHeightMultiplier = 0.36
     super.viewDidLoad()
 
     let caption = FKAudioPlayerExampleLayout.makeCaptionLabel(
-      "Sets `lyricsText` on the item. `FKAudioLyricsParser` extracts `[mm:ss]` markers when present."
+      "Sets `lyricsText` on the item. Parsed lines appear in the panel below the player."
     )
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)
@@ -19,7 +21,6 @@ final class FKAudioPlayerPlainLyricsExampleViewController: FKAudioPlayerExampleS
       caption.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
       caption.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
     ])
-    playerHeightMultiplier = 0.52
     finalizeLayout(topAnchor: caption.bottomAnchor)
 
     player.load(FKAudioPlayerExampleCatalog.itemWithPlainLyrics(), autoPlay: true)

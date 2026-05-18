@@ -19,6 +19,8 @@ public final class FKAudioPlayer: NSObject {
 
   public weak var delegate: FKAudioPlayerDelegate?
   public weak var boundView: FKAudioPlayerView?
+  /// Secondary chrome (e.g. modal Now Playing) that should mirror transport updates.
+  private weak var attachedChromeView: FKAudioPlayerView?
   public weak var miniBar: FKAudioMiniBar?
 
   public var playHistoryStore: FKAudioPlayHistoryStore? = FKAudioUserDefaultsPlayHistoryStore()
@@ -48,6 +50,7 @@ public final class FKAudioPlayer: NSObject {
   private var stopAfterCurrentItem = false
   private var rateMemory: [String: Float] = [:]
   private var lyricsLines: [FKAudioLyricLine] = []
+  public private(set) var currentLyricLines: [FKAudioLyricLine] = []
   private var remoteTrackCommandTokens: [(command: MPRemoteCommand, token: Any)] = []
 
   public init(
@@ -84,6 +87,7 @@ public final class FKAudioPlayer: NSObject {
       currentItem = item
       notifyItemChange()
       boundView?.reload(for: item)
+      attachedChromeView?.reload(for: item)
       miniBar?.reload(for: item)
       loadLyrics(for: item)
     } else {
@@ -93,7 +97,8 @@ public final class FKAudioPlayer: NSObject {
 
   public func bind(to view: FKAudioPlayerView) {
     boundView = view
-    attachChrome(view)
+    view.bind(player: self)
+    syncChrome(with: view)
     coordinator.attachRenderTarget(.none)
   }
 
@@ -101,6 +106,16 @@ public final class FKAudioPlayer: NSObject {
   public func attachChrome(_ view: FKAudioPlayerView) {
     view.bind(player: self)
     syncChrome(with: view)
+    if boundView !== view {
+      attachedChromeView = view
+    }
+  }
+
+  /// Stops mirroring updates to a secondary chrome instance (call when a modal dismisses).
+  public func detachChrome(_ view: FKAudioPlayerView) {
+    if attachedChromeView === view {
+      attachedChromeView = nil
+    }
   }
 
   /// Pushes the current transport state into any player chrome instance.
@@ -137,6 +152,7 @@ public final class FKAudioPlayer: NSObject {
     queue.clear()
     currentItem = nil
     lyricsLines = []
+    currentLyricLines = []
     boundView?.reset()
     miniBar?.reset()
   }
@@ -217,6 +233,7 @@ public final class FKAudioPlayer: NSObject {
     coordinator.configuration.playback.autoPlay = autoPlay
     coordinator.load(item.toMediaItem(), presentationMode: .audioOnly)
     boundView?.reload(for: item)
+    attachedChromeView?.reload(for: item)
     miniBar?.reload(for: item)
     loadLyrics(for: item)
     notifyItemChange()
@@ -225,14 +242,15 @@ public final class FKAudioPlayer: NSObject {
 
   func loadLyrics(for item: FKAudioItem) {
     lyricsLines = []
+    currentLyricLines = []
     if let text = item.lyricsText, !text.isEmpty {
       let parsed = FKAudioLyricsParser.parse(content: text)
       lyricsLines = parsed.isEmpty ? [FKAudioLyricLine(time: 0, text: text)] : parsed
-      boundView?.setLyrics(lines: lyricsLines)
+      publishLyrics(lines: lyricsLines)
       return
     }
     guard let url = item.lyricsURL else {
-      boundView?.setLyrics(lines: [])
+      publishLyrics(lines: [])
       return
     }
     let itemID = item.id
@@ -248,15 +266,22 @@ public final class FKAudioPlayer: NSObject {
         let lines = try FKAudioLyricsParser.parse(data: data)
         await MainActor.run {
           guard self.currentItem?.id == itemID else { return }
-          self.lyricsLines = lines
-          self.boundView?.setLyrics(lines: lines)
+          self.publishLyrics(lines: lines)
         }
       } catch {
         await MainActor.run {
-          self.boundView?.setLyrics(lines: [])
+          guard self.currentItem?.id == itemID else { return }
+          self.publishLyrics(lines: [])
         }
       }
     }
+  }
+
+  private func publishLyrics(lines: [FKAudioLyricLine]) {
+    lyricsLines = lines
+    currentLyricLines = lines
+    boundView?.setLyrics(lines: lines)
+    delegate?.audioPlayer(self, didLoadLyrics: lines)
   }
 
   func applyStoredRate(for item: FKAudioItem) {
@@ -314,6 +339,7 @@ extension FKAudioPlayer: FKMediaPlaybackCoordinatorDelegate {
   ) {
     delegate?.audioPlayer(self, didChangeState: state)
     boundView?.handleStateChange(state)
+    attachedChromeView?.handleStateChange(state)
     miniBar?.handleStateChange(state)
   }
 
@@ -324,6 +350,7 @@ extension FKAudioPlayer: FKMediaPlaybackCoordinatorDelegate {
   ) {
     delegate?.audioPlayer(self, didUpdateTime: current, duration: duration)
     boundView?.updateProgress(current: current, duration: duration, buffered: bufferedTimeRanges)
+    attachedChromeView?.updateProgress(current: current, duration: duration, buffered: bufferedTimeRanges)
     miniBar?.updateProgress(current: current, duration: duration)
     updateLyricsHighlight(current: current)
   }
@@ -333,6 +360,7 @@ extension FKAudioPlayer: FKMediaPlaybackCoordinatorDelegate {
     didUpdateBuffered ranges: [ClosedRange<TimeInterval>]
   ) {
     boundView?.updateProgress(current: currentTime, duration: duration, buffered: ranges)
+    attachedChromeView?.updateProgress(current: currentTime, duration: duration, buffered: ranges)
   }
 
   public func mediaPlaybackCoordinatorDidFinish(_ coordinator: FKMediaPlaybackCoordinator) {
@@ -363,6 +391,7 @@ extension FKAudioPlayer: FKMediaPlaybackCoordinatorDelegate {
   ) {
     delegate?.audioPlayer(self, didFail: error)
     boundView?.handleStateChange(.failed(error))
+    attachedChromeView?.handleStateChange(.failed(error))
     miniBar?.handleStateChange(.failed(error))
   }
 
@@ -378,6 +407,7 @@ extension FKAudioPlayer: FKMediaPlaybackCoordinatorDelegate {
     queue.setCurrentIndex(index)
     loadLyrics(for: audioItem)
     boundView?.reload(for: audioItem)
+    attachedChromeView?.reload(for: audioItem)
     miniBar?.reload(for: audioItem)
     notifyItemChange()
   }

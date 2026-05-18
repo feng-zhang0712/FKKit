@@ -10,6 +10,7 @@ public enum FKAudioPlayerStrings {
   public static let retry = NSLocalizedString("fk.audio.retry", bundle: .fkAudioPlayer, value: "Retry", comment: "")
   public static let sleepTimer = NSLocalizedString("fk.audio.sleep", bundle: .fkAudioPlayer, value: "Sleep timer", comment: "")
   public static let playbackSpeed = NSLocalizedString("fk.audio.rate", bundle: .fkAudioPlayer, value: "Playback speed", comment: "")
+  public static let close = NSLocalizedString("fk.audio.close", bundle: .fkAudioPlayer, value: "Close", comment: "")
 }
 
 private final class FKAudioPlayerStringsBundleToken: NSObject {}

@@ -9,6 +9,7 @@ public protocol FKAudioPlayerDelegate: AnyObject {
   func audioPlayerDidFinish(_ player: FKAudioPlayer)
   func audioPlayer(_ player: FKAudioPlayer, didFail error: FKMediaError)
   func audioPlayer(_ player: FKAudioPlayer, didUpdateLyricsLine index: Int?)
+  func audioPlayer(_ player: FKAudioPlayer, didLoadLyrics lines: [FKAudioLyricLine])
   func audioPlayer(_ player: FKAudioPlayer, didChangeQueueIndex index: Int?)
 }
 
@@ -17,5 +18,6 @@ extension FKAudioPlayerDelegate {
   public func audioPlayer(_ player: FKAudioPlayer, didChangeItem item: FKAudioItem?, index: Int?) {}
   public func audioPlayerDidFinish(_ player: FKAudioPlayer) {}
   public func audioPlayer(_ player: FKAudioPlayer, didUpdateLyricsLine index: Int?) {}
+  public func audioPlayer(_ player: FKAudioPlayer, didLoadLyrics lines: [FKAudioLyricLine]) {}
   public func audioPlayer(_ player: FKAudioPlayer, didChangeQueueIndex index: Int?) {}
 }

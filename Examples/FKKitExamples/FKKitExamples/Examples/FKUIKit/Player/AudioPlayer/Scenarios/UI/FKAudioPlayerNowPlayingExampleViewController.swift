@@ -10,7 +10,7 @@ final class FKAudioPlayerNowPlayingExampleViewController: FKAudioPlayerExampleSh
     super.viewDidLoad()
 
     let caption = FKAudioPlayerExampleLayout.makeCaptionLabel(
-      "Opens the full-screen host that embeds `FKAudioPlayerView` and reuses the same player instance."
+      "Opens a full-screen Now Playing page sharing the same `FKAudioPlayer`. Progress and transport stay in sync; tap ✕ to close."
     )
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)

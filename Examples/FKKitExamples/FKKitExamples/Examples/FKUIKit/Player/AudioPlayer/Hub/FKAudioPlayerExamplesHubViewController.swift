@@ -127,6 +127,11 @@ final class FKAudioPlayerExamplesHubViewController: UITableViewController {
     ]),
     DemoSection(title: "Integration", items: [
       DemoItem(
+        title: "Lock screen Now Playing",
+        subtitle: "Lock device to see system transport on the lock screen.",
+        factory: { FKAudioPlayerLockScreenExampleViewController() }
+      ),
+      DemoItem(
         title: "Delegate event log",
         subtitle: "All `FKAudioPlayerDelegate` callbacks.",
         factory: { FKAudioPlayerDelegateLogExampleViewController() }

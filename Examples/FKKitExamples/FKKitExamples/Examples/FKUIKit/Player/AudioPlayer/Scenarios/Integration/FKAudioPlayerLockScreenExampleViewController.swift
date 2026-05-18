@@ -1,21 +1,24 @@
 import FKUIKit
 import UIKit
 
-/// Loads bundled LRC lyrics into ``FKAudioLyricsView``.
+/// Demonstrates system lock-screen / Control Center Now Playing (via Core `MPNowPlayingInfoCenter`).
 @MainActor
-final class FKAudioPlayerLRCLyricsExampleViewController: FKAudioPlayerExampleShellViewController {
+final class FKAudioPlayerLockScreenExampleViewController: FKAudioPlayerExampleShellViewController {
 
   override func viewDidLoad() {
-    title = "Bundled LRC"
-    usesExternalLyricsPanel = true
-    playerHeightMultiplier = 0.36
+    title = "Lock screen"
     super.viewDidLoad()
 
     let caption = FKAudioPlayerExampleLayout.makeCaptionLabel(
-      "Loads bundled `sample.lrc`. Lyrics appear in the panel below the player while audio plays."
+      """
+      Start playback, then lock the device. The system Now Playing card (title, artwork, progress, transport) is published by FKMediaPlayer Core — enabled by default on `FKAudioPlayer`.
+
+      This example target includes `UIBackgroundModes → audio` so playback continues on the lock screen.
+      """
     )
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)
+
     NSLayoutConstraint.activate([
       caption.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
       caption.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
@@ -23,6 +26,6 @@ final class FKAudioPlayerLRCLyricsExampleViewController: FKAudioPlayerExampleShe
     ])
     finalizeLayout(topAnchor: caption.bottomAnchor)
 
-    player.load(FKAudioPlayerExampleCatalog.itemWithBundledLRC(), autoPlay: true)
+    player.load(FKAudioPlayerExampleCatalog.trackOne(), autoPlay: true)
   }
 }

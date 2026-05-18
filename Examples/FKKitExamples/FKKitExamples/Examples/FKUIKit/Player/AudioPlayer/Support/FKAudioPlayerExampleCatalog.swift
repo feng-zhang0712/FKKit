@@ -12,14 +12,14 @@ enum FKAudioPlayerExampleCatalog {
   /// Light instrumental — commonly used in mobile SDK samples.
   static let kalimba = URL(string: "https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3")!
 
-  /// Relaxed acoustic guitar (Pixabay license).
+  /// Instrumental demo (SoundHelix — permissive sample hosting).
   static let acousticGuitar = URL(
-    string: "https://cdn.pixabay.com/download/audio/2022/03/24/audio_2dde668d9c.mp3"
+    string: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   )!
 
-  /// Soft piano ambient (Pixabay license).
+  /// Second instrumental demo (SoundHelix).
   static let softPiano = URL(
-    string: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c51a31c0.mp3"
+    string: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   )!
 
   static let hlsVOD = URL(
@@ -86,21 +86,33 @@ enum FKAudioPlayerExampleCatalog {
     )
   }
 
-  /// Bundled LRC in the example target (see `Support/Resources/sample.lrc`).
+  /// Bundled LRC in the example target (see `Examples/FKKitExamples/Resources/sample.lrc`).
   static func bundledLRCURL() -> URL? {
     Bundle.main.url(forResource: "sample", withExtension: "lrc")
   }
 
+  /// Fallback when `.lrc` is not copied into the app bundle (Xcode file-sync edge case).
+  static let bundledLRCContent = """
+  [00:00.00]Welcome to FKAudioPlayer
+  [00:05.00]Lyrics sync with playback time
+  [00:12.00]Bundled LRC resource demo
+  [00:20.00]Open the podcast demo for chapters
+  """
+
   static func itemWithBundledLRC() -> FKAudioItem {
     var item = trackOne(title: "Bundled LRC")
-    item.lyricsURL = bundledLRCURL()
+    if let url = bundledLRCURL() {
+      item.lyricsURL = url
+    } else {
+      item.lyricsText = bundledLRCContent
+    }
     return item
   }
 
   static func itemWithPlainLyrics() -> FKAudioItem {
     FKAudioItem(
       id: "audio.plain.lyrics",
-      source: .url(acousticGuitar),
+      source: .url(kalimba),
       title: "Plain lyrics text",
       artist: "FKKit",
       lyricsText: """

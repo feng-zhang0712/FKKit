@@ -67,7 +67,7 @@ extension FKAudioLyricsView: UITableViewDataSource, UITableViewDelegate {
     cell.textLabel?.textAlignment = .center
     cell.textLabel?.text = lines[indexPath.row].text
     let active = indexPath.row == highlightedIndex
-    cell.textLabel?.textColor = active ? .white : UIColor.white.withAlphaComponent(0.55)
+    cell.textLabel?.textColor = active ? .label : .secondaryLabel
     cell.textLabel?.font = active
       ? .systemFont(ofSize: 17, weight: .semibold)
       : .systemFont(ofSize: 15, weight: .regular)
