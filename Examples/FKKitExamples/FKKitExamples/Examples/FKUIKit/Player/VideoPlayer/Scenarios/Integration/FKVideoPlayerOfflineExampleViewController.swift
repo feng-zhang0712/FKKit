@@ -81,9 +81,8 @@ final class FKVideoPlayerOfflineExampleViewController: FKVideoPlayerExampleShell
     didFinish downloadIdentifier: String,
     localURL: URL
   ) {
-    _ = localURL
     statusLabel.text = "Finished — tap Play offline copy"
-    appendLog("download finished")
+    appendLog("download finished → \(localURL.lastPathComponent)")
   }
 
   func hlsDownloadService(

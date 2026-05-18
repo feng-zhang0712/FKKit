@@ -104,7 +104,7 @@ final class FKAudioPlayerExamplesHubViewController: UITableViewController {
       ),
       DemoItem(
         title: "Waveform",
-        subtitle: "`FKAudioWaveformView` samples from the current asset.",
+        subtitle: "Static peak waveform from a downloaded copy of the track URL (independent of AVPlayer).",
         factory: { FKAudioPlayerWaveformExampleViewController() }
       ),
     ]),
@@ -153,7 +153,7 @@ final class FKAudioPlayerExamplesHubViewController: UITableViewController {
       ),
       DemoItem(
         title: "CarPlay coordinator",
-        subtitle: "`FKAudioCarPlayCoordinator` remote skip registration.",
+        subtitle: "Registers next/previous remote commands; `refreshMetadata()` only toggles Now Playing.",
         factory: { FKAudioPlayerCarPlayExampleViewController() }
       ),
     ]),

@@ -10,7 +10,7 @@ public enum FKAudioWaveformLoadResult: Sendable {
   case readFailed(String)
 }
 
-/// Simple waveform visualization from an audio asset (Phase 4).
+/// Static peak waveform for a media file (decode once; does not animate with playback).
 @MainActor
 public final class FKAudioWaveformView: UIView {
 

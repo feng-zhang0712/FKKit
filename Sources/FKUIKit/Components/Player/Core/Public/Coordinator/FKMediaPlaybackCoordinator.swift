@@ -113,7 +113,7 @@ public final class FKMediaPlaybackCoordinator: FKMediaNowPlayingCommandTarget {
     if configuration.enablesRemoteCommands {
       self.nowPlayingService.registerCommands(target: self)
     }
-    self.audioSessionManager.setInterruptionHandler { [weak self] shouldResume in
+    self.audioSessionManager.setInterruptionHandler(owner: self) { [weak self] shouldResume in
       guard let self else { return }
       if !shouldResume {
         if self.state == .playing || self.state == .buffering {
@@ -257,8 +257,12 @@ public final class FKMediaPlaybackCoordinator: FKMediaNowPlayingCommandTarget {
 
   public func seek(to time: TimeInterval, completion: ((Bool) -> Void)? = nil) {
     Task {
+      guard let engine else {
+        completion?(false)
+        return
+      }
       do {
-        try await engine?.seek(to: time)
+        try await engine.seek(to: time)
         if let item = currentItem {
           track(.seek(itemID: item.id, position: time))
         }
@@ -273,7 +277,8 @@ public final class FKMediaPlaybackCoordinator: FKMediaNowPlayingCommandTarget {
 
   public func seekToLiveEdge() {
     Task {
-      try? await engine?.seekToLiveEdge()
+      guard let engine else { return }
+      try? await engine.seekToLiveEdge()
       delegate?.mediaPlaybackCoordinator(self, didUpdateTime: currentTime, duration: duration)
       refreshNowPlaying()
     }

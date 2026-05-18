@@ -35,6 +35,10 @@ public final class FKVideoPlayerPool {
       player = reused
     } else if inUse.count < maxPlayers {
       player = FKVideoPlayer(configuration: configuration)
+    } else if let evictedKey = inUse.keys.first, let evicted = inUse.removeValue(forKey: evictedKey) {
+      // Pool is at capacity: recycle an in-use player (host must call `releasePlayer` when off-screen).
+      evicted.stop()
+      player = evicted
     } else {
       player = FKVideoPlayer(configuration: configuration)
     }

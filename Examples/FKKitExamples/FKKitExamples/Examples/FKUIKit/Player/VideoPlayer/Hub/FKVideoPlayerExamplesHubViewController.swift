@@ -125,7 +125,7 @@ final class FKVideoPlayerExamplesHubViewController: UITableViewController {
       ),
       DemoItem(
         title: "SharePlay hook",
-        subtitle: "Documents stub coordinator behavior.",
+        subtitle: "Stub coordinator — `startSharePlay()` throws `notImplemented`.",
         factory: { FKVideoPlayerSharePlayExampleViewController() }
       ),
     ]),

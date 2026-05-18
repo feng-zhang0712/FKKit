@@ -17,22 +17,9 @@
 		0156C1822F909700008C5109 /* sample.lrc */ = {isa = PBXFileReference; lastKnownFileType = text; path = sample.lrc; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		0156C1842F909700008C5109 /* Exceptions for "FKKitExamples" folder in "FKKitExamples" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Examples/FKUIKit/Player/AudioPlayer/Support/Resources/sample.lrc,
-			);
-			target = 0156C11B2F90932E008C5109 /* FKKitExamples */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0156C11E2F90932E008C5109 /* FKKitExamples */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				0156C1842F909700008C5109 /* Exceptions for "FKKitExamples" folder in "FKKitExamples" target */,
-			);
 			path = FKKitExamples;
 			sourceTree = "<group>";
 		};

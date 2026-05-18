@@ -7,7 +7,12 @@ public final class FKMediaAudioSessionManager {
 
   public static let shared = FKMediaAudioSessionManager()
 
-  private var interruptionHandler: ((Bool) -> Void)?
+  private struct InterruptionHandlerEntry {
+    weak var owner: AnyObject?
+    let handler: (Bool) -> Void
+  }
+
+  private var interruptionHandlers: [InterruptionHandlerEntry] = []
 
   public init() {
     NotificationCenter.default.addObserver(
@@ -37,9 +42,19 @@ public final class FKMediaAudioSessionManager {
     try AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
   }
 
-  /// Called when an audio interruption ends; parameter is whether playback should resume.
+  /// Registers an interruption handler for a specific owner (supports multiple coordinators).
+  public func setInterruptionHandler(owner: AnyObject, _ handler: @escaping (Bool) -> Void) {
+    interruptionHandlers.removeAll { $0.owner === owner }
+    interruptionHandlers.append(InterruptionHandlerEntry(owner: owner, handler: handler))
+  }
+
+  /// Registers a single global handler (legacy). Prefer ``setInterruptionHandler(owner:_:)``.
   public func setInterruptionHandler(_ handler: @escaping (Bool) -> Void) {
-    interruptionHandler = handler
+    setInterruptionHandler(owner: self, handler)
+  }
+
+  public func removeInterruptionHandler(for owner: AnyObject) {
+    interruptionHandlers.removeAll { $0.owner === owner }
   }
 
   @objc
@@ -50,15 +65,20 @@ public final class FKMediaAudioSessionManager {
       let type = AVAudioSession.InterruptionType(rawValue: typeValue)
     else { return }
 
+    interruptionHandlers.removeAll { $0.owner == nil }
+    let shouldResume: Bool
     switch type {
     case .began:
-      interruptionHandler?(false)
+      shouldResume = false
     case .ended:
       let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
       let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-      interruptionHandler?(options.contains(.shouldResume))
+      shouldResume = options.contains(.shouldResume)
     @unknown default:
-      break
+      return
+    }
+    for entry in interruptionHandlers {
+      entry.handler(shouldResume)
     }
   }
 }

@@ -37,6 +37,8 @@ class FKAudioPlayerExampleShellViewController: UIViewController, FKAudioPlayerDe
     super.viewDidLoad()
     view.backgroundColor = .systemGroupedBackground
     player.delegate = self
+    // Examples always start from the beginning; Core resume is for production apps.
+    player.configuration.media.playback.resumePlaybackEnabled = false
 
     playerContainer.backgroundColor = .secondarySystemGroupedBackground
     playerContainer.layer.cornerRadius = 12

@@ -48,6 +48,7 @@ public final class FKAudioPlayer: NSObject {
 
   private let sleepTimer = FKAudioSleepTimer()
   private var stopAfterCurrentItem = false
+  var trackTransitionGeneration = 0
   private var rateMemory: [String: Float] = [:]
   private var lyricsLines: [FKAudioLyricLine] = []
   public private(set) var currentLyricLines: [FKAudioLyricLine] = []
@@ -154,6 +155,7 @@ public final class FKAudioPlayer: NSObject {
     lyricsLines = []
     currentLyricLines = []
     boundView?.reset()
+    attachedChromeView?.reset()
     miniBar?.reset()
   }
 
@@ -281,6 +283,7 @@ public final class FKAudioPlayer: NSObject {
     lyricsLines = lines
     currentLyricLines = lines
     boundView?.setLyrics(lines: lines)
+    attachedChromeView?.setLyrics(lines: lines)
     delegate?.audioPlayer(self, didLoadLyrics: lines)
   }
 
@@ -326,6 +329,7 @@ public final class FKAudioPlayer: NSObject {
     let index = FKAudioLyricsParser.activeLineIndex(at: current, in: lyricsLines)
     delegate?.audioPlayer(self, didUpdateLyricsLine: index)
     boundView?.highlightLyricLine(at: index)
+    attachedChromeView?.highlightLyricLine(at: index)
   }
 }
 

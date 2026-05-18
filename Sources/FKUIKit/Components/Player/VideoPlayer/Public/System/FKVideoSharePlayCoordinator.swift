@@ -1,6 +1,6 @@
 import Foundation
 
-/// SharePlay integration assessment hook (Phase 4). Implement when GroupActivities is available.
+/// SharePlay stub — throws ``FKMediaError/notImplemented`` until GroupActivities is wired up.
 @MainActor
 public protocol FKVideoSharePlayCoordinating: AnyObject {
   var isSharePlayActive: Bool { get }

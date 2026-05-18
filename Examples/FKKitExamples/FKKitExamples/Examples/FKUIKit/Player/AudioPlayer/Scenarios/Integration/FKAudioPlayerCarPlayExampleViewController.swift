@@ -12,7 +12,10 @@ final class FKAudioPlayerCarPlayExampleViewController: FKAudioPlayerExampleShell
     super.viewDidLoad()
 
     let caption = FKAudioPlayerExampleLayout.makeCaptionLabel(
-      "CarPlay builds on Core Now Playing. Use lock-screen next/previous while a multi-track queue is loaded."
+      """
+      CarPlay builds on Core Now Playing. Remote next/previous are registered on launch. \
+      “Refresh metadata” only enables Now Playing — CarPlay template artwork is not pushed yet.
+      """
     )
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)
@@ -20,11 +23,11 @@ final class FKAudioPlayerCarPlayExampleViewController: FKAudioPlayerExampleShell
     statusLabel.font = .preferredFont(forTextStyle: .footnote)
     statusLabel.textColor = .secondaryLabel
     statusLabel.numberOfLines = 0
-    statusLabel.text = "Coordinator active on init."
+    statusLabel.text = "Remote skip commands registered."
 
     let refresh = FKAudioPlayerExampleLayout.makePrimaryButton("Refresh metadata", action: UIAction { [weak self] _ in
       self?.player.carPlayCoordinator.refreshMetadata()
-      self?.statusLabel.text = "Metadata refresh requested for \(self?.player.currentItem?.title ?? "—")"
+      self?.statusLabel.text = "Now Playing enabled for \(self?.player.currentItem?.title ?? "—")"
     })
     let deactivate = FKAudioPlayerExampleLayout.makeSecondaryButton("Deactivate remote skip", action: UIAction { [weak self] _ in
       self?.player.carPlayCoordinator.deactivate()
@@ -46,6 +49,7 @@ final class FKAudioPlayerCarPlayExampleViewController: FKAudioPlayerExampleShell
     ])
     finalizeLayout(topAnchor: caption.bottomAnchor)
 
+    player.carPlayCoordinator.activate()
     player.loadQueue(FKAudioPlayerExampleCatalog.demoQueue(), autoPlay: true)
   }
 }

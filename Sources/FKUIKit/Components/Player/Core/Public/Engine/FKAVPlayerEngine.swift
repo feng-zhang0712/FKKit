@@ -312,24 +312,13 @@ public final class FKAVPlayerEngine: FKMediaPlayerEngine {
     let timeoutNanoseconds: UInt64 = 60_000_000_000
     try await withThrowingTaskGroup(of: Void.self) { group in
       group.addTask {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-          var observation: NSKeyValueObservation?
-          observation = playerItem.observe(\.status, options: [.new]) { item, _ in
-            switch item.status {
-            case .readyToPlay:
-              observation?.invalidate()
-              continuation.resume()
-            case .failed:
-              observation?.invalidate()
-              let error = FKMediaErrorMapper.mapPlayerItemError(item.error)
-                ?? .engineFailed(engine: .avFoundation, message: "Item failed")
-              continuation.resume(throwing: error)
-            case .unknown:
-              break
-            @unknown default:
-              break
-            }
+        let statusWaiter = PlayerItemStatusWaiter()
+        try await withTaskCancellationHandler {
+          try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            statusWaiter.observe(playerItem, continuation: continuation)
           }
+        } onCancel: {
+          statusWaiter.cancel()
         }
       }
       group.addTask {
@@ -389,5 +378,62 @@ public final class FKAVPlayerEngine: FKMediaPlayerEngine {
     itemKVO.invalidate()
     player?.pause()
     player = nil
+  }
+}
+
+/// KVO waiter for `AVPlayerItem.status` with explicit cancellation cleanup.
+private final class PlayerItemStatusWaiter: @unchecked Sendable {
+
+  private let lock = NSLock()
+  private var observation: NSKeyValueObservation?
+  private var continuation: CheckedContinuation<Void, Error>?
+  private var didFinish = false
+
+  func observe(_ playerItem: AVPlayerItem, continuation: CheckedContinuation<Void, Error>) {
+    lock.lock()
+    self.continuation = continuation
+    lock.unlock()
+
+    observation = playerItem.observe(\.status, options: [.new]) { [weak self] item, _ in
+      guard let self else { return }
+      self.lock.lock()
+      defer { self.lock.unlock() }
+      guard !self.didFinish, let continuation = self.continuation else { return }
+      switch item.status {
+      case .readyToPlay:
+        self.finish(observationCleanup: true) {
+          continuation.resume()
+        }
+      case .failed:
+        let error = FKMediaErrorMapper.mapPlayerItemError(item.error)
+          ?? .engineFailed(engine: .avFoundation, message: "Item failed")
+        self.finish(observationCleanup: true) {
+          continuation.resume(throwing: error)
+        }
+      case .unknown:
+        break
+      @unknown default:
+        break
+      }
+    }
+  }
+
+  func cancel() {
+    lock.lock()
+    defer { lock.unlock() }
+    guard !didFinish, let continuation else { return }
+    finish(observationCleanup: true) {
+      continuation.resume(throwing: CancellationError())
+    }
+  }
+
+  private func finish(observationCleanup: Bool, _ body: () -> Void) {
+    didFinish = true
+    if observationCleanup {
+      observation?.invalidate()
+      observation = nil
+    }
+    continuation = nil
+    body()
   }
 }

@@ -40,7 +40,8 @@ public final class FKMediaNowPlayingService {
 
     if let artworkURL = item?.artworkURL, let itemID = item?.id {
       Task {
-        if let image = await Self.loadImage(from: artworkURL) {
+        guard let image = await Self.loadImage(from: artworkURL) else { return }
+        await MainActor.run {
           let currentID = MPNowPlayingInfoCenter.default().nowPlayingInfo?[
             MPNowPlayingInfoPropertyExternalContentIdentifier
           ] as? String

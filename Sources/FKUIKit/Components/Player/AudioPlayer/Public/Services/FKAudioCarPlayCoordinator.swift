@@ -1,7 +1,7 @@
 import MediaPlayer
 import UIKit
 
-/// CarPlay / Now Playing template helpers (Phase 3 baseline).
+/// CarPlay / lock-screen command helpers. Template metadata APIs are not implemented yet.
 @MainActor
 public final class FKAudioCarPlayCoordinator {
 
@@ -20,10 +20,9 @@ public final class FKAudioCarPlayCoordinator {
     player?.unregisterRemoteTrackCommands()
   }
 
-  /// Updates artwork and metadata for CarPlay templates.
+  /// Ensures Now Playing metadata is enabled. CarPlay template artwork is not pushed here yet.
   public func refreshMetadata() {
-    guard let player, let item = player.currentItem else { return }
+    guard let player, player.currentItem != nil else { return }
     player.coordinator.configuration.enablesNowPlayingInfo = true
-    _ = item
   }
 }

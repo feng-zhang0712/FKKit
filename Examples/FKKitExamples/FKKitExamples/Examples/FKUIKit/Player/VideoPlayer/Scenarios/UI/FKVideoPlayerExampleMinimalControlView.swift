@@ -53,9 +53,7 @@ final class FKVideoPlayerExampleMinimalControlView: UIView, FKVideoPlayerControl
     isLive: Bool,
     liveLatency: TimeInterval?
   ) {
-    _ = buffered
-    _ = isLive
-    _ = liveLatency
+    // Minimal demo: ignore buffer/live fields.
     label.text = String(format: "%@  %.0f / %.0f", title(for: state), currentTime, duration)
   }
 
