@@ -99,6 +99,11 @@ final class FKVideoPlayerExamplesHubViewController: UITableViewController {
     ]),
     DemoSection(title: "Integration", items: [
       DemoItem(
+        title: "Extended engine (Core)",
+        subtitle: "MKV/DASH are not bundled — format probe table and expected load failures.",
+        factory: { FKMediaExtendedEngineExampleViewController() }
+      ),
+      DemoItem(
         title: "Delegate event log",
         subtitle: "All `FKVideoPlayerDelegate` callbacks.",
         factory: { FKVideoPlayerDelegateLogExampleViewController() }

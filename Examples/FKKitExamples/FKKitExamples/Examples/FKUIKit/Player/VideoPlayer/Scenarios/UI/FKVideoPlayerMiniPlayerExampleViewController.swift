@@ -32,13 +32,21 @@ final class FKVideoPlayerMiniPlayerExampleViewController: FKVideoPlayerExampleSh
       miniPlayer.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
       miniPlayer.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
       miniPlayer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
-      miniPlayer.heightAnchor.constraint(equalToConstant: 64),
+      miniPlayer.heightAnchor.constraint(equalToConstant: 61),
     ])
     finalizeLayout(topAnchor: caption.bottomAnchor)
 
     player.load(FKVideoPlayerExampleCatalog.progressiveItem())
     miniPlayer.bind(player: player)
     player.play()
+  }
+
+  override func videoPlayer(
+    _ player: FKVideoPlayer,
+    didChangeState state: FKMediaPlaybackState
+  ) {
+    super.videoPlayer(player, didChangeState: state)
+    miniPlayer.handleStateChange(state)
   }
 
   override func videoPlayer(

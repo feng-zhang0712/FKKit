@@ -17,7 +17,6 @@ public final class FKVideoPlayerView: UIView {
 
   // MARK: - Essential chrome (always mounted)
 
-  private let loadingOverlay = UIActivityIndicatorView(style: .large)
   private let gestureController = FKVideoGestureController()
   private let pictureInPictureController = FKVideoPictureInPictureController()
   private let airPlayPresenter = FKVideoAirPlayPresenter()
@@ -45,10 +44,6 @@ public final class FKVideoPlayerView: UIView {
     playerLayer.videoGravity = .resizeAspect
     layer.addSublayer(playerLayer)
 
-    loadingOverlay.color = .white
-    loadingOverlay.hidesWhenStopped = true
-    addSubview(loadingOverlay)
-
     setDefaultControlView(FKDefaultVideoControlView())
   }
 
@@ -62,7 +57,6 @@ public final class FKVideoPlayerView: UIView {
     playerLayer.frame = bounds
     posterImageView?.frame = bounds
     subtitleView?.frame = bounds
-    loadingOverlay.center = CGPoint(x: bounds.midX, y: bounds.midY)
     if let liveBadge {
       liveBadge.frame = CGRect(x: 12, y: safeAreaInsets.top + 8, width: 140, height: 28)
     }
@@ -72,9 +66,9 @@ public final class FKVideoPlayerView: UIView {
     }
     controlView?.frame = CGRect(
       x: 0,
-      y: bounds.height - 72 - safeAreaInsets.bottom,
+      y: bounds.height - 80 - safeAreaInsets.bottom,
       width: bounds.width,
-      height: 72 + safeAreaInsets.bottom
+      height: 80 + safeAreaInsets.bottom
     )
     if let llhlsDebugPanel, let liveBadge {
       llhlsDebugPanel.frame = CGRect(
@@ -99,7 +93,7 @@ public final class FKVideoPlayerView: UIView {
     customControlView?.removeFromSuperview()
     customControlView = view
     controlView = view
-    view.frame = CGRect(x: 0, y: bounds.height - 72, width: bounds.width, height: 72)
+    view.frame = CGRect(x: 0, y: bounds.height - 80, width: bounds.width, height: 80)
     addSubview(view)
     bringOptionalOverlaysAboveControlBar()
     airPlayPresenter.bringToFront(on: self)
@@ -170,18 +164,15 @@ public final class FKVideoPlayerView: UIView {
 
     switch state {
     case .preparing, .buffering:
-      loadingOverlay.startAnimating()
       if player?.currentItem?.posterURL != nil {
         mountPosterImageView().isHidden = false
       } else {
         unmountPosterImageView()
       }
     case .ready, .playing:
-      loadingOverlay.stopAnimating()
       unmountPosterImageView()
       unmountErrorChrome()
     case .failed(let error):
-      loadingOverlay.stopAnimating()
       unmountPosterImageView()
       let errorLabel = mountErrorLabel()
       errorLabel.text = error.localizedDescription
@@ -192,7 +183,7 @@ public final class FKVideoPlayerView: UIView {
         unmountRetryButton()
       }
     default:
-      loadingOverlay.stopAnimating()
+      break
     }
 
     refreshLiveBadge()
@@ -503,7 +494,6 @@ public final class FKVideoPlayerView: UIView {
 
   private func applyTheme() {
     let tint = uiConfiguration.resolvedTintColor(traitCollection: traitCollection)
-    loadingOverlay.color = tint
     retryButton?.tintColor = tint
     (controlView as? FKDefaultVideoControlView)?.applyTheme(tint)
   }

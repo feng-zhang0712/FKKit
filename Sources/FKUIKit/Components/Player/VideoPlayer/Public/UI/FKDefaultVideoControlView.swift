@@ -11,14 +11,15 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
   private let playPauseButton = UIButton(type: .system)
   private let fullscreenButton = UIButton(type: .system)
   private let settingsButton = UIButton(type: .system)
-  private let currentTimeLabel = UILabel()
-  private let durationLabel = UILabel()
+  private let timeLabel = UILabel()
   private let progressSlider = UISlider()
   private let bufferProgressView = UIProgressView(progressViewStyle: .bar)
 
   private var isScrubbing = false
   private var showsRemainingTime = false
+  private var showsPlaySpinner = false
   private var themeTint: UIColor = .white
+  private var playPauseSpinner: UIActivityIndicatorView?
   private let thumbnailPreview = FKVideoThumbnailSeekPreview()
   private var thumbnailTask: Task<Void, Never>?
 
@@ -38,12 +39,9 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
     settingsButton.tintColor = .white
     settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
 
-    for label in [currentTimeLabel, durationLabel] {
-      label.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
-      label.textColor = .white
-    }
-    currentTimeLabel.text = "00:00"
-    durationLabel.text = "00:00"
+    timeLabel.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
+    timeLabel.textColor = .white
+    timeLabel.text = "00:00 / 00:00"
 
     progressSlider.minimumValue = 0
     progressSlider.maximumValue = 1
@@ -56,7 +54,7 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
 
     [
       playPauseButton, settingsButton, fullscreenButton,
-      currentTimeLabel, durationLabel, bufferProgressView, progressSlider,
+      timeLabel, bufferProgressView, progressSlider,
     ].forEach {
       addSubview($0)
     }
@@ -67,6 +65,7 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
     playPauseButton.tintColor = tint
     fullscreenButton.tintColor = tint
     settingsButton.tintColor = tint
+    playPauseSpinner?.color = tint
   }
 
   func configure(showsRemainingTime: Bool) {
@@ -81,20 +80,56 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
   public override func layoutSubviews() {
     super.layoutSubviews()
     let safe = safeAreaInsets
-    let height = bounds.height
+    let chromeHeight = bounds.height - safe.bottom
     let width = bounds.width
 
-    playPauseButton.frame = CGRect(x: safe.left + 12, y: (height - 44) / 2, width: 44, height: 44)
-    fullscreenButton.frame = CGRect(x: width - safe.right - 56, y: (height - 44) / 2, width: 44, height: 44)
-    settingsButton.frame = CGRect(x: fullscreenButton.frame.minX - 48, y: (height - 44) / 2, width: 44, height: 44)
+    let horizontalInset: CGFloat = 12
+    let playSize: CGFloat = 44
+    let sideButtonSize: CGFloat = 40
+    let clusterGap: CGFloat = 8
+    let playLeft = safe.left + horizontalInset
+    let trackLeft = playLeft + playSize + clusterGap
+    let trackRight = width - safe.right - horizontalInset
+    let rightClusterWidth = sideButtonSize * 2 + clusterGap
+    let trackWidth = max(160, trackRight - trackLeft - rightClusterWidth)
 
-    currentTimeLabel.frame = CGRect(x: playPauseButton.frame.maxX + 4, y: 14, width: 52, height: 20)
-    durationLabel.frame = CGRect(x: settingsButton.frame.minX - 56, y: 14, width: 52, height: 20)
+    let timeHeight: CGFloat = 16
+    let sliderHeight: CGFloat = 32
+    let timeToSliderGap: CGFloat = 4
+    let chromeBottomPadding: CGFloat = 12
 
-    let sliderX = currentTimeLabel.frame.maxX + 8
-    let sliderWidth = durationLabel.frame.minX - sliderX - 8
-    progressSlider.frame = CGRect(x: sliderX, y: 28, width: sliderWidth, height: 24)
-    bufferProgressView.frame = CGRect(x: sliderX + 2, y: 38, width: sliderWidth - 4, height: 4)
+    let sliderY = chromeHeight - chromeBottomPadding - sliderHeight
+    let transportCenterY = sliderY + sliderHeight / 2
+    let timeY = sliderY - timeToSliderGap - timeHeight
+
+    timeLabel.frame = CGRect(x: trackLeft, y: timeY, width: trackWidth, height: timeHeight)
+    progressSlider.frame = CGRect(x: trackLeft, y: sliderY, width: trackWidth, height: sliderHeight)
+    bufferProgressView.frame = CGRect(
+      x: trackLeft + 2,
+      y: sliderY + (sliderHeight - 3) / 2,
+      width: trackWidth - 4,
+      height: 3
+    )
+
+    playPauseButton.frame = CGRect(
+      x: playLeft,
+      y: transportCenterY - playSize / 2,
+      width: playSize,
+      height: playSize
+    )
+    fullscreenButton.frame = CGRect(
+      x: trackRight - sideButtonSize,
+      y: transportCenterY - sideButtonSize / 2,
+      width: sideButtonSize,
+      height: sideButtonSize
+    )
+    settingsButton.frame = CGRect(
+      x: fullscreenButton.frame.minX - clusterGap - sideButtonSize,
+      y: transportCenterY - sideButtonSize / 2,
+      width: sideButtonSize,
+      height: sideButtonSize
+    )
+    syncPlaySpinner()
   }
 
   public func bind(player: FKVideoPlayer) {
@@ -129,27 +164,26 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
       bufferProgressView.progress = Float(bufferedCoverage(buffered, duration: duration))
     }
 
-    currentTimeLabel.text = formatTime(currentTime)
-    playPauseButton.accessibilityLabel =
-      (state == .playing || state == .buffering) ? FKVideoPlayerStrings.pause : FKVideoPlayerStrings.play
+    timeLabel.text = formattedPlaybackTime(
+      current: currentTime,
+      duration: duration,
+      isLive: isLive
+    )
+    progressSlider.accessibilityValue = timeLabel.text
 
-    if isLive {
-      durationLabel.text = FKVideoPlayerStrings.live
-      progressSlider.isEnabled = !isControlsLocked
-    } else if showsRemainingTime, duration > 0 {
-      durationLabel.text = "-\(formatTime(max(0, duration - currentTime)))"
-      progressSlider.isEnabled = duration > 0 && !isControlsLocked
-    } else {
-      durationLabel.text = formatTime(duration)
-      progressSlider.isEnabled = duration > 0 && !isControlsLocked
+    let isLoading = isLoadingState(state)
+    setPlaySpinnerVisible(isLoading)
+    if !showsPlaySpinner {
+      updatePlayButtonImage(for: state)
     }
+    updateTransportAccessibility(for: state)
 
-    switch state {
-    case .playing, .buffering:
-      playPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
-    default:
-      playPauseButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
-    }
+    playPauseButton.isEnabled = !isControlsLocked && state != .preparing
+    progressSlider.isEnabled = isProgressInteractionEnabled(
+      state: state,
+      duration: duration,
+      isLive: isLive
+    )
   }
 
   public func setControlsVisible(_ visible: Bool, animated: Bool) {
@@ -166,7 +200,7 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
 
   @objc
   private func togglePlayPause() {
-    guard !isControlsLocked else { return }
+    guard !isControlsLocked, !showsPlaySpinner else { return }
     player?.boundView?.noteControlsInteraction()
     player?.togglePlayPause()
   }
@@ -198,6 +232,7 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
 
   @objc
   private func sliderBegan() {
+    guard progressSlider.isEnabled else { return }
     isScrubbing = true
     player?.boundView?.noteControlsInteraction()
   }
@@ -206,7 +241,11 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
   private func sliderChanged() {
     guard let player else { return }
     let target = TimeInterval(progressSlider.value) * max(player.duration, 1)
-    currentTimeLabel.text = formatTime(target)
+    timeLabel.text = formattedPlaybackTime(
+      current: target,
+      duration: player.duration,
+      isLive: player.isLive
+    )
     updateThumbnailPreview(at: target)
   }
 
@@ -235,10 +274,92 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
     }
   }
 
+  private func isLoadingState(_ state: FKMediaPlaybackState) -> Bool {
+    switch state {
+    case .preparing, .buffering:
+      return true
+    default:
+      return false
+    }
+  }
+
+  private func isProgressInteractionEnabled(
+    state: FKMediaPlaybackState,
+    duration: TimeInterval,
+    isLive: Bool
+  ) -> Bool {
+    guard !isControlsLocked, state != .preparing else { return false }
+    if isLive { return true }
+    return duration > 0
+  }
+
+  private func setPlaySpinnerVisible(_ visible: Bool) {
+    showsPlaySpinner = visible
+    if visible {
+      let spinner: UIActivityIndicatorView
+      if let existing = playPauseSpinner {
+        spinner = existing
+      } else {
+        let created = UIActivityIndicatorView(style: .medium)
+        created.hidesWhenStopped = true
+        playPauseButton.addSubview(created)
+        playPauseSpinner = created
+        spinner = created
+      }
+      spinner.color = playPauseButton.tintColor ?? themeTint
+      playPauseButton.setImage(nil, for: .normal)
+      spinner.startAnimating()
+    } else {
+      playPauseSpinner?.stopAnimating()
+    }
+    syncPlaySpinner()
+  }
+
+  private func syncPlaySpinner() {
+    playPauseSpinner?.center = CGPoint(
+      x: playPauseButton.bounds.midX,
+      y: playPauseButton.bounds.midY
+    )
+  }
+
+  private func updatePlayButtonImage(for state: FKMediaPlaybackState) {
+    switch state {
+    case .playing:
+      playPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
+    default:
+      playPauseButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+    }
+  }
+
+  private func updateTransportAccessibility(for state: FKMediaPlaybackState) {
+    if showsPlaySpinner {
+      playPauseButton.accessibilityLabel = FKVideoPlayerStrings.loading
+      return
+    }
+    playPauseButton.accessibilityLabel =
+      state == .playing ? FKVideoPlayerStrings.pause : FKVideoPlayerStrings.play
+  }
+
   private func bufferedCoverage(_ ranges: [ClosedRange<TimeInterval>], duration: TimeInterval) -> Double {
     guard duration > 0 else { return 0 }
     let end = ranges.map(\.upperBound).max() ?? 0
     return min(1, end / duration)
+  }
+
+  private func formattedPlaybackTime(
+    current: TimeInterval,
+    duration: TimeInterval,
+    isLive: Bool
+  ) -> String {
+    let currentText = formatTime(current)
+    if isLive {
+      return "\(currentText) / \(FKVideoPlayerStrings.live)"
+    }
+    if showsRemainingTime, duration > 0 {
+      let remaining = formatTime(max(0, duration - current))
+      return "\(currentText) / -\(remaining)"
+    }
+    return "\(currentText) / \(formatTime(duration))"
   }
 
   private func formatTime(_ time: TimeInterval) -> String {

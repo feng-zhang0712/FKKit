@@ -61,17 +61,33 @@ coordinator.attachRenderTarget(.playerLayer(myLayer))
 coordinator.play()
 ```
 
-### Custom extended engine (FFmpeg / VLC)
+### Extended engine (FFmpeg / VLC) — not bundled
 
-Register at launch before loading extended-only formats:
+FKKit **does not ship** FFmpeg, VLC, or any non-AV decoder. Formats such as **MKV, WebM, DASH (`.mpd`), RTMP, RTSP, and HTTP-FLV** are tagged *extended* by `FKMediaFormatProbe`, but they are **not playable out of the box**.
+
+| Situation | What happens |
+|-----------|----------------|
+| No factory registered | Router uses ``FKExtendedPlayerEngine`` — a thin **AVPlayer best-effort** wrapper (same as registering a stub factory). |
+| Extended-only format, AV cannot open | Load fails with ``FKMediaError/unsupportedFormat`` or ``engineFailed`` after optional extended→AV fallback (see ``FKMediaEnginePolicy``). |
+| Production app needs MKV/DASH/RTMP | Implement ``FKMediaExtendedEngineFactory`` and register **once at launch** before loading those URLs. |
 
 ```swift
-FKMediaEngineRouter.registerExtendedEngineFactory(myFactory)
-// or
-FKMediaPlayerExtended.registerExtendedEngineFactory(myFactory)
+// AppDelegate / app startup — before any extended URL is loaded
+FKMediaPlayerExtended.registerExtendedEngineFactory(myDecoderFactory)
 ```
 
-Without a factory, extended routes use `FKExtendedPlayerEngine` (AVPlayer best-effort).
+```swift
+public protocol FKMediaExtendedEngineFactory: AnyObject {
+  func makeEngine(
+    networkSession: FKMediaNetworkSession,
+    presentationMode: FKMediaPresentationMode
+  ) -> FKMediaPlayerEngine
+}
+```
+
+**Do not assume** that calling `registerExtendedEngineFactory` alone enables MKV/DASH — you must supply an engine that actually decodes those containers (or transcode on the server and deliver HLS/MP4).
+
+See **FKKitExamples → VideoPlayer → Extended engine** for a stub factory, format probe table, and a failed-load demo.
 
 ## Key types
 
@@ -120,7 +136,7 @@ public enum FKMediaPresentationMode: Sendable {
 | Tier | Typical inputs | Engine |
 |------|----------------|--------|
 | **AV-native** | MP4, MOV, M4A, MP3, AAC, HLS, progressive HTTP | `FKAVPlayerEngine` |
-| **Extended** | MKV, WebM, some legacy containers, DASH/RTMP (with custom factory) | Registered factory or AV fallback |
+| **Extended** | MKV, WebM, DASH/RTMP/RTSP/FLV (probe only; needs **your** decoder factory) | Your `FKMediaExtendedEngineFactory` or AV best-effort fallback |
 | **Transcode** | Unsupported combinations | `FKMediaError.transcodingRequired` |
 
 Exact probing rules live in `FKMediaFormatProbe` and `FKMediaContainer`.
@@ -142,7 +158,7 @@ Player/Core/
 ## Limitations
 
 - **FairPlay**: `FKMediaFairPlayDRMPlugin` wires a resource-loader delegate; your app must supply `FKMediaFairPlayContentKeyProviding`.
-- **Extended codecs**: No FFmpeg/VLC is bundled; register a factory or rely on AV fallback.
+- **Extended codecs**: No FFmpeg/VLC is bundled. ``FKExtendedPlayerEngine`` is AV best-effort only; MKV/DASH/RTMP require a real ``FKMediaExtendedEngineFactory`` implementation (see FKKitExamples).
 - **One coordinator per playback session** is recommended; `MPRemoteCommandCenter` is process-wide.
 - **Unit tests** for Core are not shipped in this package target (add app-side tests as needed).
 

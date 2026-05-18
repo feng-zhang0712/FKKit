@@ -5,6 +5,7 @@ import ObjectiveC
 public enum FKVideoPlayerStrings {
   public static let play = NSLocalizedString("fk.video.play", bundle: .fkVideoPlayer, value: "Play", comment: "")
   public static let pause = NSLocalizedString("fk.video.pause", bundle: .fkVideoPlayer, value: "Pause", comment: "")
+  public static let loading = NSLocalizedString("fk.video.loading", bundle: .fkVideoPlayer, value: "Loading", comment: "")
   public static let retry = NSLocalizedString("fk.video.retry", bundle: .fkVideoPlayer, value: "Retry", comment: "")
   public static let fullscreen = NSLocalizedString("fk.video.fullscreen", bundle: .fkVideoPlayer, value: "Full screen", comment: "")
   public static let settings = NSLocalizedString("fk.video.settings", bundle: .fkVideoPlayer, value: "Playback settings", comment: "")

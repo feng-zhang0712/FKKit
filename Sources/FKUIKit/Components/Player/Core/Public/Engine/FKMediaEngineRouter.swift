@@ -12,10 +12,16 @@ public protocol FKMediaExtendedEngineFactory: AnyObject {
 /// Selects the playback engine from format metadata and policy.
 public enum FKMediaEngineRouter {
 
-  /// Optional factory for a custom extended engine (e.g. FFmpeg/VLC). When `nil`, ``FKExtendedPlayerEngine`` is used.
+  /// Optional factory for a decoder-backed extended engine (e.g. FFmpeg/VLC).
+  ///
+  /// When `nil`, routing still selects `.extended` for MKV/DASH/RTMP probes, but ``makeEngine`` uses
+  /// ``FKExtendedPlayerEngine`` (AVPlayer best-effort only — **not** a full MKV/DASH stack).
   public nonisolated(unsafe) static weak var extendedFactory: FKMediaExtendedEngineFactory?
 
-  /// Registers a custom extended-engine factory at app launch.
+  /// Registers a custom extended-engine factory at app launch (before loading extended-only URLs).
+  ///
+  /// Registering a stub that forwards to ``FKExtendedPlayerEngine`` does **not** add MKV/DASH support;
+  /// you must vend an engine that can actually decode those containers.
   public static func registerExtendedEngineFactory(_ factory: FKMediaExtendedEngineFactory) {
     extendedFactory = factory
   }

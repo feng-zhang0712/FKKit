@@ -2,9 +2,11 @@ import AVFoundation
 import Foundation
 import UIKit
 
-/// Best-effort extended engine using `AVPlayer` when FFmpeg/VLC is not linked.
+/// AVPlayer best-effort stand-in when no decoder factory is registered.
 ///
-/// Register ``FKMediaEngineRouter/extendedFactory`` with a custom factory to replace this implementation.
+/// This type is **not** an MKV/DASH/RTMP player. It delegates to ``FKAVPlayerEngine`` and re-maps failures to
+/// ``FKMediaError/unsupportedFormat`` when AV cannot open the asset. For real extended containers, register
+/// ``FKMediaEngineRouter/registerExtendedEngineFactory(_:)`` with FFmpeg/VLC (or transcode to HLS/MP4 server-side).
 @MainActor
 public final class FKExtendedPlayerEngine: FKMediaPlayerEngine {
 
