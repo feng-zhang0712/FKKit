@@ -190,11 +190,6 @@ final class ExampleMenuViewController: UITableViewController {
           subtitle: "Hub: full demo, equal-width hosts — see Examples/FKCompositeKit/Filter/README.md",
           make: { FKFilterExamplesHubViewController() }
         ),
-        ExampleMenuItem(
-          title: "ListKit",
-          subtitle: "Hub: FKListPlugin table (paging, skeleton, empty/error, FKListScreen)",
-          make: { FKListKitExamplesHubViewController() }
-        ),
       ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),
   ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }

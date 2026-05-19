@@ -90,8 +90,7 @@ FKKit/
 │     └─ Components/
 │        ├─ AnchoredDropdownController/
 │        ├─ Base/
-│        ├─ Filter/
-│        └─ ListKit/
+│        └─ Filter/
 └─ Examples/
 ```
 
@@ -138,7 +137,6 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 `FKCompositeKit` builds business-facing composite components on top of `FKCoreKit` + `FKUIKit`:
 
 - `Base`: reusable base foundation for cells and controllers — see `Sources/FKCompositeKit/Components/Base/README.md`.
-- `ListKit`: list state/pagination coordination and plugin-style list assembly — see `Sources/FKCompositeKit/Components/ListKit/README.md`.
 - `AnchoredDropdownController`: tab bar + anchor-embedded dropdown panels (e.g. filter UIs) built on `FKPresentationController` — see `Sources/FKCompositeKit/Components/AnchoredDropdownController/README.md`.
 - `Filter`: filter chrome and panels on top of **`AnchoredDropdownController`** (`FKFilterConfiguration`, `FKFilterController`, `FKFilterHosting`, panel kinds and factory) under `Sources/FKCompositeKit/Components/Filter/` (see sources alongside **`AnchoredDropdownController`** for integration patterns).
 
@@ -240,7 +238,7 @@ let trimmed = "  hello  ".fk_trimmed
 someView.fk_showSkeleton()
 
 // FKCompositeKit
-let pageManager = FKPageManager()
+let filterConfig = FKFilterConfiguration()
 ```
 
 For complete usage and advanced APIs, refer to each module README in `Sources/...`.

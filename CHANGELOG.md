@@ -4,6 +4,11 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Removed (FKCompositeKit — ListKit) **Breaking**
+
+- **ListKit** module and all public APIs (`FKListPlugin`, `FKPageManager`, `FKListStateManager`, `FKListScreen`, cell configuration protocols, etc.).
+- **Examples**: `FKListKitExamplesHubViewController`, `FKListKitTableExampleViewController`, and the ListKit example menu entry.
+
 ### Planned
 
 - Optional: Example app under `Examples/` (depending on this package locally)

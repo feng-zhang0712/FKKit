@@ -4,7 +4,7 @@ import UIKit
 /// a ``containerView`` root, reuse/t hooks, and optional card-style chrome.
 ///
 /// Override ``setupUI()`` and ``setupStyle()`` for structure and appearance; use ``bindData(_:)`` or
-/// ``FKListCollectionCellConfigurable`` `configure(with:)` on concrete subclasses.
+/// override `configure(with:)` on concrete subclasses.
 @MainActor
 open class FKBaseCollectionViewCell: UICollectionViewCell {
 

@@ -53,18 +53,7 @@ See `Composition/FKViewControllerCompositionProtocols.swift` and `FKViewControll
 
 ---
 
-## Relationship to **ListKit** (`FKCompositeKit/Components/ListKit`)
-
-| Need | Use |
-|------|-----|
-| Simple list + optional refresh on a **subclass** of `FKBaseTableViewController` / `FKBaseCollectionViewController` | Base controllers + your own data source |
-| Rich **pagination**, skeleton, empty/error overlays, refresh **state machine** without bloating the VC | **`FKListPlugin`** + retain on your view controller (see **`FKListScreen`**) |
-
-**Do not** attach **both** the base controller’s built-in refresh controls **and** a fully wired **`FKListPlugin`** to the same scroll view unless you explicitly disable one path — they would compete for the same header/footer attachments.
-
----
-
 ## Subclassing vs composition
 
 - **Subclass** `FKBase*` when you want a single place for lifecycle + shared chrome.
-- **Compose** `FKViewControllerComposite` or **`FKListPlugin`** when you need capabilities without a deep inheritance chain.
+- **Compose** `FKViewControllerComposite` when you need capabilities without a deep inheritance chain.
