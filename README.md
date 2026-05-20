@@ -31,20 +31,20 @@
 FKKit is a modular, pure-native Swift component library for iOS applications.  
 It is built on top of Apple system frameworks and distributed via **Swift Package Manager (SPM)** and **CocoaPods** (see root `*.podspec` files), with no third-party runtime dependencies.
 
-The repository is organized into three product modules:
-- `FKCoreKit`
+The repository is organized into three primary product modules:
+- `FKCoreKit` (includes `Pluggable/` protocol contracts for networking, analytics, storage, routing, etc.)
 - `FKUIKit`
 - `FKCompositeKit`
 
 Each module focuses on a different layer of app development, from infrastructure and utilities to UI components and composite business widgets.
 
-In addition, the package exposes a small Foundation-only product for EmptyState core logic (also linked by **`FKUIKit`** and re-exported for convenience):
-- `FKEmptyStateCoreLite` (resolver + i18n + `FKEmptyStateType` / factory; no UIKit dependency)
+Additional products:
+- `FKEmptyStateCoreLite` — Foundation-only EmptyState resolver + i18n (also linked by **`FKUIKit`**)
 
 ## Features
 - Pure Swift implementation (Swift 6 language mode in package settings).
 - No third-party dependencies.
-- Swift Package Manager and CocoaPods integration (four published pod names mirror SPM products).
+- Swift Package Manager and CocoaPods integration (published pod names mirror SPM products).
 - Continuous integration via **GitHub Actions**: builds and runs **unit tests** for the Swift package on **iOS Simulator** on selected branches and PRs (see `.github/workflows/ci.yml`).
 - Modular architecture with clear package products.
 - Protocol-oriented design in multiple components for extensibility and testability.
@@ -66,6 +66,7 @@ FKKit/
 │  │  ├─ Logger/
 │  │  ├─ Network/
 │  │  ├─ Permissions/
+│  │  ├─ Pluggable/
 │  │  ├─ Security/
 │  │  ├─ Storage/
 │  │  └─ Utils/
@@ -99,6 +100,7 @@ FKKit/
 ### FKCoreKit
 `FKCoreKit` provides foundational capabilities used across app layers:
 
+- `Pluggable`: protocol-only contracts for dependency injection (networking, analytics, storage, session, routing, logging, images, list cells). See [`Sources/FKCoreKit/Pluggable/README.md`](Sources/FKCoreKit/Pluggable/README.md).
 - `Network`: URLSession-based networking stack (request models, interceptors, caching, upload/download helpers).
 - `Storage`: multi-backend storage abstraction (UserDefaults, Keychain, file, memory) with Codable support.
 - `Logger`: structured logging, formatting, file persistence, and diagnostics helpers.

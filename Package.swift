@@ -58,6 +58,7 @@ let package = Package(
         "Security/README.md",
         "Storage/README.md",
         "Utils/README.md",
+        "Pluggable/README.md",
       ]
     ),
     .target(

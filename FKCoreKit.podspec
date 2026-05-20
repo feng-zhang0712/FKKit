@@ -1,11 +1,11 @@
 Pod::Spec.new do |s|
   s.name = 'FKCoreKit'
   s.version = '0.51.0'
-  s.summary = 'FKKit core module: networking, storage, security, utilities, and extensions.'
+  s.summary = 'FKKit core module: pluggable protocols, networking, storage, security, and utilities.'
   s.description = <<-DESC
-    Foundation layer for the FKKit family: async helpers, business utilities,
-    file I/O, logging, networking, permissions, security, storage, and the
-    FKCoreKit Extension helpers (Foundation / CoreGraphics / UIKit).
+    Foundation layer for the FKKit family: pluggable protocol contracts (Pluggable/),
+    async helpers, business utilities, file I/O, logging, networking, permissions,
+    security, storage, and Extension helpers (Foundation / CoreGraphics / UIKit).
   DESC
   s.homepage = 'https://github.com/feng-zhang0712/FKKit'
   s.license = { :type => 'MIT', :file => 'LICENSE' }
