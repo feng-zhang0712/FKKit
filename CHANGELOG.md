@@ -4,14 +4,30 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Planned
+
+- Optional: Example app under `Examples/` (depending on this package locally)
+
+## [0.52.0] - 2026-05-20
+
+### Added (FKCoreKit — Pluggable)
+
+- **`Sources/FKCoreKit/Pluggable/`**: protocol-only contracts for dependency injection (networking, analytics, storage, session, configuration, localization, routing, logging, media, UIKit list cells, text input).
+- **`FKPluggable`**: `contractVersion` and module README for wiring at app launch.
+- **Examples**: `FKPluggableExamplesHubViewController` and per-area demos under **`Examples/FKKitExamples/.../Pluggable/`** (menu entry under FKCoreKit).
+
+### Fixed (FKCoreKit — Pluggable)
+
+- **`FKCodableStoring`**: default `set(_:forKey:)` no longer recurses infinitely when persisting **`Data`** (explicit `Data` overload and `FKKeyValueStoring` dispatch helper).
+
 ### Removed (FKCompositeKit — ListKit) **Breaking**
 
 - **ListKit** module and all public APIs (`FKListPlugin`, `FKPageManager`, `FKListStateManager`, `FKListScreen`, cell configuration protocols, etc.).
 - **Examples**: `FKListKitExamplesHubViewController`, `FKListKitTableExampleViewController`, and the ListKit example menu entry.
 
-### Planned
+### Changed (CocoaPods)
 
-- Optional: Example app under `Examples/` (depending on this package locally)
+- Root **`*.podspec`**: **`s.version`** set to **0.52.0** (Git tag **`0.52.0`**).
 
 ## [0.51.0] - 2026-05-18
 
@@ -2179,7 +2195,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.51.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.52.0...HEAD
+[0.52.0]: https://github.com/feng-zhang0712/FKKit/compare/0.51.0...0.52.0
 [0.51.0]: https://github.com/feng-zhang0712/FKKit/compare/0.50.2...0.51.0
 [0.50.2]: https://github.com/feng-zhang0712/FKKit/compare/0.50.1...0.50.2
 [0.50.1]: https://github.com/feng-zhang0712/FKKit/compare/0.50.0...0.50.1
