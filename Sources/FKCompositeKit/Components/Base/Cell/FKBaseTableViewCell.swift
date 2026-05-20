@@ -4,7 +4,7 @@ import UIKit
 /// consistent hooks for layout and reuse, and optional card-style chrome (corner radius, shadow).
 ///
 /// Subclasses should add subviews inside ``containerView`` (not directly on ``contentView``) and override
-/// ``setupUI()``, ``setupStyle()``, and ``bindData(_:)`` (or use ``FKListTableCellConfigurable`` with `configure(with:)` on the subclass).
+/// ``setupUI()``, ``setupStyle()``, and ``bindData(_:)`` (or override `configure(with:)` on the subclass).
 @MainActor
 open class FKBaseTableViewCell: UITableViewCell {
 

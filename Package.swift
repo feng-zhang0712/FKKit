@@ -58,6 +58,7 @@ let package = Package(
         "Security/README.md",
         "Storage/README.md",
         "Utils/README.md",
+        "Pluggable/README.md",
       ]
     ),
     .target(
@@ -68,7 +69,6 @@ let package = Package(
         // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
         "Components/AnchoredDropdownController/README.md",
         "Components/Base/README.md",
-        "Components/ListKit/README.md",
       ]
     ),
     .testTarget(

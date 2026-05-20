@@ -155,6 +155,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKPermissionsExampleViewController() }
         ),
         ExampleMenuItem(
+          title: "Pluggable",
+          subtitle: "Protocol contracts: networking, analytics, storage, session, routing, UIKit cells",
+          make: { FKPluggableExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Security",
           subtitle: "Hash, AES, RSA, Base64/HEX/URL, HMAC, random, masking, wipe, anti-debug",
           make: { FKSecurityExampleViewController() }
@@ -189,11 +194,6 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Filter",
           subtitle: "Hub: full demo, equal-width hosts — see Examples/FKCompositeKit/Filter/README.md",
           make: { FKFilterExamplesHubViewController() }
-        ),
-        ExampleMenuItem(
-          title: "ListKit",
-          subtitle: "Hub: FKListPlugin table (paging, skeleton, empty/error, FKListScreen)",
-          make: { FKListKitExamplesHubViewController() }
         ),
       ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),
