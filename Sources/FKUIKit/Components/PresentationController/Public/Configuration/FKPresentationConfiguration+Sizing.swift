@@ -54,7 +54,11 @@ public extension FKPresentationConfiguration {
     public var grabberSize: CGSize
     /// Grabber top spacing in points.
     public var grabberTopInset: CGFloat
-    /// Dismiss threshold in points beyond the min/max detent.
+    /// Base dismiss distance (points) measured along the dismiss axis when the gesture ends at the smallest detent.
+    ///
+    /// This is a deliberate-pull guard, not a tap target. The default is higher than the HIG 44pt minimum so
+    /// short accidental drags are less likely to dismiss. Use ``resolvedDismissThreshold(smallestDetentHeight:)``
+    /// at runtime; it may raise this value when the smallest resolved detent is tall.
     public var dismissThreshold: CGFloat
     /// Velocity threshold for deciding whether a swipe should dismiss.
     public var dismissVelocityThreshold: CGFloat
@@ -83,7 +87,7 @@ public extension FKPresentationConfiguration {
       prefersGrabberVisible: Bool = true,
       grabberSize: CGSize = .init(width: 36, height: 5),
       grabberTopInset: CGFloat = 8,
-      dismissThreshold: CGFloat = 44,
+      dismissThreshold: CGFloat = 80,
       dismissVelocityThreshold: CGFloat = 1200,
       scrollTrackingStrategy: FKSheetScrollTrackingStrategy = .automatic,
       enablesMagneticSnapping: Bool = true,
@@ -110,6 +114,15 @@ public extension FKPresentationConfiguration {
       self.widthPolicy = widthPolicy
       self.multiStageBackdrop = multiStageBackdrop
       self.crossDetentSwipeDismissPolicy = crossDetentSwipeDismissPolicy
+    }
+
+    private static let dismissThresholdSmallestDetentFraction: CGFloat = 0.10
+    private static let dismissThresholdMaximumCap: CGFloat = 120
+
+    /// Effective dismiss distance for the current sheet geometry (base threshold, detent-aware scaling, capped).
+    func resolvedDismissThreshold(smallestDetentHeight: CGFloat) -> CGFloat {
+      let scaled = max(0, smallestDetentHeight) * Self.dismissThresholdSmallestDetentFraction
+      return min(max(dismissThreshold, scaled), Self.dismissThresholdMaximumCap)
     }
   }
 

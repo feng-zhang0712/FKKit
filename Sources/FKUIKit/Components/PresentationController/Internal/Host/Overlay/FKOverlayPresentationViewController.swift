@@ -457,7 +457,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
     let minHeight = resolvedDetentHeights.min() ?? 240
     let maxHeight = resolvedDetentHeights.max() ?? bounds.height * 0.9
-    let dismissThreshold = configuration.sheet.dismissThreshold
+    let dismissThreshold = configuration.sheet.resolvedDismissThreshold(smallestDetentHeight: minHeight)
 
     switch configuration.layout {
     case .bottomSheet(_):
@@ -528,7 +528,8 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private func sheetShouldDismiss(translationY: CGFloat, velocityY: CGFloat) -> Bool {
     guard configuration.dismissBehavior.allowsSwipe else { return false }
-    let threshold = configuration.sheet.dismissThreshold
+    let minHeight = resolvedDetentHeights.min() ?? 240
+    let threshold = configuration.sheet.resolvedDismissThreshold(smallestDetentHeight: minHeight)
     let velocityThreshold = configuration.sheet.dismissVelocityThreshold
 
     switch configuration.layout {

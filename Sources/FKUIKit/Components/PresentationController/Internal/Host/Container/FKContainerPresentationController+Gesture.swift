@@ -228,7 +228,7 @@ extension FKContainerPresentationController {
     let bottomY = containerView.bounds.height - bottomExtra
     let minHeight = resolvedDetentHeights.min() ?? 240
     let maxHeight = resolvedDetentHeights.max() ?? containerView.bounds.height * 0.9
-    let dismissThreshold = configuration.sheet.dismissThreshold
+    let dismissThreshold = configuration.sheet.resolvedDismissThreshold(smallestDetentHeight: minHeight)
 
     let inDismissPullBranch = sheetDismissPullBranchActive(translationY: translationY, in: containerView)
 
@@ -259,7 +259,7 @@ extension FKContainerPresentationController {
     let maxY = sheetMaxY(in: containerView)
     if inDismissPullBranch {
       // At smallest detent, downward drag is dismiss / off-screen follow-through. Do not cap at
-      // `maxY + dismissThreshold` (~44pt) or the sheet stops moving while the finger keeps going
+      // `maxY + dismissThreshold` or the sheet stops moving while the finger keeps going
       // (feels "stuck"), then often snaps back on release.
       frame.origin.y = max(frame.origin.y, minY - dismissThreshold)
     } else {
@@ -288,7 +288,7 @@ extension FKContainerPresentationController {
     let minY = sheetMinY(in: containerView)
     let minHeight = resolvedDetentHeights.min() ?? 240
     let maxHeight = resolvedDetentHeights.max() ?? containerView.bounds.height * 0.9
-    let dismissThreshold = configuration.sheet.dismissThreshold
+    let dismissThreshold = configuration.sheet.resolvedDismissThreshold(smallestDetentHeight: minHeight)
 
     let inDismissPullBranch = sheetDismissPullBranchActive(translationY: translationY, in: containerView)
 
@@ -314,7 +314,7 @@ extension FKContainerPresentationController {
     }
 
     if inDismissPullBranch {
-      // Do not cap upward dismiss travel to ~44pt; allow following the finger off-screen.
+      // Do not cap upward dismiss travel to a small rubber-band; allow following the finger off-screen.
       frame.origin.y = min(frame.origin.y, minY)
     }
 
@@ -358,7 +358,9 @@ extension FKContainerPresentationController {
 
   func sheetShouldDismiss(translationY: CGFloat, velocityY: CGFloat, in containerView: UIView) -> Bool {
     guard configuration.dismissBehavior.allowsSwipe else { return false }
-    let threshold = configuration.sheet.dismissThreshold
+    recalculateDetentsIfNeeded()
+    let minHeight = resolvedDetentHeights.min() ?? 240
+    let threshold = configuration.sheet.resolvedDismissThreshold(smallestDetentHeight: minHeight)
     let velocityThreshold = configuration.sheet.dismissVelocityThreshold
 
     switch configuration.layout {
