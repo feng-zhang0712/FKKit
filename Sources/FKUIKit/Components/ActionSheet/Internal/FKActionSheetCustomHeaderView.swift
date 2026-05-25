@@ -1,5 +1,6 @@
 import UIKit
 
+/// Hosts integrator-built header content above the action table.
 @MainActor
 final class FKActionSheetCustomHeaderView: UIView {
   private let hostView = UIView()

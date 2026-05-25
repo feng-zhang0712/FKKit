@@ -57,15 +57,7 @@ public final class FKActionSheetHandle {
 
   /// Updates a single action in place when the identifier matches.
   public func updateAction(_ action: FKActionSheetAction) {
-    var updated = configuration
-    updated.sections = updated.sections.map { section in
-      var copy = section
-      copy.actions = section.actions.map { $0.id == action.id ? action : $0 }
-      return copy
-    }
-    if updated.cancelAction?.id == action.id {
-      updated.cancelAction = action
-    }
+    let updated = configuration.replacingAction(action)
     guard Self.isValid(updated) else { return }
     applyConfiguration(updated, reloadTable: false)
     contentController.refreshAction(action)
@@ -109,9 +101,5 @@ public final class FKActionSheetHandle {
   func consumePendingDismissReason(default reason: FKActionSheetDismissReason) -> FKActionSheetDismissReason {
     defer { pendingDismissReason = nil }
     return pendingDismissReason ?? reason
-  }
-
-  func replacePresentationController(_ controller: FKPresentationController) {
-    presentationController = controller
   }
 }

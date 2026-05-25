@@ -172,9 +172,7 @@ public enum FKActionSheet {
     let session = FKActionSheetSession(
       handle: handle,
       configuration: resolvedConfiguration,
-      presentationController: presentation,
-      hostContext: hostContext,
-      presenter: presenter
+      presentationController: presentation
     )
     session.onDidPresentExtra = {
       content.focusAccessibility()
@@ -214,7 +212,7 @@ public enum FKActionSheet {
       let dismissReason: FKActionSheetDismissReason = isCancel ? .userCancel : .actionSelected
 
       if case .single = configuration.selection.mode, !isCancel {
-        session.applySingleSelection(action: action, sectionID: sectionID)
+        session.applySingleSelection(action: action)
         if configuration.selection.keepsSheetPresentedOnSelection {
           invokeHandler(for: action, timing: configuration.handlerTiming, handle: handle, shouldDismiss: false)
           return

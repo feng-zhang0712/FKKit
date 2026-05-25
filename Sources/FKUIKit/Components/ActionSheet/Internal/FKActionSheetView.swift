@@ -1,11 +1,13 @@
 import UIKit
 
+/// Callbacks from the grouped table that renders action rows.
 @MainActor
 protocol FKActionSheetViewDelegate: AnyObject {
   func actionSheetView(_ view: FKActionSheetView, didSelect action: FKActionSheetAction, sectionID: UUID?, isCancelGroup: Bool)
   func actionSheetView(_ view: FKActionSheetView, didToggle action: FKActionSheetAction, isOn: Bool)
 }
 
+/// UITableView-backed action list (header, sections, cancel group).
 @MainActor
 final class FKActionSheetView: UIView {
   weak var delegate: FKActionSheetViewDelegate?
@@ -405,7 +407,7 @@ extension FKActionSheetView: UITableViewDataSource, UITableViewDelegate {
         appearance: currentConfiguration.appearance,
         isCancelGroup: isCancel,
         selectionIndicatorStyle: currentConfiguration.selection.indicatorStyle,
-        selectionModeActive: usesSelectionAccessory
+        selectionModeActive: isSelectionModeActive
       )
       cell.backgroundColor = currentConfiguration.appearance.cellBackgroundColor
       return cell
@@ -523,7 +525,8 @@ extension FKActionSheetView: UITableViewDataSource, UITableViewDelegate {
     return false
   }
 
-  private var usesSelectionAccessory: Bool {
+  /// Whether ``FKActionSheetSelectionConfiguration/mode`` is single-selection (accessories may show).
+  private var isSelectionModeActive: Bool {
     switch currentConfiguration.selection.mode {
     case .none:
       return false

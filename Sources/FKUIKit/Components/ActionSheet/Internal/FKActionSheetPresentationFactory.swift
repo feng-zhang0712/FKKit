@@ -1,5 +1,6 @@
 import UIKit
 
+/// Maps ``FKActionSheetPresentationConfiguration`` to ``FKPresentationConfiguration``.
 @MainActor
 enum FKActionSheetPresentationFactory {
   static func makePresentationConfiguration(

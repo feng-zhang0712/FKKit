@@ -1,13 +1,11 @@
 import UIKit
 
+/// Coordinates presentation lifecycle, selection updates, and configuration mutations for one sheet instance.
 @MainActor
 final class FKActionSheetSession {
   let handle: FKActionSheetHandle
   private(set) var configuration: FKActionSheetConfiguration
   let haptics = FKActionSheetHaptics()
-
-  let hostContext: FKActionSheetPresentationHostContext
-  weak var presenter: UIViewController?
 
   private weak var presentationController: FKPresentationController?
   private var lastInteractiveDismissProgress: CGFloat = 0
@@ -17,15 +15,11 @@ final class FKActionSheetSession {
   init(
     handle: FKActionSheetHandle,
     configuration: FKActionSheetConfiguration,
-    presentationController: FKPresentationController,
-    hostContext: FKActionSheetPresentationHostContext,
-    presenter: UIViewController
+    presentationController: FKPresentationController
   ) {
     self.handle = handle
     self.configuration = configuration
     self.presentationController = presentationController
-    self.hostContext = hostContext
-    self.presenter = presenter
     haptics.prepare(configuration: configuration.haptics)
     bindPresentationHandlers(to: presentationController)
   }
@@ -34,11 +28,6 @@ final class FKActionSheetSession {
     self.configuration = configuration
     haptics.prepare(configuration: configuration.haptics)
     presentationController?.handlers = makePresentationHandlers()
-  }
-
-  func rebindPresentationHandlers(to presentation: FKPresentationController) {
-    presentationController = presentation
-    bindPresentationHandlers(to: presentation)
   }
 
   func updateToggleValue(actionID: UUID, isOn: Bool) {
@@ -106,33 +95,11 @@ final class FKActionSheetSession {
     configuration.delegate?.actionSheet(handle, didSelect: action)
   }
 
-  func applySingleSelection(action: FKActionSheetAction, sectionID: UUID?) {
+  func applySingleSelection(action: FKActionSheetAction) {
+    guard case .single = configuration.selection.mode else { return }
     var updated = configuration
-    switch configuration.selection.mode {
-    case .none:
-      return
-    case .single(let scope):
-      updated.sections = updated.sections.map { section in
-        var copy = section
-        copy.actions = section.actions.map { row in
-          var rowCopy = row
-          let inScope: Bool = {
-            switch scope {
-            case .allSections:
-              return true
-            case .section(let id):
-              return section.id == id
-            }
-          }()
-          if inScope {
-            rowCopy.isSelected = row.id == action.id
-          }
-          return rowCopy
-        }
-        return copy
-      }
-    }
     updated.selection.selectedActionID = action.id
+    updated = updated.applyingSelectionState()
     configuration = updated
     handle.reload(configuration: updated)
   }

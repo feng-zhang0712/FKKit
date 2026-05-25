@@ -12,15 +12,7 @@ public extension FKActionSheetConfiguration {
       var sectionCopy = section
       sectionCopy.actions = section.actions.map { action in
         var actionCopy = action
-        let inScope: Bool = {
-          switch scope {
-          case .allSections:
-            return true
-          case .section(let id):
-            return section.id == id
-          }
-        }()
-        if inScope {
+        if scope.contains(sectionID: section.id) {
           actionCopy.isSelected = action.id == selectedActionID
         }
         return actionCopy

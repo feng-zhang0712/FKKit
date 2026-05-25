@@ -1,5 +1,6 @@
 import UIKit
 
+/// Resolves the view controller used to present the sheet from ``FKActionSheetPresentationHostContext``.
 @MainActor
 enum FKActionSheetPresenterResolver {
   static func resolvePresenter(

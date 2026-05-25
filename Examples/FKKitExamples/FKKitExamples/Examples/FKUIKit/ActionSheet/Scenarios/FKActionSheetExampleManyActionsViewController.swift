@@ -60,7 +60,7 @@ final class FKActionSheetExampleManyActionsViewController: FKActionSheetExampleB
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Scrollable list",
-        description: "No header. Uses presentation.maximumPanelHeightFraction (default 50% of screen) so long lists scroll. Optional single-selection remembers the last choice via selection.selectedActionID.",
+        description: "No header. Uses presentation.maximumFitContentHeightFraction (default 50% of screen) so long lists scroll. Optional single-selection remembers the last choice via selection.selectedActionID.",
         body: body
       )
     )

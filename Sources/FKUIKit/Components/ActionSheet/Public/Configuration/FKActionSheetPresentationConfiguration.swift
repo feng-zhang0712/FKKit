@@ -21,8 +21,6 @@ public struct FKActionSheetPresentationConfiguration: Equatable, Sendable {
   ///
   /// When set, the effective cap is `min(maximumPanelHeight, fractionCap)`.
   public var maximumPanelHeight: CGFloat?
-  /// Legacy alias for ``maximumPanelHeight``; when both are set, ``maximumPanelHeight`` wins.
-  public var maximumContentHeight: CGFloat?
   /// Overrides ``FKPresentationConfiguration/cornerRadius`` shadow; `.none` is typical for action sheets.
   public var containerShadow: FKLayerShadowStyle
   /// When `true`, uses a shorter fade preset while Reduce Motion is enabled.
@@ -39,7 +37,6 @@ public struct FKActionSheetPresentationConfiguration: Equatable, Sendable {
     cornerRadius: CGFloat = 0,
     maximumFitContentHeightFraction: CGFloat = 0.5,
     maximumPanelHeight: CGFloat? = nil,
-    maximumContentHeight: CGFloat? = nil,
     containerShadow: FKLayerShadowStyle = .none,
     respectsReduceMotion: Bool = true
   ) {
@@ -49,14 +46,13 @@ public struct FKActionSheetPresentationConfiguration: Equatable, Sendable {
     self.cornerRadius = max(0, cornerRadius)
     self.maximumFitContentHeightFraction = min(max(maximumFitContentHeightFraction, 0.2), 1)
     self.maximumPanelHeight = maximumPanelHeight.map { max(0, $0) }
-    self.maximumContentHeight = maximumContentHeight.map { max(0, $0) }
     self.containerShadow = containerShadow
     self.respectsReduceMotion = respectsReduceMotion
   }
 
   /// Resolved absolute content-height cap, if any.
   var resolvedMaximumPanelHeight: CGFloat? {
-    maximumPanelHeight ?? maximumContentHeight
+    maximumPanelHeight
   }
 }
 

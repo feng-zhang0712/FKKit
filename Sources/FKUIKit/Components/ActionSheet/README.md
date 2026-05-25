@@ -17,7 +17,7 @@ HIG-oriented action sheet for UIKit apps. Presentation (backdrop, bottom sheet s
 | `Public/Configuration/` | Appearance, presentation, haptics, selection |
 | `Public/Model/` | Actions, sections, header, toggle, host context, dismiss reasons |
 | `Public/SwiftUI/` | `View.fkActionSheet` modifier |
-| `Extension/` | Builder, handlers, toggle, SF Symbol, alert migration |
+| `Extension/` | Builder, handlers, toggle, SF Symbol, alert migration, selection scope, action replacement |
 | `Internal/` | Content VC, table UI, cells, presentation mapping, session, validation |
 
 ## Quick start

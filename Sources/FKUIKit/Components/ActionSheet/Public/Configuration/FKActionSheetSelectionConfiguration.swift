@@ -1,6 +1,6 @@
 import Foundation
 
-/// Mutual exclusion and selection behavior for checkmark rows.
+/// Mutual exclusion and selection behavior for single-selection action rows.
 public struct FKActionSheetSelectionConfiguration: Equatable, Sendable {
   /// Selection behavior applied when rows are tapped.
   public enum Mode: Equatable, Sendable {
@@ -12,9 +12,9 @@ public struct FKActionSheetSelectionConfiguration: Equatable, Sendable {
 
   /// Scope used by ``Mode/single(scope:)``.
   public enum Scope: Equatable, Sendable {
-    /// Only one selected row across all sections.
+    /// Only one selected row may be active across all sections.
     case allSections
-    /// Only one selected row inside a specific section identifier.
+    /// Only one selected row may be active inside the section with this identifier.
     case section(id: UUID)
   }
 

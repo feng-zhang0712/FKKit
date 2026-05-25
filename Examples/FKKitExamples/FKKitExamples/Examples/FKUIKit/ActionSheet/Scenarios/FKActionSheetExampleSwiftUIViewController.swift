@@ -75,17 +75,20 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
         },
       ],
       onDismiss: { reason in
-        statusMessage = "Basics dismissed: \(String(describing: reason))"
+        let message = "Basics dismissed: \(String(describing: reason))"
+        Task { @MainActor in statusMessage = message }
       },
       onPresentFailure: { error in
-        statusMessage = "Present failed: \(error)"
+        let message = "Present failed: \(error)"
+        Task { @MainActor in statusMessage = message }
       }
     )
     .fkActionSheet(
       isPresented: $showToggle,
       configuration: toggleConfiguration,
       onDismiss: { reason in
-        statusMessage = "Toggle dismissed: \(String(describing: reason))"
+        let message = "Toggle dismissed: \(String(describing: reason))"
+        Task { @MainActor in statusMessage = message }
       }
     )
   }

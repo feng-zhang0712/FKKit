@@ -1,5 +1,6 @@
 import UIKit
 
+/// Toggle switch row that updates in place without dismissing the sheet.
 @MainActor
 final class FKActionSheetToggleCell: UITableViewCell {
   static let defaultReuseIdentifier = "FKActionSheetToggleRow"

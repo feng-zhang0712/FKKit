@@ -1,5 +1,6 @@
 import UIKit
 
+/// Standard title/subtitle row with optional symbol, loading state, and selection accessory.
 @MainActor
 final class FKActionSheetActionCell: UITableViewCell {
   static let reuseIdentifier = "FKActionSheetActionCell"
@@ -222,7 +223,7 @@ final class FKActionSheetActionCell: UITableViewCell {
     if action.isSelected {
       return titleColor
     }
-    return appearance.checkmarkTintColor
+    return appearance.selectionIndicatorTintColor
   }
 
   private func selectionAccessoryMode(

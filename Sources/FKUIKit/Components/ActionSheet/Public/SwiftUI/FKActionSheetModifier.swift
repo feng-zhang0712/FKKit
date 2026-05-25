@@ -70,8 +70,12 @@ private struct FKActionSheetPresenterRepresentable: UIViewControllerRepresentabl
         context.coordinator.handle = handle
       } catch {
         context.coordinator.handle = nil
-        isPresented = false
-        onPresentFailure?(error)
+        let failure = error
+        let reportFailure = onPresentFailure
+        schedulePresentationBindingUpdate {
+          isPresented = false
+          reportFailure?(failure)
+        }
       }
     } else if let handle = context.coordinator.handle, handle.isPresented {
       handle.dismiss(reason: .programmatic, animated: true)
@@ -88,13 +92,23 @@ private struct FKActionSheetPresenterRepresentable: UIViewControllerRepresentabl
   private func configurationForPresentation(coordinator: Coordinator) -> FKActionSheetConfiguration {
     var config = configuration
     let priorDidDismiss = config.hooks.didDismiss
+    let reportDismiss = onDismiss
     config.hooks.didDismiss = { reason in
-      priorDidDismiss?(reason)
-      coordinator.handle = nil
-      isPresented = false
-      onDismiss?(reason)
+      schedulePresentationBindingUpdate {
+        priorDidDismiss?(reason)
+        coordinator.handle = nil
+        isPresented = false
+        reportDismiss?(reason)
+      }
     }
     return config
+  }
+
+  /// Defers binding and callback updates so SwiftUI is not mutated during `body` / `updateUIViewController`.
+  private func schedulePresentationBindingUpdate(_ update: @escaping @MainActor () -> Void) {
+    Task { @MainActor in
+      update()
+    }
   }
 
   final class Coordinator {

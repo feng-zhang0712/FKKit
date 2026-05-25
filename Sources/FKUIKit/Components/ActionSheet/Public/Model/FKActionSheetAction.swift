@@ -4,8 +4,11 @@ import UIKit
 public struct FKActionSheetAction: Identifiable, Equatable {
   /// Visual and behavioral style aligned with `UIAlertAction.Style`.
   public enum Style: Equatable, Sendable {
+    /// Standard action styling.
     case `default`
+    /// Destructive action styling (typically red).
     case destructive
+    /// Cancel action styling; usually placed in a separate group.
     case cancel
   }
 
@@ -23,7 +26,7 @@ public struct FKActionSheetAction: Identifiable, Equatable {
   public var style: Style
   /// When `false`, taps are ignored.
   public var isEnabled: Bool
-  /// Shows a trailing checkmark when `true` (standard rows only).
+  /// Selection state for single-selection groups (check, radio, and/or highlighted title).
   public var isSelected: Bool
   /// Shows a trailing activity indicator and blocks taps (standard rows only).
   public var isLoading: Bool
@@ -114,18 +117,13 @@ public struct FKActionSheetAction: Identifiable, Equatable {
     self.toggleValueChanged = nil
   }
 
-  /// Whether this row uses host-provided content.
-  public var isCustomRow: Bool {
-    if case .custom = rowContent { return true }
-    return false
-  }
-
   /// Whether this row is a toggle row.
   public var isToggleRow: Bool {
     if case .toggle = rowContent { return true }
     return false
   }
 
+  /// Compares identity and visible row state; handler closures are intentionally excluded.
   public static func == (lhs: FKActionSheetAction, rhs: FKActionSheetAction) -> Bool {
     lhs.id == rhs.id
       && lhs.rowContent == rhs.rowContent

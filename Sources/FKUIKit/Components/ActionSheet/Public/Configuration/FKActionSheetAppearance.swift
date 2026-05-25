@@ -50,8 +50,8 @@ public struct FKActionSheetAppearance: Equatable, Sendable {
   public var headerMessageColor: UIColor
   /// Leading symbol tint.
   public var iconTintColor: UIColor
-  /// Tint for unselected radio rows and selection icons when ``selectedTitleColor`` is not used.
-  public var checkmarkTintColor: UIColor
+  /// Tint for unselected radio rows and selection icons when the row title is not highlighted.
+  public var selectionIndicatorTintColor: UIColor
   /// Accent color for selected rows (title highlight and check / radio icons).
   public var selectedTitleColor: UIColor
   /// Table / scroll background behind grouped cells.
@@ -90,7 +90,7 @@ public struct FKActionSheetAppearance: Equatable, Sendable {
     headerTitleColor: UIColor = .secondaryLabel,
     headerMessageColor: UIColor = .secondaryLabel,
     iconTintColor: UIColor = .label,
-    checkmarkTintColor: UIColor = .label,
+    selectionIndicatorTintColor: UIColor = .label,
     selectedTitleColor: UIColor = .systemBlue,
     backgroundColor: UIColor = .systemBackground,
     cellBackgroundColor: UIColor = .systemBackground,
@@ -118,7 +118,7 @@ public struct FKActionSheetAppearance: Equatable, Sendable {
     self.headerTitleColor = headerTitleColor
     self.headerMessageColor = headerMessageColor
     self.iconTintColor = iconTintColor
-    self.checkmarkTintColor = checkmarkTintColor
+    self.selectionIndicatorTintColor = selectionIndicatorTintColor
     self.selectedTitleColor = selectedTitleColor
     self.backgroundColor = backgroundColor
     self.cellBackgroundColor = cellBackgroundColor

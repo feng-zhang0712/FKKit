@@ -1,5 +1,6 @@
 import Foundation
 
+/// Validates action-sheet configurations before presentation or reload.
 enum FKActionSheetValidator {
   static func validate(_ configuration: FKActionSheetConfiguration) throws {
     let actions = configuration.allActions

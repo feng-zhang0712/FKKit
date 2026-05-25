@@ -1,5 +1,6 @@
 import UIKit
 
+/// Hosts integrator-built custom row content with optional fixed height.
 @MainActor
 final class FKActionSheetCustomRowCell: UITableViewCell {
   private let hostView = UIView()

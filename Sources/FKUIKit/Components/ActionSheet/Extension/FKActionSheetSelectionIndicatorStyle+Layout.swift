@@ -1,5 +1,6 @@
 import Foundation
 
+/// Layout helpers for mapping ``FKActionSheetSelectionIndicatorStyle`` to row rendering.
 extension FKActionSheetSelectionIndicatorStyle {
   var usesCheck: Bool {
     switch self {
@@ -17,10 +18,6 @@ extension FKActionSheetSelectionIndicatorStyle {
     case .highlightedTitle, .check, .checkAndHighlightedTitle:
       return false
     }
-  }
-
-  var usesSelectionAccessory: Bool {
-    usesCheck || usesRadio
   }
 
   var usesHighlightedTitle: Bool {

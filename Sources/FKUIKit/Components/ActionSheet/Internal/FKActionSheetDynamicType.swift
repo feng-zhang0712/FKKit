@@ -1,5 +1,6 @@
 import UIKit
 
+/// Dynamic Type scaling with optional maximum point sizes for sheet typography.
 enum FKActionSheetDynamicType {
   static func scaledFont(_ font: UIFont, textStyle: UIFont.TextStyle, maximumPointSize: CGFloat? = nil) -> UIFont {
     let metrics = UIFontMetrics(forTextStyle: textStyle)

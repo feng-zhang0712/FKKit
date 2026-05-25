@@ -1,5 +1,6 @@
 import UIKit
 
+/// Hosted content for ``FKPresentationController``; owns sizing and row interaction wiring.
 @MainActor
 final class FKActionSheetContentViewController: UIViewController {
   var onPreferredContentSizeChange: (() -> Void)?
@@ -42,22 +43,9 @@ final class FKActionSheetContentViewController: UIViewController {
 
   /// Updates one row without a full table reload when the row is already visible.
   func refreshAction(_ action: FKActionSheetAction) {
-    configuration = configurationReplacing(action)
+    configuration = configuration.replacingAction(action)
     actionSheetView.refreshAction(action)
     updatePreferredContentSize(force: true)
-  }
-
-  private func configurationReplacing(_ action: FKActionSheetAction) -> FKActionSheetConfiguration {
-    var updated = configuration
-    updated.sections = updated.sections.map { section in
-      var copy = section
-      copy.actions = section.actions.map { $0.id == action.id ? action : $0 }
-      return copy
-    }
-    if updated.cancelAction?.id == action.id {
-      updated.cancelAction = action
-    }
-    return updated
   }
 
   override func viewDidLayoutSubviews() {

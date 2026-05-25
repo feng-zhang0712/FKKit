@@ -1,5 +1,7 @@
 import UIKit
 
+// MARK: - UIAlertController migration
+
 public extension FKActionSheetAction {
   /// Creates an action from parameters matching `UIAlertAction` construction.
   init(

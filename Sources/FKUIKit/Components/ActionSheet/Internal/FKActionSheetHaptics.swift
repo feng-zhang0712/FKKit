@@ -1,5 +1,6 @@
 import UIKit
 
+/// Lazily prepares impact feedback when haptics are enabled on the configuration.
 @MainActor
 final class FKActionSheetHaptics {
   private var generator: UIImpactFeedbackGenerator?
