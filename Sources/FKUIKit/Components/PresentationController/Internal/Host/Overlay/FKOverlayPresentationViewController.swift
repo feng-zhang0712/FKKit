@@ -234,13 +234,13 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       let height = resolvedSheetHeight(bounds: bounds, safeInsets: safeInsets)
       let width = resolvedSheetWidth(bounds: bounds, safeInsets: safeInsets)
       let x = (bounds.width - width) / 2
-      let y = bounds.height - height - (configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0)
+      let y = bounds.height - height - (configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.bottom)
       return CGRect(x: x, y: y, width: width, height: height)
     case .topSheet(_):
       let height = resolvedSheetHeight(bounds: bounds, safeInsets: safeInsets)
       let width = resolvedSheetWidth(bounds: bounds, safeInsets: safeInsets)
       let x = (bounds.width - width) / 2
-      let y: CGFloat = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
+      let y: CGFloat = configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.top
       return CGRect(x: x, y: y, width: width, height: height)
     case .center(_):
       return resolvedCenterFrame(bounds: bounds, safeInsets: safeInsets)
@@ -273,7 +273,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private func containerSafeInsets() -> UIEdgeInsets {
     switch configuration.safeAreaPolicy {
-    case .contentRespectsSafeArea:
+    case .contentRespectsSafeArea, .shellExtendsToScreenBottomEdge:
       return .zero
     case .containerRespectsSafeArea:
       return view.safeAreaInsets

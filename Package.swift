@@ -39,6 +39,10 @@ let package = Package(
         "Components/TabBar/README.md",
         "Components/TextField/README.md",
         "Components/Toast/README.md",
+        "Components/ActionSheet/README.md",
+      ],
+      resources: [
+        .process("Resources"),
       ]
     ),
     .target(

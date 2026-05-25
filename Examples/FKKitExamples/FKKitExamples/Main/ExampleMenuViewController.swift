@@ -29,6 +29,11 @@ final class ExampleMenuViewController: UITableViewController {
       subtitle: "Foundational UI components and presentation infrastructure",
       items: [
         ExampleMenuItem(
+          title: "ActionSheet",
+          subtitle: "Hub: basics, appearance, selection, custom rows, toggle, lifecycle, live updates, presentation, builder, SwiftUI",
+          make: { FKActionSheetExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Badge",
           subtitle: "Dot, numeric & text badges, anchors, animations, TabBarItem",
           make: { FKBadgeExamplesHubViewController() }

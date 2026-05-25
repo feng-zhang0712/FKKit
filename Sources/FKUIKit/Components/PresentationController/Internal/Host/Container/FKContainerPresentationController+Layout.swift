@@ -24,7 +24,7 @@ extension FKContainerPresentationController {
   /// Resolves container safe-area participation from selected policy.
   func containerSafeInsets(in containerView: UIView) -> UIEdgeInsets {
     switch configuration.safeAreaPolicy {
-    case .contentRespectsSafeArea:
+    case .contentRespectsSafeArea, .shellExtendsToScreenBottomEdge:
       return .zero
     case .containerRespectsSafeArea:
       return containerView.safeAreaInsets
@@ -208,7 +208,7 @@ extension FKContainerPresentationController {
   func measuredFitContentHeight(in containerView: UIView) -> CGFloat {
     let targetWidth = containerView.bounds.width
     let preferred = presentedViewController.preferredContentSize.height
-    if preferred > 0 { return preferred }
+    if preferred >= 44 { return preferred }
 
     guard let view = hostedPresentedView else { return 360 }
     let size = view.systemLayoutSizeFitting(

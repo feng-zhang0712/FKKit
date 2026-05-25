@@ -86,7 +86,7 @@ enum FKAudioPlayerExampleCatalog {
     )
   }
 
-  /// Bundled LRC in the example target (see `Examples/FKKitExamples/Resources/sample.lrc`).
+  /// Bundled LRC in the example target (see `Support/Resources/sample.lrc`).
   static func bundledLRCURL() -> URL? {
     Bundle.main.url(forResource: "sample", withExtension: "lrc")
   }

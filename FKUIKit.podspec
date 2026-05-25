@@ -20,4 +20,7 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Sources/FKUIKit/**/*.swift'
   s.exclude_files = 'Sources/FKUIKit/Components/EmptyState/CoreLite/**/*'
+  s.resource_bundles = {
+    'FKUIKit' => ['Sources/FKUIKit/Resources/Assets.xcassets']
+  }
 end

@@ -1,0 +1,38 @@
+import UIKit
+
+/// Resolves bundled FKUIKit assets (Symbol Image sets in ``Assets.xcassets``).
+enum FKUIKitResourceBundle {
+  /// Asset names for Material-derived custom symbol images shipped with FKUIKit.
+  enum SymbolName: String, Sendable {
+    case check
+    case radioButtonChecked = "radio_button_checked"
+    case radioButtonUnchecked = "radio_button_unchecked"
+  }
+
+  /// Bundle that contains ``Assets.xcassets`` for SPM and CocoaPods consumers.
+  static var bundle: Bundle {
+    #if SWIFT_PACKAGE
+    Bundle.module
+    #else
+    if
+      let url = Bundle(for: FKUIKitBundleToken.self).url(forResource: "FKUIKit", withExtension: "bundle"),
+      let bundle = Bundle(url: url)
+    {
+      return bundle
+    }
+    return Bundle(for: FKUIKitBundleToken.self)
+    #endif
+  }
+
+  /// Loads a custom symbol image by asset name.
+  ///
+  /// - Parameter name: Symbol set name in ``Assets.xcassets``.
+  /// - Returns: A symbol image when the asset is present in the module bundle.
+  static func symbol(named name: SymbolName, configuration: UIImage.SymbolConfiguration? = nil) -> UIImage? {
+    guard let image = UIImage(named: name.rawValue, in: bundle, with: nil) else { return nil }
+    guard let configuration else { return image }
+    return image.applyingSymbolConfiguration(configuration) ?? image
+  }
+}
+
+private final class FKUIKitBundleToken: NSObject {}
