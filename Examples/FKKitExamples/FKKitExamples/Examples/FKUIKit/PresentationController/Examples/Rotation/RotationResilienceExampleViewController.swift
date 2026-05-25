@@ -15,7 +15,7 @@ final class RotationResilienceExampleViewController: FKPresentationExamplePageVi
     setHeader(
       title: "Rotation resilience",
       subtitle: "Rotate the device after presenting; alignment should remain stable.",
-      notes: "This is especially important for anchor-based menus (navigation/tab attachments)."
+      notes: "Steps: 1) Tap Present. 2) Rotate the device. 3) The anchored frame should keep tracking the anchor view. For modal/overlay sheets, use `rotationHandling` (.relayoutAnimated, .relayoutImmediate, or .ignore)."
     )
 
     addView(FKExampleControls.infoLabel(text: "Steps: 1) Tap Present. 2) Rotate the device. 3) The anchored frame should keep tracking the anchor view."))
