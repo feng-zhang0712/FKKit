@@ -158,7 +158,7 @@ extension FKActionSheet {
     panelView.layer.fk_applyShadow(configuration.presentation.containerShadow, path: shadowPath)
   }
 
-  func updatePanelLayout(force: Bool) {
+  func updatePanelLayout(force: Bool, attemptSelectionScroll: Bool = false) {
     guard !isUpdatingPanelLayout else { return }
     isUpdatingPanelLayout = true
     defer { isUpdatingPanelLayout = false }
@@ -181,7 +181,7 @@ extension FKActionSheet {
       actionSheetView.setScrollEnabled(shouldScroll)
     }
 
-    if shouldScroll {
+    if attemptSelectionScroll, shouldScroll {
       attemptScrollToSelectionOnPresent(animated: false)
     }
 

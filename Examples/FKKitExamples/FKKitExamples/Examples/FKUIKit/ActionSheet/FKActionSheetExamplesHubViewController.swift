@@ -15,7 +15,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     ),
     Row(
       title: "Many Actions",
-      subtitle: "Long list, maximumPanelHeight, selection memory & indicator styles",
+      subtitle: "Long list, scroll restore, centered card, scrollsToSelectionOnPresent",
       make: { FKActionSheetExampleManyActionsViewController() }
     ),
     Row(
@@ -30,7 +30,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     ),
     Row(
       title: "Single & Multiple Selection",
-      subtitle: "Single & multiple selection, min/max limits, restore selectedActionID(s)",
+      subtitle: "Single & multiple selection, max limit, section scope, validation",
       make: { FKActionSheetExampleSelectionViewController() }
     ),
     Row(
@@ -65,7 +65,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     ),
     Row(
       title: "SwiftUI Bridge",
-      subtitle: "View.fkActionSheet, onDismiss, popoverSourceView anchor",
+      subtitle: "View.fkActionSheet, popover anchors (view & bar button item)",
       make: { FKActionSheetExampleSwiftUIViewController() }
     ),
   ]

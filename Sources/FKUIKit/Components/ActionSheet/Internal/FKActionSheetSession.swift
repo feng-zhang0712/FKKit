@@ -41,8 +41,7 @@ final class FKActionSheetSession {
     }
     configuration = updated
     if let action = updated.allActions.first(where: { $0.id == actionID }) {
-      actionSheet?.commitConfiguration(updated)
-      actionSheet?.refreshAction(action)
+      actionSheet?.applyConfiguration(updated, updateKind: .singleAction(action))
     }
   }
 
@@ -88,7 +87,7 @@ final class FKActionSheetSession {
     updated.selection.selectedActionID = action.id
     updated = updated.applyingSelectionState()
     configuration = updated
-    actionSheet?.reload(configuration: updated)
+    actionSheet?.applyConfiguration(updated, updateKind: .selectionOnly)
   }
 
   /// Toggles multi-select state for an action row. Returns `false` when limits block the change.
@@ -111,7 +110,7 @@ final class FKActionSheetSession {
 
     updated = updated.applyingSelectionState()
     configuration = updated
-    actionSheet?.reload(configuration: updated)
+    actionSheet?.applyConfiguration(updated, updateKind: .selectionOnly)
     return true
   }
 }

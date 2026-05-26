@@ -18,4 +18,8 @@ final class FKActionSheetHaptics {
   func playSelection() {
     generator?.impactOccurred()
   }
+
+  func playBlockedSelection() {
+    UINotificationFeedbackGenerator().notificationOccurred(.warning)
+  }
 }

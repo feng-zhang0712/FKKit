@@ -65,7 +65,10 @@ final class FKActionSheetToggleCell: UITableViewCell {
   }
 
   /// Updates the switch value without reconfiguring the whole cell.
+  ///
+  /// Skips `UISwitch` updates when the value is unchanged so in-flight switch animations are not interrupted.
   func setToggleOn(_ isOn: Bool, animated: Bool) {
+    guard toggleSwitch.isOn != isOn else { return }
     toggleSwitch.setOn(isOn, animated: animated)
   }
 

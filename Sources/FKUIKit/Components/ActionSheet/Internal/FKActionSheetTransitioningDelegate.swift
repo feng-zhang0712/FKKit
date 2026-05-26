@@ -6,12 +6,16 @@ import UIKit
 final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
   private static var associationKey: UInt8 = 0
 
-  let presentationConfiguration: FKActionSheetPresentationConfiguration
+  private(set) var presentationConfiguration: FKActionSheetPresentationConfiguration
   weak var actionSheet: FKActionSheet?
 
   init(presentationConfiguration: FKActionSheetPresentationConfiguration) {
     self.presentationConfiguration = presentationConfiguration
     super.init()
+  }
+
+  func updatePresentationConfiguration(_ configuration: FKActionSheetPresentationConfiguration) {
+    presentationConfiguration = configuration
   }
 
   func attach(to viewController: FKActionSheet) {

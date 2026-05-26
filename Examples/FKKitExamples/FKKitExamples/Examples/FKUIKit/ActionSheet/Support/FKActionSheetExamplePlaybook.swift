@@ -417,6 +417,19 @@ enum FKActionSheetExamplePlaybook {
   }
 
   static func presentPopover(from presenter: UIViewController, anchor: UIView) {
+    presentPopover(from: presenter, popoverAnchor: .sourceView(anchor))
+  }
+
+  static func presentPopover(from presenter: UIViewController, barButtonItem: UIBarButtonItem) {
+    presentPopover(from: presenter, popoverAnchor: .barButtonItem(barButtonItem))
+  }
+
+  private enum PopoverAnchor {
+    case sourceView(UIView)
+    case barButtonItem(UIBarButtonItem)
+  }
+
+  private static func presentPopover(from presenter: UIViewController, popoverAnchor: PopoverAnchor) {
     let config = FKActionSheetConfiguration(
       header: .text(FKActionSheetHeader(title: "Popover")),
       sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Option A") { log("Popover A") }])],
@@ -426,8 +439,14 @@ enum FKActionSheetExamplePlaybook {
     )
     do {
       let sheet = try FKActionSheet(configuration: config)
-      try sheet.present(from: presenter, anchoredTo: anchor)
-      log("present(from:anchoredTo:)")
+      switch popoverAnchor {
+      case .sourceView(let anchor):
+        try sheet.present(from: presenter, anchoredTo: anchor)
+        log("present(from:anchoredTo: sourceView)")
+      case .barButtonItem(let item):
+        try sheet.present(from: presenter, anchoredTo: item)
+        log("present(from:anchoredTo: barButtonItem)")
+      }
       _ = sheet
     } catch {
       log("Popover present failed: \(error)")

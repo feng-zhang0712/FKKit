@@ -103,7 +103,7 @@ extension FKActionSheet {
     var config = configuration
     if config.presentation.style != .popover {
       config.presentation.style = .popover
-      apply(configuration: config)
+      _ = applyConfiguration(config, updateKind: .full)
     }
 
     modalPresentationStyle = .popover
@@ -135,17 +135,6 @@ extension FKActionSheet {
       let configuration = session.configuration
       let selection = configuration.selection
 
-      if case .multiple = selection.mode,
-         !isCancelGroup,
-         let sectionID,
-         !selection.isRowInteractionEnabled(
-           for: action,
-           sectionID: sectionID,
-           isCancelGroup: false
-         ) {
-        return
-      }
-
       let isCancel = isCancelGroup || action.style == .cancel
       let dismissReason: FKActionSheetDismissReason = isCancel ? .userCancel : .actionSelected
 
@@ -159,6 +148,13 @@ extension FKActionSheet {
         actionForCallbacks = session.configuration.allActions.first(where: { $0.id == action.id }) ?? action
         session.notifyDidSelect(actionForCallbacks)
       case .multiple where !isCancel:
+        guard let sectionID else { return }
+        if !selection.canToggleSelection(for: action, sectionID: sectionID, isCancelGroup: false) {
+          if configuration.haptics.onActionSelection {
+            session.haptics.playBlockedSelection()
+          }
+          return
+        }
         guard session.toggleMultipleSelection(action: action, sectionID: sectionID) else {
           return
         }

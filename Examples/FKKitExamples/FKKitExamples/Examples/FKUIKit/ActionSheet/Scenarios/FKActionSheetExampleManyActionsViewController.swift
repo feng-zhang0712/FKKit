@@ -56,11 +56,27 @@ final class FKActionSheetExampleManyActionsViewController: FKActionSheetExampleB
     body.addArrangedSubview(FKActionSheetExampleUI.button("Language picker (highlight + memory)") { [weak self] in
       self?.presentLanguageSheet(indicatorStyle: .highlightedTitle, remembersSelection: true)
     })
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Language picker (memory, no auto-scroll)") { [weak self] in
+      self?.presentLanguageSheet(
+        indicatorStyle: .check,
+        remembersSelection: true,
+        scrollsToSelectionOnPresent: false
+      )
+    })
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Centered card + memory + scroll") { [weak self] in
+      var presentation = FKActionSheetPresentationConfiguration.centered
+      presentation.maximumPanelHeight = 360
+      self?.presentLanguageSheet(
+        indicatorStyle: .check,
+        remembersSelection: true,
+        presentation: presentation
+      )
+    })
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Scrollable list",
-        description: "No header. Uses presentation.maximumFitContentHeightFraction (default 50% of screen) so long lists scroll. With selection memory, the list scrolls to the previous choice on present (selection.scrollsToSelectionOnPresent).",
+        description: "No header. Scroll cap uses min(screen fraction, maximumPanelHeight). With selection memory, scrolls to the restored row on present unless scrollsToSelectionOnPresent is false.",
         body: body
       )
     )
@@ -69,7 +85,9 @@ final class FKActionSheetExampleManyActionsViewController: FKActionSheetExampleB
 
   private func presentLanguageSheet(
     indicatorStyle: FKActionSheetSelectionIndicatorStyle,
-    remembersSelection: Bool
+    remembersSelection: Bool,
+    scrollsToSelectionOnPresent: Bool = true,
+    presentation: FKActionSheetPresentationConfiguration? = nil
   ) {
     let actions = Self.languages.map { option in
       FKActionSheetAction(id: option.id, title: option.title) { [weak self] in
@@ -84,16 +102,17 @@ final class FKActionSheetExampleManyActionsViewController: FKActionSheetExampleB
       mode: remembersSelection ? .single(scope: .allSections) : .none,
       keepsSheetPresentedOnSelection: false,
       selectedActionID: remembersSelection ? selectedLanguageID : nil,
-      indicatorStyle: indicatorStyle
+      indicatorStyle: indicatorStyle,
+      scrollsToSelectionOnPresent: scrollsToSelectionOnPresent
     )
 
-    var presentation = FKActionSheetPresentationConfiguration.default
-    presentation.maximumPanelHeight = 360
+    var resolvedPresentation = presentation ?? FKActionSheetPresentationConfiguration.default
+    resolvedPresentation.maximumPanelHeight = 360
 
     let config = FKActionSheetConfiguration(
       sections: [FKActionSheetSection(actions: actions)],
       cancelAction: FKActionSheetExamplePlaybook.makeCancelAction(),
-      presentation: presentation,
+      presentation: resolvedPresentation,
       dismissesAfterActionSelection: true,
       selection: selection
     )

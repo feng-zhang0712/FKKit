@@ -19,8 +19,14 @@ enum FKActionSheetValidator {
 
   private static func validateSelection(_ configuration: FKActionSheetConfiguration) throws {
     switch configuration.selection.mode {
-    case .none, .single:
+    case .none:
       return
+    case .single(let scope):
+      try validateSelectedActionID(
+        configuration.selection.selectedActionID,
+        scope: scope,
+        sections: configuration.sections
+      )
     case .multiple(let multiple):
       let scopedActionIDs = Set(
         configuration.sections.flatMap { section -> [UUID] in
@@ -38,6 +44,25 @@ enum FKActionSheetValidator {
          configuration.selection.selectedActionIDs.count > maxSelectionCount {
         throw FKActionSheetValidationError.selectedCountExceedsMaximum
       }
+    }
+  }
+
+  private static func validateSelectedActionID(
+    _ selectedActionID: UUID?,
+    scope: FKActionSheetSelectionConfiguration.Scope,
+    sections: [FKActionSheetSection]
+  ) throws {
+    guard let selectedActionID else { return }
+
+    let scopedActionIDs = Set(
+      sections.flatMap { section -> [UUID] in
+        guard scope.contains(sectionID: section.id) else { return [] }
+        return section.actions.map(\.id)
+      }
+    )
+
+    if !scopedActionIDs.contains(selectedActionID) {
+      throw FKActionSheetValidationError.unknownSelectedActionIDs
     }
   }
 }

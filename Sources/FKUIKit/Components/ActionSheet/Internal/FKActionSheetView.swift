@@ -87,7 +87,7 @@ final class FKActionSheetView: UIView {
   func scrollToRevealSelection(animated: Bool) -> Bool {
     guard tableView.isScrollEnabled else { return false }
     guard
-      let actionID = currentConfiguration.selection.firstSelectedActionIDInTableOrder(
+      let actionID = currentConfiguration.selection.scrollTargetActionIDInTableOrder(
         sections: currentConfiguration.sections
       ),
       let indexPath = indexPath(forActionID: actionID)
@@ -148,6 +148,29 @@ final class FKActionSheetView: UIView {
     setNeedsLayout()
   }
 
+  /// Updates selection accessories without a full table reload.
+  func syncSelectionConfiguration(_ configuration: FKActionSheetConfiguration) {
+    currentConfiguration = configuration
+    rebuildSectionKinds()
+    let indexPaths = indexPathsInSelectionScope(for: configuration.selection)
+    guard !indexPaths.isEmpty else { return }
+    tableView.reloadRows(at: indexPaths, with: .none)
+  }
+
+  /// Preferred accessibility focus after present when a selection row is restored.
+  func accessibilityElementToFocus() -> Any? {
+    guard
+      let actionID = currentConfiguration.selection.scrollTargetActionIDInTableOrder(
+        sections: currentConfiguration.sections
+      ),
+      let indexPath = indexPath(forActionID: actionID)
+    else {
+      return nil
+    }
+    tableView.layoutIfNeeded()
+    return tableView.cellForRow(at: indexPath)
+  }
+
   /// Updates a single row in place without reloading the full table when possible.
   func refreshAction(_ action: FKActionSheetAction) {
     guard replaceStoredAction(action) else { return }
@@ -160,7 +183,7 @@ final class FKActionSheetView: UIView {
     if case .toggle(let toggle) = action.rowContent,
        let cell = tableView.cellForRow(at: indexPath) as? FKActionSheetToggleCell
     {
-      cell.setToggleOn(toggle.isOn, animated: false)
+      cell.setToggleOn(toggle.isOn, animated: true)
       return
     }
     tableView.reloadRows(at: [indexPath], with: .none)
@@ -348,6 +371,28 @@ final class FKActionSheetView: UIView {
       didReplace = true
     }
     return didReplace
+  }
+
+  private func indexPathsInSelectionScope(
+    for selection: FKActionSheetSelectionConfiguration
+  ) -> [IndexPath] {
+    var paths: [IndexPath] = []
+    for (sectionIndex, kind) in sectionKinds.enumerated() {
+      guard case .actions(let model) = kind else { continue }
+      let isInScope: Bool = {
+        switch selection.mode {
+        case .none:
+          return false
+        case .single(let scope):
+          return scope.contains(sectionID: model.id)
+        case .multiple(let multiple):
+          return multiple.scope.contains(sectionID: model.id)
+        }
+      }()
+      guard isInScope else { continue }
+      paths.append(contentsOf: model.actions.indices.map { IndexPath(row: $0, section: sectionIndex) })
+    }
+    return paths
   }
 
   private func indexPath(forActionID actionID: UUID) -> IndexPath? {

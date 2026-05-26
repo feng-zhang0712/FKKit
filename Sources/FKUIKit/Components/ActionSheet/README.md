@@ -52,7 +52,7 @@ Window/scene hosting: `try sheet.present(in: windowScene)`.
 
 ## Callbacks
 
-Use `FKActionSheetLifecycleHooks` on `FKActionSheetConfiguration` for lifecycle and row selection (`didSelect`). Action rows invoke `actionHandler` according to `handlerTiming`.
+Use `FKActionSheetLifecycleHooks` on `FKActionSheetConfiguration` for lifecycle and row selection (`didSelect`). For single- and multiple-selection modes, `didSelect` receives `action.isSelected` **after** the tap. Action rows invoke `actionHandler` according to `handlerTiming`.
 
 ## Selection
 
@@ -61,9 +61,15 @@ Use `FKActionSheetLifecycleHooks` on `FKActionSheetConfiguration` for lifecycle 
 | Single | `selection.mode = .single(scope: .allSections)` + `selectedActionID` |
 | Multiple | `selection.mode = .multiple(MultipleSelection(...))` + `selectedActionIDs` |
 
-Multiple selection supports `maxSelectionCount` and `disablesUnselectedRowsAtMax` (dims and blocks unselected rows when the max is reached).
+Multiple selection supports `maxSelectionCount` and `disablesUnselectedRowsAtMax` (dims and blocks unselected rows when the max is reached). Read `selection.selectedCount` for the current number of selected rows.
 
-When the list scrolls inside the sheet, set `selection.selectedActionID` / `selectedActionIDs` and leave `scrollsToSelectionOnPresent` at its default (`true`) to scroll the first selected row near the vertical center of the visible list on present (clamped at the top and bottom of the list).
+When the list scrolls inside the sheet, set `selectedActionID` / `selectedActionIDs` and leave `scrollsToSelectionOnPresent` at its default (`true`) to scroll the restored selection near the vertical center of the visible list on present (single: that row; multiple: the last selected row in table order). Set `scrollsToSelectionOnPresent` to `false` to disable.
+
+`present` and `init` throw `FKActionSheetValidationError` for invalid configurations. `reload(configuration:)` and `updateAction(_:)` return `false` when validation fails (and emit `assertionFailure` in debug). Use `FKActionSheetValidationError.localizedMessage` for user-facing copy.
+
+## Panel height
+
+Scrollable height is capped by `min(screenHeight × maximumFitContentHeightFraction, maximumPanelHeight)` when `maximumPanelHeight` is set; otherwise the fraction alone applies.
 
 ## SwiftUI
 
@@ -87,5 +93,4 @@ When the list scrolls inside the sheet, set `selection.selectedActionID` / `sele
 
 ## Related components
 
-- **`FKPresentationController`** — generic sheets and detents (separate from ActionSheet)
 - **`FKToast`** — transient banners

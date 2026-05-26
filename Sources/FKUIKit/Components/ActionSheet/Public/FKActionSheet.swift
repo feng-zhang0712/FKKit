@@ -14,9 +14,14 @@ public final class FKActionSheet: UIViewController {
   var onPanelLayoutChange: (() -> Void)?
 
   let panelView = UIView()
-  private(set) var presentationConfiguration: FKActionSheetPresentationConfiguration
 
   weak var session: FKActionSheetSession?
+
+  enum ConfigurationUpdateKind {
+    case full
+    case selectionOnly
+    case singleAction(FKActionSheetAction)
+  }
 
   let actionSheetView = FKActionSheetView()
   private let transitioningDelegateBox: FKActionSheetTransitioningDelegate
@@ -57,7 +62,6 @@ public final class FKActionSheet: UIViewController {
     try FKActionSheetValidator.validate(configuration)
     let resolved = configuration.applyingSelectionState()
     self.configuration = resolved
-    presentationConfiguration = resolved.presentation
     transitioningDelegateBox = FKActionSheetTransitioningDelegate(
       presentationConfiguration: resolved.presentation
     )
@@ -108,7 +112,7 @@ public final class FKActionSheet: UIViewController {
 
     syncOutsideTapRecognizer()
     applyPanelChrome()
-    apply(configuration: configuration)
+    _ = applyConfiguration(configuration, updateKind: .full)
   }
 
   public override func viewWillAppear(_ animated: Bool) {
@@ -120,7 +124,6 @@ public final class FKActionSheet: UIViewController {
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     session?.notifyDidPresent()
-    updatePanelLayout(force: true)
     attemptScrollToSelectionOnPresent(animated: false)
   }
 
@@ -182,20 +185,18 @@ public final class FKActionSheet: UIViewController {
 
   /// Replaces visible actions and header, then refreshes layout.
   ///
-  /// Invalid configurations are ignored; in debug builds an `assertionFailure` is emitted.
-  public func reload(configuration: FKActionSheetConfiguration) {
-    guard Self.isValid(configuration) else { return }
-    apply(configuration: configuration.applyingSelectionState())
-    session?.updateConfiguration(self.configuration)
+  /// - Returns: `false` when `configuration` fails validation (debug builds also emit `assertionFailure`).
+  @discardableResult
+  public func reload(configuration: FKActionSheetConfiguration) -> Bool {
+    applyConfiguration(configuration.applyingSelectionState(), updateKind: .full)
   }
 
   /// Updates a single action in place when the identifier matches.
-  public func updateAction(_ action: FKActionSheetAction) {
-    let updated = configuration.replacingAction(action)
-    guard Self.isValid(updated) else { return }
-    configuration = updated
-    session?.updateConfiguration(configuration)
-    refreshAction(action)
+  ///
+  /// - Returns: `false` when the resulting configuration fails validation.
+  @discardableResult
+  public func updateAction(_ action: FKActionSheetAction) -> Bool {
+    applyConfiguration(configuration.replacingAction(action), updateKind: .singleAction(action))
   }
 
   /// Dismisses the sheet when visible.
@@ -208,35 +209,54 @@ public final class FKActionSheet: UIViewController {
     super.dismiss(animated: animated, completion: completion)
   }
 
-  func apply(configuration: FKActionSheetConfiguration) {
-    self.configuration = configuration
-    presentationConfiguration = configuration.presentation
-    syncOutsideTapRecognizer()
-    installPanelLayoutIfNeeded()
-    lastLayoutWidth = 0
-    lastResolvedPanelHeight = 0
-    lastScrollEnabled = nil
-    hasScrolledToSelectionOnPresent = false
-    lastTableSafeBottom = -1
-    panelView.backgroundColor = configuration.appearance.backgroundColor
-    if configuration.presentation.style == .popover {
-      view.backgroundColor = configuration.appearance.backgroundColor
-    } else {
-      view.backgroundColor = .clear
+  @discardableResult
+  func applyConfiguration(
+    _ configuration: FKActionSheetConfiguration,
+    updateKind: ConfigurationUpdateKind
+  ) -> Bool {
+    do {
+      try FKActionSheetValidator.validate(configuration)
+    } catch {
+      assertionFailure("FKActionSheet received invalid configuration: \(error)")
+      return false
     }
-    actionSheetView.apply(configuration: configuration)
-    applyPanelChrome()
-    updatePanelLayout(force: true)
-  }
 
-  func refreshAction(_ action: FKActionSheetAction) {
-    configuration = configuration.replacingAction(action)
-    actionSheetView.refreshAction(action)
-    updatePanelLayout(force: true)
+    self.configuration = configuration
+    session?.updateConfiguration(configuration)
+    transitioningDelegateBox.updatePresentationConfiguration(configuration.presentation)
+
+    switch updateKind {
+    case .full:
+      hasScrolledToSelectionOnPresent = false
+      syncOutsideTapRecognizer()
+      installPanelLayoutIfNeeded()
+      lastLayoutWidth = 0
+      lastResolvedPanelHeight = 0
+      lastScrollEnabled = nil
+      lastTableSafeBottom = -1
+      panelView.backgroundColor = configuration.appearance.backgroundColor
+      if configuration.presentation.style == .popover {
+        view.backgroundColor = configuration.appearance.backgroundColor
+      } else {
+        view.backgroundColor = .clear
+      }
+      actionSheetView.apply(configuration: configuration)
+      applyPanelChrome()
+      updatePanelLayout(force: true, attemptSelectionScroll: true)
+    case .selectionOnly:
+      actionSheetView.syncSelectionConfiguration(configuration)
+    case .singleAction(let action):
+      actionSheetView.apply(configuration: configuration)
+      actionSheetView.refreshAction(action)
+      updatePanelLayout(force: false)
+    }
+
+    return true
   }
 
   func focusAccessibility() {
-    UIAccessibility.post(notification: .screenChanged, argument: view)
+    let target = actionSheetView.accessibilityElementToFocus() ?? view
+    UIAccessibility.post(notification: .screenChanged, argument: target)
   }
 
   /// Scrolls a scrollable list to the restored selection once per configuration apply / present cycle.
@@ -270,7 +290,7 @@ public final class FKActionSheet: UIViewController {
   }
 
   func prepareForPresentationAnimation() {
-    guard presentationConfiguration.usesCustomModalPresentation else { return }
+    guard configuration.presentation.usesCustomModalPresentation else { return }
     view.layoutIfNeeded()
     setPresentationProgress(0, animated: false)
   }
@@ -278,7 +298,7 @@ public final class FKActionSheet: UIViewController {
   func setPresentationProgress(_ progress: CGFloat, animated: Bool) {
     presentationProgress = min(1, max(0, progress))
     let updates = {
-      switch self.presentationConfiguration.style {
+      switch self.configuration.presentation.style {
       case .bottom:
         let offset = (1 - self.presentationProgress) * self.resolvedPanelHeight
         self.panelView.transform = CGAffineTransform(translationX: 0, y: offset)
@@ -312,25 +332,9 @@ public final class FKActionSheet: UIViewController {
     return pendingDismissReason ?? reason
   }
 
-  func commitConfiguration(_ configuration: FKActionSheetConfiguration) {
-    guard Self.isValid(configuration) else { return }
-    self.configuration = configuration
-    session?.updateConfiguration(configuration)
-  }
-
   @objc
   private func handleOutsideTap(_ recognizer: UITapGestureRecognizer) {
     dismissForBackdropTap()
-  }
-
-  private static func isValid(_ configuration: FKActionSheetConfiguration) -> Bool {
-    do {
-      try FKActionSheetValidator.validate(configuration)
-      return true
-    } catch {
-      assertionFailure("FKActionSheet received invalid configuration: \(error)")
-      return false
-    }
   }
 
   func syncOutsideTapRecognizer() {

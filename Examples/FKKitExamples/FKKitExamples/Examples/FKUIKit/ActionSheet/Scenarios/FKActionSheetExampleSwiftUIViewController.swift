@@ -5,9 +5,20 @@ import SwiftUI
 #endif
 
 final class FKActionSheetExampleSwiftUIViewController: UIViewController {
+  private var popoverBarButtonItem: UIBarButtonItem?
+
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "SwiftUI Bridge"
+    let barButtonItem = UIBarButtonItem(
+      title: "Bar popover",
+      primaryAction: UIAction { [weak self] _ in
+        guard let self, let item = self.popoverBarButtonItem else { return }
+        FKActionSheetExamplePlaybook.presentPopover(from: self, barButtonItem: item)
+      }
+    )
+    popoverBarButtonItem = barButtonItem
+    navigationItem.rightBarButtonItem = barButtonItem
     view.backgroundColor = .systemBackground
     #if canImport(SwiftUI)
     let host = UIHostingController(rootView: FKActionSheetSwiftUIExampleSurface())

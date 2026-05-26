@@ -12,7 +12,7 @@ extension FKActionSheetSelectionConfiguration {
   }
 
   /// Number of currently selected rows for the active mode.
-  var selectedCount: Int {
+  public var selectedCount: Int {
     switch mode {
     case .none:
       return 0
@@ -106,8 +106,8 @@ extension FKActionSheetSelectionConfiguration {
     return selectedActionIDs.count >= maxSelectionCount
   }
 
-  /// First selected action identifier in table order within the active scope, used for scroll restoration.
-  func firstSelectedActionIDInTableOrder(sections: [FKActionSheetSection]) -> UUID? {
+  /// Action identifier used for scroll restoration (last selected row in table order for multiple selection).
+  func scrollTargetActionIDInTableOrder(sections: [FKActionSheetSection]) -> UUID? {
     guard isSelectionActive else { return nil }
 
     switch mode {
@@ -123,15 +123,14 @@ extension FKActionSheetSelectionConfiguration {
       }
       return nil
     case .multiple(let multiple):
+      var lastSelectedID: UUID?
       for section in sections {
         guard multiple.scope.contains(sectionID: section.id) else { continue }
-        for action in section.actions {
-          if selectedActionIDs.contains(action.id) {
-            return action.id
-          }
+        for action in section.actions where selectedActionIDs.contains(action.id) {
+          lastSelectedID = action.id
         }
       }
-      return nil
+      return lastSelectedID
     }
   }
 }
