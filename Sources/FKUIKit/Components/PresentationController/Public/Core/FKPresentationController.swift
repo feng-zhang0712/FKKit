@@ -135,6 +135,8 @@ public final class FKPresentationController: NSObject {
   }
 
   /// Selects a detent when the active mode supports sheet detents.
+  ///
+  /// - Note: Modal and overlay passthrough hosts support programmatic detent selection for sheet layouts.
   public func selectDetent(_ detent: FKPresentationDetent, animated: Bool = true) {
     guard assertMainThread("selectDetent") else { return }
     if let index = configuration.sheet.detents.firstIndex(of: detent) {
@@ -151,9 +153,9 @@ public final class FKPresentationController: NSObject {
       (contentController.transitioningDelegate as? FKPresentationTransitioningDelegate)?
         .activeContainerController?
         .selectDetent(configuration.sheet.detents[clamped], animated: animated)
+    } else if let overlayHost = host as? FKOverlayPresentationHost {
+      overlayHost.selectDetent(at: clamped, animated: animated)
     }
-    // Overlay host currently performs nearest-detent snapping based on drag.
-    // Keep API no-op for overlay until explicit programmatic detent API is introduced there.
   }
 
   /// Convenience API for one-line presentation.

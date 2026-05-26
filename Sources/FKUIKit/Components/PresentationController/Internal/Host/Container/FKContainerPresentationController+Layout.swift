@@ -24,7 +24,7 @@ extension FKContainerPresentationController {
   /// Resolves container safe-area participation from selected policy.
   func containerSafeInsets(in containerView: UIView) -> UIEdgeInsets {
     switch configuration.safeAreaPolicy {
-    case .contentRespectsSafeArea:
+    case .contentRespectsSafeArea, .shellExtendsToScreenBottomEdge:
       return .zero
     case .containerRespectsSafeArea:
       return containerView.safeAreaInsets
@@ -170,6 +170,16 @@ extension FKContainerPresentationController {
     selectedDetentIndex = max(0, min(selectedDetentIndex, max(0, resolvedDetentHeights.count - 1)))
   }
 
+  /// Index of the smallest resolved detent height (independent of `detents` array order).
+  func smallestDetentIndex() -> Int {
+    FKSheetDetentIndexResolver.smallestIndex(in: resolvedDetentHeights)
+  }
+
+  /// Index of the largest resolved detent height (independent of `detents` array order).
+  func largestDetentIndex() -> Int {
+    FKSheetDetentIndexResolver.largestIndex(in: resolvedDetentHeights)
+  }
+
   /// Maps a detent definition to a clamped concrete height.
   func resolve(detent: FKPresentationDetent, availableHeight: CGFloat, containerView: UIView) -> CGFloat {
     let value: CGFloat
@@ -208,7 +218,15 @@ extension FKContainerPresentationController {
   func measuredFitContentHeight(in containerView: UIView) -> CGFloat {
     let targetWidth = containerView.bounds.width
     let preferred = presentedViewController.preferredContentSize.height
-    if preferred > 0 { return preferred }
+
+    switch configuration.preferredContentSizePolicy {
+    case .strict:
+      if preferred > 0 { return max(180, preferred) }
+    case .automatic:
+      if preferred >= 44 { return preferred }
+    case .ignore:
+      break
+    }
 
     guard let view = hostedPresentedView else { return 360 }
     let size = view.systemLayoutSizeFitting(

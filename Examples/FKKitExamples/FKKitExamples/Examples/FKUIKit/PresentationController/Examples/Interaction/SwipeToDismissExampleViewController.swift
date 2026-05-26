@@ -10,7 +10,7 @@ import FKUIKit
 /// - Thresholds are UX-sensitive. Tune with real content, not placeholder views.
 final class SwipeToDismissExampleViewController: FKPresentationExamplePageViewController {
   private var swipeToDismiss = true
-  private var dismissThreshold: Float = 44
+  private var dismissThreshold: Float = 80
   private var velocityThreshold: Float = 1200
 
   override func viewDidLoad() {

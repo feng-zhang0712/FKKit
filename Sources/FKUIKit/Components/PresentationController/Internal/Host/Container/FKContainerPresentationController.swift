@@ -32,11 +32,18 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
   var sheetPanVelocityY: CGFloat = 0
   var keepsInteractiveFrameForDismissal = false
   var dismissalStartingFrame: CGRect = .zero
+  var sheetPanDeferredToScrollView = false
+  var sheetPanBypassesScrollHandoff = false
+  /// Backdrop alpha before center-card interactive dragging mutates it.
+  var centerDismissBaseBackdropAlpha: CGFloat = 1
+  /// Whether center interactive dismiss is driving backdrop/transform.
+  var isCenterInteractivelyDragging = false
 
   var keyboardBottomInset: CGFloat = 0
   var keyboardObservers: [NSObjectProtocol] = []
   var originalScrollInsets: (content: UIEdgeInsets, indicator: UIEdgeInsets)?
   weak var presentingEffectHostView: UIView?
+  private var lastContainerBoundsSize: CGSize = .zero
 
   /// Creates a container presentation controller with configuration and interaction dependencies.
   init(
@@ -68,13 +75,13 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
       let height = resolvedSheetHeight(in: containerView, bounds: bounds, safeInsets: safeInsets)
       let width = resolvedSheetWidth(in: bounds, safeInsets: safeInsets)
       let x = (bounds.width - width) / 2
-      let y = bounds.height - height - (configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0)
+      let y = bounds.height - height - (configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.bottom)
       return CGRect(x: x, y: y, width: width, height: height)
     case .topSheet(_):
       let height = resolvedSheetHeight(in: containerView, bounds: bounds, safeInsets: safeInsets)
       let width = resolvedSheetWidth(in: bounds, safeInsets: safeInsets)
       let x = (bounds.width - width) / 2
-      let y: CGFloat = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
+      let y: CGFloat = configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.top
       return CGRect(x: x, y: y, width: width, height: height)
     case .center(_):
       return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
@@ -148,36 +155,72 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     super.containerViewDidLayoutSubviews()
     backdropView.frame = containerView?.bounds ?? .zero
 
-    // During sheet dragging, keep the live interactive frame instead of snapping back to detent.
-    // While a presentation/dismissal transition is active, `FKPresentationAnimator` owns the presented
-    // view’s geometry (`bounds`/`center`/`transform` for center, or `frame` for sheets). Assigning
-    // `wrapperView.frame` here would fight that animation and can desync chrome vs hosted content.
-    if !isPanningSheet && !keepsInteractiveFrameForDismissal,
-       presentedViewController.transitionCoordinator == nil {
-      wrapperView.frame = frameOfPresentedViewInContainerView
+    guard let containerView else {
+      layoutContentContainer()
+      hostedPresentedView?.frame = contentContainerView.bounds
+      applyContainerAppearance()
+      return
     }
+
+    let newBoundsSize = containerView.bounds.size
+    let containerBoundsChanged = lastContainerBoundsSize != .zero && newBoundsSize != lastContainerBoundsSize
+    defer { lastContainerBoundsSize = newBoundsSize }
+
+    let skipRotationRelayout = containerBoundsChanged && configuration.rotationHandling == .ignore
+    let canAssignFrame = !isPanningSheet && !isCenterInteractivelyDragging && !keepsInteractiveFrameForDismissal
+      && presentedViewController.transitionCoordinator == nil
+      && !skipRotationRelayout
+
+    if canAssignFrame {
+      recalculateDetentsIfNeeded()
+      let targetFrame = frameOfPresentedViewInContainerView
+      let applyLayout = {
+        self.wrapperView.frame = targetFrame
+      }
+
+      if containerBoundsChanged, configuration.rotationHandling == .relayoutAnimated {
+        UIView.animate(
+          withDuration: 0.32,
+          delay: 0,
+          options: [.curveEaseInOut, .allowUserInteraction, .beginFromCurrentState],
+          animations: applyLayout
+        )
+      } else {
+        applyLayout()
+      }
+    }
+
     layoutContentContainer()
     hostedPresentedView?.frame = contentContainerView.bounds
 
     applyContainerAppearance()
-    if let containerView {
-      applyKeyboardAvoidance(in: containerView)
+    applyKeyboardAvoidance(in: containerView)
+  }
+
+  public override func presentationTransitionDidEnd(_ completed: Bool) {
+    super.presentationTransitionDidEnd(completed)
+    if completed {
+      publishInitialSelectedDetentIfNeeded()
+      postPresentationAccessibilityAnnouncementIfNeeded()
     }
   }
 
   public override func dismissalTransitionDidEnd(_ completed: Bool) {
     super.dismissalTransitionDidEnd(completed)
+    (presentedViewController.transitioningDelegate as? FKPresentationTransitioningDelegate)?.interactiveDismiss.reset()
     if completed {
       backdropView.removeFromSuperview()
       stopKeyboardTracking()
       cleanupPresentingViewEffect()
       resetDismissalFrameLock()
+      resetCenterInteractiveDismissVisuals()
     } else {
       // Interactive dismiss can cancel after intermediate visual changes; restore backdrop/effect state
       // so the re-presented sheet remains visually consistent and does not look half-dismissed.
       applyPresentingViewEffectIfNeeded(isPresenting: true)
       updateBackdropForCurrentState()
       resetDismissalFrameLock()
+      resetCenterInteractiveDismissVisuals()
     }
   }
 

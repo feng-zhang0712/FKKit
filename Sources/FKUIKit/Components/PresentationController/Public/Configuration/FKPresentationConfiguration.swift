@@ -44,8 +44,10 @@ public struct FKPresentationConfiguration {
       switch layout {
       case .topSheet(_):
         layout = .topSheet(newValue)
-      default:
+      case .bottomSheet(_):
         layout = .bottomSheet(newValue)
+      case .center(_), .anchor, .edge:
+        break
       }
     }
   }

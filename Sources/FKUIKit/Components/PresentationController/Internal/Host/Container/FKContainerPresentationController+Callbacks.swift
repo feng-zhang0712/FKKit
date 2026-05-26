@@ -13,4 +13,16 @@ extension FKContainerPresentationController {
   func notifySelectedDetentDidChange(_ detent: FKPresentationDetent, index: Int) {
     owner?.notifySelectedDetentDidChange(detent, index: index)
   }
+
+  /// Publishes the initial selected detent after presentation completes.
+  func publishInitialSelectedDetentIfNeeded() {
+    switch configuration.layout {
+    case .bottomSheet(_), .topSheet(_):
+      recalculateDetentsIfNeeded()
+      guard configuration.sheet.detents.indices.contains(selectedDetentIndex) else { return }
+      notifySelectedDetentDidChange(configuration.sheet.detents[selectedDetentIndex], index: selectedDetentIndex)
+    default:
+      break
+    }
+  }
 }

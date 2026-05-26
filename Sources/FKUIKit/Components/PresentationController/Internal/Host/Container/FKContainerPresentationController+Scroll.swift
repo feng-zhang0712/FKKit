@@ -6,12 +6,7 @@ extension FKContainerPresentationController {
 
   /// Depth-first lookup for the first scroll view in presented content.
   func findPrimaryScrollView(in root: UIView?) -> UIScrollView? {
-    guard let root else { return nil }
-    if let scroll = root as? UIScrollView { return scroll }
-    for sub in root.subviews {
-      if let found = findPrimaryScrollView(in: sub) { return found }
-    }
-    return nil
+    FKSheetScrollTracking.findPrimaryScrollView(in: root)
   }
 
   /// Resolves keyboard inset target: explicit configuration first, fallback to first discovered scroll view.
@@ -24,13 +19,9 @@ extension FKContainerPresentationController {
 
   /// Resolves the sheet pan-handoff scroll view based on selected strategy.
   func resolvedTrackedScrollView() -> UIScrollView? {
-    switch configuration.sheet.scrollTrackingStrategy {
-    case .automatic:
-      return findPrimaryScrollView(in: presentedViewController.view)
-    case .disabled:
-      return nil
-    case let .explicit(box):
-      return box.object
-    }
+    FKSheetScrollTracking.resolvedTrackedScrollView(
+      strategy: configuration.sheet.scrollTrackingStrategy,
+      in: presentedViewController.view
+    )
   }
 }

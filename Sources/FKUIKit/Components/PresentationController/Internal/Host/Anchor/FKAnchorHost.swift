@@ -347,7 +347,7 @@ final class FKAnchorHost: NSObject, FKPresentationHost {
 
   private func containerSafeInsets(in host: UIView) -> UIEdgeInsets {
     switch configuration.safeAreaPolicy {
-    case .contentRespectsSafeArea:
+    case .contentRespectsSafeArea, .shellExtendsToScreenBottomEdge:
       return .zero
     case .containerRespectsSafeArea:
       return host.safeAreaInsets

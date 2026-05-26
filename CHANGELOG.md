@@ -8,6 +8,32 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.53.0] - 2026-05-25
+
+### Added (FKUIKit — ActionSheet)
+
+- **`FKActionSheet`**: presentable **`UIViewController`** with bottom sheet, centered card, and popover styles; configuration-driven sections, headers, and actions; lifecycle hooks; **`reload`** / **`updateAction`** for live updates; validation with user-facing messages.
+- **Selection**: single- and multi-select modes, scroll-to-selection on present, bundled Material symbol checkmarks (`check`, `radio_button_checked`, `radio_button_unchecked`) via **`FKUIKit`** resource bundle.
+- **SwiftUI**: bridge and builder helpers; **`FKActionSheet+Symbol`** action presets.
+- **Examples**: ActionSheet hub and scenario catalog under **`Examples/FKKitExamples/.../ActionSheet/`**.
+
+### Added (FKUIKit — Presentation)
+
+- **`FKSheetPresentationInteractionEngine`**: shared pan tracking and swipe-to-dismiss coordination for sheet presentations.
+- **`FKPresentationInteractiveDismissTransition`**: interactive dismiss transitions for presentation sheets.
+
+### Fixed (FKUIKit — Presentation)
+
+- **Sheet dismiss**: scale swipe-to-dismiss threshold with detent height so short sheets remain easy to dismiss.
+
+### Changed (FKUIKit — ActionSheet)
+
+- Presents on the native UIKit modal stack (not **`FKPresentationController`**); **`shellExtendsToScreenBottomEdge`** safe-area policy for bottom sheets.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.53.0** (Git tag **`0.53.0`**).
+
 ## [0.52.0] - 2026-05-20
 
 ### Added (FKCoreKit — Pluggable)
@@ -2195,7 +2221,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.52.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.53.0...HEAD
+[0.53.0]: https://github.com/feng-zhang0712/FKKit/compare/0.52.0...0.53.0
 [0.52.0]: https://github.com/feng-zhang0712/FKKit/compare/0.51.0...0.52.0
 [0.51.0]: https://github.com/feng-zhang0712/FKKit/compare/0.50.2...0.51.0
 [0.50.2]: https://github.com/feng-zhang0712/FKKit/compare/0.50.1...0.50.2

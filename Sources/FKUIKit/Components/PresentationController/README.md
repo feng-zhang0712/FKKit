@@ -178,6 +178,8 @@ FKPresentationController.present(
 
 ### Sheet Detents and Programmatic Switching
 
+Detents may appear in any order in the array; gesture snapping compares **resolved heights**, not array index.
+
 ```swift
 var configuration = FKPresentationConfiguration()
 configuration.layout = .bottomSheet(configuration.sheet)
@@ -349,11 +351,27 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - `Internal/Host/Container`: modal `UIPresentationController` pipeline split by concern (`+Layout`, `+Gesture`, `+Keyboard`, `+Backdrop`, `+Scroll`, `+Callbacks`)
 - `Internal/Host/Overlay`: in-hierarchy passthrough host for zero-dim/background interaction scenarios
 - `Internal/Host/Anchor`: in-hierarchy anchor hosting (`FKAnchorHost`, host view controller, reposition coordinator)
-- `Internal/Core`: routing contracts and shared resolvers (`FKPresentationHost`, transitioning delegate, anchor layout resolver)
+- `Internal/Core`: routing contracts and shared resolvers (`FKPresentationHost`, transitioning delegate, anchor layout resolver, sheet detent index resolver, sheet interaction engine)
 - `Internal/Support`: shared internal utilities (for example responder-chain lookup)
+
+### Host capability matrix
+
+| Capability | Modal container | Overlay (passthrough) | Anchor |
+|------------|-----------------|----------------------|--------|
+| Bottom / top / center / edge sheet layouts | Yes | Yes | Anchor layout only |
+| Detent drag snapping | Yes | Yes | No |
+| Programmatic `selectDetent` | Yes | Yes | No |
+| `selectedDetent` / delegate callbacks | Yes | Yes | No |
+| Scroll ↔ sheet gesture handoff | Yes | Yes | N/A |
+| Keyboard avoidance | Yes | No | Yes |
+| Grabber / multi-stage backdrop | Yes | No | Partial |
+| Touch passthrough outside popup | No | Yes | Policy-based |
+| `rotationHandling` | Yes | Yes | Via anchor reposition |
 
 ## Notes
 
+- `rotationHandling` relayouts modal and overlay hosts when container bounds change (`.ignore` keeps the current frame).
+- `preferredContentSizePolicy` controls how `.fitContent` and center fitted sizing read `preferredContentSize`.
 - `anchor` layout uses anchor hosting and does not go through the modal `UIPresentationController` path.
 - Detent APIs are meaningful for sheet modes; non-sheet modes ignore detent switching.
 - `backgroundInteraction.isEnabled` is an advanced setting; enable only when passthrough behavior is intentional.

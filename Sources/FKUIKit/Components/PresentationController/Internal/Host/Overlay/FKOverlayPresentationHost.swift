@@ -32,6 +32,9 @@ final class FKOverlayPresentationHost: NSObject, FKPresentationHost {
     overlayVC.onProgress = { [weak self] progress in
       self?.owner.notifyProgress(progress)
     }
+    overlayVC.onSelectedDetentDidChange = { [weak self] detent, index in
+      self?.owner.notifySelectedDetentDidChange(detent, index: index)
+    }
 
     parent.addChild(overlayVC)
     parent.view.addSubview(overlayVC.view)
@@ -46,6 +49,7 @@ final class FKOverlayPresentationHost: NSObject, FKPresentationHost {
     overlayVC.updateLayout(animated: false, duration: 0, options: .curveLinear)
 
     overlayVC.animatePresentation(isPresentation: true, animated: animated) { [weak self] in
+      overlayVC.publishInitialSelectedDetentIfNeeded()
       completion?()
       self?.isPresented = true
     }
@@ -69,6 +73,14 @@ final class FKOverlayPresentationHost: NSObject, FKPresentationHost {
 
   func updateLayout(animated: Bool, duration: TimeInterval, options: UIView.AnimationOptions) {
     overlayViewController?.updateLayout(animated: animated, duration: duration, options: options)
+  }
+
+  func selectDetent(at index: Int, animated: Bool) {
+    overlayViewController?.selectDetent(at: index, animated: animated)
+  }
+
+  func selectDetent(_ detent: FKPresentationDetent, animated: Bool) {
+    overlayViewController?.selectDetent(detent, animated: animated)
   }
 
   private func cleanup() {

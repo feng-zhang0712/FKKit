@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'FKUIKit'
-  s.version = '0.52.0'
+  s.version = '0.53.0'
   s.summary = 'FKKit UIKit components: buttons, tab bar, presentation, skeleton, toast, and more.'
   s.description = <<-DESC
     Reusable UIKit building blocks from FKKit (Badge, BlurView, Button,
@@ -20,4 +20,7 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Sources/FKUIKit/**/*.swift'
   s.exclude_files = 'Sources/FKUIKit/Components/EmptyState/CoreLite/**/*'
+  s.resource_bundles = {
+    'FKUIKit' => ['Sources/FKUIKit/Resources/Assets.xcassets']
+  }
 end

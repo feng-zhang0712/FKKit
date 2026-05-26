@@ -20,8 +20,7 @@ public extension FKPresentationConfiguration {
       /// further drag in the dismiss direction can dismiss in the **same** gesture (no need to lift and pan again).
       case systemAligned
       /// Previous FK behavior: dismiss rubber-banding and end-of-gesture dismiss thresholds apply only when the
-      /// sheet was already at the smallest detent **when the pan began** (`selectedDetentIndex` is not consulted
-      /// mid-gesture for dismiss eligibility).
+      /// sheet was already at the smallest resolved detent height **when the pan began**.
       case strictSmallestDetentAtPanStart
     }
 
@@ -43,6 +42,9 @@ public extension FKPresentationConfiguration {
     }
 
     /// Available stopping points for sheet modes.
+    ///
+    /// Array order is preserved for programmatic selection and callbacks. Gesture resolution compares
+    /// resolved heights, so detents do not need to be sorted by size.
     public var detents: [FKPresentationDetent]
     /// Selected detent index when the sheet first appears (aligned with ``UISheetPresentationController`` selection semantics).
     public var initialSelectedDetentIndex: Int
@@ -54,7 +56,11 @@ public extension FKPresentationConfiguration {
     public var grabberSize: CGSize
     /// Grabber top spacing in points.
     public var grabberTopInset: CGFloat
-    /// Dismiss threshold in points beyond the min/max detent.
+    /// Base dismiss distance (points) measured along the dismiss axis when the gesture ends at the smallest detent.
+    ///
+    /// This is a deliberate-pull guard, not a tap target. The default is higher than the HIG 44pt minimum so
+    /// short accidental drags are less likely to dismiss. Use ``resolvedDismissThreshold(smallestDetentHeight:)``
+    /// at runtime; it may raise this value when the smallest resolved detent is tall.
     public var dismissThreshold: CGFloat
     /// Velocity threshold for deciding whether a swipe should dismiss.
     public var dismissVelocityThreshold: CGFloat
@@ -83,7 +89,7 @@ public extension FKPresentationConfiguration {
       prefersGrabberVisible: Bool = true,
       grabberSize: CGSize = .init(width: 36, height: 5),
       grabberTopInset: CGFloat = 8,
-      dismissThreshold: CGFloat = 44,
+      dismissThreshold: CGFloat = 80,
       dismissVelocityThreshold: CGFloat = 1200,
       scrollTrackingStrategy: FKSheetScrollTrackingStrategy = .automatic,
       enablesMagneticSnapping: Bool = true,
@@ -110,6 +116,15 @@ public extension FKPresentationConfiguration {
       self.widthPolicy = widthPolicy
       self.multiStageBackdrop = multiStageBackdrop
       self.crossDetentSwipeDismissPolicy = crossDetentSwipeDismissPolicy
+    }
+
+    private static let dismissThresholdSmallestDetentFraction: CGFloat = 0.10
+    private static let dismissThresholdMaximumCap: CGFloat = 120
+
+    /// Effective dismiss distance for the current sheet geometry (base threshold, detent-aware scaling, capped).
+    func resolvedDismissThreshold(smallestDetentHeight: CGFloat) -> CGFloat {
+      let scaled = max(0, smallestDetentHeight) * Self.dismissThresholdSmallestDetentFraction
+      return min(max(dismissThreshold, scaled), Self.dismissThresholdMaximumCap)
     }
   }
 
@@ -152,21 +167,21 @@ public extension FKPresentationConfiguration {
 
   /// Rotation handling strategy used when interface orientation changes.
   public enum RotationHandling {
-    /// Relayouts and animates to the new frame.
+    /// Relayouts and animates to the new frame when the container bounds change.
     case relayoutAnimated
-    /// Relayouts without animation.
+    /// Relayouts without animation when the container bounds change.
     case relayoutImmediate
-    /// Ignores orientation updates and keeps current frame.
+    /// Keeps the current on-screen frame when the container bounds change (for example during rotation).
     case ignore
   }
 
   /// Preferred content size policy when modes support intrinsic content.
   public enum PreferredContentSizePolicy {
-    /// Uses `preferredContentSize` when available.
+    /// Uses `preferredContentSize` when it is at least 44pt; otherwise falls back to layout fitting.
     case automatic
-    /// Always ignores `preferredContentSize`.
+    /// Ignores `preferredContentSize` and uses layout fitting for fit-content sizing.
     case ignore
-    /// Forces `preferredContentSize` as a primary sizing hint.
+    /// Uses `preferredContentSize` whenever it is greater than zero; otherwise falls back to layout fitting.
     case strict
   }
 }

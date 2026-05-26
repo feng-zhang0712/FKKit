@@ -5,6 +5,7 @@ import UIKit
 final class FKOverlayPresentationViewController: UIViewController, UIGestureRecognizerDelegate {
   var onRequestDismiss: (() -> Void)?
   var onProgress: ((CGFloat) -> Void)?
+  var onSelectedDetentDidChange: ((FKPresentationDetent, Int) -> Void)?
 
   private let configuration: FKPresentationConfiguration
 
@@ -23,6 +24,12 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
   private var sheetPanBeganDetentIndex: Int = 0
   private var panStartFrame: CGRect = .zero
   private var isPanningSheet: Bool = false
+  private var sheetPanDeferredToScrollView = false
+  private var sheetPanBypassesScrollHandoff = false
+  private var sheetPanVelocityY: CGFloat = 0
+  private var centerDismissBaseBackdropAlpha: CGFloat = 1
+  private var isCenterInteractivelyDragging = false
+  private var lastBoundsSize: CGSize = .zero
 
   init(configuration: FKPresentationConfiguration) {
     self.configuration = configuration
@@ -56,6 +63,162 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     installGestures()
     recalculateDetentsIfNeeded()
     selectedDetentIndex = configuration.sheet.initialSelectedDetentIndex
+  }
+
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+
+    let newBoundsSize = view.bounds.size
+    let boundsChanged = lastBoundsSize != .zero && newBoundsSize != lastBoundsSize
+    defer { lastBoundsSize = newBoundsSize }
+
+    guard !isPanningSheet, !isCenterInteractivelyDragging, boundsChanged else {
+      updatePassthroughHitTesting()
+      return
+    }
+
+    switch configuration.rotationHandling {
+    case .ignore:
+      updatePassthroughHitTesting()
+    case .relayoutImmediate, .relayoutAnimated:
+      recalculateDetentsIfNeeded()
+      let applyLayout = {
+        self.wrapperView.frame = self.frameOfWrapper()
+        self.layoutContent()
+        self.applyAppearance()
+        self.updatePassthroughHitTesting()
+      }
+      if configuration.rotationHandling == .relayoutAnimated {
+        UIView.animate(
+          withDuration: 0.32,
+          delay: 0,
+          options: [.curveEaseInOut, .allowUserInteraction, .beginFromCurrentState],
+          animations: applyLayout
+        )
+      } else {
+        applyLayout()
+      }
+    }
+  }
+
+  func publishInitialSelectedDetentIfNeeded() {
+    switch configuration.layout {
+    case .bottomSheet(_), .topSheet(_):
+      recalculateDetentsIfNeeded()
+      guard configuration.sheet.detents.indices.contains(selectedDetentIndex) else { return }
+      onSelectedDetentDidChange?(configuration.sheet.detents[selectedDetentIndex], selectedDetentIndex)
+    default:
+      break
+    }
+    if configuration.accessibility.announcesScreenChange {
+      UIAccessibility.post(notification: .screenChanged, argument: configuration.accessibility.announcement)
+    }
+  }
+
+  private func sheetInteractionEnvironment() -> FKSheetPresentationInteractionEnvironment? {
+    guard let axis = FKSheetPresentationAxis(layout: configuration.layout) else { return nil }
+    return FKSheetPresentationInteractionEnvironment(
+      axis: axis,
+      sheet: configuration.sheet,
+      dismissBehaviorAllowsSwipe: configuration.dismissBehavior.allowsSwipe,
+      safeAreaPolicy: configuration.safeAreaPolicy,
+      containerBounds: view.bounds,
+      containerSafeInsets: containerSafeInsets()
+    )
+  }
+
+  private func sheetInteractionState() -> FKSheetPresentationInteractionState {
+    FKSheetPresentationInteractionState(
+      resolvedDetentHeights: resolvedDetentHeights,
+      selectedDetentIndex: selectedDetentIndex,
+      sheetPanBeganDetentIndex: sheetPanBeganDetentIndex,
+      panStartFrame: panStartFrame,
+      wrapperFrame: wrapperView.frame
+    )
+  }
+
+  func selectDetent(_ detent: FKPresentationDetent, animated: Bool) {
+    guard let index = configuration.sheet.detents.firstIndex(of: detent) else { return }
+    selectDetent(at: index, animated: animated)
+  }
+
+  func selectDetent(at index: Int, animated: Bool) {
+    recalculateDetentsIfNeeded()
+    let clamped = max(0, min(index, max(0, resolvedDetentHeights.count - 1)))
+    if clamped == selectedDetentIndex {
+      animateToSelectedDetent(animated: animated)
+      return
+    }
+    selectedDetentIndex = clamped
+    if configuration.sheet.detents.indices.contains(clamped) {
+      onSelectedDetentDidChange?(configuration.sheet.detents[clamped], clamped)
+      if configuration.haptics.isEnabled {
+        UIImpactFeedbackGenerator(style: configuration.haptics.feedbackStyle).impactOccurred()
+      }
+    }
+    animateToSelectedDetent(animated: animated)
+  }
+
+  private func resolvedTrackedScrollView() -> UIScrollView? {
+    FKSheetScrollTracking.resolvedTrackedScrollView(
+      strategy: configuration.sheet.scrollTrackingStrategy,
+      in: children.first?.view
+    )
+  }
+
+  private func resolvesSheetPanBypassesScrollHandoff(
+    recognizer: UIPanGestureRecognizer,
+    trackedScrollView: UIScrollView?
+  ) -> Bool {
+    guard let trackedScrollView else { return true }
+    let touchInWrapper = recognizer.location(in: wrapperView)
+    let touchInScroll = recognizer.location(in: trackedScrollView)
+    return FKSheetPresentationInteractionEngine.shouldBypassScrollHandoffForPan(
+      touchLocationInWrapper: touchInWrapper,
+      contentContainerFrame: contentContainerView.frame,
+      scrollView: trackedScrollView,
+      touchLocationInScrollView: touchInScroll
+    )
+  }
+
+  private func animateToSelectedDetent(animated: Bool, appliesChrome: Bool = true) {
+    let targetFrame = frameOfWrapper()
+    let distance = max(1, abs(wrapperView.frame.minY - targetFrame.minY), abs(wrapperView.frame.height - targetFrame.height))
+    let apply = {
+      self.wrapperView.frame = targetFrame
+      self.layoutContent()
+      if appliesChrome {
+        self.applyAppearance()
+      }
+      self.updatePassthroughHitTesting()
+    }
+    if animated {
+      let duration = FKPresentationInteractionSupport.adaptiveDetentSnapDuration(
+        distance: distance,
+        velocityY: sheetPanVelocityY
+      )
+      let timing = UISpringTimingParameters(
+        dampingRatio: 0.86,
+        initialVelocity: FKPresentationInteractionSupport.normalizedDetentSnapVelocity(
+          velocityY: sheetPanVelocityY,
+          distance: distance
+        )
+      )
+      let animator = UIViewPropertyAnimator(duration: duration, timingParameters: timing)
+      animator.addAnimations(apply)
+      animator.startAnimation()
+    } else {
+      apply()
+    }
+  }
+
+  private func applyOverlayInteractiveFrame(_ frame: CGRect, appliesChrome: Bool) {
+    wrapperView.frame = frame
+    layoutContent()
+    if appliesChrome {
+      applyAppearance()
+    }
+    updatePassthroughHitTesting()
   }
 
   func embedContent(_ contentController: UIViewController) {
@@ -167,57 +330,140 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     guard configuration.center.dismissEnabled else { return }
     let translation = recognizer.translation(in: view)
     let progress = min(max(abs(translation.y) / max(1, view.bounds.height * 0.4), 0), 1)
-    onProgress?(progress)
-    let velocityY = abs(recognizer.velocity(in: view).y)
-    if recognizer.state == .ended || recognizer.state == .cancelled {
-      if progress > configuration.center.dismissProgressThreshold || velocityY > configuration.center.dismissVelocityThreshold {
+
+    switch recognizer.state {
+    case .began:
+      switch configuration.backdropStyle {
+      case let .dim(_, alpha):
+        centerDismissBaseBackdropAlpha = alpha
+      default:
+        centerDismissBaseBackdropAlpha = 1
+      }
+      isCenterInteractivelyDragging = true
+    case .changed:
+      wrapperView.transform = FKPresentationInteractionSupport.centerDismissTransform(
+        translationY: translation.y,
+        containerHeight: view.bounds.height
+      )
+      backdropView.alpha = FKPresentationInteractionSupport.centerDismissBackdropAlpha(
+        baseAlpha: centerDismissBaseBackdropAlpha,
+        progress: progress
+      )
+      onProgress?(progress)
+    case .ended, .cancelled, .failed:
+      let velocityY = recognizer.velocity(in: view).y
+      let shouldDismiss = progress > configuration.center.dismissProgressThreshold
+        || abs(velocityY) > configuration.center.dismissVelocityThreshold
+      isCenterInteractivelyDragging = false
+      if shouldDismiss {
+        onProgress?(1)
         onRequestDismiss?()
       } else {
         onProgress?(0)
+        let timing = UISpringTimingParameters(dampingRatio: 0.86, initialVelocity: .zero)
+        let animator = UIViewPropertyAnimator(duration: 0.34, timingParameters: timing)
+        animator.addAnimations {
+          self.wrapperView.transform = .identity
+          self.backdropView.alpha = 1
+        }
+        animator.startAnimation()
       }
+    default:
+      break
     }
   }
 
   private func handleSheetPan(_ recognizer: UIPanGestureRecognizer) {
+    guard let environment = sheetInteractionEnvironment() else { return }
+
     recalculateDetentsIfNeeded()
     guard !resolvedDetentHeights.isEmpty else { return }
 
     let translation = recognizer.translation(in: view)
     let velocity = recognizer.velocity(in: view)
+    let trackedScrollView = resolvedTrackedScrollView()
 
     switch recognizer.state {
     case .began:
       isPanningSheet = true
+      sheetPanDeferredToScrollView = false
+      sheetPanBypassesScrollHandoff = resolvesSheetPanBypassesScrollHandoff(
+        recognizer: recognizer,
+        trackedScrollView: trackedScrollView
+      )
       panStartFrame = wrapperView.frame
       sheetPanBeganDetentIndex = selectedDetentIndex
+      sheetPanVelocityY = 0
+      trackedScrollView?.panGestureRecognizer.isEnabled = true
+
     case .changed:
       guard isPanningSheet else { return }
-      let frame = interactiveSheetFrame(translationY: translation.y)
-      wrapperView.frame = frame
-      layoutContent()
-      applyAppearance()
-      onProgress?(sheetDismissProgress())
-      updatePassthroughHitTesting()
+      sheetPanVelocityY = velocity.y
+      var state = sheetInteractionState()
+
+      if !sheetPanBypassesScrollHandoff,
+         let trackedScrollView,
+         !FKSheetPresentationInteractionEngine.shouldTransferPanFromScrollView(
+          environment: environment,
+          state: state,
+          scrollView: trackedScrollView,
+          translationY: translation.y
+         ) {
+        if !sheetPanDeferredToScrollView {
+          sheetPanDeferredToScrollView = true
+          animateToSelectedDetent(animated: false, appliesChrome: false)
+        }
+        return
+      }
+
+      if sheetPanDeferredToScrollView {
+        sheetPanDeferredToScrollView = false
+      }
+      state = sheetInteractionState()
+      let frame = FKSheetPresentationInteractionEngine.interactiveFrame(
+        environment: environment,
+        state: state,
+        translationY: translation.y
+      )
+      applyOverlayInteractiveFrame(frame, appliesChrome: false)
+      state.wrapperFrame = wrapperView.frame
+      onProgress?(FKSheetPresentationInteractionEngine.sheetDismissProgress(environment: environment, state: state))
+
     case .ended, .cancelled, .failed:
       guard isPanningSheet else { return }
       isPanningSheet = false
-      let shouldDismiss = sheetShouldDismiss(translationY: translation.y, velocityY: velocity.y)
-      if shouldDismiss {
+
+      if sheetPanDeferredToScrollView {
+        sheetPanDeferredToScrollView = false
+        sheetPanBypassesScrollHandoff = false
+        sheetPanVelocityY = 0
+        return
+      }
+
+      sheetPanBypassesScrollHandoff = false
+      let state = sheetInteractionState()
+
+      if FKSheetPresentationInteractionEngine.sheetShouldDismiss(
+        environment: environment,
+        state: state,
+        translationY: translation.y,
+        velocityY: velocity.y
+      ) {
         onProgress?(1)
         onRequestDismiss?()
         return
       }
-      // Snap to nearest detent.
-      let target = nearestDetentIndex(velocityY: velocity.y)
-      selectedDetentIndex = target
-      UIView.animate(withDuration: 0.26, delay: 0, options: [.curveEaseInOut, .allowUserInteraction]) {
-        self.wrapperView.frame = self.frameOfWrapper()
-        self.layoutContent()
-        self.applyAppearance()
-        self.updatePassthroughHitTesting()
-      } completion: { _ in
-        self.onProgress?(0)
-      }
+
+      let target = FKSheetPresentationInteractionEngine.nearestDetentIndex(
+        environment: environment,
+        state: state,
+        frame: wrapperView.frame,
+        velocityY: velocity.y
+      )
+      selectDetent(at: target, animated: true)
+      onProgress?(0)
+      sheetPanVelocityY = 0
+
     default:
       break
     }
@@ -234,13 +480,13 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       let height = resolvedSheetHeight(bounds: bounds, safeInsets: safeInsets)
       let width = resolvedSheetWidth(bounds: bounds, safeInsets: safeInsets)
       let x = (bounds.width - width) / 2
-      let y = bounds.height - height - (configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0)
+      let y = bounds.height - height - (configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.bottom)
       return CGRect(x: x, y: y, width: width, height: height)
     case .topSheet(_):
       let height = resolvedSheetHeight(bounds: bounds, safeInsets: safeInsets)
       let width = resolvedSheetWidth(bounds: bounds, safeInsets: safeInsets)
       let x = (bounds.width - width) / 2
-      let y: CGFloat = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
+      let y: CGFloat = configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.top
       return CGRect(x: x, y: y, width: width, height: height)
     case .center(_):
       return resolvedCenterFrame(bounds: bounds, safeInsets: safeInsets)
@@ -273,7 +519,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private func containerSafeInsets() -> UIEdgeInsets {
     switch configuration.safeAreaPolicy {
-    case .contentRespectsSafeArea:
+    case .contentRespectsSafeArea, .shellExtendsToScreenBottomEdge:
       return .zero
     case .containerRespectsSafeArea:
       return view.safeAreaInsets
@@ -327,7 +573,14 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   private func contentPreferredHeight() -> CGFloat {
     let preferred = children.first?.preferredContentSize.height ?? 0
-    if preferred > 0 { return preferred }
+    switch configuration.preferredContentSizePolicy {
+    case .strict:
+      if preferred > 0 { return preferred }
+    case .automatic:
+      if preferred > 0 { return preferred }
+    case .ignore:
+      break
+    }
     return 320
   }
 
@@ -390,237 +643,36 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     return CGRect(x: 0, y: bounds.height - height, width: bounds.width, height: height)
   }
 
-  // MARK: - Sheet interaction helpers
-
-  private func sheetDismissPullBranchActive(translationY: CGFloat) -> Bool {
-    let bounds = view.bounds
-    let minHeight = resolvedDetentHeights.min() ?? 240
-    let maxHeight = resolvedDetentHeights.max() ?? bounds.height * 0.9
-    let safeInsets = containerSafeInsets()
-    let bottomExtra = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0
-    let bottomY = bounds.height - bottomExtra
-
-    switch configuration.layout {
-    case .bottomSheet(_):
-      switch configuration.sheet.crossDetentSwipeDismissPolicy {
-      case .strictSmallestDetentAtPanStart:
-        return sheetPanBeganDetentIndex == 0 && translationY > 0
-      case .systemAligned:
-        if sheetPanBeganDetentIndex == 0, translationY > 0 { return true }
-        guard translationY > 0 else { return false }
-        let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
-        let extraDismissPull = translationY - translationToReachMinHeight
-        guard extraDismissPull > 0 else { return false }
-        let clampedH = min(max(panStartFrame.height - translationY, minHeight), maxHeight)
-        let synthetic = CGRect(x: panStartFrame.minX, y: bottomY - clampedH, width: panStartFrame.width, height: clampedH)
-        return nearestDetentIndex(for: synthetic, velocityY: 0) == 0
-      }
-    case .topSheet(_):
-      let minY = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
-      switch configuration.sheet.crossDetentSwipeDismissPolicy {
-      case .strictSmallestDetentAtPanStart:
-        return sheetPanBeganDetentIndex == 0 && translationY < 0
-      case .systemAligned:
-        guard translationY < 0 else { return false }
-        let translationAtMin = minHeight - panStartFrame.height
-        let extraDismissPull = translationAtMin - translationY
-        guard extraDismissPull > 0 else { return false }
-        let clampedH = min(max(panStartFrame.height + translationY, minHeight), maxHeight)
-        let synthetic = CGRect(x: panStartFrame.minX, y: minY, width: panStartFrame.width, height: clampedH)
-        return nearestDetentIndex(for: synthetic, velocityY: 0) == 0
-      }
-    default:
-      return false
-    }
-  }
-
-  private func sheetDismissExtraPullWhileInBranch(translationY: CGFloat) -> CGFloat {
-    let minHeight = resolvedDetentHeights.min() ?? 240
-    switch configuration.layout {
-    case .bottomSheet(_):
-      let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
-      return max(0, translationY - translationToReachMinHeight)
-    case .topSheet(_):
-      let translationAtMin = minHeight - panStartFrame.height
-      return max(0, translationAtMin - translationY)
-    default:
-      return 0
-    }
-  }
-
-  private func interactiveSheetFrame(translationY: CGFloat) -> CGRect {
-    var frame = panStartFrame
-    let bounds = view.bounds
-    let safeInsets = containerSafeInsets()
-    let bottomExtra = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0
-    let bottomY = bounds.height - bottomExtra
-
-    let minHeight = resolvedDetentHeights.min() ?? 240
-    let maxHeight = resolvedDetentHeights.max() ?? bounds.height * 0.9
-    let dismissThreshold = configuration.sheet.dismissThreshold
-
-    switch configuration.layout {
-    case .bottomSheet(_):
-      let inDismissPullBranch = sheetDismissPullBranchActive(translationY: translationY)
-      if inDismissPullBranch {
-        switch configuration.sheet.crossDetentSwipeDismissPolicy {
-        case .strictSmallestDetentAtPanStart:
-          frame.origin.y = panStartFrame.origin.y + translationY
-          frame.size.height = panStartFrame.size.height
-        case .systemAligned:
-          if sheetPanBeganDetentIndex == 0 {
-            frame.origin.y = panStartFrame.origin.y + translationY
-            frame.size.height = panStartFrame.size.height
-          } else {
-            let translationToReachMinHeight = max(0, panStartFrame.height - minHeight)
-            let extraDismissPull = translationY - translationToReachMinHeight
-            frame.size.height = minHeight
-            frame.origin.y = (bottomY - minHeight) + extraDismissPull
-          }
-        }
-      } else {
-        frame.size.height = panStartFrame.height - translationY
-        frame.size.height = min(max(frame.size.height, minHeight - dismissThreshold), maxHeight + dismissThreshold)
-        frame.origin.y = bottomY - frame.size.height
-      }
-    case .topSheet(_):
-      let minY = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
-      let inDismissPullBranch = sheetDismissPullBranchActive(translationY: translationY)
-      if inDismissPullBranch {
-        switch configuration.sheet.crossDetentSwipeDismissPolicy {
-        case .strictSmallestDetentAtPanStart:
-          frame.origin.y = panStartFrame.origin.y + translationY
-          frame.size.height = panStartFrame.size.height
-        case .systemAligned:
-          let translationAtMin = minHeight - panStartFrame.height
-          let extraDismissPull = translationAtMin - translationY
-          frame.size.height = minHeight
-          frame.origin.y = minY - extraDismissPull
-        }
-      } else {
-        frame.size.height = panStartFrame.height + translationY
-        frame.size.height = min(max(frame.size.height, minHeight - dismissThreshold), maxHeight + dismissThreshold)
-        frame.origin.y = minY
-      }
-    default:
-      break
-    }
-    return frame
-  }
-
-  private func sheetDismissProgress() -> CGFloat {
-    let bounds = view.bounds
-    switch configuration.layout {
-    case .topSheet(_):
-      let safeInsets = containerSafeInsets()
-      let minY = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.top : 0
-      let progress = (minY - wrapperView.frame.minY) / max(1, bounds.height * 0.25)
-      return min(max(progress, 0), 1)
-    default:
-      let safeInsets = containerSafeInsets()
-      let minHeight = resolvedDetentHeights.min() ?? 240
-      let extra = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0
-      let maxY = bounds.height - minHeight - extra
-      let progress = (maxY - wrapperView.frame.minY) / max(1, bounds.height * 0.25)
-      return min(max(progress, 0), 1)
-    }
-  }
-
-  private func sheetShouldDismiss(translationY: CGFloat, velocityY: CGFloat) -> Bool {
-    guard configuration.dismissBehavior.allowsSwipe else { return false }
-    let threshold = configuration.sheet.dismissThreshold
-    let velocityThreshold = configuration.sheet.dismissVelocityThreshold
-
-    switch configuration.layout {
-    case .bottomSheet(_):
-      switch configuration.sheet.crossDetentSwipeDismissPolicy {
-      case .strictSmallestDetentAtPanStart:
-        guard sheetPanBeganDetentIndex == 0 else { return false }
-        if translationY > threshold { return true }
-        if velocityY > velocityThreshold { return true }
-        return false
-      case .systemAligned:
-        if sheetPanBeganDetentIndex == 0 {
-          if translationY > threshold { return true }
-          if velocityY > velocityThreshold { return true }
-          return false
-        }
-        guard sheetDismissPullBranchActive(translationY: translationY) else { return false }
-        let extra = sheetDismissExtraPullWhileInBranch(translationY: translationY)
-        if extra > threshold { return true }
-        if extra > threshold * 0.5, velocityY > velocityThreshold { return true }
-        return false
-      }
-    case .topSheet(_):
-      switch configuration.sheet.crossDetentSwipeDismissPolicy {
-      case .strictSmallestDetentAtPanStart:
-        guard sheetPanBeganDetentIndex == 0 else { return false }
-        if translationY < -threshold { return true }
-        if velocityY < -velocityThreshold { return true }
-        return false
-      case .systemAligned:
-        if sheetPanBeganDetentIndex == 0 {
-          if translationY < -threshold { return true }
-          if velocityY < -velocityThreshold { return true }
-          return false
-        }
-        guard sheetDismissPullBranchActive(translationY: translationY) else { return false }
-        let extra = sheetDismissExtraPullWhileInBranch(translationY: translationY)
-        if extra > threshold { return true }
-        if extra > threshold * 0.5, velocityY < -velocityThreshold { return true }
-        return false
-      }
-    default:
-      return false
-    }
-  }
-
-  private func nearestDetentIndex(for frame: CGRect, velocityY: CGFloat) -> Int {
-    if abs(velocityY) > 900, resolvedDetentHeights.count >= 2 {
-      switch configuration.layout {
-      case .bottomSheet(_):
-        return velocityY < 0 ? min(resolvedDetentHeights.count - 1, selectedDetentIndex + 1) : max(0, selectedDetentIndex - 1)
-      case .topSheet(_):
-        return velocityY > 0 ? min(resolvedDetentHeights.count - 1, selectedDetentIndex + 1) : max(0, selectedDetentIndex - 1)
-      default:
-        break
-      }
-    }
-    // Nearest by height.
-    let bounds = view.bounds
-    let safeInsets = containerSafeInsets()
-    let bottomExtra = configuration.safeAreaPolicy == .containerRespectsSafeArea ? safeInsets.bottom : 0
-    let currentHeight: CGFloat = {
-      switch configuration.layout {
-      case .bottomSheet(_):
-        return bounds.height - frame.minY - bottomExtra
-      default:
-        return frame.height
-      }
-    }()
-    var best = 0
-    var bestDistance = CGFloat.greatestFiniteMagnitude
-    for (idx, h) in resolvedDetentHeights.enumerated() {
-      let d = abs(h - currentHeight)
-      if d < bestDistance {
-        bestDistance = d
-        best = idx
-      }
-    }
-    return best
-  }
-
-  private func nearestDetentIndex(velocityY: CGFloat) -> Int {
-    nearestDetentIndex(for: wrapperView.frame, velocityY: velocityY)
-  }
-
   // MARK: UIGestureRecognizerDelegate
 
   func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
     guard gestureRecognizer === panToDismissGesture else { return true }
     guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return true }
     let velocity = pan.velocity(in: view)
-    return abs(velocity.y) >= abs(velocity.x)
+    guard abs(velocity.y) >= abs(velocity.x) else { return false }
+
+    guard let trackedScrollView = resolvedTrackedScrollView(),
+          let environment = sheetInteractionEnvironment() else { return true }
+
+    let touchInWrapper = pan.location(in: wrapperView)
+    if !contentContainerView.frame.contains(touchInWrapper) { return true }
+
+    let location = pan.location(in: trackedScrollView)
+    return FKSheetPresentationInteractionEngine.shouldSheetPanBegin(
+      environment: environment,
+      state: sheetInteractionState(),
+      scrollView: trackedScrollView,
+      touchLocationInScrollView: location,
+      verticalVelocity: velocity.y
+    )
+  }
+
+  func gestureRecognizer(
+    _ gestureRecognizer: UIGestureRecognizer,
+    shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+  ) -> Bool {
+    guard gestureRecognizer === panToDismissGesture || otherGestureRecognizer === panToDismissGesture else { return false }
+    return otherGestureRecognizer.view is UIScrollView || gestureRecognizer.view is UIScrollView
   }
 }
 
