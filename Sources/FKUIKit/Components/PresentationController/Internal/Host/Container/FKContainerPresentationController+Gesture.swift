@@ -78,15 +78,29 @@ extension FKContainerPresentationController {
     guard configuration.center.dismissEnabled else { return }
     let translation = recognizer.translation(in: containerView)
     let progress = min(max(abs(translation.y) / max(1, containerView.bounds.height * 0.4), 0), 1)
-    notifyProgress(progress)
-    let velocityY = abs(recognizer.velocity(in: containerView).y)
 
-    if recognizer.state == .ended || recognizer.state == .cancelled {
-      if progress > configuration.center.dismissProgressThreshold || velocityY > configuration.center.dismissVelocityThreshold {
-        presentedViewController.dismiss(animated: true)
+    switch recognizer.state {
+    case .began:
+      captureCenterDismissBaseBackdropAlphaIfNeeded()
+      isCenterInteractivelyDragging = true
+    case .changed:
+      applyCenterInteractiveDismissTransform(translationY: translation.y, progress: progress)
+      notifyProgress(progress)
+    case .ended, .cancelled, .failed:
+      let velocityY = recognizer.velocity(in: containerView).y
+      let shouldDismiss = progress > configuration.center.dismissProgressThreshold
+        || abs(velocityY) > configuration.center.dismissVelocityThreshold
+      if shouldDismiss {
+        notifyProgress(1)
+        commitCenterInteractiveStateForDismissal()
+        performInteractiveDismiss(velocityY: velocityY, completionFraction: progress)
       } else {
         notifyProgress(0)
+        resetCenterInteractiveDismissVisuals(animated: true)
       }
+      isCenterInteractivelyDragging = false
+    default:
+      break
     }
   }
 
@@ -127,22 +141,25 @@ extension FKContainerPresentationController {
           scrollView: trackedScrollView,
           translationY: translation.y
          ) {
-        sheetPanDeferredToScrollView = true
-        animateToSelectedDetent(animated: false)
+        if !sheetPanDeferredToScrollView {
+          sheetPanDeferredToScrollView = true
+          animateToSelectedDetent(animated: false, layoutKind: .settling)
+        }
         return
       }
 
-      sheetPanDeferredToScrollView = false
+      if sheetPanDeferredToScrollView {
+        sheetPanDeferredToScrollView = false
+      }
       state = sheetInteractionState()
       let frame = FKSheetPresentationInteractionEngine.interactiveFrame(
         environment: environment,
         state: state,
         translationY: translation.y
       )
-      applyInteractiveFrame(frame)
+      applyInteractiveFrame(frame, updateKind: .tracking)
       state.wrapperFrame = wrapperView.frame
       notifyProgress(FKSheetPresentationInteractionEngine.sheetDismissProgress(environment: environment, state: state))
-      updateBackdropForCurrentState()
 
     case .ended, .cancelled, .failed:
       guard isPanningSheet else { return }
@@ -164,10 +181,12 @@ extension FKContainerPresentationController {
         translationY: translation.y,
         velocityY: velocity.y
       ) {
+        let progress = FKSheetPresentationInteractionEngine.sheetDismissProgress(
+          environment: environment,
+          state: state
+        )
         notifyProgress(1)
-        keepsInteractiveFrameForDismissal = true
-        dismissalStartingFrame = wrapperView.frame
-        presentedViewController.dismiss(animated: true)
+        performInteractiveDismiss(velocityY: velocity.y, completionFraction: progress)
         sheetPanVelocityY = 0
         return
       }
@@ -239,19 +258,6 @@ extension FKContainerPresentationController {
     )
   }
 
-  func applyInteractiveFrame(_ frame: CGRect) {
-    // Interactive sizing assigns a fresh `frame`; reset any prior layer transform (e.g. keyboard
-    // avoidance) before applying it so we do not compound translation with the new geometry.
-    wrapperView.transform = .identity
-    wrapperView.frame = frame
-    layoutContentContainer()
-    hostedPresentedView?.frame = contentContainerView.bounds
-    applyContainerAppearance()
-    if let containerView {
-      applyKeyboardAvoidance(in: containerView)
-    }
-  }
-
   func selectDetentIndex(_ index: Int, animated: Bool) {
     let clamped = max(0, min(index, max(0, resolvedDetentHeights.count - 1)))
     if clamped == selectedDetentIndex { animateToSelectedDetent(animated: animated); return }
@@ -271,7 +277,7 @@ extension FKContainerPresentationController {
     selectDetentIndex(index, animated: animated)
   }
 
-  func animateToSelectedDetent(animated: Bool) {
+  func animateToSelectedDetent(animated: Bool, layoutKind: FKInteractiveLayoutUpdateKind = .full) {
     guard containerView != nil else { return }
     let targetFrame = frameOfPresentedViewInContainerView
     let distance = max(
@@ -280,18 +286,21 @@ extension FKContainerPresentationController {
       abs(wrapperView.frame.height - targetFrame.height)
     )
     let animations = {
-      self.wrapperView.transform = .identity
-      self.wrapperView.frame = targetFrame
-      self.layoutContentContainer()
-      self.hostedPresentedView?.frame = self.contentContainerView.bounds
-      self.applyContainerAppearance()
-      self.updateBackdropForCurrentState()
+      self.applyInteractiveFrame(targetFrame, updateKind: layoutKind == .settling ? .settling : .full)
     }
     if animated {
-      let velocityVector = CGVector(dx: 0, dy: sheetPanVelocityY / distance)
-      let softenedVelocity = CGVector(dx: 0, dy: velocityVector.dy * 0.75)
-      let timing = UISpringTimingParameters(dampingRatio: 0.86, initialVelocity: softenedVelocity)
-      let animator = UIViewPropertyAnimator(duration: 0.42, timingParameters: timing)
+      let duration = FKPresentationInteractionSupport.adaptiveDetentSnapDuration(
+        distance: distance,
+        velocityY: sheetPanVelocityY
+      )
+      let timing = UISpringTimingParameters(
+        dampingRatio: 0.86,
+        initialVelocity: FKPresentationInteractionSupport.normalizedDetentSnapVelocity(
+          velocityY: sheetPanVelocityY,
+          distance: distance
+        )
+      )
+      let animator = UIViewPropertyAnimator(duration: duration, timingParameters: timing)
       animator.addAnimations(animations)
       animator.startAnimation()
     } else {

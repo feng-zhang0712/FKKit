@@ -26,6 +26,9 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
   private var isPanningSheet: Bool = false
   private var sheetPanDeferredToScrollView = false
   private var sheetPanBypassesScrollHandoff = false
+  private var sheetPanVelocityY: CGFloat = 0
+  private var centerDismissBaseBackdropAlpha: CGFloat = 1
+  private var isCenterInteractivelyDragging = false
   private var lastBoundsSize: CGSize = .zero
 
   init(configuration: FKPresentationConfiguration) {
@@ -69,7 +72,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     let boundsChanged = lastBoundsSize != .zero && newBoundsSize != lastBoundsSize
     defer { lastBoundsSize = newBoundsSize }
 
-    guard !isPanningSheet, boundsChanged else {
+    guard !isPanningSheet, !isCenterInteractivelyDragging, boundsChanged else {
       updatePassthroughHitTesting()
       return
     }
@@ -178,18 +181,44 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     )
   }
 
-  private func animateToSelectedDetent(animated: Bool) {
+  private func animateToSelectedDetent(animated: Bool, appliesChrome: Bool = true) {
+    let targetFrame = frameOfWrapper()
+    let distance = max(1, abs(wrapperView.frame.minY - targetFrame.minY), abs(wrapperView.frame.height - targetFrame.height))
     let apply = {
-      self.wrapperView.frame = self.frameOfWrapper()
+      self.wrapperView.frame = targetFrame
       self.layoutContent()
-      self.applyAppearance()
+      if appliesChrome {
+        self.applyAppearance()
+      }
       self.updatePassthroughHitTesting()
     }
     if animated {
-      UIView.animate(withDuration: 0.26, delay: 0, options: [.curveEaseInOut, .allowUserInteraction], animations: apply)
+      let duration = FKPresentationInteractionSupport.adaptiveDetentSnapDuration(
+        distance: distance,
+        velocityY: sheetPanVelocityY
+      )
+      let timing = UISpringTimingParameters(
+        dampingRatio: 0.86,
+        initialVelocity: FKPresentationInteractionSupport.normalizedDetentSnapVelocity(
+          velocityY: sheetPanVelocityY,
+          distance: distance
+        )
+      )
+      let animator = UIViewPropertyAnimator(duration: duration, timingParameters: timing)
+      animator.addAnimations(apply)
+      animator.startAnimation()
     } else {
       apply()
     }
+  }
+
+  private func applyOverlayInteractiveFrame(_ frame: CGRect, appliesChrome: Bool) {
+    wrapperView.frame = frame
+    layoutContent()
+    if appliesChrome {
+      applyAppearance()
+    }
+    updatePassthroughHitTesting()
   }
 
   func embedContent(_ contentController: UIViewController) {
@@ -301,14 +330,46 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
     guard configuration.center.dismissEnabled else { return }
     let translation = recognizer.translation(in: view)
     let progress = min(max(abs(translation.y) / max(1, view.bounds.height * 0.4), 0), 1)
-    onProgress?(progress)
-    let velocityY = abs(recognizer.velocity(in: view).y)
-    if recognizer.state == .ended || recognizer.state == .cancelled {
-      if progress > configuration.center.dismissProgressThreshold || velocityY > configuration.center.dismissVelocityThreshold {
+
+    switch recognizer.state {
+    case .began:
+      switch configuration.backdropStyle {
+      case let .dim(_, alpha):
+        centerDismissBaseBackdropAlpha = alpha
+      default:
+        centerDismissBaseBackdropAlpha = 1
+      }
+      isCenterInteractivelyDragging = true
+    case .changed:
+      wrapperView.transform = FKPresentationInteractionSupport.centerDismissTransform(
+        translationY: translation.y,
+        containerHeight: view.bounds.height
+      )
+      backdropView.alpha = FKPresentationInteractionSupport.centerDismissBackdropAlpha(
+        baseAlpha: centerDismissBaseBackdropAlpha,
+        progress: progress
+      )
+      onProgress?(progress)
+    case .ended, .cancelled, .failed:
+      let velocityY = recognizer.velocity(in: view).y
+      let shouldDismiss = progress > configuration.center.dismissProgressThreshold
+        || abs(velocityY) > configuration.center.dismissVelocityThreshold
+      isCenterInteractivelyDragging = false
+      if shouldDismiss {
+        onProgress?(1)
         onRequestDismiss?()
       } else {
         onProgress?(0)
+        let timing = UISpringTimingParameters(dampingRatio: 0.86, initialVelocity: .zero)
+        let animator = UIViewPropertyAnimator(duration: 0.34, timingParameters: timing)
+        animator.addAnimations {
+          self.wrapperView.transform = .identity
+          self.backdropView.alpha = 1
+        }
+        animator.startAnimation()
       }
+    default:
+      break
     }
   }
 
@@ -332,10 +393,12 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       )
       panStartFrame = wrapperView.frame
       sheetPanBeganDetentIndex = selectedDetentIndex
+      sheetPanVelocityY = 0
       trackedScrollView?.panGestureRecognizer.isEnabled = true
 
     case .changed:
       guard isPanningSheet else { return }
+      sheetPanVelocityY = velocity.y
       var state = sheetInteractionState()
 
       if !sheetPanBypassesScrollHandoff,
@@ -346,24 +409,25 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
           scrollView: trackedScrollView,
           translationY: translation.y
          ) {
-        sheetPanDeferredToScrollView = true
-        animateToSelectedDetent(animated: false)
+        if !sheetPanDeferredToScrollView {
+          sheetPanDeferredToScrollView = true
+          animateToSelectedDetent(animated: false, appliesChrome: false)
+        }
         return
       }
 
-      sheetPanDeferredToScrollView = false
+      if sheetPanDeferredToScrollView {
+        sheetPanDeferredToScrollView = false
+      }
       state = sheetInteractionState()
       let frame = FKSheetPresentationInteractionEngine.interactiveFrame(
         environment: environment,
         state: state,
         translationY: translation.y
       )
-      wrapperView.frame = frame
-      layoutContent()
-      applyAppearance()
+      applyOverlayInteractiveFrame(frame, appliesChrome: false)
       state.wrapperFrame = wrapperView.frame
       onProgress?(FKSheetPresentationInteractionEngine.sheetDismissProgress(environment: environment, state: state))
-      updatePassthroughHitTesting()
 
     case .ended, .cancelled, .failed:
       guard isPanningSheet else { return }
@@ -372,6 +436,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       if sheetPanDeferredToScrollView {
         sheetPanDeferredToScrollView = false
         sheetPanBypassesScrollHandoff = false
+        sheetPanVelocityY = 0
         return
       }
 
@@ -397,6 +462,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       )
       selectDetent(at: target, animated: true)
       onProgress?(0)
+      sheetPanVelocityY = 0
 
     default:
       break

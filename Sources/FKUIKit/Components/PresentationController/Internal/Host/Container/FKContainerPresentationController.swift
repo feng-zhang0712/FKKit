@@ -34,6 +34,10 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
   var dismissalStartingFrame: CGRect = .zero
   var sheetPanDeferredToScrollView = false
   var sheetPanBypassesScrollHandoff = false
+  /// Backdrop alpha before center-card interactive dragging mutates it.
+  var centerDismissBaseBackdropAlpha: CGFloat = 1
+  /// Whether center interactive dismiss is driving backdrop/transform.
+  var isCenterInteractivelyDragging = false
 
   var keyboardBottomInset: CGFloat = 0
   var keyboardObservers: [NSObjectProtocol] = []
@@ -163,7 +167,7 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
     defer { lastContainerBoundsSize = newBoundsSize }
 
     let skipRotationRelayout = containerBoundsChanged && configuration.rotationHandling == .ignore
-    let canAssignFrame = !isPanningSheet && !keepsInteractiveFrameForDismissal
+    let canAssignFrame = !isPanningSheet && !isCenterInteractivelyDragging && !keepsInteractiveFrameForDismissal
       && presentedViewController.transitionCoordinator == nil
       && !skipRotationRelayout
 
@@ -203,17 +207,20 @@ final class FKContainerPresentationController: UIPresentationController, UIGestu
 
   public override func dismissalTransitionDidEnd(_ completed: Bool) {
     super.dismissalTransitionDidEnd(completed)
+    (presentedViewController.transitioningDelegate as? FKPresentationTransitioningDelegate)?.interactiveDismiss.reset()
     if completed {
       backdropView.removeFromSuperview()
       stopKeyboardTracking()
       cleanupPresentingViewEffect()
       resetDismissalFrameLock()
+      resetCenterInteractiveDismissVisuals()
     } else {
       // Interactive dismiss can cancel after intermediate visual changes; restore backdrop/effect state
       // so the re-presented sheet remains visually consistent and does not look half-dismissed.
       applyPresentingViewEffectIfNeeded(isPresenting: true)
       updateBackdropForCurrentState()
       resetDismissalFrameLock()
+      resetCenterInteractiveDismissVisuals()
     }
   }
 

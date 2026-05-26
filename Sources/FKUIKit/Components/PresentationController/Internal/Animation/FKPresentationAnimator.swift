@@ -5,16 +5,19 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
   private let isPresentation: Bool
   private let layout: FKPresentationConfiguration.Layout
   private let animationConfiguration: FKAnimationConfiguration
+  private weak var interactiveDismiss: FKPresentationInteractiveDismissTransition?
   private var cachedAnimator: UIViewImplicitlyAnimating?
 
   init(
     isPresentation: Bool,
     layout: FKPresentationConfiguration.Layout,
-    animationConfiguration: FKAnimationConfiguration
+    animationConfiguration: FKAnimationConfiguration,
+    interactiveDismiss: FKPresentationInteractiveDismissTransition?
   ) {
     self.isPresentation = isPresentation
     self.layout = layout
     self.animationConfiguration = animationConfiguration
+    self.interactiveDismiss = interactiveDismiss
     super.init()
   }
 
@@ -122,6 +125,7 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
       let finished = (position == .end || position == .current) && !transitionContext.transitionWasCancelled
       transitionContext.completeTransition(finished)
       self.cachedAnimator = nil
+      self.interactiveDismiss?.reset()
     }
     cachedAnimator = animator
     return animator
@@ -231,6 +235,10 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
   }
 
   private func springInitialVelocity(for context: FKAnimationContext) -> CGVector {
+    if !isPresentation, let interactiveDismiss, interactiveDismiss.isArmed {
+      return springInitialVelocityForInteractiveDismiss(context: context, dismissalVelocityY: interactiveDismiss.dismissalVelocityY)
+    }
+
     switch layout {
     case .bottomSheet(_):
       let travel = max(1, abs(context.endFrame.minY - context.startFrame.minY))
@@ -241,6 +249,21 @@ final class FKPresentationAnimator: NSObject, UIViewControllerAnimatedTransition
       return CGVector(dx: 0, dy: 0.5 + normalized * 0.2)
     case .topSheet(_):
       return CGVector(dx: 0, dy: isPresentation ? -0.3 : 0.55)
+    default:
+      return .zero
+    }
+  }
+
+  private func springInitialVelocityForInteractiveDismiss(context: FKAnimationContext, dismissalVelocityY: CGFloat) -> CGVector {
+    let travel = max(1, abs(context.endFrame.minY - context.startFrame.minY))
+    let normalized = min(1.25, abs(dismissalVelocityY) / max(900, travel * 3.2))
+    switch layout {
+    case .bottomSheet(_):
+      return CGVector(dx: 0, dy: 0.42 + normalized * 0.58)
+    case .topSheet(_):
+      return CGVector(dx: 0, dy: -(0.42 + normalized * 0.58))
+    case .center(_):
+      return CGVector(dx: 0, dy: dismissalVelocityY >= 0 ? 0.5 + normalized * 0.35 : -(0.5 + normalized * 0.35))
     default:
       return .zero
     }

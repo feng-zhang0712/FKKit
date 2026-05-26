@@ -423,17 +423,23 @@ enum FKSheetPresentationInteractionEngine {
     if inDismissPullBranch {
       switch environment.sheet.crossDetentSwipeDismissPolicy {
       case .strictSmallestDetentAtPanStart:
-        frame.origin.y = state.panStartFrame.origin.y + translationY
+        let banded = FKPresentationInteractionSupport.rubberBandOffset(max(0, translationY), dimension: dismissThreshold * 2.5)
+        frame.origin.y = state.panStartFrame.origin.y + banded
         frame.size.height = state.panStartFrame.size.height
       case .systemAligned:
         if state.sheetPanBeganDetentIndex == smallestIndex {
-          frame.origin.y = state.panStartFrame.origin.y + translationY
+          let banded = FKPresentationInteractionSupport.rubberBandOffset(max(0, translationY), dimension: dismissThreshold * 2.5)
+          frame.origin.y = state.panStartFrame.origin.y + banded
           frame.size.height = state.panStartFrame.size.height
         } else {
           let translationToReachMinHeight = max(0, state.panStartFrame.height - minHeight)
           let extraDismissPull = translationY - translationToReachMinHeight
+          let bandedExtra = FKPresentationInteractionSupport.rubberBandOffset(
+            max(0, extraDismissPull),
+            dimension: dismissThreshold * 2.5
+          )
           frame.size.height = minHeight
-          frame.origin.y = (bottomY - minHeight) + extraDismissPull
+          frame.origin.y = (bottomY - minHeight) + bandedExtra
         }
       }
     } else {
@@ -469,13 +475,18 @@ enum FKSheetPresentationInteractionEngine {
     if inDismissPullBranch {
       switch environment.sheet.crossDetentSwipeDismissPolicy {
       case .strictSmallestDetentAtPanStart:
-        frame.origin.y = state.panStartFrame.origin.y + translationY
+        let banded = FKPresentationInteractionSupport.rubberBandOffset(max(0, -translationY), dimension: dismissThreshold * 2.5)
+        frame.origin.y = state.panStartFrame.origin.y - banded
         frame.size.height = state.panStartFrame.size.height
       case .systemAligned:
         let translationAtMin = minHeight - state.panStartFrame.height
         let extraDismissPull = translationAtMin - translationY
+        let bandedExtra = FKPresentationInteractionSupport.rubberBandOffset(
+          max(0, extraDismissPull),
+          dimension: dismissThreshold * 2.5
+        )
         frame.size.height = minHeight
-        frame.origin.y = minY - extraDismissPull
+        frame.origin.y = minY - bandedExtra
       }
     } else {
       frame.size.height = state.panStartFrame.height + translationY
