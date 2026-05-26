@@ -1,302 +1,481 @@
 import UIKit
 
-/// Presents HIG-style action sheets using a custom modal ``UIViewController``.
+/// HIG-style action sheet presented as a modal view controller (bottom, centered, or popover).
+///
+/// Create with ``init(configuration:)``, then call ``present(from:animated:completion:)`` or
+/// ``present(from:anchoredTo:sourceRect:permittedArrowDirections:animated:completion:)`` for popovers.
 @MainActor
-public enum FKActionSheet {
-  private static weak var activeHandle: FKActionSheetHandle?
-  private static var activePresentIDs: Set<String> = []
+public final class FKActionSheet: UIViewController {
+  /// Latest configuration used to render rows.
+  public private(set) var configuration: FKActionSheetConfiguration
 
-  /// Whether an action sheet is currently presented.
-  ///
-  /// Reflects the most recently presented sheet via ``FKActionSheet/present(configuration:hostContext:animated:completion:)``.
-  /// Use the returned ``FKActionSheetHandle/isPresented`` when you retain a handle.
+  var onActionSelected: ((FKActionSheetAction, UUID?, Bool) -> Void)?
+  var onToggleValueChanged: ((FKActionSheetAction, Bool) -> Void)?
+  var onPanelLayoutChange: (() -> Void)?
+
+  let panelView = UIView()
+  private(set) var presentationConfiguration: FKActionSheetPresentationConfiguration
+
+  weak var session: FKActionSheetSession?
+
+  private let actionSheetView = FKActionSheetView()
+  private let transitioningDelegateBox: FKActionSheetTransitioningDelegate
+  private lazy var outsideTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleOutsideTap(_:)))
+
+  var panelHeightConstraint: NSLayoutConstraint?
+  var panelWidthConstraint: NSLayoutConstraint?
+  var panelCenterYConstraint: NSLayoutConstraint?
+  var installedPanelLayout: InstalledPanelLayout?
+  var installedLayoutConstraints: [NSLayoutConstraint] = []
+
+  private var lastResolvedPanelHeight: CGFloat = 0
+  private var lastLayoutWidth: CGFloat = 0
+  private var lastScrollEnabled: Bool?
+  private var lastTableSafeBottom: CGFloat = -1
+  private var isUpdatingPanelLayout = false
+  private var presentationProgress: CGFloat = 1
+  private var sessionNotifiedWillDismiss = false
+  private var sessionNotifiedDidDismiss = false
+  private var pendingDismissReason: FKActionSheetDismissReason?
+
+  static weak var activeSheet: FKActionSheet?
+  static var activePresentIDs: Set<String> = []
+
+  /// Whether any action sheet presented via the static convenience APIs is on screen.
   public static var isPresenting: Bool {
-    activeHandle?.isPresented == true
+    activeSheet?.isPresented == true
   }
 
-  /// Validates configuration before presentation.
-  public static func validate(
-    _ configuration: FKActionSheetConfiguration,
-    hostContext: FKActionSheetPresentationHostContext = .init()
-  ) throws {
+  var resolvedPanelHeight: CGFloat {
+    lastResolvedPanelHeight
+  }
+
+  /// Whether this sheet is currently on screen.
+  public var isPresented: Bool {
+    presentingViewController != nil
+  }
+
+  var actionSheetPresentationController: FKActionSheetUIKitPresentationController? {
+    presentationController as? FKActionSheetUIKitPresentationController
+  }
+
+  /// Creates an action sheet. Throws when `configuration` is invalid.
+  public init(configuration: FKActionSheetConfiguration) throws {
     try FKActionSheetValidator.validate(configuration)
-    try FKActionSheetValidator.validatePresentation(configuration, hostContext: hostContext)
-    guard resolvePresenter(hostContext: hostContext) != nil else {
-      throw FKActionSheetValidationError.presenterNotFound
+    let resolved = configuration.applyingSelectionState()
+    self.configuration = resolved
+    presentationConfiguration = resolved.presentation
+    transitioningDelegateBox = FKActionSheetTransitioningDelegate(
+      presentationConfiguration: resolved.presentation
+    )
+    super.init(nibName: nil, bundle: nil)
+
+    if resolved.presentation.usesCustomModalPresentation {
+      transitioningDelegateBox.attach(to: self)
     }
   }
 
-  /// Presents a popover action sheet anchored to `sourceView`.
-  @discardableResult
-  public static func presentPopover(
-    configuration: FKActionSheetConfiguration,
-    from presenter: UIViewController,
-    sourceView: UIView,
-    sourceRect: CGRect? = nil,
-    permittedArrowDirections: UIPopoverArrowDirection = .any,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle {
-    var config = configuration
-    if config.presentation.style != .popover {
-      var presentation = config.presentation
-      presentation.style = .popover
-      config.presentation = presentation
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  // MARK: - UIViewController
+
+  public override func loadView() {
+    view = UIView()
+    view.backgroundColor = .clear
+  }
+
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    view.accessibilityViewIsModal = true
+
+    outsideTapRecognizer.cancelsTouchesInView = false
+    outsideTapRecognizer.delegate = self
+    view.addGestureRecognizer(outsideTapRecognizer)
+
+    panelView.translatesAutoresizingMaskIntoConstraints = false
+    panelView.clipsToBounds = true
+    actionSheetView.delegate = self
+    actionSheetView.translatesAutoresizingMaskIntoConstraints = false
+
+    panelView.addSubview(actionSheetView)
+    view.addSubview(panelView)
+
+    panelHeightConstraint = panelView.heightAnchor.constraint(equalToConstant: 120)
+    panelHeightConstraint?.isActive = true
+
+    NSLayoutConstraint.activate([
+      actionSheetView.topAnchor.constraint(equalTo: panelView.topAnchor),
+      actionSheetView.leadingAnchor.constraint(equalTo: panelView.leadingAnchor),
+      actionSheetView.trailingAnchor.constraint(equalTo: panelView.trailingAnchor),
+      actionSheetView.bottomAnchor.constraint(equalTo: panelView.bottomAnchor),
+    ])
+
+    syncOutsideTapRecognizer()
+    applyPanelChrome()
+    apply(configuration: configuration)
+  }
+
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    session?.notifyWillPresent()
+    updatePanelLayout(force: true)
+  }
+
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    session?.notifyDidPresent()
+    updatePanelLayout(force: true)
+  }
+
+  public override func viewWillDisappear(_ animated: Bool) {
+    if !sessionNotifiedWillDismiss {
+      let reason = session?.captureDismissReason(default: .programmatic) ?? .programmatic
+      session?.notifyWillDismiss(reason: reason)
+      sessionNotifiedWillDismiss = true
     }
-    return try present(
-      configuration: config,
-      hostContext: FKActionSheetPresentationHostContext(
-        presenter: presenter,
-        popoverSource: sourceView,
-        sourceRect: sourceRect,
-        permittedArrowDirections: permittedArrowDirections
-      ),
-      animated: animated,
-      completion: completion
-    )
+    super.viewWillDisappear(animated)
   }
 
-  /// Presents an action sheet using an explicit presenter.
-  @discardableResult
-  public static func present(
-    configuration: FKActionSheetConfiguration,
-    from presenter: UIViewController,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle {
-    try present(
-      configuration: configuration,
-      hostContext: FKActionSheetPresentationHostContext(presenter: presenter),
-      animated: animated,
-      completion: completion
-    )
-  }
-
-  /// Presents an action sheet by resolving a presenter from ``FKActionSheetPresentationHostContext``.
-  @discardableResult
-  public static func present(
-    configuration: FKActionSheetConfiguration,
-    hostContext: FKActionSheetPresentationHostContext = .init(),
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle {
-    try validate(configuration, hostContext: hostContext)
-    guard let presenter = resolvePresenter(hostContext: hostContext) else {
-      throw FKActionSheetValidationError.presenterNotFound
+  public override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    if presentingViewController == nil, !sessionNotifiedDidDismiss {
+      session?.notifyDidDismiss(reason: session?.lastCapturedReason ?? .programmatic)
+      sessionNotifiedDidDismiss = true
     }
-    return try presentValidated(
-      configuration: configuration,
-      hostContext: hostContext,
-      presenter: presenter,
-      animated: animated,
-      presentationCompletion: completion
-    )
   }
 
-  /// Presents at most one sheet per `id` until it is dismissed.
-  @discardableResult
-  public static func presentOnce(
-    id: String,
-    configuration: FKActionSheetConfiguration,
-    from presenter: UIViewController,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle? {
-    try presentOnce(
-      id: id,
-      configuration: configuration,
-      hostContext: FKActionSheetPresentationHostContext(presenter: presenter),
-      animated: animated,
-      completion: completion
-    )
-  }
-
-  /// Presents at most one sheet per `id` until it is dismissed.
-  @discardableResult
-  public static func presentOnce(
-    id: String,
-    configuration: FKActionSheetConfiguration,
-    hostContext: FKActionSheetPresentationHostContext = .init(),
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle? {
-    guard !id.isEmpty else {
-      return try present(configuration: configuration, hostContext: hostContext, animated: animated, completion: completion)
+  public override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    let width = effectiveLayoutWidth()
+    guard width > 0 else { return }
+    if installedPanelLayout == nil {
+      installPanelLayoutIfNeeded()
+    } else {
+      updatePanelWidthConstraint()
     }
-    guard !activePresentIDs.contains(id) else { return nil }
+    let widthChanged = abs(width - lastLayoutWidth) > 0.5
+    let safeBottom = tableBottomContentInset()
+    let safeBottomChanged = abs(safeBottom - lastTableSafeBottom) > 0.5
+    guard widthChanged || safeBottomChanged else { return }
+    lastLayoutWidth = width
+    updatePanelLayout(force: safeBottomChanged && !widthChanged)
+    applyPanelChrome()
+  }
 
-    var config = configuration
-    let priorDidDismiss = config.hooks.didDismiss
-    config.hooks.didDismiss = { reason in
-      priorDidDismiss?(reason)
-      activePresentIDs.remove(id)
+  public override func viewSafeAreaInsetsDidChange() {
+    super.viewSafeAreaInsetsDidChange()
+    updatePanelLayout(force: true)
+  }
+
+  public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    if traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory {
+      actionSheetView.apply(configuration: configuration)
     }
-    let handle = try present(configuration: config, hostContext: hostContext, animated: animated, completion: completion)
-    activePresentIDs.insert(id)
-    return handle
+    updatePanelLayout(force: true)
+    applyPanelChrome()
   }
 
-  /// Convenience API for a single action group plus optional cancel.
-  @discardableResult
-  public static func present(
-    title: String? = nil,
-    message: String? = nil,
-    actions: [FKActionSheetAction],
-    cancelAction: FKActionSheetAction? = nil,
-    hostContext: FKActionSheetPresentationHostContext = .init(),
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle {
-    let configuration = FKActionSheetConfiguration(
-      header: (title == nil && message == nil) ? nil : .text(FKActionSheetHeader(title: title, message: message)),
-      sections: [FKActionSheetSection(actions: actions)],
-      cancelAction: cancelAction
-    )
-    return try present(configuration: configuration, hostContext: hostContext, animated: animated, completion: completion)
+  // MARK: - Configuration
+
+  /// Validates configuration without creating an instance.
+  public static func validate(_ configuration: FKActionSheetConfiguration) throws {
+    try FKActionSheetValidator.validate(configuration)
   }
 
-  /// Dismisses the most recently presented action sheet, if any.
+  /// Replaces visible actions and header, then refreshes layout.
   ///
-  /// Prefer dismissing a retained ``FKActionSheetHandle`` when you need instance-scoped control.
+  /// Invalid configurations are ignored; in debug builds an `assertionFailure` is emitted.
+  public func reload(configuration: FKActionSheetConfiguration) {
+    guard Self.isValid(configuration) else { return }
+    apply(configuration: configuration.applyingSelectionState())
+    session?.updateConfiguration(self.configuration)
+  }
+
+  /// Updates a single action in place when the identifier matches.
+  public func updateAction(_ action: FKActionSheetAction) {
+    let updated = configuration.replacingAction(action)
+    guard Self.isValid(updated) else { return }
+    configuration = updated
+    session?.updateConfiguration(configuration)
+    refreshAction(action)
+  }
+
+  /// Dismisses the sheet when visible.
+  public func dismiss(
+    reason: FKActionSheetDismissReason = .programmatic,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) {
+    stageDismissReason(reason)
+    super.dismiss(animated: animated, completion: completion)
+  }
+
+  /// Dismisses the most recently presented action sheet from static convenience APIs, if any.
   public static func dismissActive(animated: Bool = true, completion: (() -> Void)? = nil) {
-    activeHandle?.dismiss(reason: .programmatic, animated: animated, completion: completion)
+    activeSheet?.dismiss(reason: .programmatic, animated: animated, completion: completion)
   }
 
-  private static func resolvePresenter(hostContext: FKActionSheetPresentationHostContext) -> UIViewController? {
-    FKActionSheetPresenterResolver.resolvePresenter(from: hostContext)
+  func apply(configuration: FKActionSheetConfiguration) {
+    self.configuration = configuration
+    presentationConfiguration = configuration.presentation
+    syncOutsideTapRecognizer()
+    installPanelLayoutIfNeeded()
+    lastLayoutWidth = 0
+    lastResolvedPanelHeight = 0
+    lastScrollEnabled = nil
+    lastTableSafeBottom = -1
+    panelView.backgroundColor = configuration.appearance.backgroundColor
+    if configuration.presentation.style == .popover {
+      view.backgroundColor = configuration.appearance.backgroundColor
+    } else {
+      view.backgroundColor = .clear
+    }
+    actionSheetView.apply(configuration: configuration)
+    applyPanelChrome()
+    updatePanelLayout(force: true)
   }
 
-  @discardableResult
-  private static func presentValidated(
-    configuration: FKActionSheetConfiguration,
-    hostContext: FKActionSheetPresentationHostContext,
-    presenter: UIViewController,
-    animated: Bool,
-    presentationCompletion: (() -> Void)?
-  ) throws -> FKActionSheetHandle {
-    if let activeHandle, activeHandle.isPresented {
-      activeHandle.dismiss(reason: .programmatic, animated: false)
-    }
-
-    let resolvedConfiguration = configuration.applyingSelectionState()
-
-    let sheet = FKActionSheetViewController(configuration: resolvedConfiguration)
-    sheet.loadViewIfNeeded()
-
-    let handle = FKActionSheetHandle(
-      viewController: sheet,
-      configuration: resolvedConfiguration
-    )
-
-    let session = FKActionSheetSession(
-      handle: handle,
-      configuration: resolvedConfiguration,
-      viewController: sheet
-    )
-    session.onDidPresentExtra = {
-      sheet.focusAccessibility()
-      presentationCompletion?()
-    }
-    handle.session = session
-    sheet.session = session
-    activeHandle = handle
-
-    sheet.onPanelLayoutChange = { [weak sheet] in
-      sheet?.view.setNeedsLayout()
-      sheet?.view.layoutIfNeeded()
-    }
-
-    wireContentCallbacks(handle: handle, session: session)
-
-    try FKActionSheetPresentationConfigurator.configure(
-      sheet: sheet,
-      hostContext: hostContext,
-      presenter: presenter
-    )
-
-    presenter.present(sheet, animated: animated, completion: nil)
-    return handle
+  func refreshAction(_ action: FKActionSheetAction) {
+    configuration = configuration.replacingAction(action)
+    actionSheetView.refreshAction(action)
+    updatePanelLayout(force: true)
   }
 
-  private static func wireContentCallbacks(
-    handle: FKActionSheetHandle,
-    session: FKActionSheetSession
+  func focusAccessibility() {
+    UIAccessibility.post(notification: .screenChanged, argument: view)
+  }
+
+  func dismissForBackdropTap() {
+    guard configuration.presentation.allowsTapOutsideDismiss,
+          configuration.presentation.usesCustomModalPresentation
+    else { return }
+    dismiss(reason: .tapOutside, animated: true)
+  }
+
+  func prepareForPresentationAnimation() {
+    guard presentationConfiguration.usesCustomModalPresentation else { return }
+    view.layoutIfNeeded()
+    setPresentationProgress(0, animated: false)
+  }
+
+  func setPresentationProgress(_ progress: CGFloat, animated: Bool) {
+    presentationProgress = min(1, max(0, progress))
+    let updates = {
+      switch self.presentationConfiguration.style {
+      case .bottom:
+        let offset = (1 - self.presentationProgress) * self.resolvedPanelHeight
+        self.panelView.transform = CGAffineTransform(translationX: 0, y: offset)
+        self.panelView.alpha = 1
+      case .centered:
+        let scale = 0.9 + (0.1 * self.presentationProgress)
+        self.panelView.transform = CGAffineTransform(scaleX: scale, y: scale)
+        self.panelView.alpha = self.presentationProgress
+      case .popover:
+        self.panelView.transform = .identity
+        self.panelView.alpha = self.presentationProgress
+      }
+    }
+    if animated {
+      UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut], animations: updates)
+    } else {
+      updates()
+    }
+  }
+
+  func stageDismissReason(_ reason: FKActionSheetDismissReason) {
+    pendingDismissReason = reason
+  }
+
+  func peekPendingDismissReason() -> FKActionSheetDismissReason? {
+    pendingDismissReason
+  }
+
+  func consumePendingDismissReason(default reason: FKActionSheetDismissReason) -> FKActionSheetDismissReason {
+    defer { pendingDismissReason = nil }
+    return pendingDismissReason ?? reason
+  }
+
+  func commitConfiguration(_ configuration: FKActionSheetConfiguration) {
+    guard Self.isValid(configuration) else { return }
+    self.configuration = configuration
+    session?.updateConfiguration(configuration)
+  }
+
+  static func registerActive(_ sheet: FKActionSheet) {
+    if let activeSheet, activeSheet.isPresented, activeSheet !== sheet {
+      activeSheet.dismiss(reason: .programmatic, animated: false)
+    }
+    activeSheet = sheet
+  }
+
+  static func isPresentOnceBlocked(id: String) -> Bool {
+    !id.isEmpty && activePresentIDs.contains(id)
+  }
+
+  static func clearPresentOnce(id: String) {
+    activePresentIDs.remove(id)
+  }
+
+  @objc
+  private func handleOutsideTap(_ recognizer: UITapGestureRecognizer) {
+    dismissForBackdropTap()
+  }
+
+  private static let minimumPanelHeight: CGFloat = 44
+
+  private static func isValid(_ configuration: FKActionSheetConfiguration) -> Bool {
+    do {
+      try FKActionSheetValidator.validate(configuration)
+      return true
+    } catch {
+      assertionFailure("FKActionSheet received invalid configuration: \(error)")
+      return false
+    }
+  }
+
+  private func syncOutsideTapRecognizer() {
+    let isEnabled = configuration.presentation.allowsTapOutsideDismiss
+      && configuration.presentation.usesCustomModalPresentation
+    outsideTapRecognizer.isEnabled = isEnabled
+  }
+
+  private func applyPanelChrome() {
+    let radius = configuration.presentation.cornerRadius
+    panelView.layer.cornerRadius = radius
+    switch configuration.presentation.style {
+    case .bottom:
+      panelView.layer.maskedCorners = radius > 0
+        ? [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        : []
+    case .centered, .popover:
+      panelView.layer.maskedCorners = [
+        .layerMinXMinYCorner,
+        .layerMaxXMinYCorner,
+        .layerMinXMaxYCorner,
+        .layerMaxXMaxYCorner,
+      ]
+    }
+
+    let roundedCorners: UIRectCorner = configuration.presentation.style == .bottom
+      ? [.topLeft, .topRight]
+      : .allCorners
+    let shadowPath = UIBezierPath(
+      roundedRect: panelView.bounds,
+      byRoundingCorners: roundedCorners,
+      cornerRadii: CGSize(width: radius, height: radius)
+    ).cgPath
+    panelView.layer.fk_applyShadow(configuration.presentation.containerShadow, path: shadowPath)
+  }
+
+  private func updatePanelLayout(force: Bool) {
+    guard !isUpdatingPanelLayout else { return }
+    isUpdatingPanelLayout = true
+    defer { isUpdatingPanelLayout = false }
+
+    let layoutWidth = contentLayoutWidth(for: effectiveLayoutWidth())
+    updatePanelWidthConstraint()
+    let tableSafeBottom = tableBottomContentInset()
+    if force || abs(tableSafeBottom - lastTableSafeBottom) > 0.5 {
+      lastTableSafeBottom = tableSafeBottom
+      actionSheetView.updateBottomSafeAreaInset(tableSafeBottom)
+    }
+
+    let contentHeight = actionSheetView.measuredContentHeight(for: layoutWidth)
+    let maximumContentHeight = maximumSheetHeight()
+    let cappedContentHeight = min(contentHeight, maximumContentHeight)
+    let shouldScroll = contentHeight > cappedContentHeight + 0.5
+
+    if force || shouldScroll != lastScrollEnabled {
+      lastScrollEnabled = shouldScroll
+      actionSheetView.setScrollEnabled(shouldScroll)
+    }
+
+    let hostedHeight = max(cappedContentHeight, Self.minimumPanelHeight)
+    guard hostedHeight >= Self.minimumPanelHeight else { return }
+
+    let panelHeight: CGFloat
+    switch configuration.presentation.style {
+    case .popover:
+      panelHeight = hostedHeight
+    case .bottom, .centered:
+      panelHeight = hostedHeight + tableSafeBottom
+    }
+    guard force || abs(panelHeight - lastResolvedPanelHeight) > 0.5 else { return }
+
+    lastResolvedPanelHeight = panelHeight
+    if configuration.presentation.style != .popover {
+      panelHeightConstraint?.isActive = true
+      panelHeightConstraint?.constant = panelHeight
+    }
+    preferredContentSize = CGSize(width: layoutWidth, height: panelHeight)
+
+    if presentationProgress < 1 {
+      setPresentationProgress(presentationProgress, animated: false)
+    }
+
+    onPanelLayoutChange?()
+    view.setNeedsLayout()
+  }
+
+  private func tableBottomContentInset() -> CGFloat {
+    switch configuration.presentation.style {
+    case .bottom:
+      break
+    case .centered, .popover:
+      return 0
+    }
+
+    if view.safeAreaInsets.bottom > 0 {
+      return view.safeAreaInsets.bottom
+    }
+    if let windowBottom = view.window?.safeAreaInsets.bottom, windowBottom > 0 {
+      return windowBottom
+    }
+    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    let keyWindow = scenes
+      .flatMap(\.windows)
+      .first(where: \.isKeyWindow)
+    return keyWindow?.safeAreaInsets.bottom ?? 0
+  }
+
+  private func maximumSheetHeight() -> CGFloat {
+    let screenHeight = view.window?.bounds.height ?? UIScreen.main.bounds.height
+    let fractionCap = screenHeight * configuration.presentation.maximumFitContentHeightFraction
+    if let maximumPanelHeight = configuration.presentation.resolvedMaximumPanelHeight {
+      return min(fractionCap, maximumPanelHeight)
+    }
+    return fractionCap
+  }
+}
+
+extension FKActionSheet: FKActionSheetViewDelegate {
+  func actionSheetView(
+    _ view: FKActionSheetView,
+    didSelect action: FKActionSheetAction,
+    sectionID: UUID?,
+    isCancelGroup: Bool
   ) {
-    handle.actionSheetViewController.onActionSelected = { action, sectionID, isCancelGroup in
-      guard action.isEnabled else { return }
-      if case .custom(let row) = action.rowContent, !row.isSelectable { return }
-      if case .standard = action.rowContent, action.isLoading { return }
-      if action.isToggleRow { return }
-
-      let configuration = session.configuration
-      session.notifyDidSelect(action)
-      if configuration.haptics.onActionSelection {
-        session.haptics.playSelection()
-      }
-
-      let isCancel = isCancelGroup || action.style == .cancel
-      let dismissReason: FKActionSheetDismissReason = isCancel ? .userCancel : .actionSelected
-
-      if case .single = configuration.selection.mode, !isCancel {
-        session.applySingleSelection(action: action)
-        if configuration.selection.keepsSheetPresentedOnSelection {
-          invokeHandler(for: action, timing: configuration.handlerTiming, handle: handle, shouldDismiss: false)
-          return
-        }
-      }
-
-      let shouldDismiss = isCancel
-        || action.dismissesSheetWhenSelected
-        ?? configuration.dismissesAfterActionSelection
-
-      if shouldDismiss {
-        handle.stageDismissReason(dismissReason)
-        invokeHandler(
-          for: action,
-          timing: configuration.handlerTiming,
-          handle: handle,
-          shouldDismiss: true,
-          dismissReason: dismissReason
-        )
-      } else {
-        invokeHandler(for: action, timing: configuration.handlerTiming, handle: handle, shouldDismiss: false)
-      }
-    }
-
-    handle.actionSheetViewController.onToggleValueChanged = { action, isOn in
-      guard action.isEnabled else { return }
-      session.updateToggleValue(actionID: action.id, isOn: isOn)
-      action.toggleValueChanged?(isOn)
-    }
+    onActionSelected?(action, sectionID, isCancelGroup)
   }
 
-  private static func invokeHandler(
-    for action: FKActionSheetAction,
-    timing: FKActionSheetHandlerTiming,
-    handle: FKActionSheetHandle,
-    shouldDismiss: Bool,
-    dismissReason: FKActionSheetDismissReason = .actionSelected
+  func actionSheetView(
+    _ view: FKActionSheetView,
+    didToggle action: FKActionSheetAction,
+    isOn: Bool
   ) {
-    let hasHandler = action.handler != nil || action.actionHandler != nil
-    guard hasHandler else {
-      if shouldDismiss {
-        handle.dismiss(reason: dismissReason, animated: true)
-      }
-      return
-    }
+    onToggleValueChanged?(action, isOn)
+  }
+}
 
-    switch (timing, shouldDismiss) {
-    case (.beforeDismiss, true), (.beforeDismiss, false):
-      action.invokeHandlers()
-      if shouldDismiss {
-        handle.dismiss(reason: dismissReason, animated: true)
-      }
-    case (.afterDismissAnimation, false):
-      action.invokeHandlers()
-    case (.afterDismissAnimation, true):
-      handle.dismiss(reason: dismissReason, animated: true) {
-        action.invokeHandlers()
-      }
-    }
+extension FKActionSheet: UIGestureRecognizerDelegate {
+  public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+    guard gestureRecognizer === outsideTapRecognizer else { return true }
+    let location = touch.location(in: view)
+    let panelLocation = view.convert(location, to: panelView)
+    return !panelView.point(inside: panelLocation, with: nil)
   }
 }

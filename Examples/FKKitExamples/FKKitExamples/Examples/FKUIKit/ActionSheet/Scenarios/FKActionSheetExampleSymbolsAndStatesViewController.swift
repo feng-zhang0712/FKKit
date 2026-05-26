@@ -2,7 +2,7 @@ import UIKit
 import FKUIKit
 
 final class FKActionSheetExampleSymbolsAndStatesViewController: FKActionSheetExampleBaseViewController {
-  private weak var liveHandle: FKActionSheetHandle?
+  private weak var liveSheet: FKActionSheet?
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -16,17 +16,17 @@ final class FKActionSheetExampleSymbolsAndStatesViewController: FKActionSheetExa
     })
     body.addArrangedSubview(FKActionSheetExampleUI.button("Disabled + loading") { [weak self] in
       guard let self else { return }
-      self.liveHandle = FKActionSheetExamplePlaybook.presentDisabledAndLoading(from: self)
+      self.liveSheet = FKActionSheetExamplePlaybook.presentDisabledAndLoading(from: self)
     })
     body.addArrangedSubview(FKActionSheetExampleUI.button("Clear loading state") { [weak self] in
-      guard let self, let handle = self.liveHandle else {
-        FKActionSheetExamplePlaybook.log("No handle — present disabled/loading sheet first")
+      guard let self, let sheet = self.liveSheet else {
+        FKActionSheetExamplePlaybook.log("No sheet — present disabled/loading sheet first")
         return
       }
       var share = FKActionSheetAction(title: "Share", symbolName: "square.and.arrow.up")
       share.isLoading = false
       share.isEnabled = true
-      handle.updateAction(share)
+      sheet.updateAction(share)
       FKActionSheetExamplePlaybook.log("updateAction cleared loading")
     })
     body.addArrangedSubview(FKActionSheetExampleUI.button("Stay-open row") { [weak self] in

@@ -1,16 +1,16 @@
 import UIKit
 
-/// Slide/fade transitions for ``FKActionSheetViewController``.
+/// Slide/fade transitions for ``FKActionSheet``.
 @MainActor
 final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioning {
   private let isPresenting: Bool
   private let configuration: FKActionSheetPresentationConfiguration
-  private weak var actionSheetViewController: FKActionSheetViewController?
+  private weak var actionSheetViewController: FKActionSheet?
 
   init(
     isPresenting: Bool,
     configuration: FKActionSheetPresentationConfiguration,
-    actionSheetViewController: FKActionSheetViewController?
+    actionSheetViewController: FKActionSheet?
   ) {
     self.isPresenting = isPresenting
     self.configuration = configuration
@@ -28,7 +28,7 @@ final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioni
   func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
     let from = transitionContext.viewController(forKey: .from)
     let to = transitionContext.viewController(forKey: .to)
-    let sheet = (isPresenting ? to : from) as? FKActionSheetViewController
+    let sheet = (isPresenting ? to : from) as? FKActionSheet
     let containerView = transitionContext.containerView
 
     if isPresenting {

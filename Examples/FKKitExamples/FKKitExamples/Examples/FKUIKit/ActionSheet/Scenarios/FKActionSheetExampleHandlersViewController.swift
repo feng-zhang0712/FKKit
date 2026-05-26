@@ -55,23 +55,23 @@ final class FKActionSheetExampleHandlersViewController: FKActionSheetExampleBase
   }
 
   private final class DelegateProxy: NSObject, FKActionSheetDelegate {
-    func actionSheetWillPresent(_ handle: FKActionSheetHandle) {
+    func actionSheetWillPresent(_ actionSheet: FKActionSheet) {
       FKActionSheetExamplePlaybook.log("delegate willPresent")
     }
 
-    func actionSheetDidPresent(_ handle: FKActionSheetHandle) {
+    func actionSheetDidPresent(_ actionSheet: FKActionSheet) {
       FKActionSheetExamplePlaybook.log("delegate didPresent")
     }
 
-    func actionSheetWillDismiss(_ handle: FKActionSheetHandle, reason: FKActionSheetDismissReason) {
+    func actionSheetWillDismiss(_ actionSheet: FKActionSheet, reason: FKActionSheetDismissReason) {
       FKActionSheetExamplePlaybook.log("delegate willDismiss(\(String(describing: reason)))")
     }
 
-    func actionSheetDidDismiss(_ handle: FKActionSheetHandle, reason: FKActionSheetDismissReason) {
+    func actionSheetDidDismiss(_ actionSheet: FKActionSheet, reason: FKActionSheetDismissReason) {
       FKActionSheetExamplePlaybook.log("delegate didDismiss(\(String(describing: reason)))")
     }
 
-    func actionSheet(_ handle: FKActionSheetHandle, didSelect action: FKActionSheetAction) {
+    func actionSheet(_ actionSheet: FKActionSheet, didSelect action: FKActionSheetAction) {
       FKActionSheetExamplePlaybook.log("delegate didSelect(\(action.title))")
     }
   }

@@ -7,7 +7,8 @@ import UIKit
 public struct FKActionSheetModifier: ViewModifier {
   @Binding private var isPresented: Bool
   private let configuration: FKActionSheetConfiguration
-  private let hostContext: FKActionSheetPresentationHostContext
+  private let popoverSourceView: UIView?
+  private let popoverSourceRect: CGRect?
   private let onDismiss: ((FKActionSheetDismissReason) -> Void)?
   private let onPresentFailure: ((Error) -> Void)?
 
@@ -15,13 +16,15 @@ public struct FKActionSheetModifier: ViewModifier {
   public init(
     isPresented: Binding<Bool>,
     configuration: FKActionSheetConfiguration,
-    hostContext: FKActionSheetPresentationHostContext = .init(),
+    popoverSourceView: UIView? = nil,
+    popoverSourceRect: CGRect? = nil,
     onDismiss: ((FKActionSheetDismissReason) -> Void)? = nil,
     onPresentFailure: ((Error) -> Void)? = nil
   ) {
     self._isPresented = isPresented
     self.configuration = configuration
-    self.hostContext = hostContext
+    self.popoverSourceView = popoverSourceView
+    self.popoverSourceRect = popoverSourceRect
     self.onDismiss = onDismiss
     self.onPresentFailure = onPresentFailure
   }
@@ -31,7 +34,8 @@ public struct FKActionSheetModifier: ViewModifier {
       FKActionSheetPresenterRepresentable(
         isPresented: $isPresented,
         configuration: configuration,
-        hostContext: hostContext,
+        popoverSourceView: popoverSourceView,
+        popoverSourceRect: popoverSourceRect,
         onDismiss: onDismiss,
         onPresentFailure: onPresentFailure
       )
@@ -44,7 +48,8 @@ public struct FKActionSheetModifier: ViewModifier {
 private struct FKActionSheetPresenterRepresentable: UIViewControllerRepresentable {
   @Binding var isPresented: Bool
   let configuration: FKActionSheetConfiguration
-  let hostContext: FKActionSheetPresentationHostContext
+  let popoverSourceView: UIView?
+  let popoverSourceRect: CGRect?
   let onDismiss: ((FKActionSheetDismissReason) -> Void)?
   let onPresentFailure: ((Error) -> Void)?
 
@@ -57,19 +62,25 @@ private struct FKActionSheetPresenterRepresentable: UIViewControllerRepresentabl
 
   func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
     if isPresented {
-      if let handle = context.coordinator.handle, handle.isPresented {
-        handle.reload(configuration: configurationForPresentation(coordinator: context.coordinator))
+      if let sheet = context.coordinator.sheet, sheet.isPresented {
+        sheet.reload(configuration: configurationForPresentation(coordinator: context.coordinator))
         return
       }
-      guard context.coordinator.handle == nil else { return }
+      guard context.coordinator.sheet == nil else { return }
       do {
-        let handle = try FKActionSheet.present(
-          configuration: configurationForPresentation(coordinator: context.coordinator),
-          hostContext: hostContext.mergingFallbackPresenter(uiViewController)
-        )
-        context.coordinator.handle = handle
+        let sheet = try FKActionSheet(configuration: configurationForPresentation(coordinator: context.coordinator))
+        if let popoverSourceView {
+          try sheet.present(
+            from: uiViewController,
+            anchoredTo: popoverSourceView,
+            sourceRect: popoverSourceRect
+          )
+        } else {
+          try sheet.present(from: uiViewController)
+        }
+        context.coordinator.sheet = sheet
       } catch {
-        context.coordinator.handle = nil
+        context.coordinator.sheet = nil
         let failure = error
         let reportFailure = onPresentFailure
         schedulePresentationBindingUpdate {
@@ -77,11 +88,11 @@ private struct FKActionSheetPresenterRepresentable: UIViewControllerRepresentabl
           reportFailure?(failure)
         }
       }
-    } else if let handle = context.coordinator.handle, handle.isPresented {
-      handle.dismiss(reason: .programmatic, animated: true)
-      context.coordinator.handle = nil
+    } else if let sheet = context.coordinator.sheet, sheet.isPresented {
+      sheet.dismiss(reason: .programmatic, animated: true)
+      context.coordinator.sheet = nil
     } else {
-      context.coordinator.handle = nil
+      context.coordinator.sheet = nil
     }
   }
 
@@ -96,7 +107,7 @@ private struct FKActionSheetPresenterRepresentable: UIViewControllerRepresentabl
     config.hooks.didDismiss = { reason in
       schedulePresentationBindingUpdate {
         priorDidDismiss?(reason)
-        coordinator.handle = nil
+        coordinator.sheet = nil
         isPresented = false
         reportDismiss?(reason)
       }
@@ -112,16 +123,7 @@ private struct FKActionSheetPresenterRepresentable: UIViewControllerRepresentabl
   }
 
   final class Coordinator {
-    var handle: FKActionSheetHandle?
-  }
-}
-
-private extension FKActionSheetPresentationHostContext {
-  func mergingFallbackPresenter(_ fallback: UIViewController) -> FKActionSheetPresentationHostContext {
-    if presenter?.object != nil { return self }
-    var copy = self
-    copy.presenter = FKWeakReference(fallback)
-    return copy
+    var sheet: FKActionSheet?
   }
 }
 
@@ -130,7 +132,8 @@ public extension View {
   func fkActionSheet(
     isPresented: Binding<Bool>,
     configuration: FKActionSheetConfiguration,
-    hostContext: FKActionSheetPresentationHostContext = .init(),
+    popoverSourceView: UIView? = nil,
+    popoverSourceRect: CGRect? = nil,
     onDismiss: ((FKActionSheetDismissReason) -> Void)? = nil,
     onPresentFailure: ((Error) -> Void)? = nil
   ) -> some View {
@@ -138,7 +141,8 @@ public extension View {
       FKActionSheetModifier(
         isPresented: isPresented,
         configuration: configuration,
-        hostContext: hostContext,
+        popoverSourceView: popoverSourceView,
+        popoverSourceRect: popoverSourceRect,
         onDismiss: onDismiss,
         onPresentFailure: onPresentFailure
       )
@@ -152,7 +156,6 @@ public extension View {
     message: String? = nil,
     actions: [FKActionSheetAction],
     cancelTitle: String? = "Cancel",
-    hostContext: FKActionSheetPresentationHostContext = .init(),
     onDismiss: ((FKActionSheetDismissReason) -> Void)? = nil,
     onPresentFailure: ((Error) -> Void)? = nil
   ) -> some View {
@@ -164,7 +167,6 @@ public extension View {
         actions: actions,
         cancelTitle: cancelTitle
       ),
-      hostContext: hostContext,
       onDismiss: onDismiss,
       onPresentFailure: onPresentFailure
     )

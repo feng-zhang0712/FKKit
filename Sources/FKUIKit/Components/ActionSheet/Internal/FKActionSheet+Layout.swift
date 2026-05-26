@@ -1,6 +1,6 @@
 import UIKit
 
-extension FKActionSheetViewController {
+extension FKActionSheet {
   enum InstalledPanelLayout: Equatable {
     case bottom
     case centered

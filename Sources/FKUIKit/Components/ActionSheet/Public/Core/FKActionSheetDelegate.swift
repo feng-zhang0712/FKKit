@@ -4,21 +4,21 @@ import UIKit
 @MainActor
 public protocol FKActionSheetDelegate: AnyObject {
   /// Called before the presentation animation starts.
-  func actionSheetWillPresent(_ handle: FKActionSheetHandle)
+  func actionSheetWillPresent(_ actionSheet: FKActionSheet)
   /// Called after the presentation animation finishes.
-  func actionSheetDidPresent(_ handle: FKActionSheetHandle)
+  func actionSheetDidPresent(_ actionSheet: FKActionSheet)
   /// Called before dismissal starts.
-  func actionSheetWillDismiss(_ handle: FKActionSheetHandle, reason: FKActionSheetDismissReason)
+  func actionSheetWillDismiss(_ actionSheet: FKActionSheet, reason: FKActionSheetDismissReason)
   /// Called after dismissal finishes.
-  func actionSheetDidDismiss(_ handle: FKActionSheetHandle, reason: FKActionSheetDismissReason)
+  func actionSheetDidDismiss(_ actionSheet: FKActionSheet, reason: FKActionSheetDismissReason)
   /// Called when the user selects an action row.
-  func actionSheet(_ handle: FKActionSheetHandle, didSelect action: FKActionSheetAction)
+  func actionSheet(_ actionSheet: FKActionSheet, didSelect action: FKActionSheetAction)
 }
 
 public extension FKActionSheetDelegate {
-  func actionSheetWillPresent(_ handle: FKActionSheetHandle) {}
-  func actionSheetDidPresent(_ handle: FKActionSheetHandle) {}
-  func actionSheetWillDismiss(_ handle: FKActionSheetHandle, reason: FKActionSheetDismissReason) {}
-  func actionSheetDidDismiss(_ handle: FKActionSheetHandle, reason: FKActionSheetDismissReason) {}
-  func actionSheet(_ handle: FKActionSheetHandle, didSelect action: FKActionSheetAction) {}
+  func actionSheetWillPresent(_ actionSheet: FKActionSheet) {}
+  func actionSheetDidPresent(_ actionSheet: FKActionSheet) {}
+  func actionSheetWillDismiss(_ actionSheet: FKActionSheet, reason: FKActionSheetDismissReason) {}
+  func actionSheetDidDismiss(_ actionSheet: FKActionSheet, reason: FKActionSheetDismissReason) {}
+  func actionSheet(_ actionSheet: FKActionSheet, didSelect action: FKActionSheetAction) {}
 }

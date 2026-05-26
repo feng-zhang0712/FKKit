@@ -9,11 +9,15 @@ final class FKActionSheetExampleBasicsViewController: FKActionSheetExampleBaseVi
     let body = UIStackView()
     body.axis = .vertical
     body.spacing = 8
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Instance API (recommended)") { [weak self] in
+      guard let self else { return }
+      FKActionSheetExamplePlaybook.presentInstanceAPI(from: self)
+    })
     body.addArrangedSubview(FKActionSheetExampleUI.button("Standard sheet") { [weak self] in
       guard let self else { return }
       FKActionSheetExamplePlaybook.presentBasics(from: self)
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Convenience API") { [weak self] in
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Static convenience API") { [weak self] in
       guard let self else { return }
       FKActionSheetExamplePlaybook.presentConvenienceAPI(from: self)
     })
@@ -24,8 +28,8 @@ final class FKActionSheetExampleBasicsViewController: FKActionSheetExampleBaseVi
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
-        title: "Standard presentation",
-        description: "Title/message header, default + destructive actions, separated cancel row, and throws-based present API.",
+        title: "FKActionSheet view controller",
+        description: "FKActionSheet is a UIViewController. Create with init(configuration:), call present(from:), and retain the instance for reload or dismiss. Static present(configuration:from:) remains available for one-shot use.",
         body: body
       )
     )

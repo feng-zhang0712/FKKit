@@ -2,46 +2,33 @@ import UIKit
 import FKUIKit
 
 final class FKActionSheetExampleLiveUpdatesViewController: FKActionSheetExampleBaseViewController {
-  private weak var liveHandle: FKActionSheetHandle?
+  private weak var liveSheet: FKActionSheet?
+  private var autoDemoTask: Task<Void, Never>?
 
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Live Updates"
+    navigationItem.rightBarButtonItem = UIBarButtonItem(
+      title: "Live",
+      menu: makeLiveDemoMenu()
+    )
 
     let body = UIStackView()
     body.axis = .vertical
     body.spacing = 8
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Present for reload") { [weak self] in
-      guard let self else { return }
-      self.liveHandle = FKActionSheetExamplePlaybook.presentForLiveReload(from: self)
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Present + auto demo") { [weak self] in
+      self?.presentLiveSheet(shouldStartAutoDemo: true)
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Reload with new title") { [weak self] in
-      guard let self, let handle = self.liveHandle else {
-        FKActionSheetExamplePlaybook.log("No handle — present reload demo first")
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Present (manual only)") { [weak self] in
+      self?.presentLiveSheet(shouldStartAutoDemo: false)
+    })
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Dismiss retained sheet") { [weak self] in
+      guard let sheet = self?.liveSheet, sheet.isPresented else {
+        FKActionSheetExamplePlaybook.log("No presented sheet to dismiss")
         return
       }
-      let updated = FKActionSheetConfiguration(
-        header: .text(FKActionSheetHeader(title: "Reloaded", message: "Header and actions replaced.")),
-        sections: [
-          FKActionSheetSection(actions: [
-            FKActionSheetAction(title: "New action") { FKActionSheetExamplePlaybook.log("New action") },
-          ]),
-        ],
-        cancelAction: FKActionSheetExamplePlaybook.makeCancelAction()
-      )
-      handle.reload(configuration: updated)
-      FKActionSheetExamplePlaybook.log("handle.reload applied")
-    })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("updateAction loading") { [weak self] in
-      guard let self, let handle = self.liveHandle else {
-        FKActionSheetExamplePlaybook.log("No handle — present reload demo first")
-        return
-      }
-      var share = FKActionSheetAction(title: "Sharing…", symbolName: "square.and.arrow.up")
-      share.isLoading = true
-      share.isEnabled = false
-      handle.updateAction(share)
-      FKActionSheetExamplePlaybook.log("handle.updateAction loading")
+      sheet.dismiss(reason: .programmatic, animated: true)
+      FKActionSheetExamplePlaybook.log("dismiss(reason: .programmatic)")
     })
     body.addArrangedSubview(FKActionSheetExampleUI.button("presentOnce (same id)") { [weak self] in
       self.map { FKActionSheetExamplePlaybook.presentOnceDemo(from: $0) }
@@ -52,17 +39,95 @@ final class FKActionSheetExampleLiveUpdatesViewController: FKActionSheetExampleB
       },
       FKActionSheetExampleUI.button("dismissActive") {
         FKActionSheet.dismissActive()
-        FKActionSheetExamplePlaybook.log("dismissActive called")
+        FKActionSheetExamplePlaybook.log("dismissActive()")
       },
     ]))
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
-        title: "FKActionSheetHandle",
-        description: "Retain a handle to reload configuration, patch single rows, dedupe with presentOnce, and query global presentation state.",
+        title: "Retained FKActionSheet",
+        description: "Present via init(configuration:) + present(from:), keep a weak reference, then call reload(configuration:), updateAction(_:), or dismiss(reason:). Static isPresenting / dismissActive() target the most recent static convenience present.",
         body: body
       )
     )
     addClearLogButton()
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    cancelAutoDemo()
+  }
+
+  private func presentLiveSheet(shouldStartAutoDemo: Bool) {
+    cancelAutoDemo()
+    liveSheet = FKActionSheetExamplePlaybook.presentForLiveReload(from: self)
+    guard shouldStartAutoDemo, liveSheet != nil else { return }
+    scheduleAutoDemo()
+  }
+
+  private func scheduleAutoDemo() {
+    autoDemoTask?.cancel()
+    autoDemoTask = Task { @MainActor [weak self] in
+      FKActionSheetExamplePlaybook.log("Auto demo: reload in 2s…")
+      try? await Task.sleep(nanoseconds: 2_000_000_000)
+      guard !Task.isCancelled, let self, let sheet = self.liveSheet, sheet.isPresented else { return }
+      FKActionSheetExamplePlaybook.applyLiveReload(to: sheet)
+
+      FKActionSheetExamplePlaybook.log("Auto demo: loading row in 2s…")
+      try? await Task.sleep(nanoseconds: 2_000_000_000)
+      guard !Task.isCancelled, let sheet = self.liveSheet, sheet.isPresented else { return }
+      FKActionSheetExamplePlaybook.applyLiveUpdateLoading(to: sheet)
+
+      FKActionSheetExamplePlaybook.log("Auto demo: ready row in 2s…")
+      try? await Task.sleep(nanoseconds: 2_000_000_000)
+      guard !Task.isCancelled, let sheet = self.liveSheet, sheet.isPresented else { return }
+      FKActionSheetExamplePlaybook.applyLiveUpdateReady(to: sheet)
+      FKActionSheetExamplePlaybook.log("Auto demo finished")
+    }
+  }
+
+  private func cancelAutoDemo() {
+    autoDemoTask?.cancel()
+    autoDemoTask = nil
+  }
+
+  private func makeLiveDemoMenu() -> UIMenu {
+    UIMenu(children: [
+      UIAction(title: "Reload configuration") { [weak self] _ in
+        guard let sheet = self?.liveSheet else {
+          FKActionSheetExamplePlaybook.log("No sheet — present first")
+          return
+        }
+        FKActionSheetExamplePlaybook.applyLiveReload(to: sheet)
+      },
+      UIAction(title: "updateAction → loading") { [weak self] _ in
+        guard let sheet = self?.liveSheet else {
+          FKActionSheetExamplePlaybook.log("No sheet — present first")
+          return
+        }
+        FKActionSheetExamplePlaybook.applyLiveUpdateLoading(to: sheet)
+      },
+      UIAction(title: "updateAction → ready") { [weak self] _ in
+        guard let sheet = self?.liveSheet else {
+          FKActionSheetExamplePlaybook.log("No sheet — present first")
+          return
+        }
+        FKActionSheetExamplePlaybook.applyLiveUpdateReady(to: sheet)
+      },
+      UIAction(title: "Run auto demo") { [weak self] _ in
+        guard let self, self.liveSheet?.isPresented == true else {
+          FKActionSheetExamplePlaybook.log("Present the sheet first")
+          return
+        }
+        self.scheduleAutoDemo()
+      },
+      UIAction(title: "isPresenting") { _ in
+        FKActionSheetExamplePlaybook.log("isPresenting = \(FKActionSheet.isPresenting)")
+      },
+      UIAction(title: "dismissActive") { _ in
+        FKActionSheet.dismissActive()
+        FKActionSheetExamplePlaybook.log("dismissActive()")
+      },
+    ])
   }
 }

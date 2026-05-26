@@ -3,22 +3,16 @@ import UIKit
 /// Coordinates presentation lifecycle, selection updates, and configuration mutations for one sheet instance.
 @MainActor
 final class FKActionSheetSession {
-  let handle: FKActionSheetHandle
+  private weak var actionSheet: FKActionSheet?
   private(set) var configuration: FKActionSheetConfiguration
   let haptics = FKActionSheetHaptics()
 
-  private weak var viewController: FKActionSheetViewController?
   private(set) var lastCapturedReason: FKActionSheetDismissReason = .tapOutside
   var onDidPresentExtra: (() -> Void)?
 
-  init(
-    handle: FKActionSheetHandle,
-    configuration: FKActionSheetConfiguration,
-    viewController: FKActionSheetViewController
-  ) {
-    self.handle = handle
+  init(actionSheet: FKActionSheet, configuration: FKActionSheetConfiguration) {
+    self.actionSheet = actionSheet
     self.configuration = configuration
-    self.viewController = viewController
     haptics.prepare(configuration: configuration.haptics)
   }
 
@@ -47,15 +41,19 @@ final class FKActionSheetSession {
     }
     configuration = updated
     if let action = updated.allActions.first(where: { $0.id == actionID }) {
-      handle.commitConfiguration(updated)
-      handle.actionSheetViewController.refreshAction(action)
+      actionSheet?.commitConfiguration(updated)
+      actionSheet?.refreshAction(action)
     }
   }
 
   func captureDismissReason(default defaultReason: FKActionSheetDismissReason) -> FKActionSheetDismissReason {
-    if let pending = handle.peekPendingDismissReason() {
+    guard let actionSheet else {
+      lastCapturedReason = defaultReason
+      return lastCapturedReason
+    }
+    if let pending = actionSheet.peekPendingDismissReason() {
       lastCapturedReason = pending
-      handle.consumePendingDismissReason(default: defaultReason)
+      actionSheet.consumePendingDismissReason(default: defaultReason)
       return lastCapturedReason
     }
     lastCapturedReason = defaultReason
@@ -63,29 +61,34 @@ final class FKActionSheetSession {
   }
 
   func notifyWillPresent() {
+    guard let actionSheet else { return }
     configuration.hooks.willPresent?()
-    configuration.delegate?.actionSheetWillPresent(handle)
+    configuration.delegate?.actionSheetWillPresent(actionSheet)
   }
 
   func notifyDidPresent() {
+    guard let actionSheet else { return }
     configuration.hooks.didPresent?()
-    configuration.delegate?.actionSheetDidPresent(handle)
+    configuration.delegate?.actionSheetDidPresent(actionSheet)
     onDidPresentExtra?()
   }
 
   func notifyWillDismiss(reason: FKActionSheetDismissReason) {
+    guard let actionSheet else { return }
     lastCapturedReason = reason
     configuration.hooks.willDismiss?(reason)
-    configuration.delegate?.actionSheetWillDismiss(handle, reason: reason)
+    configuration.delegate?.actionSheetWillDismiss(actionSheet, reason: reason)
   }
 
   func notifyDidDismiss(reason: FKActionSheetDismissReason) {
+    guard let actionSheet else { return }
     configuration.hooks.didDismiss?(reason)
-    configuration.delegate?.actionSheetDidDismiss(handle, reason: reason)
+    configuration.delegate?.actionSheetDidDismiss(actionSheet, reason: reason)
   }
 
   func notifyDidSelect(_ action: FKActionSheetAction) {
-    configuration.delegate?.actionSheet(handle, didSelect: action)
+    guard let actionSheet else { return }
+    configuration.delegate?.actionSheet(actionSheet, didSelect: action)
   }
 
   func applySingleSelection(action: FKActionSheetAction) {
@@ -94,6 +97,6 @@ final class FKActionSheetSession {
     updated.selection.selectedActionID = action.id
     updated = updated.applyingSelectionState()
     configuration = updated
-    handle.reload(configuration: updated)
+    actionSheet?.reload(configuration: updated)
   }
 }

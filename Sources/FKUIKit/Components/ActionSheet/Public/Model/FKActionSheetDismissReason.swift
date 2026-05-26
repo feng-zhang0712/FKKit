@@ -8,8 +8,6 @@ public enum FKActionSheetDismissReason: Equatable, Sendable {
   case userCancel
   /// User tapped the backdrop.
   case tapOutside
-  /// User swiped the sheet down.
-  case swipe
-  /// `FKActionSheetHandle.dismiss` or equivalent API.
+  /// ``FKActionSheet/dismiss(reason:animated:completion:)`` or equivalent API.
   case programmatic
 }

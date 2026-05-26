@@ -12,14 +12,42 @@ enum FKActionSheetExamplePlaybook {
     _ configuration: FKActionSheetConfiguration,
     from presenter: UIViewController,
     logEvents: Bool = true
-  ) -> FKActionSheetHandle? {
+  ) -> FKActionSheet? {
+    presentStatic(configuration, from: presenter, logEvents: logEvents)
+  }
+
+  /// Recommended integration: create a sheet, retain it, then present.
+  @discardableResult
+  static func presentInstance(
+    _ configuration: FKActionSheetConfiguration,
+    from presenter: UIViewController,
+    logEvents: Bool = true
+  ) -> FKActionSheet? {
     let config = logEvents ? withEventLogging(configuration) : configuration
     do {
-      let handle = try FKActionSheet.present(configuration: config, from: presenter)
-      log("Presented sheet")
-      return handle
+      let sheet = try FKActionSheet(configuration: config)
+      try sheet.present(from: presenter)
+      log("init(configuration:) + present(from:)")
+      return sheet
     } catch {
-      log("Present failed: \(error)")
+      log("Instance present failed: \(error)")
+      return nil
+    }
+  }
+
+  @discardableResult
+  private static func presentStatic(
+    _ configuration: FKActionSheetConfiguration,
+    from presenter: UIViewController,
+    logEvents: Bool = true
+  ) -> FKActionSheet? {
+    let config = logEvents ? withEventLogging(configuration) : configuration
+    do {
+      let sheet = try FKActionSheet.present(configuration: config, from: presenter)
+      log("FKActionSheet.present(configuration:from:)")
+      return sheet
+    } catch {
+      log("Static present failed: \(error)")
       return nil
     }
   }
@@ -62,7 +90,16 @@ enum FKActionSheetExamplePlaybook {
       sections: [FKActionSheetSection(actions: [share, delete])],
       cancelAction: makeCancelAction()
     )
-    _ = present(config, from: presenter)
+    _ = presentInstance(config, from: presenter)
+  }
+
+  static func presentInstanceAPI(from presenter: UIViewController) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Instance API", message: "Retain the returned FKActionSheet for reload and dismiss.")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "OK") { log("Instance API action") }])],
+      cancelAction: makeCancelAction()
+    )
+    _ = presentInstance(config, from: presenter)
   }
 
   static func presentConvenienceAPI(from presenter: UIViewController) {
@@ -74,7 +111,7 @@ enum FKActionSheetExamplePlaybook {
           FKActionSheetAction(title: "OK") { log("OK") },
         ],
         cancelAction: makeCancelAction(),
-        hostContext: FKActionSheetPresentationHostContext(presenter: presenter)
+        from: presenter
       )
       log("Convenience present succeeded")
     } catch {
@@ -85,7 +122,7 @@ enum FKActionSheetExamplePlaybook {
   static func presentValidationFailure(from presenter: UIViewController) {
     let config = FKActionSheetConfiguration(sections: [])
     do {
-      try FKActionSheet.validate(config, hostContext: FKActionSheetPresentationHostContext(presenter: presenter))
+      try FKActionSheet.validate(config)
       log("Unexpected: empty config validated")
     } catch {
       log("validate rejected: \(error)")
@@ -166,7 +203,7 @@ enum FKActionSheetExamplePlaybook {
     _ = present(config, from: presenter)
   }
 
-  static func presentDisabledAndLoading(from presenter: UIViewController) -> FKActionSheetHandle? {
+  static func presentDisabledAndLoading(from presenter: UIViewController) -> FKActionSheet? {
     var loading = FKActionSheetAction(title: "Uploading…", symbolName: "arrow.up.circle")
     loading.isLoading = true
     loading.isEnabled = false
@@ -344,7 +381,7 @@ enum FKActionSheetExamplePlaybook {
 
   // MARK: - Live updates
 
-  static func presentForLiveReload(from presenter: UIViewController) -> FKActionSheetHandle? {
+  static func presentForLiveReload(from presenter: UIViewController) -> FKActionSheet? {
     var share = FKActionSheetAction(title: "Share", symbolName: "square.and.arrow.up")
     share.isLoading = false
     let config = FKActionSheetConfiguration(
@@ -352,7 +389,33 @@ enum FKActionSheetExamplePlaybook {
       sections: [FKActionSheetSection(actions: [share])],
       cancelAction: makeCancelAction()
     )
-    return present(config, from: presenter)
+    return presentInstance(config, from: presenter)
+  }
+
+  static func applyLiveReload(to sheet: FKActionSheet) {
+    let share = FKActionSheetAction(title: "Share", symbolName: "square.and.arrow.up")
+    let copy = FKActionSheetAction(title: "Copy", symbolName: "doc.on.doc")
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(message: "Reloaded with an extra action.")),
+      sections: [FKActionSheetSection(actions: [share, copy])],
+      cancelAction: makeCancelAction()
+    )
+    sheet.reload(configuration: config)
+    log("reload(configuration:)")
+  }
+
+  static func applyLiveUpdateLoading(to sheet: FKActionSheet) {
+    var share = FKActionSheetAction(title: "Share", symbolName: "square.and.arrow.up")
+    share.isLoading = true
+    sheet.updateAction(share)
+    log("updateAction → loading")
+  }
+
+  static func applyLiveUpdateReady(to sheet: FKActionSheet) {
+    var share = FKActionSheetAction(title: "Share", symbolName: "square.and.arrow.up")
+    share.isLoading = false
+    sheet.updateAction(share)
+    log("updateAction → ready")
   }
 
   static func presentOnceDemo(from presenter: UIViewController) {
@@ -362,9 +425,9 @@ enum FKActionSheetExamplePlaybook {
       cancelAction: makeCancelAction()
     )
     do {
-      if let handle = try FKActionSheet.presentOnce(id: "fk.examples.actionsheet", configuration: config, from: presenter) {
-        log("presentOnce returned handle")
-        _ = handle
+      if let sheet = try FKActionSheet.presentOnce(id: "fk.examples.actionsheet", configuration: config, from: presenter) {
+        log("presentOnce returned sheet")
+        _ = sheet
       } else {
         log("presentOnce skipped (already presenting for id)")
       }
@@ -385,7 +448,7 @@ enum FKActionSheetExamplePlaybook {
   }
 
   static func presentPopover(from presenter: UIViewController, anchor: UIView) {
-    var config = FKActionSheetConfiguration(
+    let config = FKActionSheetConfiguration(
       header: .text(FKActionSheetHeader(title: "Popover")),
       sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Option A") { log("Popover A") }])],
       cancelAction: makeCancelAction(),
@@ -393,18 +456,36 @@ enum FKActionSheetExamplePlaybook {
       presentation: .popover
     )
     do {
-      _ = try FKActionSheet.presentPopover(
+      _ = try FKActionSheet.present(
         configuration: config,
         from: presenter,
-        sourceView: anchor
+        anchoredTo: anchor
       )
-      log("Popover present succeeded")
+      log("Static popover: present(configuration:from:anchoredTo:)")
     } catch {
       log("Popover present failed: \(error)")
     }
   }
 
-  static func presentSwipeAndBackdropOptions(from presenter: UIViewController) {
+  static func presentPopoverInstance(from presenter: UIViewController, anchor: UIView) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Popover (instance)")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Option B") { log("Popover B") }])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .plain,
+      presentation: .popover
+    )
+    do {
+      let sheet = try FKActionSheet(configuration: config)
+      try sheet.present(from: presenter, anchoredTo: anchor)
+      log("Instance popover: present(from:anchoredTo:)")
+      _ = sheet
+    } catch {
+      log("Instance popover failed: \(error)")
+    }
+  }
+
+  static func presentBackdropDismiss(from presenter: UIViewController) {
     var presentation = FKActionSheetPresentationConfiguration.default
     presentation.allowsTapOutsideDismiss = true
     let config = FKActionSheetConfiguration(
@@ -414,6 +495,34 @@ enum FKActionSheetExamplePlaybook {
       presentation: presentation
     )
     _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentBackdropDismissDisabled(from presenter: UIViewController) {
+    var presentation = FKActionSheetPresentationConfiguration.default
+    presentation.allowsTapOutsideDismiss = false
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(message: "Backdrop taps are ignored; use Cancel.")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Action") { log("Action") }])],
+      cancelAction: makeCancelAction(),
+      presentation: presentation
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentFromWindowScene(_ windowScene: UIWindowScene) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Window scene", message: "Resolved top presenter from scene.")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "OK") { log("Window scene action") }])],
+      cancelAction: makeCancelAction()
+    )
+    do {
+      let sheet = try FKActionSheet(configuration: config)
+      try sheet.present(in: windowScene)
+      log("present(in: windowScene)")
+      _ = sheet
+    } catch {
+      log("Window scene present failed: \(error)")
+    }
   }
 
   // MARK: - Builder & migration

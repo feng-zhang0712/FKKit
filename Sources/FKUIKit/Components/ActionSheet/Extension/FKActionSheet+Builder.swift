@@ -132,24 +132,16 @@ public struct FKActionSheetBuilder {
     configuration
   }
 
-  /// Presents using the accumulated configuration.
+  /// Creates and presents an action sheet from the accumulated configuration.
   @discardableResult
   public func present(
     from presenter: UIViewController,
     animated: Bool = true,
     completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle {
-    try FKActionSheet.present(configuration: build(), from: presenter, animated: animated, completion: completion)
-  }
-
-  /// Presents using a host context (window, scene, or presenter).
-  @discardableResult
-  public func present(
-    hostContext: FKActionSheetPresentationHostContext,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle {
-    try FKActionSheet.present(configuration: build(), hostContext: hostContext, animated: animated, completion: completion)
+  ) throws -> FKActionSheet {
+    let sheet = try FKActionSheet(configuration: build())
+    try sheet.present(from: presenter, animated: animated, completion: completion)
+    return sheet
   }
 
   /// Presents at most one sheet per `id` until it is dismissed.
@@ -159,28 +151,11 @@ public struct FKActionSheetBuilder {
     from presenter: UIViewController,
     animated: Bool = true,
     completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle? {
+  ) throws -> FKActionSheet? {
     try FKActionSheet.presentOnce(
       id: id,
       configuration: build(),
       from: presenter,
-      animated: animated,
-      completion: completion
-    )
-  }
-
-  /// Presents at most one sheet per `id` until it is dismissed.
-  @discardableResult
-  public func presentOnce(
-    id: String,
-    hostContext: FKActionSheetPresentationHostContext = .init(),
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheetHandle? {
-    try FKActionSheet.presentOnce(
-      id: id,
-      configuration: build(),
-      hostContext: hostContext,
       animated: animated,
       completion: completion
     )

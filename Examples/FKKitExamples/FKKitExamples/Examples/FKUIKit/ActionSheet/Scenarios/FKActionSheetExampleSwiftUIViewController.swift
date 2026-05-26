@@ -39,12 +39,15 @@ final class FKActionSheetExampleSwiftUIViewController: UIViewController {
 private struct FKActionSheetSwiftUIExampleSurface: View {
   @State private var showBasics = false
   @State private var showToggle = false
+  @State private var showCentered = false
+  @State private var showPopover = false
+  @State private var popoverAnchor: UIView?
   @State private var statusMessage = "Use buttons to present sheets."
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
-        Text("SwiftUI uses the same FKActionSheet implementation as UIKit. Events are logged in the Handlers page when you navigate back.")
+        Text("SwiftUI presents the same FKActionSheet UIViewController as UIKit. Events append to the shared Event log on UIKit scenario pages.")
           .font(.subheadline)
           .foregroundStyle(.secondary)
 
@@ -57,6 +60,15 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
 
         Button("Toggle sheet") { showToggle = true }
           .buttonStyle(.bordered)
+
+        Button("Centered card") { showCentered = true }
+          .buttonStyle(.bordered)
+
+        FKActionSheetPopoverAnchorButton(title: "Popover (popoverSourceView)") { anchor in
+          popoverAnchor = anchor
+        } onTap: {
+          showPopover = true
+        }
 
         Button("Clear status") { statusMessage = "Cleared." }
           .buttonStyle(.borderless)
@@ -91,6 +103,27 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
         Task { @MainActor in statusMessage = message }
       }
     )
+    .fkActionSheet(
+      isPresented: $showCentered,
+      configuration: centeredConfiguration,
+      onDismiss: { reason in
+        let message = "Centered dismissed: \(String(describing: reason))"
+        Task { @MainActor in statusMessage = message }
+      }
+    )
+    .fkActionSheet(
+      isPresented: $showPopover,
+      configuration: popoverConfiguration,
+      popoverSourceView: popoverAnchor,
+      onDismiss: { reason in
+        let message = "Popover dismissed: \(String(describing: reason))"
+        Task { @MainActor in statusMessage = message }
+      },
+      onPresentFailure: { error in
+        let message = "Popover failed: \(error)"
+        Task { @MainActor in statusMessage = message }
+      }
+    )
   }
 
   private var toggleConfiguration: FKActionSheetConfiguration {
@@ -105,6 +138,58 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
       ],
       cancelAction: FKActionSheetAction(title: "Done", style: .cancel)
     )
+  }
+
+  private var centeredConfiguration: FKActionSheetConfiguration {
+    FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Centered", message: "Tap outside to dismiss.")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "OK") { }])],
+      cancelAction: FKActionSheetAction(title: "Cancel", style: .cancel),
+      appearancePreset: .card,
+      presentation: .centered
+    )
+  }
+
+  private var popoverConfiguration: FKActionSheetConfiguration {
+    FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "SwiftUI popover")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Option") { }])],
+      cancelAction: FKActionSheetAction(title: "Done", style: .cancel),
+      appearancePreset: .plain,
+      presentation: .popover
+    )
+  }
+}
+
+/// UIKit anchor surfaced to SwiftUI for popoverSourceView.
+private struct FKActionSheetPopoverAnchorButton: UIViewRepresentable {
+  let title: String
+  let onAnchorReady: (UIView) -> Void
+  let onTap: () -> Void
+
+  func makeUIView(context: Context) -> UIButton {
+    let button = FKActionSheetExampleUI.button(title) {
+      context.coordinator.onTap()
+    }
+    return button
+  }
+
+  func updateUIView(_ uiView: UIButton, context: Context) {
+    context.coordinator.onAnchorReady(uiView)
+  }
+
+  func makeCoordinator() -> Coordinator {
+    Coordinator(onAnchorReady: onAnchorReady, onTap: onTap)
+  }
+
+  final class Coordinator {
+    let onAnchorReady: (UIView) -> Void
+    let onTap: () -> Void
+
+    init(onAnchorReady: @escaping (UIView) -> Void, onTap: @escaping () -> Void) {
+      self.onAnchorReady = onAnchorReady
+      self.onTap = onTap
+    }
   }
 }
 #endif

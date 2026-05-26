@@ -1,20 +1,20 @@
 import ObjectiveC
 import UIKit
 
-/// Custom modal transition for ``FKActionSheetViewController``.
+/// Custom modal transition for ``FKActionSheet``.
 @MainActor
 final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
   private static var associationKey: UInt8 = 0
 
   let presentationConfiguration: FKActionSheetPresentationConfiguration
-  weak var actionSheetViewController: FKActionSheetViewController?
+  weak var actionSheetViewController: FKActionSheet?
 
   init(presentationConfiguration: FKActionSheetPresentationConfiguration) {
     self.presentationConfiguration = presentationConfiguration
     super.init()
   }
 
-  func attach(to viewController: FKActionSheetViewController) {
+  func attach(to viewController: FKActionSheet) {
     guard presentationConfiguration.usesCustomModalPresentation else { return }
     actionSheetViewController = viewController
     viewController.modalPresentationStyle = .custom

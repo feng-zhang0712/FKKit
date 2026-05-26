@@ -4,7 +4,7 @@ import UIKit
 @MainActor
 final class FKActionSheetUIKitPresentationController: UIPresentationController {
   private let configuration: FKActionSheetPresentationConfiguration
-  private weak var actionSheetViewController: FKActionSheetViewController?
+  private weak var actionSheetViewController: FKActionSheet?
 
   private lazy var backdropTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleBackdropTap))
 
@@ -22,7 +22,7 @@ final class FKActionSheetUIKitPresentationController: UIPresentationController {
     presentedViewController: UIViewController,
     presenting presentingViewController: UIViewController?,
     configuration: FKActionSheetPresentationConfiguration,
-    actionSheetViewController: FKActionSheetViewController?
+    actionSheetViewController: FKActionSheet?
   ) {
     self.configuration = configuration
     self.actionSheetViewController = actionSheetViewController

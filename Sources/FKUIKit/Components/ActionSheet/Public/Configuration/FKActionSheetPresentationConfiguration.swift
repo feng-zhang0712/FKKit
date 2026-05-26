@@ -46,7 +46,7 @@ public struct FKActionSheetPresentationConfiguration: Equatable, Sendable {
     )
   )
 
-  /// Popover anchored via ``FKActionSheetPresentationHostContext``.
+  /// Popover anchored via ``FKActionSheet/present(from:anchoredTo:sourceRect:permittedArrowDirections:animated:completion:)``.
   public static let popover = FKActionSheetPresentationConfiguration(
     style: .popover,
     allowsTapOutsideDismiss: false,

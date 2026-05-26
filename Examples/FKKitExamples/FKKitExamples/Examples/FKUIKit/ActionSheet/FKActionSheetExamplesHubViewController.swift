@@ -10,7 +10,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
   private let rows: [Row] = [
     Row(
       title: "Basics",
-      subtitle: "Header, destructive/cancel rows, convenience API, validation",
+      subtitle: "Instance init + present, static convenience, validate",
       make: { FKActionSheetExampleBasicsViewController() }
     ),
     Row(
@@ -50,12 +50,12 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     ),
     Row(
       title: "Live Updates",
-      subtitle: "Handle reload/updateAction, presentOnce, isPresenting, dismissActive",
+      subtitle: "Retained sheet reload/updateAction/dismiss, presentOnce, isPresenting",
       make: { FKActionSheetExampleLiveUpdatesViewController() }
     ),
     Row(
       title: "Presentation",
-      subtitle: "Bottom, centered, popover styles; backdrop dismiss",
+      subtitle: "Bottom, centered, popover, window scene, backdrop dismiss",
       make: { FKActionSheetExamplePresentationViewController() }
     ),
     Row(
@@ -65,7 +65,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     ),
     Row(
       title: "SwiftUI Bridge",
-      subtitle: "View.fkActionSheet with onDismiss and onPresentFailure",
+      subtitle: "View.fkActionSheet, onDismiss, popoverSourceView anchor",
       make: { FKActionSheetExampleSwiftUIViewController() }
     ),
   ]
