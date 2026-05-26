@@ -6,8 +6,6 @@ enum FKActionSheetPopoverAnchor {
 }
 
 extension FKActionSheet {
-  // MARK: - Instance presentation
-
   /// Presents using `configuration.presentation.style` (`.bottom` or `.centered`).
   public func present(
     from presenter: UIViewController,
@@ -50,18 +48,6 @@ extension FKActionSheet {
     )
   }
 
-  /// Presents by resolving the topmost view controller in `window`.
-  public func present(
-    in window: UIWindow,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws {
-    guard let presenter = Self.topPresenter(in: window) else {
-      throw FKActionSheetValidationError.presenterNotFound
-    }
-    try present(from: presenter, animated: animated, completion: completion)
-  }
-
   /// Presents by resolving the topmost view controller in `windowScene`.
   public func present(
     in windowScene: UIWindowScene,
@@ -74,92 +60,15 @@ extension FKActionSheet {
     try present(from: presenter, animated: animated, completion: completion)
   }
 
-  // MARK: - Static convenience
-
-  @discardableResult
-  public static func present(
-    configuration: FKActionSheetConfiguration,
-    from presenter: UIViewController,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheet {
-    let sheet = try FKActionSheet(configuration: configuration)
-    try sheet.present(from: presenter, animated: animated, completion: completion)
-    return sheet
-  }
-
-  @discardableResult
-  public static func present(
-    configuration: FKActionSheetConfiguration,
-    from presenter: UIViewController,
-    anchoredTo sourceView: UIView,
-    sourceRect: CGRect? = nil,
-    permittedArrowDirections: UIPopoverArrowDirection = .any,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheet {
-    let sheet = try FKActionSheet(configuration: configuration)
-    try sheet.present(
-      from: presenter,
-      anchoredTo: sourceView,
-      sourceRect: sourceRect,
-      permittedArrowDirections: permittedArrowDirections,
-      animated: animated,
-      completion: completion
-    )
-    return sheet
-  }
-
-  @discardableResult
-  public static func presentOnce(
-    id: String,
-    configuration: FKActionSheetConfiguration,
-    from presenter: UIViewController,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheet? {
-    guard !id.isEmpty else {
-      return try present(configuration: configuration, from: presenter, animated: animated, completion: completion)
-    }
-    guard !isPresentOnceBlocked(id: id) else { return nil }
-
-    var config = configuration
-    let priorDidDismiss = config.hooks.didDismiss
-    config.hooks.didDismiss = { reason in
-      priorDidDismiss?(reason)
-      clearPresentOnce(id: id)
-    }
-    let sheet = try present(configuration: config, from: presenter, animated: animated, completion: completion)
-    activePresentIDs.insert(id)
-    return sheet
-  }
-
-  @discardableResult
-  public static func present(
-    title: String? = nil,
-    message: String? = nil,
-    actions: [FKActionSheetAction],
-    cancelAction: FKActionSheetAction? = nil,
-    from presenter: UIViewController,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheet {
-    let configuration = FKActionSheetConfiguration(
-      header: (title == nil && message == nil) ? nil : .text(FKActionSheetHeader(title: title, message: message)),
-      sections: [FKActionSheetSection(actions: actions)],
-      cancelAction: cancelAction
-    )
-    return try present(configuration: configuration, from: presenter, animated: animated, completion: completion)
-  }
-
-  // MARK: - Internal wiring
-
   func present(
     from presenter: UIViewController,
     popoverAnchor: FKActionSheetPopoverAnchor?,
     animated: Bool,
     completion: (() -> Void)?
   ) throws {
+    if isPresented {
+      throw FKActionSheetValidationError.alreadyPresented
+    }
     if configuration.presentation.style == .popover, popoverAnchor == nil {
       throw FKActionSheetValidationError.popoverAnchorRequired
     }
@@ -172,8 +81,6 @@ extension FKActionSheet {
       completion?()
     }
     self.session = session
-
-    Self.registerActive(self)
 
     onPanelLayoutChange = { [weak self] in
       self?.view.setNeedsLayout()
@@ -284,8 +191,7 @@ extension FKActionSheet {
     shouldDismiss: Bool,
     dismissReason: FKActionSheetDismissReason = .actionSelected
   ) {
-    let hasHandler = action.handler != nil || action.actionHandler != nil
-    guard hasHandler else {
+    guard action.actionHandler != nil else {
       if shouldDismiss {
         actionSheet.dismiss(reason: dismissReason, animated: true)
       }
@@ -307,23 +213,10 @@ extension FKActionSheet {
     }
   }
 
-  static func topPresenter(in window: UIWindow) -> UIViewController? {
-    topMostViewController(in: window)
-  }
-
-  static func topPresenter(in windowScene: UIWindowScene) -> UIViewController? {
+  private static func topPresenter(in windowScene: UIWindowScene) -> UIViewController? {
     let window = windowScene.windows.first(where: \.isKeyWindow) ?? windowScene.windows.first
     guard let window else { return nil }
     return topMostViewController(in: window)
-  }
-
-  static func topPresenterFromKeyWindow() -> UIViewController? {
-    guard let keyWindow = UIApplication.shared.connectedScenes
-      .compactMap({ $0 as? UIWindowScene })
-      .flatMap(\.windows)
-      .first(where: \.isKeyWindow)
-    else { return nil }
-    return topMostViewController(in: keyWindow)
   }
 
   private static func topMostViewController(in window: UIWindow) -> UIViewController? {

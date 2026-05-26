@@ -2,8 +2,6 @@ import UIKit
 import FKUIKit
 
 final class FKActionSheetExampleHandlersViewController: FKActionSheetExampleBaseViewController {
-  private let delegateProxy = DelegateProxy()
-
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Handlers & Lifecycle"
@@ -27,52 +25,17 @@ final class FKActionSheetExampleHandlersViewController: FKActionSheetExampleBase
     body.addArrangedSubview(FKActionSheetExampleUI.button("Selection haptics") { [weak self] in
       self.map { FKActionSheetExamplePlaybook.presentWithHaptics(from: $0) }
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Delegate callbacks") { [weak self] in
-      guard let self else { return }
-      self.presentWithDelegate(from: self)
+    body.addArrangedSubview(FKActionSheetExampleUI.button("hooks.didSelect") { [weak self] in
+      self.map { FKActionSheetExamplePlaybook.presentHooksDidSelect(from: $0) }
     })
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Callbacks",
-        description: "handlerTiming, actionHandler precedence, optional haptics, hooks (logged below), and FKActionSheetDelegate.",
+        description: "handlerTiming, actionHandler, optional haptics, and FKActionSheetLifecycleHooks (will/did present & dismiss, didSelect).",
         body: body
       )
     )
     addClearLogButton()
-  }
-
-  private func presentWithDelegate(from presenter: UIViewController) {
-    var config = FKActionSheetExamplePlaybook.withEventLogging(
-      FKActionSheetConfiguration(
-        header: .text(FKActionSheetHeader(message: "Delegate mirrors lifecycle + didSelect.")),
-        sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Select me") { }])],
-        cancelAction: FKActionSheetExamplePlaybook.makeCancelAction()
-      )
-    )
-    config.delegate = delegateProxy
-    _ = FKActionSheetExamplePlaybook.present(config, from: presenter, logEvents: false)
-  }
-
-  private final class DelegateProxy: NSObject, FKActionSheetDelegate {
-    func actionSheetWillPresent(_ actionSheet: FKActionSheet) {
-      FKActionSheetExamplePlaybook.log("delegate willPresent")
-    }
-
-    func actionSheetDidPresent(_ actionSheet: FKActionSheet) {
-      FKActionSheetExamplePlaybook.log("delegate didPresent")
-    }
-
-    func actionSheetWillDismiss(_ actionSheet: FKActionSheet, reason: FKActionSheetDismissReason) {
-      FKActionSheetExamplePlaybook.log("delegate willDismiss(\(String(describing: reason)))")
-    }
-
-    func actionSheetDidDismiss(_ actionSheet: FKActionSheet, reason: FKActionSheetDismissReason) {
-      FKActionSheetExamplePlaybook.log("delegate didDismiss(\(String(describing: reason)))")
-    }
-
-    func actionSheet(_ actionSheet: FKActionSheet, didSelect action: FKActionSheetAction) {
-      FKActionSheetExamplePlaybook.log("delegate didSelect(\(action.title))")
-    }
   }
 }

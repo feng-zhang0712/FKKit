@@ -18,7 +18,7 @@ public final class FKActionSheet: UIViewController {
 
   weak var session: FKActionSheetSession?
 
-  private let actionSheetView = FKActionSheetView()
+  let actionSheetView = FKActionSheetView()
   private let transitioningDelegateBox: FKActionSheetTransitioningDelegate
   private lazy var outsideTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleOutsideTap(_:)))
 
@@ -28,23 +28,15 @@ public final class FKActionSheet: UIViewController {
   var installedPanelLayout: InstalledPanelLayout?
   var installedLayoutConstraints: [NSLayoutConstraint] = []
 
-  private var lastResolvedPanelHeight: CGFloat = 0
-  private var lastLayoutWidth: CGFloat = 0
-  private var lastScrollEnabled: Bool?
-  private var lastTableSafeBottom: CGFloat = -1
-  private var isUpdatingPanelLayout = false
-  private var presentationProgress: CGFloat = 1
+  var lastResolvedPanelHeight: CGFloat = 0
+  var lastLayoutWidth: CGFloat = 0
+  var lastScrollEnabled: Bool?
+  var lastTableSafeBottom: CGFloat = -1
+  var isUpdatingPanelLayout = false
+  var presentationProgress: CGFloat = 1
   private var sessionNotifiedWillDismiss = false
   private var sessionNotifiedDidDismiss = false
   private var pendingDismissReason: FKActionSheetDismissReason?
-
-  static weak var activeSheet: FKActionSheet?
-  static var activePresentIDs: Set<String> = []
-
-  /// Whether any action sheet presented via the static convenience APIs is on screen.
-  public static var isPresenting: Bool {
-    activeSheet?.isPresented == true
-  }
 
   var resolvedPanelHeight: CGFloat {
     lastResolvedPanelHeight
@@ -214,11 +206,6 @@ public final class FKActionSheet: UIViewController {
     super.dismiss(animated: animated, completion: completion)
   }
 
-  /// Dismisses the most recently presented action sheet from static convenience APIs, if any.
-  public static func dismissActive(animated: Bool = true, completion: (() -> Void)? = nil) {
-    activeSheet?.dismiss(reason: .programmatic, animated: animated, completion: completion)
-  }
-
   func apply(configuration: FKActionSheetConfiguration) {
     self.configuration = configuration
     presentationConfiguration = configuration.presentation
@@ -305,27 +292,10 @@ public final class FKActionSheet: UIViewController {
     session?.updateConfiguration(configuration)
   }
 
-  static func registerActive(_ sheet: FKActionSheet) {
-    if let activeSheet, activeSheet.isPresented, activeSheet !== sheet {
-      activeSheet.dismiss(reason: .programmatic, animated: false)
-    }
-    activeSheet = sheet
-  }
-
-  static func isPresentOnceBlocked(id: String) -> Bool {
-    !id.isEmpty && activePresentIDs.contains(id)
-  }
-
-  static func clearPresentOnce(id: String) {
-    activePresentIDs.remove(id)
-  }
-
   @objc
   private func handleOutsideTap(_ recognizer: UITapGestureRecognizer) {
     dismissForBackdropTap()
   }
-
-  private static let minimumPanelHeight: CGFloat = 44
 
   private static func isValid(_ configuration: FKActionSheetConfiguration) -> Bool {
     do {
@@ -337,118 +307,10 @@ public final class FKActionSheet: UIViewController {
     }
   }
 
-  private func syncOutsideTapRecognizer() {
+  func syncOutsideTapRecognizer() {
     let isEnabled = configuration.presentation.allowsTapOutsideDismiss
       && configuration.presentation.usesCustomModalPresentation
     outsideTapRecognizer.isEnabled = isEnabled
-  }
-
-  private func applyPanelChrome() {
-    let radius = configuration.presentation.cornerRadius
-    panelView.layer.cornerRadius = radius
-    switch configuration.presentation.style {
-    case .bottom:
-      panelView.layer.maskedCorners = radius > 0
-        ? [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        : []
-    case .centered, .popover:
-      panelView.layer.maskedCorners = [
-        .layerMinXMinYCorner,
-        .layerMaxXMinYCorner,
-        .layerMinXMaxYCorner,
-        .layerMaxXMaxYCorner,
-      ]
-    }
-
-    let roundedCorners: UIRectCorner = configuration.presentation.style == .bottom
-      ? [.topLeft, .topRight]
-      : .allCorners
-    let shadowPath = UIBezierPath(
-      roundedRect: panelView.bounds,
-      byRoundingCorners: roundedCorners,
-      cornerRadii: CGSize(width: radius, height: radius)
-    ).cgPath
-    panelView.layer.fk_applyShadow(configuration.presentation.containerShadow, path: shadowPath)
-  }
-
-  private func updatePanelLayout(force: Bool) {
-    guard !isUpdatingPanelLayout else { return }
-    isUpdatingPanelLayout = true
-    defer { isUpdatingPanelLayout = false }
-
-    let layoutWidth = contentLayoutWidth(for: effectiveLayoutWidth())
-    updatePanelWidthConstraint()
-    let tableSafeBottom = tableBottomContentInset()
-    if force || abs(tableSafeBottom - lastTableSafeBottom) > 0.5 {
-      lastTableSafeBottom = tableSafeBottom
-      actionSheetView.updateBottomSafeAreaInset(tableSafeBottom)
-    }
-
-    let contentHeight = actionSheetView.measuredContentHeight(for: layoutWidth)
-    let maximumContentHeight = maximumSheetHeight()
-    let cappedContentHeight = min(contentHeight, maximumContentHeight)
-    let shouldScroll = contentHeight > cappedContentHeight + 0.5
-
-    if force || shouldScroll != lastScrollEnabled {
-      lastScrollEnabled = shouldScroll
-      actionSheetView.setScrollEnabled(shouldScroll)
-    }
-
-    let hostedHeight = max(cappedContentHeight, Self.minimumPanelHeight)
-    guard hostedHeight >= Self.minimumPanelHeight else { return }
-
-    let panelHeight: CGFloat
-    switch configuration.presentation.style {
-    case .popover:
-      panelHeight = hostedHeight
-    case .bottom, .centered:
-      panelHeight = hostedHeight + tableSafeBottom
-    }
-    guard force || abs(panelHeight - lastResolvedPanelHeight) > 0.5 else { return }
-
-    lastResolvedPanelHeight = panelHeight
-    if configuration.presentation.style != .popover {
-      panelHeightConstraint?.isActive = true
-      panelHeightConstraint?.constant = panelHeight
-    }
-    preferredContentSize = CGSize(width: layoutWidth, height: panelHeight)
-
-    if presentationProgress < 1 {
-      setPresentationProgress(presentationProgress, animated: false)
-    }
-
-    onPanelLayoutChange?()
-    view.setNeedsLayout()
-  }
-
-  private func tableBottomContentInset() -> CGFloat {
-    switch configuration.presentation.style {
-    case .bottom:
-      break
-    case .centered, .popover:
-      return 0
-    }
-
-    if view.safeAreaInsets.bottom > 0 {
-      return view.safeAreaInsets.bottom
-    }
-    if let windowBottom = view.window?.safeAreaInsets.bottom, windowBottom > 0 {
-      return windowBottom
-    }
-    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-    let keyWindow = scenes
-      .flatMap(\.windows)
-      .first(where: \.isKeyWindow)
-    return keyWindow?.safeAreaInsets.bottom ?? 0
-  }
-
-  private func maximumSheetHeight() -> CGFloat {
-    let screenHeight = view.window?.bounds.height ?? UIScreen.main.bounds.height
-    let fractionCap = screenHeight * configuration.presentation.maximumFitContentHeightFraction
-    if let maximumPanelHeight = configuration.presentation.resolvedMaximumPanelHeight {
-      return min(fractionCap, maximumPanelHeight)
-    }
-    return fractionCap
   }
 }
 

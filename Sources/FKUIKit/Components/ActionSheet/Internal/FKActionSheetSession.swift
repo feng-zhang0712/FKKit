@@ -61,34 +61,25 @@ final class FKActionSheetSession {
   }
 
   func notifyWillPresent() {
-    guard let actionSheet else { return }
     configuration.hooks.willPresent?()
-    configuration.delegate?.actionSheetWillPresent(actionSheet)
   }
 
   func notifyDidPresent() {
-    guard let actionSheet else { return }
     configuration.hooks.didPresent?()
-    configuration.delegate?.actionSheetDidPresent(actionSheet)
     onDidPresentExtra?()
   }
 
   func notifyWillDismiss(reason: FKActionSheetDismissReason) {
-    guard let actionSheet else { return }
     lastCapturedReason = reason
     configuration.hooks.willDismiss?(reason)
-    configuration.delegate?.actionSheetWillDismiss(actionSheet, reason: reason)
   }
 
   func notifyDidDismiss(reason: FKActionSheetDismissReason) {
-    guard let actionSheet else { return }
     configuration.hooks.didDismiss?(reason)
-    configuration.delegate?.actionSheetDidDismiss(actionSheet, reason: reason)
   }
 
   func notifyDidSelect(_ action: FKActionSheetAction) {
-    guard let actionSheet else { return }
-    configuration.delegate?.actionSheet(actionSheet, didSelect: action)
+    configuration.hooks.didSelect?(action)
   }
 
   func applySingleSelection(action: FKActionSheetAction) {

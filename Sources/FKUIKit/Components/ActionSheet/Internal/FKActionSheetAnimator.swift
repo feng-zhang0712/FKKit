@@ -5,16 +5,16 @@ import UIKit
 final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioning {
   private let isPresenting: Bool
   private let configuration: FKActionSheetPresentationConfiguration
-  private weak var actionSheetViewController: FKActionSheet?
+  private weak var actionSheet: FKActionSheet?
 
   init(
     isPresenting: Bool,
     configuration: FKActionSheetPresentationConfiguration,
-    actionSheetViewController: FKActionSheet?
+    actionSheet: FKActionSheet?
   ) {
     self.isPresenting = isPresenting
     self.configuration = configuration
-    self.actionSheetViewController = actionSheetViewController
+    self.actionSheet = actionSheet
     super.init()
   }
 

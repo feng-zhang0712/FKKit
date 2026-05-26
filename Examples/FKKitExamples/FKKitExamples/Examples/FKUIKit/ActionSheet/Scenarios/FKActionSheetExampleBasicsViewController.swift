@@ -17,10 +17,6 @@ final class FKActionSheetExampleBasicsViewController: FKActionSheetExampleBaseVi
       guard let self else { return }
       FKActionSheetExamplePlaybook.presentBasics(from: self)
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Static convenience API") { [weak self] in
-      guard let self else { return }
-      FKActionSheetExamplePlaybook.presentConvenienceAPI(from: self)
-    })
     body.addArrangedSubview(FKActionSheetExampleUI.button("Validate empty config") { [weak self] in
       guard let self else { return }
       FKActionSheetExamplePlaybook.presentValidationFailure(from: self)
@@ -29,7 +25,7 @@ final class FKActionSheetExampleBasicsViewController: FKActionSheetExampleBaseVi
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "FKActionSheet view controller",
-        description: "FKActionSheet is a UIViewController. Create with init(configuration:), call present(from:), and retain the instance for reload or dismiss. Static present(configuration:from:) remains available for one-shot use.",
+        description: "FKActionSheet is a UIViewController. Create with init(configuration:), call present(from:), and retain the instance for reload or dismiss.",
         body: body
       )
     )

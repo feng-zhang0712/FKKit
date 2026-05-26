@@ -19,7 +19,7 @@ final class FKActionSheetExampleBuilderViewController: FKActionSheetExampleBaseV
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Migration helpers",
-        description: "Fluent builder returns FKActionSheet from present(from:). Alert-style FKActionSheetConfiguration(alertTitle:...) for UIAlertAction migration.",
+        description: "Fluent builder produces FKActionSheetConfiguration via build(); present with init(configuration:) + present(from:). Alert-style FKActionSheetConfiguration(alertTitle:...) for UIAlertAction migration.",
         body: body
       )
     )

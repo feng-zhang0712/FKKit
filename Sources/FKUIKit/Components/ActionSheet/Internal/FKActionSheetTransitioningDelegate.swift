@@ -7,7 +7,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
   private static var associationKey: UInt8 = 0
 
   let presentationConfiguration: FKActionSheetPresentationConfiguration
-  weak var actionSheetViewController: FKActionSheet?
+  weak var actionSheet: FKActionSheet?
 
   init(presentationConfiguration: FKActionSheetPresentationConfiguration) {
     self.presentationConfiguration = presentationConfiguration
@@ -16,7 +16,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
 
   func attach(to viewController: FKActionSheet) {
     guard presentationConfiguration.usesCustomModalPresentation else { return }
-    actionSheetViewController = viewController
+    actionSheet = viewController
     viewController.modalPresentationStyle = .custom
     viewController.transitioningDelegate = self
     objc_setAssociatedObject(
@@ -37,7 +37,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
       presentedViewController: presented,
       presenting: presenting,
       configuration: presentationConfiguration,
-      actionSheetViewController: actionSheetViewController
+      actionSheet: actionSheet
     )
   }
 
@@ -50,7 +50,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
     return FKActionSheetAnimator(
       isPresenting: true,
       configuration: presentationConfiguration,
-      actionSheetViewController: actionSheetViewController
+      actionSheet: actionSheet
     )
   }
 
@@ -59,8 +59,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
     return FKActionSheetAnimator(
       isPresenting: false,
       configuration: presentationConfiguration,
-      actionSheetViewController: actionSheetViewController
+      actionSheet: actionSheet
     )
   }
-
 }

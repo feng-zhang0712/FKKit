@@ -7,26 +7,31 @@ public extension FKActionSheetAction {
   init(
     title: String,
     uiAlertActionStyle: UIAlertAction.Style,
-    handler: (@MainActor () -> Void)? = nil,
     actionHandler: (@MainActor (FKActionSheetAction) -> Void)? = nil
   ) {
     self.init(
       title: title,
       style: Style(uiAlertActionStyle: uiAlertActionStyle),
-      handler: handler,
       actionHandler: actionHandler
+    )
+  }
+
+  /// Creates an action from `UIAlertAction` parameters with a trailing handler closure.
+  init(
+    title: String,
+    uiAlertActionStyle: UIAlertAction.Style,
+    _ handler: @escaping @MainActor () -> Void
+  ) {
+    self.init(
+      title: title,
+      style: Style(uiAlertActionStyle: uiAlertActionStyle),
+      actionHandler: { _ in handler() }
     )
   }
 }
 
 public extension FKActionSheetConfiguration {
   /// Builds a configuration similar to `UIAlertController` with `.actionSheet` style.
-  ///
-  /// - Parameters:
-  ///   - title: Optional alert title.
-  ///   - message: Optional alert message.
-  ///   - actions: Non-cancel actions.
-  ///   - cancelTitle: When non-`nil`, appended as a separated cancel row.
   init(
     alertTitle: String?,
     message: String?,
@@ -51,14 +56,14 @@ public extension FKActionSheetConfiguration {
   init(
     alertTitle: String?,
     message: String?,
-    alertActions: [(title: String, style: UIAlertAction.Style, handler: (@MainActor () -> Void)?)],
+    alertActions: [(title: String, style: UIAlertAction.Style, actionHandler: (@MainActor (FKActionSheetAction) -> Void)?)],
     cancelTitle: String? = "Cancel"
   ) {
     let mapped = alertActions.map { item in
       FKActionSheetAction(
         title: item.title,
         uiAlertActionStyle: item.style,
-        handler: item.handler
+        actionHandler: item.actionHandler
       )
     }
     self.init(alertTitle: alertTitle, message: message, actions: mapped, cancelTitle: cancelTitle)

@@ -16,5 +16,3 @@ public struct FKActionSheetHapticsConfiguration: Sendable, Equatable {
     self.impactStyle = impactStyle
   }
 }
-
-extension FKActionSheetHapticsConfiguration: @unchecked Sendable {}

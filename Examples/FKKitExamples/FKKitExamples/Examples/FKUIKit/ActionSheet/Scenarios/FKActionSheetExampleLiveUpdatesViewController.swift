@@ -8,10 +8,6 @@ final class FKActionSheetExampleLiveUpdatesViewController: FKActionSheetExampleB
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Live Updates"
-    navigationItem.rightBarButtonItem = UIBarButtonItem(
-      title: "Live",
-      menu: makeLiveDemoMenu()
-    )
 
     let body = UIStackView()
     body.axis = .vertical
@@ -30,23 +26,23 @@ final class FKActionSheetExampleLiveUpdatesViewController: FKActionSheetExampleB
       sheet.dismiss(reason: .programmatic, animated: true)
       FKActionSheetExamplePlaybook.log("dismiss(reason: .programmatic)")
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("presentOnce (same id)") { [weak self] in
-      self.map { FKActionSheetExamplePlaybook.presentOnceDemo(from: $0) }
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Present again (alreadyPresented)") { [weak self] in
+      guard let self, let sheet = self.liveSheet else {
+        FKActionSheetExamplePlaybook.log("No retained sheet — present first")
+        return
+      }
+      do {
+        try sheet.present(from: self)
+        FKActionSheetExamplePlaybook.log("Unexpected: second present succeeded")
+      } catch {
+        FKActionSheetExamplePlaybook.log("Second present rejected: \(error)")
+      }
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.row([
-      FKActionSheetExampleUI.button("isPresenting") {
-        FKActionSheetExamplePlaybook.log("isPresenting = \(FKActionSheet.isPresenting)")
-      },
-      FKActionSheetExampleUI.button("dismissActive") {
-        FKActionSheet.dismissActive()
-        FKActionSheetExamplePlaybook.log("dismissActive()")
-      },
-    ]))
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Retained FKActionSheet",
-        description: "Present via init(configuration:) + present(from:), keep a weak reference, then call reload(configuration:), updateAction(_:), or dismiss(reason:). Static isPresenting / dismissActive() target the most recent static convenience present.",
+        description: "Present via init(configuration:) + present(from:), keep a weak reference, then call reload(configuration:), updateAction(_:), or dismiss(reason:).",
         body: body
       )
     )
@@ -89,45 +85,5 @@ final class FKActionSheetExampleLiveUpdatesViewController: FKActionSheetExampleB
   private func cancelAutoDemo() {
     autoDemoTask?.cancel()
     autoDemoTask = nil
-  }
-
-  private func makeLiveDemoMenu() -> UIMenu {
-    UIMenu(children: [
-      UIAction(title: "Reload configuration") { [weak self] _ in
-        guard let sheet = self?.liveSheet else {
-          FKActionSheetExamplePlaybook.log("No sheet — present first")
-          return
-        }
-        FKActionSheetExamplePlaybook.applyLiveReload(to: sheet)
-      },
-      UIAction(title: "updateAction → loading") { [weak self] _ in
-        guard let sheet = self?.liveSheet else {
-          FKActionSheetExamplePlaybook.log("No sheet — present first")
-          return
-        }
-        FKActionSheetExamplePlaybook.applyLiveUpdateLoading(to: sheet)
-      },
-      UIAction(title: "updateAction → ready") { [weak self] _ in
-        guard let sheet = self?.liveSheet else {
-          FKActionSheetExamplePlaybook.log("No sheet — present first")
-          return
-        }
-        FKActionSheetExamplePlaybook.applyLiveUpdateReady(to: sheet)
-      },
-      UIAction(title: "Run auto demo") { [weak self] _ in
-        guard let self, self.liveSheet?.isPresented == true else {
-          FKActionSheetExamplePlaybook.log("Present the sheet first")
-          return
-        }
-        self.scheduleAutoDemo()
-      },
-      UIAction(title: "isPresenting") { _ in
-        FKActionSheetExamplePlaybook.log("isPresenting = \(FKActionSheet.isPresenting)")
-      },
-      UIAction(title: "dismissActive") { _ in
-        FKActionSheet.dismissActive()
-        FKActionSheetExamplePlaybook.log("dismissActive()")
-      },
-    ])
   }
 }

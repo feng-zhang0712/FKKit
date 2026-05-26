@@ -20,12 +20,10 @@ public struct FKActionSheetConfiguration {
   public var selection: FKActionSheetSelectionConfiguration
   /// Optional haptic feedback (disabled by default).
   public var haptics: FKActionSheetHapticsConfiguration
-  /// Closure-based lifecycle callbacks.
+  /// Lifecycle and selection callbacks.
   public var hooks: FKActionSheetLifecycleHooks
-  /// Optional delegate receiving the same lifecycle events as hooks.
-  public weak var delegate: FKActionSheetDelegate?
 
-  /// Creates a configuration using ``FKActionSheetGlobalStyle``.
+  /// Creates a configuration.
   public init(
     header: FKActionSheetHeaderContent? = nil,
     sections: [FKActionSheetSection] = [],
@@ -37,8 +35,7 @@ public struct FKActionSheetConfiguration {
     handlerTiming: FKActionSheetHandlerTiming = .beforeDismiss,
     selection: FKActionSheetSelectionConfiguration = .init(),
     haptics: FKActionSheetHapticsConfiguration = .init(),
-    hooks: FKActionSheetLifecycleHooks = .init(),
-    delegate: FKActionSheetDelegate? = nil
+    hooks: FKActionSheetLifecycleHooks = .init()
   ) {
     self.header = header
     self.sections = sections
@@ -47,10 +44,8 @@ public struct FKActionSheetConfiguration {
       self.appearance = appearance
     } else if let appearancePreset {
       self.appearance = .preset(appearancePreset)
-    } else if FKActionSheetGlobalStyle.appearance != .default {
-      self.appearance = FKActionSheetGlobalStyle.appearance
     } else {
-      self.appearance = .preset(FKActionSheetGlobalStyle.appearancePreset)
+      self.appearance = .preset(.system)
     }
     self.presentation = presentation
     self.dismissesAfterActionSelection = dismissesAfterActionSelection
@@ -58,7 +53,6 @@ public struct FKActionSheetConfiguration {
     self.selection = selection
     self.haptics = haptics
     self.hooks = hooks
-    self.delegate = delegate
   }
 
   /// Flattens all configured actions (sections + cancel) for validation and lookup.
@@ -80,8 +74,7 @@ public extension FKActionSheetConfiguration {
     handlerTiming: FKActionSheetHandlerTiming = .beforeDismiss,
     selection: FKActionSheetSelectionConfiguration = .init(),
     haptics: FKActionSheetHapticsConfiguration = .init(),
-    hooks: FKActionSheetLifecycleHooks = .init(),
-    delegate: FKActionSheetDelegate? = nil
+    hooks: FKActionSheetLifecycleHooks = .init()
   ) {
     self.init(
       header: header.map { .text($0) },
@@ -94,8 +87,7 @@ public extension FKActionSheetConfiguration {
       handlerTiming: handlerTiming,
       selection: selection,
       haptics: haptics,
-      hooks: hooks,
-      delegate: delegate
+      hooks: hooks
     )
   }
 }

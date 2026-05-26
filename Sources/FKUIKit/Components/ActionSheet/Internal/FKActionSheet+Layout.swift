@@ -125,4 +125,116 @@ extension FKActionSheet {
       panelView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
     ]
   }
+
+  // MARK: - Panel sizing
+
+  private static let minimumPanelHeight: CGFloat = 44
+
+  func applyPanelChrome() {
+    let radius = configuration.presentation.cornerRadius
+    panelView.layer.cornerRadius = radius
+    switch configuration.presentation.style {
+    case .bottom:
+      panelView.layer.maskedCorners = radius > 0
+        ? [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        : []
+    case .centered, .popover:
+      panelView.layer.maskedCorners = [
+        .layerMinXMinYCorner,
+        .layerMaxXMinYCorner,
+        .layerMinXMaxYCorner,
+        .layerMaxXMaxYCorner,
+      ]
+    }
+
+    let roundedCorners: UIRectCorner = configuration.presentation.style == .bottom
+      ? [.topLeft, .topRight]
+      : .allCorners
+    let shadowPath = UIBezierPath(
+      roundedRect: panelView.bounds,
+      byRoundingCorners: roundedCorners,
+      cornerRadii: CGSize(width: radius, height: radius)
+    ).cgPath
+    panelView.layer.fk_applyShadow(configuration.presentation.containerShadow, path: shadowPath)
+  }
+
+  func updatePanelLayout(force: Bool) {
+    guard !isUpdatingPanelLayout else { return }
+    isUpdatingPanelLayout = true
+    defer { isUpdatingPanelLayout = false }
+
+    let layoutWidth = contentLayoutWidth(for: effectiveLayoutWidth())
+    updatePanelWidthConstraint()
+    let tableSafeBottom = tableBottomContentInset()
+    if force || abs(tableSafeBottom - lastTableSafeBottom) > 0.5 {
+      lastTableSafeBottom = tableSafeBottom
+      actionSheetView.updateBottomSafeAreaInset(tableSafeBottom)
+    }
+
+    let contentHeight = actionSheetView.measuredContentHeight(for: layoutWidth)
+    let maximumContentHeight = maximumSheetHeight()
+    let cappedContentHeight = min(contentHeight, maximumContentHeight)
+    let shouldScroll = contentHeight > cappedContentHeight + 0.5
+
+    if force || shouldScroll != lastScrollEnabled {
+      lastScrollEnabled = shouldScroll
+      actionSheetView.setScrollEnabled(shouldScroll)
+    }
+
+    let hostedHeight = max(cappedContentHeight, Self.minimumPanelHeight)
+    guard hostedHeight >= Self.minimumPanelHeight else { return }
+
+    let panelHeight: CGFloat
+    switch configuration.presentation.style {
+    case .popover:
+      panelHeight = hostedHeight
+    case .bottom, .centered:
+      panelHeight = hostedHeight + tableSafeBottom
+    }
+    guard force || abs(panelHeight - lastResolvedPanelHeight) > 0.5 else { return }
+
+    lastResolvedPanelHeight = panelHeight
+    if configuration.presentation.style != .popover {
+      panelHeightConstraint?.isActive = true
+      panelHeightConstraint?.constant = panelHeight
+    }
+    preferredContentSize = CGSize(width: layoutWidth, height: panelHeight)
+
+    if presentationProgress < 1 {
+      setPresentationProgress(presentationProgress, animated: false)
+    }
+
+    onPanelLayoutChange?()
+    view.setNeedsLayout()
+  }
+
+  func tableBottomContentInset() -> CGFloat {
+    switch configuration.presentation.style {
+    case .bottom:
+      break
+    case .centered, .popover:
+      return 0
+    }
+
+    if view.safeAreaInsets.bottom > 0 {
+      return view.safeAreaInsets.bottom
+    }
+    if let windowBottom = view.window?.safeAreaInsets.bottom, windowBottom > 0 {
+      return windowBottom
+    }
+    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    let keyWindow = scenes
+      .flatMap(\.windows)
+      .first(where: \.isKeyWindow)
+    return keyWindow?.safeAreaInsets.bottom ?? 0
+  }
+
+  func maximumSheetHeight() -> CGFloat {
+    let screenHeight = view.window?.bounds.height ?? UIScreen.main.bounds.height
+    let fractionCap = screenHeight * configuration.presentation.maximumFitContentHeightFraction
+    if let maximumPanelHeight = configuration.presentation.maximumPanelHeight {
+      return min(fractionCap, maximumPanelHeight)
+    }
+    return fractionCap
+  }
 }

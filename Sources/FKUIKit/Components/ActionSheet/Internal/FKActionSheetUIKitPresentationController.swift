@@ -4,15 +4,13 @@ import UIKit
 @MainActor
 final class FKActionSheetUIKitPresentationController: UIPresentationController {
   private let configuration: FKActionSheetPresentationConfiguration
-  private weak var actionSheetViewController: FKActionSheet?
-
-  private lazy var backdropTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleBackdropTap))
+  private weak var actionSheet: FKActionSheet?
 
   private(set) lazy var backdropView: UIView = {
     let view = UIView()
     view.backgroundColor = UIColor.black.withAlphaComponent(configuration.backdropAlpha)
     view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    view.isUserInteractionEnabled = true
+    view.isUserInteractionEnabled = false
     view.isAccessibilityElement = false
     view.accessibilityViewIsModal = false
     return view
@@ -22,10 +20,10 @@ final class FKActionSheetUIKitPresentationController: UIPresentationController {
     presentedViewController: UIViewController,
     presenting presentingViewController: UIViewController?,
     configuration: FKActionSheetPresentationConfiguration,
-    actionSheetViewController: FKActionSheet?
+    actionSheet: FKActionSheet?
   ) {
     self.configuration = configuration
-    self.actionSheetViewController = actionSheetViewController
+    self.actionSheet = actionSheet
     super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
   }
 
@@ -44,9 +42,6 @@ final class FKActionSheetUIKitPresentationController: UIPresentationController {
     guard let containerView else { return }
     backdropView.frame = containerView.bounds
     backdropView.alpha = 0
-    if configuration.allowsTapOutsideDismiss {
-      backdropView.addGestureRecognizer(backdropTapRecognizer)
-    }
     containerView.insertSubview(backdropView, at: 0)
 
     presentedViewController.transitionCoordinator?.animate(alongsideTransition: { [weak self] _ in
@@ -64,14 +59,5 @@ final class FKActionSheetUIKitPresentationController: UIPresentationController {
     if completed {
       backdropView.removeFromSuperview()
     }
-  }
-
-  func setBackdropAlpha(_ alpha: CGFloat) {
-    backdropView.alpha = alpha
-  }
-
-  @objc
-  private func handleBackdropTap() {
-    actionSheetViewController?.dismissForBackdropTap()
   }
 }

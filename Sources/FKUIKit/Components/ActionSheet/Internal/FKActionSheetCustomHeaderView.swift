@@ -8,7 +8,10 @@ final class FKActionSheetCustomHeaderView: UIView {
 
   override init(frame: CGRect) {
     super.init(frame: frame)
+    insetsLayoutMarginsFromSafeArea = false
     hostView.translatesAutoresizingMaskIntoConstraints = false
+    hostView.insetsLayoutMarginsFromSafeArea = false
+    hostView.preservesSuperviewLayoutMargins = false
     addSubview(hostView)
     NSLayoutConstraint.activate([
       hostView.topAnchor.constraint(equalTo: topAnchor),
@@ -32,12 +35,7 @@ final class FKActionSheetCustomHeaderView: UIView {
     accessibilityLabel = header.accessibilityLabel
 
     let insets = header.contentInsets
-    hostView.layoutMargins = UIEdgeInsets(
-      top: insets.top,
-      left: insets.leading,
-      bottom: insets.bottom,
-      right: insets.trailing
-    )
+    hostView.directionalLayoutMargins = insets
 
     if let embeddedView, let update = header.provider.update {
       update(context, embeddedView)
@@ -51,7 +49,9 @@ final class FKActionSheetCustomHeaderView: UIView {
         built.topAnchor.constraint(equalTo: hostView.layoutMarginsGuide.topAnchor),
         built.leadingAnchor.constraint(equalTo: hostView.layoutMarginsGuide.leadingAnchor),
         built.trailingAnchor.constraint(equalTo: hostView.layoutMarginsGuide.trailingAnchor),
-        built.bottomAnchor.constraint(equalTo: hostView.layoutMarginsGuide.bottomAnchor),
+        built.bottomAnchor.constraint(
+          lessThanOrEqualTo: hostView.layoutMarginsGuide.bottomAnchor
+        ),
       ])
     }
   }

@@ -11,87 +11,48 @@ HIG-oriented action sheet for UIKit apps. The sheet is a modal `UIViewController
 
 | Path | Role |
 |------|------|
-| `Public/FKActionSheet.swift` | Modal container VC (panel + table), `reload`, `updateAction`, `dismiss` |
-| `Internal/FKActionSheet+Presentation.swift` | `present(from:)`, static conveniences, action handling |
-| `Internal/FKActionSheet+Layout.swift` | Bottom / centered / popover panel constraints |
-| `Public/Core/FKActionSheetDelegate.swift` | Optional delegate callbacks |
+| `Public/FKActionSheet.swift` | Modal container VC, lifecycle, `reload`, `updateAction`, `dismiss` |
+| `Public/FKActionSheet+Presentation.swift` | Instance `present(from:)`, popover anchors, selection handling |
+| `Internal/FKActionSheet+Layout.swift` | Bottom / centered / popover panel constraints and sizing |
 | `Public/Configuration/` | Appearance, presentation, haptics, selection |
-| `Public/Model/FKActionSheetPresentationStyle.swift` | `.bottom`, `.centered`, `.popover` |
-| `Public/Model/` | Actions, sections, header, toggle, dismiss reasons |
-| `Public/SwiftUI/` | `View.fkActionSheet` modifier |
+| `Public/Model/` | Actions, sections, header, toggle, dismiss reasons, validation errors, lifecycle hooks |
+| `Public/SwiftUI/FKActionSheetModifier.swift` | `View.fkActionSheet` modifier |
 | `Extension/` | Builder, handlers, toggle, SF Symbol, alert migration, selection scope |
-| `Internal/FKActionSheet*Transition*.swift` | Custom modal presentation and animation |
-| `Internal/` | Table UI, cells, session, validation |
+| `Internal/FKActionSheetTransitioningDelegate.swift` | Custom modal presentation delegate |
+| `Internal/FKActionSheetAnimator.swift` | Bottom/centered transition animations |
+| `Internal/FKActionSheetUIKitPresentationController.swift` | Dimmed backdrop (tap handled on sheet view) |
+| `Internal/` | Table UI, cells, session, validation, haptics |
 
 ## Quick start
 
 ```swift
 import FKUIKit
 
-let share = FKActionSheetAction(
-  title: "Share",
-  symbolName: "square.and.arrow.up"
-) { /* share */ }
-
-let delete = FKActionSheetAction(title: "Delete", style: .destructive) { /* delete */ }
-let cancel = FKActionSheetAction(title: "Cancel", style: .cancel)
-
 let configuration = FKActionSheetConfiguration(
   header: FKActionSheetHeader(title: "Photo", message: "Choose an action"),
   sections: [FKActionSheetSection(actions: [share, delete])],
-  cancelAction: cancel,
-  handlerTiming: .afterDismissAnimation
+  cancelAction: cancel
 )
 
-try FKActionSheet.present(configuration: configuration, from: self)
-```
-
-### Instance API (recommended)
-
-```swift
 let sheet = try FKActionSheet(configuration: configuration)
 try sheet.present(from: self)
-// later
-sheet.reload(configuration: updated)
-sheet.dismiss(reason: .programmatic)
 ```
 
-### Centered card
+Retain the `FKActionSheet` instance for `reload`, `updateAction`, and programmatic `dismiss`.
 
-```swift
-var config = FKActionSheetConfiguration(
-  sections: [...],
-  presentation: .centered
-)
-try FKActionSheet.present(configuration: config, from: self)
-```
+## Presentation styles
 
-### Popover (iPad / anchored)
+| Style | API |
+|-------|-----|
+| `.bottom` | `present(from:)` |
+| `.centered` | Set `presentation: .centered`, then `present(from:)` |
+| `.popover` | `present(from:anchoredTo:)` |
 
-```swift
-try FKActionSheet.present(
-  configuration: config,
-  from: self,
-  anchoredTo: anchorButton
-)
+Window/scene hosting: `try sheet.present(in: windowScene)`.
 
-// or on an existing instance
-let sheet = try FKActionSheet(configuration: config)
-try sheet.present(from: self, anchoredTo: anchorButton)
-```
+## Callbacks
 
-## Custom header and rows
-
-See existing examples in FKKitExamples for custom header/row builders and metadata patterns.
-
-## Feature highlights
-
-- Three presentation styles: **`.bottom`** (default), **`.centered`** (dimmed card), **`.popover`** (anchored at present time)
-- Short content hugs measured height; tall content scrolls within `maximumPanelHeight` / `maximumFitContentHeightFraction`
-- Dismiss reasons: `actionSelected`, `userCancel`, `tapOutside`, `programmatic`
-- Tap the dimmed backdrop when `presentation.allowsTapOutsideDismiss` is `true` (default)
-- `presentOnce(id:)`, `validate(_:)`, `FKActionSheet.isPresenting`, `dismissActive()`
-- Dynamic Type, appearance presets, single-selection, toggles, haptics, delegate + hooks
+Use `FKActionSheetLifecycleHooks` on `FKActionSheetConfiguration` for lifecycle and row selection (`didSelect`). Action rows invoke `actionHandler` according to `handlerTiming`.
 
 ## SwiftUI
 
@@ -99,25 +60,21 @@ See existing examples in FKKitExamples for custom header/row builders and metada
 .fkActionSheet(
   isPresented: $showSheet,
   configuration: config,
-  popoverSourceView: anchorView, // optional
-  onDismiss: { reason in ... },
-  onPresentFailure: { error in ... }
+  popoverSourceView: anchorView,
+  onDismiss: { reason in ... }
 )
 ```
 
-The modifier retains the presented `FKActionSheet` and reloads when `configuration` changes while visible.
-
 ## FKKitExamples
 
-Entry: **FKUIKit → ActionSheet** → `FKActionSheetExamplesHubViewController`
+**FKUIKit → ActionSheet** — covers instance present, popover anchors, window scene, backdrop dismiss, reload/updateAction, builder, SwiftUI bridge.
 
 ## Notes
 
-- Retain the returned `FKActionSheet` (or your own reference) for instance-scoped dismiss, `reload`, and `updateAction`.
-- **`FKActionSheet.isPresenting` / `dismissActive()`** apply to the most recent sheet from static convenience APIs.
-- **`configuration.delegate`** is a weak reference on a struct; the delegate object must outlive the sheet.
+- Presenting the same instance twice throws `FKActionSheetValidationError.alreadyPresented`.
+- Use `sheet.isPresented` on a retained instance to check on-screen state.
 
 ## Related components
 
-- **`FKPresentationController`** — generic sheets and detents (not used by ActionSheet)
+- **`FKPresentationController`** — generic sheets and detents (separate from ActionSheet)
 - **`FKToast`** — transient banners

@@ -3,16 +3,9 @@ import FKUIKit
 
 final class FKActionSheetExamplePresentationViewController: FKActionSheetExampleBaseViewController {
   private lazy var popoverAnchorButton: UIButton = {
-    FKActionSheetExampleUI.button("Popover (static API)") { [weak self] in
+    FKActionSheetExampleUI.button("Popover") { [weak self] in
       guard let self else { return }
       FKActionSheetExamplePlaybook.presentPopover(from: self, anchor: popoverAnchorButton)
-    }
-  }()
-
-  private lazy var popoverInstanceAnchorButton: UIButton = {
-    FKActionSheetExampleUI.button("Popover (instance API)") { [weak self] in
-      guard let self else { return }
-      FKActionSheetExamplePlaybook.presentPopoverInstance(from: self, anchor: popoverInstanceAnchorButton)
     }
   }()
 
@@ -40,12 +33,11 @@ final class FKActionSheetExamplePresentationViewController: FKActionSheetExample
       FKActionSheetExamplePlaybook.presentFromWindowScene(scene)
     })
     body.addArrangedSubview(popoverAnchorButton)
-    body.addArrangedSubview(popoverInstanceAnchorButton)
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Presentation styles",
-        description: "FKActionSheetPresentationStyle: .bottom (default), .centered (dimmed card), .popover (requires present(from:anchoredTo:) or static anchoredTo:). Window-scene presentation resolves the topmost presenter automatically.",
+        description: "FKActionSheetPresentationStyle: .bottom (default), .centered (dimmed card), .popover (requires present(from:anchoredTo:)). Window-scene presentation resolves the topmost presenter automatically.",
         body: body
       )
     )

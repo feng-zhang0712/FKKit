@@ -13,7 +13,7 @@ public extension FKActionSheetAction {
     accessibilityLabel: String? = nil,
     accessibilityHint: String? = nil,
     dismissesSheetWhenSelected: Bool? = nil,
-    handler: (@MainActor () -> Void)? = nil,
+    actionHandler: (@MainActor (FKActionSheetAction) -> Void)? = nil,
     build: @escaping @MainActor (FKActionSheetRowBuildContext) -> UIView,
     update: (@MainActor (FKActionSheetRowBuildContext, UIView) -> Void)? = nil
   ) -> FKActionSheetAction {
@@ -34,7 +34,7 @@ public extension FKActionSheetAction {
       metadata: metadata,
       accessibilityLabel: accessibilityLabel,
       accessibilityHint: accessibilityHint,
-      handler: handler
+      actionHandler: actionHandler
     )
   }
 }
@@ -52,8 +52,7 @@ public extension FKActionSheetConfiguration {
     handlerTiming: FKActionSheetHandlerTiming = .beforeDismiss,
     selection: FKActionSheetSelectionConfiguration = .init(),
     haptics: FKActionSheetHapticsConfiguration = .init(),
-    hooks: FKActionSheetLifecycleHooks = .init(),
-    delegate: FKActionSheetDelegate? = nil
+    hooks: FKActionSheetLifecycleHooks = .init()
   ) {
     self.init(
       header: .custom(customHeader),
@@ -66,8 +65,7 @@ public extension FKActionSheetConfiguration {
       handlerTiming: handlerTiming,
       selection: selection,
       haptics: haptics,
-      hooks: hooks,
-      delegate: delegate
+      hooks: hooks
     )
   }
 }

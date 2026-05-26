@@ -47,7 +47,7 @@ final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBas
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Selection styles",
-        description: "Re-open the sheet to see the previous choice restored via selection.selectedActionID. Sheet stays open until Cancel when keepsSheetPresentedOnSelection is true.",
+        description: "Re-open the sheet to see the previous choice restored via selection.selectedActionID. Selecting a row dismisses the sheet automatically.",
         body: body
       )
     )
@@ -67,10 +67,9 @@ final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBas
     let config = FKActionSheetConfiguration(
       header: .text(FKActionSheetHeader(title: "Export size")),
       sections: [FKActionSheetSection(actions: actions)],
-      cancelAction: FKActionSheetExamplePlaybook.makeCancelAction(),
       selection: FKActionSheetSelectionConfiguration(
         mode: .single(scope: .allSections),
-        keepsSheetPresentedOnSelection: true,
+        keepsSheetPresentedOnSelection: false,
         selectedActionID: selectedID,
         indicatorStyle: style
       )

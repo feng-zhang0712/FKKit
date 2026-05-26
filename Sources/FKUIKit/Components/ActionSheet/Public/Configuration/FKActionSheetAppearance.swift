@@ -128,10 +128,33 @@ public struct FKActionSheetAppearance: Equatable, Sendable {
   }
 }
 
-/// Process-wide defaults applied when constructing new action sheets.
-public enum FKActionSheetGlobalStyle {
-  /// Default appearance merged into each `FKActionSheetConfiguration` unless overridden.
-  public nonisolated(unsafe) static var appearance: FKActionSheetAppearance = .default
-  /// Default appearance preset when callers do not override `appearance`.
-  public nonisolated(unsafe) static var appearancePreset: FKActionSheetAppearancePreset = .system
+extension FKActionSheetAppearance {
+  func resolvedHeaderTitleFont() -> UIFont {
+    Self.scaledFont(headerTitleFont, textStyle: .footnote, maximumPointSize: 22)
+  }
+
+  func resolvedHeaderMessageFont() -> UIFont {
+    Self.scaledFont(headerMessageFont, textStyle: .footnote, maximumPointSize: 22)
+  }
+
+  func resolvedActionTitleFont(isCancel: Bool) -> UIFont {
+    let base = isCancel ? cancelTitleFont : actionTitleFont
+    return Self.scaledFont(base, textStyle: .title3, maximumPointSize: 34)
+  }
+
+  func resolvedActionSubtitleFont() -> UIFont {
+    Self.scaledFont(actionSubtitleFont, textStyle: .footnote, maximumPointSize: 24)
+  }
+
+  func resolvedSectionTitleFont() -> UIFont {
+    Self.scaledFont(sectionTitleFont, textStyle: .footnote, maximumPointSize: 20)
+  }
+
+  private static func scaledFont(_ font: UIFont, textStyle: UIFont.TextStyle, maximumPointSize: CGFloat? = nil) -> UIFont {
+    let metrics = UIFontMetrics(forTextStyle: textStyle)
+    if let maximumPointSize {
+      return metrics.scaledFont(for: font, maximumPointSize: maximumPointSize)
+    }
+    return metrics.scaledFont(for: font)
+  }
 }

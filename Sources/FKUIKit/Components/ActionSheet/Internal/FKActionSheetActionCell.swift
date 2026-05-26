@@ -88,7 +88,17 @@ final class FKActionSheetActionCell: UITableViewCell {
     selectionModeActive: Bool
   ) {
     minimumHeightConstraint?.constant = appearance.minimumRowHeight
-    (selectedBackgroundView as? UIView)?.backgroundColor = appearance.rowHighlightColor
+    let suppressesRowHighlight = selectionModeActive && !isCancelGroup
+    if suppressesRowHighlight {
+      selectionStyle = .none
+      selectedBackgroundView = nil
+    } else {
+      selectionStyle = .default
+      if selectedBackgroundView == nil {
+        selectedBackgroundView = UIView()
+      }
+      selectedBackgroundView?.backgroundColor = appearance.rowHighlightColor
+    }
 
     let titleFont = appearance.resolvedActionTitleFont(isCancel: isCancelGroup)
     titleLabel.text = action.title

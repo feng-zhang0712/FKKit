@@ -69,6 +69,7 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
         } onTap: {
           showPopover = true
         }
+        .frame(maxWidth: .infinity, minHeight: 44)
 
         Button("Clear status") { statusMessage = "Cleared." }
           .buttonStyle(.borderless)
@@ -168,9 +169,9 @@ private struct FKActionSheetPopoverAnchorButton: UIViewRepresentable {
   let onTap: () -> Void
 
   func makeUIView(context: Context) -> UIButton {
-    let button = FKActionSheetExampleUI.button(title) {
-      context.coordinator.onTap()
-    }
+    let button = FKActionSheetExampleUI.anchorButton(title: title)
+    button.translatesAutoresizingMaskIntoConstraints = false
+    button.addAction(UIAction { _ in context.coordinator.onTap() }, for: .touchUpInside)
     return button
   }
 

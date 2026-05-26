@@ -10,7 +10,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
   private let rows: [Row] = [
     Row(
       title: "Basics",
-      subtitle: "Instance init + present, static convenience, validate",
+      subtitle: "init + present, validate, retain instance",
       make: { FKActionSheetExampleBasicsViewController() }
     ),
     Row(
@@ -45,12 +45,12 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     ),
     Row(
       title: "Handlers & Lifecycle",
-      subtitle: "Handler timing, actionHandler, haptics, delegate, dismiss reasons",
+      subtitle: "Handler timing, actionHandler, haptics, hooks, dismiss reasons",
       make: { FKActionSheetExampleHandlersViewController() }
     ),
     Row(
       title: "Live Updates",
-      subtitle: "Retained sheet reload/updateAction/dismiss, presentOnce, isPresenting",
+      subtitle: "Retained sheet reload/updateAction/dismiss, alreadyPresented guard",
       make: { FKActionSheetExampleLiveUpdatesViewController() }
     ),
     Row(

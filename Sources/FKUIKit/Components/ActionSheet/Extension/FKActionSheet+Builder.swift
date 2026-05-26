@@ -120,44 +120,8 @@ public struct FKActionSheetBuilder {
     return copy
   }
 
-  /// Sets a delegate.
-  public func delegate(_ delegate: FKActionSheetDelegate?) -> Self {
-    var copy = self
-    copy.configuration.delegate = delegate
-    return copy
-  }
-
   /// Builds the configuration value.
   public func build() -> FKActionSheetConfiguration {
     configuration
-  }
-
-  /// Creates and presents an action sheet from the accumulated configuration.
-  @discardableResult
-  public func present(
-    from presenter: UIViewController,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheet {
-    let sheet = try FKActionSheet(configuration: build())
-    try sheet.present(from: presenter, animated: animated, completion: completion)
-    return sheet
-  }
-
-  /// Presents at most one sheet per `id` until it is dismissed.
-  @discardableResult
-  public func presentOnce(
-    id: String,
-    from presenter: UIViewController,
-    animated: Bool = true,
-    completion: (() -> Void)? = nil
-  ) throws -> FKActionSheet? {
-    try FKActionSheet.presentOnce(
-      id: id,
-      configuration: build(),
-      from: presenter,
-      animated: animated,
-      completion: completion
-    )
   }
 }

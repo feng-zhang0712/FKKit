@@ -38,13 +38,7 @@ public struct FKActionSheetAction: Identifiable, Equatable {
   public var accessibilityLabel: String?
   /// Optional VoiceOver hint.
   public var accessibilityHint: String?
-  /// Invoked according to ``FKActionSheetConfiguration/handlerTiming`` (no parameters).
-  ///
-  /// When ``actionHandler`` is also set, only ``actionHandler`` runs via ``invokeHandlers()``.
-  public var handler: (@MainActor () -> Void)?
-  /// Invoked according to ``FKActionSheetConfiguration/handlerTiming`` with this action.
-  ///
-  /// Takes precedence over ``handler`` when both are set.
+  /// Invoked according to ``FKActionSheetConfiguration/handlerTiming`` when the row is selected.
   public var actionHandler: (@MainActor (FKActionSheetAction) -> Void)?
   /// Invoked when a toggle row switch changes (toggle rows only).
   public var toggleValueChanged: (@MainActor (Bool) -> Void)?
@@ -63,7 +57,6 @@ public struct FKActionSheetAction: Identifiable, Equatable {
     metadata: FKActionSheetMetadata? = nil,
     accessibilityLabel: String? = nil,
     accessibilityHint: String? = nil,
-    handler: (@MainActor () -> Void)? = nil,
     actionHandler: (@MainActor (FKActionSheetAction) -> Void)? = nil
   ) {
     self.id = id
@@ -79,9 +72,41 @@ public struct FKActionSheetAction: Identifiable, Equatable {
     self.metadata = metadata
     self.accessibilityLabel = accessibilityLabel
     self.accessibilityHint = accessibilityHint
-    self.handler = handler
     self.actionHandler = actionHandler
     self.toggleValueChanged = nil
+  }
+
+  /// Creates a standard row with a trailing handler closure (action value is not passed).
+  public init(
+    id: UUID = UUID(),
+    title: String,
+    subtitle: String? = nil,
+    image: UIImage? = nil,
+    style: Style = .default,
+    isEnabled: Bool = true,
+    isSelected: Bool = false,
+    isLoading: Bool = false,
+    dismissesSheetWhenSelected: Bool? = nil,
+    metadata: FKActionSheetMetadata? = nil,
+    accessibilityLabel: String? = nil,
+    accessibilityHint: String? = nil,
+    _ handler: @escaping @MainActor () -> Void
+  ) {
+    self.init(
+      id: id,
+      title: title,
+      subtitle: subtitle,
+      image: image,
+      style: style,
+      isEnabled: isEnabled,
+      isSelected: isSelected,
+      isLoading: isLoading,
+      dismissesSheetWhenSelected: dismissesSheetWhenSelected,
+      metadata: metadata,
+      accessibilityLabel: accessibilityLabel,
+      accessibilityHint: accessibilityHint,
+      actionHandler: { _ in handler() }
+    )
   }
 
   /// Creates a custom-content row.
@@ -94,7 +119,6 @@ public struct FKActionSheetAction: Identifiable, Equatable {
     metadata: FKActionSheetMetadata? = nil,
     accessibilityLabel: String? = nil,
     accessibilityHint: String? = nil,
-    handler: (@MainActor () -> Void)? = nil,
     actionHandler: (@MainActor (FKActionSheetAction) -> Void)? = nil
   ) {
     self.id = id
@@ -112,7 +136,6 @@ public struct FKActionSheetAction: Identifiable, Equatable {
     self.metadata = metadata
     self.accessibilityLabel = accessibilityLabel
     self.accessibilityHint = accessibilityHint
-    self.handler = handler
     self.actionHandler = actionHandler
     self.toggleValueChanged = nil
   }

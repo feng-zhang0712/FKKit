@@ -81,11 +81,6 @@ public struct FKActionSheetPresentationConfiguration: Equatable, Sendable {
     self.respectsReduceMotion = respectsReduceMotion
   }
 
-  /// Resolved absolute content-height cap, if any.
-  var resolvedMaximumPanelHeight: CGFloat? {
-    maximumPanelHeight
-  }
-
   /// Whether this style uses the custom modal presentation stack (backdrop + animator).
   var usesCustomModalPresentation: Bool {
     switch style {
