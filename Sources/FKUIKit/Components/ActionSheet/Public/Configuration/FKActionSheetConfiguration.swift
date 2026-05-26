@@ -10,10 +10,8 @@ public struct FKActionSheetConfiguration {
   public var cancelAction: FKActionSheetAction?
   /// Row and header styling.
   public var appearance: FKActionSheetAppearance
-  /// Hosting behavior mapped to ``FKPresentationController``.
+  /// Modal presentation tuning (backdrop, sizing cap, dismiss gestures).
   public var presentation: FKActionSheetPresentationConfiguration
-  /// Optional advanced transform applied to the generated presentation configuration.
-  public var presentationTransform: FKActionSheetPresentationConfiguration.ConfigurationTransform?
   /// When `true`, selecting a non-cancel action dismisses the sheet after invoking its handler policy.
   public var dismissesAfterActionSelection: Bool
   /// When action handlers run relative to dismissal.
@@ -35,7 +33,6 @@ public struct FKActionSheetConfiguration {
     appearance: FKActionSheetAppearance? = nil,
     appearancePreset: FKActionSheetAppearancePreset? = nil,
     presentation: FKActionSheetPresentationConfiguration = .default,
-    presentationTransform: FKActionSheetPresentationConfiguration.ConfigurationTransform? = nil,
     dismissesAfterActionSelection: Bool = true,
     handlerTiming: FKActionSheetHandlerTiming = .beforeDismiss,
     selection: FKActionSheetSelectionConfiguration = .init(),
@@ -56,7 +53,6 @@ public struct FKActionSheetConfiguration {
       self.appearance = .preset(FKActionSheetGlobalStyle.appearancePreset)
     }
     self.presentation = presentation
-    self.presentationTransform = presentationTransform
     self.dismissesAfterActionSelection = dismissesAfterActionSelection
     self.handlerTiming = handlerTiming
     self.selection = selection
@@ -80,7 +76,6 @@ public extension FKActionSheetConfiguration {
     appearance: FKActionSheetAppearance? = nil,
     appearancePreset: FKActionSheetAppearancePreset? = nil,
     presentation: FKActionSheetPresentationConfiguration = .default,
-    presentationTransform: FKActionSheetPresentationConfiguration.ConfigurationTransform? = nil,
     dismissesAfterActionSelection: Bool = true,
     handlerTiming: FKActionSheetHandlerTiming = .beforeDismiss,
     selection: FKActionSheetSelectionConfiguration = .init(),
@@ -95,7 +90,6 @@ public extension FKActionSheetConfiguration {
       appearance: appearance,
       appearancePreset: appearancePreset,
       presentation: presentation,
-      presentationTransform: presentationTransform,
       dismissesAfterActionSelection: dismissesAfterActionSelection,
       handlerTiming: handlerTiming,
       selection: selection,

@@ -1,6 +1,6 @@
 import UIKit
 
-/// Presents HIG-style action sheets backed by ``FKPresentationController``.
+/// Presents HIG-style action sheets using a custom modal ``UIViewController``.
 @MainActor
 public enum FKActionSheet {
   private static weak var activeHandle: FKActionSheetHandle?
@@ -149,46 +149,35 @@ public enum FKActionSheet {
 
     let resolvedConfiguration = configuration.applyingSelectionState()
 
-    let content = FKActionSheetContentViewController()
-    content.loadViewIfNeeded()
-    content.apply(configuration: resolvedConfiguration)
-
-    let presentationConfiguration = FKActionSheetPresentationFactory.makePresentationConfiguration(
-      sheetPresentation: configuration.presentation,
-      transform: configuration.presentationTransform
-    )
-
-    let presentation = FKPresentationController(
-      contentController: content,
-      configuration: presentationConfiguration
-    )
+    let sheet = FKActionSheetViewController(configuration: resolvedConfiguration)
+    sheet.loadViewIfNeeded()
 
     let handle = FKActionSheetHandle(
-      presentationController: presentation,
-      contentController: content,
+      viewController: sheet,
       configuration: resolvedConfiguration
     )
 
     let session = FKActionSheetSession(
       handle: handle,
       configuration: resolvedConfiguration,
-      presentationController: presentation
+      viewController: sheet
     )
     session.onDidPresentExtra = {
-      content.focusAccessibility()
+      sheet.focusAccessibility()
       presentationCompletion?()
     }
     handle.session = session
-    content.session = session
+    sheet.session = session
     activeHandle = handle
 
-    content.onPreferredContentSizeChange = { [weak presentation] in
-      presentation?.updateLayout(animated: false)
+    sheet.onPanelLayoutChange = { [weak sheet] in
+      sheet?.view.setNeedsLayout()
+      sheet?.view.layoutIfNeeded()
     }
 
     wireContentCallbacks(handle: handle, session: session)
 
-    presentation.present(from: presenter, animated: animated, completion: nil)
+    presenter.present(sheet, animated: animated, completion: nil)
     return handle
   }
 
@@ -196,7 +185,7 @@ public enum FKActionSheet {
     handle: FKActionSheetHandle,
     session: FKActionSheetSession
   ) {
-    handle.contentController.onActionSelected = { action, sectionID, isCancelGroup in
+    handle.actionSheetViewController.onActionSelected = { action, sectionID, isCancelGroup in
       guard action.isEnabled else { return }
       if case .custom(let row) = action.rowContent, !row.isSelectable { return }
       if case .standard = action.rowContent, action.isLoading { return }
@@ -237,7 +226,7 @@ public enum FKActionSheet {
       }
     }
 
-    handle.contentController.onToggleValueChanged = { action, isOn in
+    handle.actionSheetViewController.onToggleValueChanged = { action, isOn in
       guard action.isEnabled else { return }
       session.updateToggleValue(actionID: action.id, isOn: isOn)
       action.toggleValueChanged?(isOn)

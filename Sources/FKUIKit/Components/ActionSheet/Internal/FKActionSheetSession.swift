@@ -7,7 +7,7 @@ final class FKActionSheetSession {
   private(set) var configuration: FKActionSheetConfiguration
   let haptics = FKActionSheetHaptics()
 
-  private weak var presentationController: FKPresentationController?
+  private weak var viewController: FKActionSheetViewController?
   private var lastInteractiveDismissProgress: CGFloat = 0
   private(set) var lastCapturedReason: FKActionSheetDismissReason = .tapOutside
   var onDidPresentExtra: (() -> Void)?
@@ -15,19 +15,17 @@ final class FKActionSheetSession {
   init(
     handle: FKActionSheetHandle,
     configuration: FKActionSheetConfiguration,
-    presentationController: FKPresentationController
+    viewController: FKActionSheetViewController
   ) {
     self.handle = handle
     self.configuration = configuration
-    self.presentationController = presentationController
+    self.viewController = viewController
     haptics.prepare(configuration: configuration.haptics)
-    bindPresentationHandlers(to: presentationController)
   }
 
   func updateConfiguration(_ configuration: FKActionSheetConfiguration) {
     self.configuration = configuration
     haptics.prepare(configuration: configuration.haptics)
-    presentationController?.handlers = makePresentationHandlers()
   }
 
   func updateToggleValue(actionID: UUID, isOn: Bool) {
@@ -51,8 +49,12 @@ final class FKActionSheetSession {
     configuration = updated
     if let action = updated.allActions.first(where: { $0.id == actionID }) {
       handle.commitConfiguration(updated)
-      handle.contentController.refreshAction(action)
+      handle.actionSheetViewController.refreshAction(action)
     }
+  }
+
+  func recordInteractiveDismissProgress(_ progress: CGFloat) {
+    lastInteractiveDismissProgress = max(lastInteractiveDismissProgress, progress)
   }
 
   func captureDismissReason(default defaultReason: FKActionSheetDismissReason) -> FKActionSheetDismissReason {
@@ -82,6 +84,7 @@ final class FKActionSheetSession {
   }
 
   func notifyWillDismiss(reason: FKActionSheetDismissReason) {
+    lastCapturedReason = reason
     configuration.hooks.willDismiss?(reason)
     configuration.delegate?.actionSheetWillDismiss(handle, reason: reason)
   }
@@ -102,29 +105,5 @@ final class FKActionSheetSession {
     updated = updated.applyingSelectionState()
     configuration = updated
     handle.reload(configuration: updated)
-  }
-
-  private func bindPresentationHandlers(to presentation: FKPresentationController) {
-    presentation.handlers = makePresentationHandlers()
-  }
-
-  private func makePresentationHandlers() -> FKPresentationLifecycleHandlers {
-    weak var session = self
-    return FKPresentationLifecycleHandlers(
-      willPresent: { session?.notifyWillPresent() },
-      didPresent: { session?.notifyDidPresent() },
-      willDismiss: {
-        guard let session else { return }
-        let reason = session.captureDismissReason(default: .tapOutside)
-        session.notifyWillDismiss(reason: reason)
-      },
-      didDismiss: {
-        guard let session else { return }
-        session.notifyDidDismiss(reason: session.lastCapturedReason)
-      },
-      progress: { value in
-        session?.lastInteractiveDismissProgress = max(session?.lastInteractiveDismissProgress ?? 0, value)
-      }
-    )
   }
 }

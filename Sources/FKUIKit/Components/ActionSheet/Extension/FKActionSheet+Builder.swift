@@ -71,15 +71,6 @@ public struct FKActionSheetBuilder {
     return copy
   }
 
-  /// Sets an advanced presentation transform.
-  public func presentationTransform(
-    _ transform: @escaping FKActionSheetPresentationConfiguration.ConfigurationTransform
-  ) -> Self {
-    var copy = self
-    copy.configuration.presentationTransform = transform
-    return copy
-  }
-
   /// Sets whether non-cancel actions dismiss the sheet automatically.
   public func dismissesAfterActionSelection(_ enabled: Bool) -> Self {
     var copy = self

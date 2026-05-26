@@ -3,31 +3,32 @@ import UIKit
 /// Reference to a presented action sheet used for dismissal and live updates.
 @MainActor
 public final class FKActionSheetHandle {
-  /// Underlying presentation controller.
-  public private(set) var presentationController: FKPresentationController
-  /// Content controller hosting action rows.
-  public var contentViewController: UIViewController {
-    contentController
+  /// The presented action sheet view controller hosting action rows.
+  public var viewController: UIViewController {
+    actionSheetViewController
   }
 
-  let contentController: FKActionSheetContentViewController
+  /// Alias for ``viewController`` retained for source compatibility.
+  public var contentViewController: UIViewController {
+    actionSheetViewController
+  }
+
+  let actionSheetViewController: FKActionSheetViewController
 
   private var configuration: FKActionSheetConfiguration
   private var pendingDismissReason: FKActionSheetDismissReason?
 
   init(
-    presentationController: FKPresentationController,
-    contentController: FKActionSheetContentViewController,
+    viewController: FKActionSheetViewController,
     configuration: FKActionSheetConfiguration
   ) {
-    self.presentationController = presentationController
-    self.contentController = contentController
+    self.actionSheetViewController = viewController
     self.configuration = configuration
   }
 
   /// Whether the sheet is currently on screen.
   public var isPresented: Bool {
-    presentationController.isPresented
+    actionSheetViewController.presentingViewController != nil
   }
 
   /// Latest configuration used to render rows.
@@ -42,7 +43,7 @@ public final class FKActionSheetHandle {
     completion: (() -> Void)? = nil
   ) {
     stageDismissReason(reason)
-    presentationController.dismiss(animated: animated, completion: completion)
+    actionSheetViewController.dismissSheet(animated: animated, completion: completion)
   }
 
   /// Replaces visible actions and header, then refreshes layout.
@@ -60,8 +61,7 @@ public final class FKActionSheetHandle {
     let updated = configuration.replacingAction(action)
     guard Self.isValid(updated) else { return }
     applyConfiguration(updated, reloadTable: false)
-    contentController.refreshAction(action)
-    presentationController.updateLayout(animated: false)
+    actionSheetViewController.refreshAction(action)
   }
 
   /// Stores an updated configuration without reloading the table.
@@ -75,9 +75,8 @@ public final class FKActionSheetHandle {
     self.configuration = configuration
     session?.updateConfiguration(configuration)
     if reloadTable {
-      contentController.apply(configuration: configuration)
+      actionSheetViewController.apply(configuration: configuration)
     }
-    presentationController.updateLayout(animated: false)
   }
 
   private static func isValid(_ configuration: FKActionSheetConfiguration) -> Bool {

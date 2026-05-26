@@ -1,6 +1,6 @@
 # FKActionSheet
 
-HIG-oriented action sheet for UIKit apps. Presentation (backdrop, bottom sheet sizing, tap/swipe dismiss) is delegated to **`FKPresentationController`**; this module owns the action list UI and configuration model.
+HIG-oriented action sheet for UIKit apps. The sheet is a custom modal `UIViewController` (`FKActionSheetViewController`) with its own transitioning delegate, backdrop, and bottom panel layout. This module owns the action list UI and configuration model.
 
 ## Requirements
 
@@ -18,7 +18,9 @@ HIG-oriented action sheet for UIKit apps. Presentation (backdrop, bottom sheet s
 | `Public/Model/` | Actions, sections, header, toggle, host context, dismiss reasons |
 | `Public/SwiftUI/` | `View.fkActionSheet` modifier |
 | `Extension/` | Builder, handlers, toggle, SF Symbol, alert migration, selection scope, action replacement |
-| `Internal/` | Content VC, table UI, cells, presentation mapping, session, validation |
+| `Internal/FKActionSheetViewController.swift` | Modal container VC (panel + table) |
+| `Internal/FKActionSheet*Transition*.swift` | Custom modal presentation, animation, interactive dismiss |
+| `Internal/` | Table UI, cells, session, validation |
 
 ## Quick start
 
@@ -97,17 +99,18 @@ This keeps the public API simple while still letting you drive UI from your own 
 
 ## Feature highlights
 
-- Bottom sheet hosting with single `fitContent` detent (no grabber); short content hugs measured row/header height, tall content scrolls within `maximumPanelHeight` / `maximumFitContentHeightFraction` (default **50%** of screen)
-- Bottom safe area: `shellExtendsToScreenBottomEdge` keeps the wrapper, content container, and `FKActionSheetView` bottom-aligned; a `tableFooterView` reserves the home-indicator area (works for non-scrollable sheets)
+- Bottom sheet modal with custom `UIViewController` presentation (Photon-style container)
+- Short content hugs measured row/header height; tall content scrolls within `maximumPanelHeight` / `maximumFitContentHeightFraction` (default **50%** of screen)
+- Bottom safe area reserved via table footer (home indicator)
 - Dismiss reasons: `actionSelected`, `userCancel`, `tapOutside`, `swipe` (when `allowsSwipeDismiss`), `programmatic`
+- Tap the dimmed backdrop to dismiss when `presentation.allowsTapOutsideDismiss` is `true` (default)
 - Default presentation: no swipe dismiss, no container corner radius, full-width plain rows
 - `presentOnce(id:)` de-duplication, `validate(_:)`, `FKActionSheet.isPresenting`
 - Dynamic Type scaling, minimum row height, row highlight, separator styling
 - `FKActionSheetRowAlignment` (`.center` / `.leading`), appearance presets (`.system`, `.card`, `.plain`)
 - Single-selection groups with optional stay-open behavior, `selectedActionID` restore on re-present, and `indicatorStyle` (check, radio, highlighted title, or combinations)
 - Per-action `dismissesSheetWhenSelected`, haptics (off by default), delegate + hooks (kept in sync on `reload`)
-- `presentationTransform` for advanced `FKPresentationConfiguration` tuning
-- Reduce Motion uses fade preset when `presentation.respectsReduceMotion` is enabled
+- Reduce Motion uses a shorter fade transition when `presentation.respectsReduceMotion` is enabled
 
 ## Phase 3 APIs
 
@@ -192,8 +195,9 @@ Entry: **FKUIKit → ActionSheet** → `FKActionSheetExamplesHubViewController`
 - **`reload(configuration:)`** validates before applying; invalid configurations are ignored (debug `assertionFailure`).
 - **`FKActionSheetPresentationHostContext`** is not `Sendable`; resolve and present on the main actor.
 - **`configuration.delegate`** is a weak reference on a struct; the delegate object must outlive the sheet.
+- **`FKActionSheetHandle/viewController`** exposes the presented modal view controller for advanced integration.
 
 ## Related components
 
-- **`FKPresentationController`** — generic sheets, center modals, anchors
+- **`FKPresentationController`** — generic sheets, center modals, anchors (not used by ActionSheet)
 - **`FKToast`** — transient banners, not contextual action lists
