@@ -29,8 +29,13 @@ enum FKActionSheetExamplePlaybook {
       try sheet.present(from: presenter)
       log("init(configuration:) + present(from:)")
       return sheet
+    } catch let error as FKActionSheetValidationError {
+      log("Validation failed: \(error)")
+      FKToast.show(error.exampleToastMessage, style: .error, kind: .toast)
+      return nil
     } catch {
       log("Instance present failed: \(error)")
+      FKToast.show("Could not present action sheet.", style: .error, kind: .toast)
       return nil
     }
   }

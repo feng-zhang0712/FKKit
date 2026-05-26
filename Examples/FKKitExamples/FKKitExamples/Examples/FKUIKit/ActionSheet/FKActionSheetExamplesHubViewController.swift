@@ -29,8 +29,8 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
       make: { FKActionSheetExampleSymbolsAndStatesViewController() }
     ),
     Row(
-      title: "Single Selection",
-      subtitle: "selectedActionID restore, check, radio, and highlight styles",
+      title: "Single & Multiple Selection",
+      subtitle: "Single & multiple selection, min/max limits, restore selectedActionID(s)",
       make: { FKActionSheetExampleSelectionViewController() }
     ),
     Row(

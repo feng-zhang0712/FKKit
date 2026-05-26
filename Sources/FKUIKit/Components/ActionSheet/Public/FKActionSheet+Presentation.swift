@@ -125,7 +125,7 @@ extension FKActionSheet {
   }
 
   private func wireContentCallbacks(session: FKActionSheetSession) {
-    onActionSelected = { [weak self] action, _, isCancelGroup in
+    onActionSelected = { [weak self] action, sectionID, isCancelGroup in
       guard let self else { return }
       guard action.isEnabled else { return }
       if case .custom(let row) = action.rowContent, !row.isSelectable { return }
@@ -133,25 +133,64 @@ extension FKActionSheet {
       if action.isToggleRow { return }
 
       let configuration = session.configuration
-      session.notifyDidSelect(action)
-      if configuration.haptics.onActionSelection {
-        session.haptics.playSelection()
+      let selection = configuration.selection
+
+      if case .multiple = selection.mode,
+         !isCancelGroup,
+         let sectionID,
+         !selection.isRowInteractionEnabled(
+           for: action,
+           sectionID: sectionID,
+           isCancelGroup: false
+         ) {
+        return
       }
 
       let isCancel = isCancelGroup || action.style == .cancel
       let dismissReason: FKActionSheetDismissReason = isCancel ? .userCancel : .actionSelected
 
-      if case .single = configuration.selection.mode, !isCancel {
+      let actionForCallbacks: FKActionSheetAction
+      switch selection.mode {
+      case .none:
+        actionForCallbacks = action
+        session.notifyDidSelect(actionForCallbacks)
+      case .single where !isCancel:
         session.applySingleSelection(action: action)
-        if configuration.selection.keepsSheetPresentedOnSelection {
-          Self.invokeHandler(
-            for: action,
-            timing: configuration.handlerTiming,
-            actionSheet: self,
-            shouldDismiss: false
-          )
+        actionForCallbacks = session.configuration.allActions.first(where: { $0.id == action.id }) ?? action
+        session.notifyDidSelect(actionForCallbacks)
+      case .multiple where !isCancel:
+        guard session.toggleMultipleSelection(action: action, sectionID: sectionID) else {
           return
         }
+        actionForCallbacks = session.configuration.allActions.first(where: { $0.id == action.id }) ?? action
+        session.notifyDidSelect(actionForCallbacks)
+      default:
+        actionForCallbacks = action
+        session.notifyDidSelect(actionForCallbacks)
+      }
+
+      if configuration.haptics.onActionSelection {
+        session.haptics.playSelection()
+      }
+
+      if case .single = selection.mode, !isCancel, selection.keepsSheetPresentedOnSelection {
+        Self.invokeHandler(
+          for: actionForCallbacks,
+          timing: configuration.handlerTiming,
+          actionSheet: self,
+          shouldDismiss: false
+        )
+        return
+      }
+
+      if case .multiple = selection.mode, !isCancel, selection.keepsSheetPresentedOnSelection {
+        Self.invokeHandler(
+          for: actionForCallbacks,
+          timing: configuration.handlerTiming,
+          actionSheet: self,
+          shouldDismiss: false
+        )
+        return
       }
 
       let shouldDismiss = isCancel
@@ -161,7 +200,7 @@ extension FKActionSheet {
       if shouldDismiss {
         self.stageDismissReason(dismissReason)
         Self.invokeHandler(
-          for: action,
+          for: actionForCallbacks,
           timing: configuration.handlerTiming,
           actionSheet: self,
           shouldDismiss: true,
@@ -169,7 +208,7 @@ extension FKActionSheet {
         )
       } else {
         Self.invokeHandler(
-          for: action,
+          for: actionForCallbacks,
           timing: configuration.handlerTiming,
           actionSheet: self,
           shouldDismiss: false

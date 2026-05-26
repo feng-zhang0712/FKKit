@@ -11,6 +11,8 @@ public struct FKActionSheetLifecycleHooks {
   /// Called after dismissal finishes.
   public var didDismiss: (@MainActor (_ reason: FKActionSheetDismissReason) -> Void)?
   /// Called when the user selects an action row (excluding toggle changes).
+  ///
+  /// For single- and multiple-selection modes, `action.isSelected` reflects the state **after** the tap.
   public var didSelect: (@MainActor (_ action: FKActionSheetAction) -> Void)?
 
   /// Creates an empty hook container.

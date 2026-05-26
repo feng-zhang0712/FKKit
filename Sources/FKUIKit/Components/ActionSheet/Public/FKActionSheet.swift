@@ -31,6 +31,7 @@ public final class FKActionSheet: UIViewController {
   var lastResolvedPanelHeight: CGFloat = 0
   var lastLayoutWidth: CGFloat = 0
   var lastScrollEnabled: Bool?
+  var hasScrolledToSelectionOnPresent = false
   var lastTableSafeBottom: CGFloat = -1
   var isUpdatingPanelLayout = false
   var presentationProgress: CGFloat = 1
@@ -120,6 +121,7 @@ public final class FKActionSheet: UIViewController {
     super.viewDidAppear(animated)
     session?.notifyDidPresent()
     updatePanelLayout(force: true)
+    attemptScrollToSelectionOnPresent(animated: false)
   }
 
   public override func viewWillDisappear(_ animated: Bool) {
@@ -214,6 +216,7 @@ public final class FKActionSheet: UIViewController {
     lastLayoutWidth = 0
     lastResolvedPanelHeight = 0
     lastScrollEnabled = nil
+    hasScrolledToSelectionOnPresent = false
     lastTableSafeBottom = -1
     panelView.backgroundColor = configuration.appearance.backgroundColor
     if configuration.presentation.style == .popover {
@@ -234,6 +237,18 @@ public final class FKActionSheet: UIViewController {
 
   func focusAccessibility() {
     UIAccessibility.post(notification: .screenChanged, argument: view)
+  }
+
+  /// Scrolls a scrollable list to the restored selection once per configuration apply / present cycle.
+  func attemptScrollToSelectionOnPresent(animated: Bool) {
+    guard !hasScrolledToSelectionOnPresent else { return }
+    guard configuration.selection.scrollsToSelectionOnPresent,
+          configuration.selection.isSelectionActive,
+          lastScrollEnabled == true
+    else { return }
+    if actionSheetView.scrollToRevealSelection(animated: animated) {
+      hasScrolledToSelectionOnPresent = true
+    }
   }
 
   func dismissForBackdropTap() {

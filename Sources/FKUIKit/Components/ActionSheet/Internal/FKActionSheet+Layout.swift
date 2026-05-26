@@ -181,6 +181,10 @@ extension FKActionSheet {
       actionSheetView.setScrollEnabled(shouldScroll)
     }
 
+    if shouldScroll {
+      attemptScrollToSelectionOnPresent(animated: false)
+    }
+
     let hostedHeight = max(cappedContentHeight, Self.minimumPanelHeight)
     guard hostedHeight >= Self.minimumPanelHeight else { return }
 

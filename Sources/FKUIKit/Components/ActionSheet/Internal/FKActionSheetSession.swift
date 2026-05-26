@@ -90,4 +90,28 @@ final class FKActionSheetSession {
     configuration = updated
     actionSheet?.reload(configuration: updated)
   }
+
+  /// Toggles multi-select state for an action row. Returns `false` when limits block the change.
+  @discardableResult
+  func toggleMultipleSelection(
+    action: FKActionSheetAction,
+    sectionID: UUID?
+  ) -> Bool {
+    guard case .multiple = configuration.selection.mode else { return false }
+    guard let sectionID else { return false }
+
+    var updated = configuration
+    guard updated.selection.togglingSelection(
+      for: action,
+      sectionID: sectionID,
+      isCancelGroup: false
+    ) else {
+      return false
+    }
+
+    updated = updated.applyingSelectionState()
+    configuration = updated
+    actionSheet?.reload(configuration: updated)
+    return true
+  }
 }

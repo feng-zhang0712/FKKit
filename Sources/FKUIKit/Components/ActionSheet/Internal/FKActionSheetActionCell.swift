@@ -85,7 +85,8 @@ final class FKActionSheetActionCell: UITableViewCell {
     appearance: FKActionSheetAppearance,
     isCancelGroup: Bool,
     selectionIndicatorStyle: FKActionSheetSelectionIndicatorStyle,
-    selectionModeActive: Bool
+    selectionModeActive: Bool,
+    isRowInteractionEnabled: Bool = true
   ) {
     minimumHeightConstraint?.constant = appearance.minimumRowHeight
     let suppressesRowHighlight = selectionModeActive && !isCancelGroup
@@ -100,12 +101,15 @@ final class FKActionSheetActionCell: UITableViewCell {
       selectedBackgroundView?.backgroundColor = appearance.rowHighlightColor
     }
 
+    let isInteractionBlocked = !isRowInteractionEnabled
+    let showsDisabledAppearance = !action.isEnabled || action.isLoading || isInteractionBlocked
+
     let titleFont = appearance.resolvedActionTitleFont(isCancel: isCancelGroup)
     titleLabel.text = action.title
 
     let highlightsTitle = selectionModeActive
       && action.isSelected
-      && !action.isLoading
+      && !showsDisabledAppearance
       && selectionIndicatorStyle.usesHighlightedTitle
     titleLabel.font = titleFont
 
@@ -123,14 +127,15 @@ final class FKActionSheetActionCell: UITableViewCell {
       action: action,
       appearance: appearance,
       isCancelGroup: isCancelGroup,
-      highlightsTitle: highlightsTitle
+      highlightsTitle: highlightsTitle,
+      showsDisabledAppearance: showsDisabledAppearance
     )
     titleLabel.textColor = titleColor
 
     if let image = action.image {
       iconView.isHidden = false
       iconView.image = image
-      iconView.tintColor = action.isEnabled ? appearance.iconTintColor : appearance.disabledTitleColor
+      iconView.tintColor = showsDisabledAppearance ? appearance.disabledTitleColor : appearance.iconTintColor
     } else {
       iconView.isHidden = true
       iconView.image = nil
@@ -148,10 +153,11 @@ final class FKActionSheetActionCell: UITableViewCell {
       isCancelGroup: isCancelGroup,
       indicatorStyle: selectionIndicatorStyle,
       selectionModeActive: selectionModeActive,
-      titleColor: titleColor
+      titleColor: titleColor,
+      showsDisabledAppearance: showsDisabledAppearance
     )
 
-    isUserInteractionEnabled = action.isEnabled && !action.isLoading
+    isUserInteractionEnabled = isRowInteractionEnabled && !action.isLoading
     accessibilityLabel = action.accessibilityLabel ?? action.title
     if let hint = action.accessibilityHint {
       accessibilityHint = hint
@@ -174,13 +180,15 @@ final class FKActionSheetActionCell: UITableViewCell {
     isCancelGroup: Bool,
     indicatorStyle: FKActionSheetSelectionIndicatorStyle,
     selectionModeActive: Bool,
-    titleColor: UIColor
+    titleColor: UIColor,
+    showsDisabledAppearance: Bool
   ) {
     selectionAccessoryDisplayMode = selectionAccessoryMode(
       action: action,
       isCancelGroup: isCancelGroup,
       indicatorStyle: indicatorStyle,
-      selectionModeActive: selectionModeActive
+      selectionModeActive: selectionModeActive,
+      showsDisabledAppearance: showsDisabledAppearance
     )
     let tintColor = resolvedSelectionIndicatorTint(
       action: action,
@@ -204,9 +212,10 @@ final class FKActionSheetActionCell: UITableViewCell {
     action: FKActionSheetAction,
     appearance: FKActionSheetAppearance,
     isCancelGroup: Bool,
-    highlightsTitle: Bool
+    highlightsTitle: Bool,
+    showsDisabledAppearance: Bool
   ) -> UIColor {
-    if !action.isEnabled || action.isLoading { return appearance.disabledTitleColor }
+    if showsDisabledAppearance { return appearance.disabledTitleColor }
     if isCancelGroup { return appearance.cancelTitleColor }
     var color: UIColor = {
       switch action.style {
@@ -235,9 +244,10 @@ final class FKActionSheetActionCell: UITableViewCell {
     action: FKActionSheetAction,
     isCancelGroup: Bool,
     indicatorStyle: FKActionSheetSelectionIndicatorStyle,
-    selectionModeActive: Bool
+    selectionModeActive: Bool,
+    showsDisabledAppearance: Bool
   ) -> FKActionSheetSelectionIndicatorView.DisplayMode {
-    guard selectionModeActive, !isCancelGroup, !action.isLoading, action.isEnabled else { return .hidden }
+    guard selectionModeActive, !isCancelGroup, !showsDisabledAppearance else { return .hidden }
     if indicatorStyle.usesCheck {
       return action.isSelected ? .check : .hidden
     }

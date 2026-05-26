@@ -72,6 +72,26 @@ final class FKActionSheetView: UIView {
     tableView.showsVerticalScrollIndicator = isEnabled
   }
 
+  /// Scrolls the table so the first selected row in table order is visible.
+  ///
+  /// - Returns: `true` when scrolling was applied.
+  @discardableResult
+  func scrollToRevealSelection(animated: Bool) -> Bool {
+    guard tableView.isScrollEnabled else { return false }
+    guard
+      let actionID = currentConfiguration.selection.firstSelectedActionIDInTableOrder(
+        sections: currentConfiguration.sections
+      ),
+      let indexPath = indexPath(forActionID: actionID)
+    else {
+      return false
+    }
+
+    tableView.layoutIfNeeded()
+    tableView.scrollToRow(at: indexPath, at: .middle, animated: animated)
+    return true
+  }
+
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -407,7 +427,12 @@ extension FKActionSheetView: UITableViewDataSource, UITableViewDelegate {
         appearance: currentConfiguration.appearance,
         isCancelGroup: isCancel,
         selectionIndicatorStyle: currentConfiguration.selection.indicatorStyle,
-        selectionModeActive: isSelectionModeActive
+        selectionModeActive: isSelectionModeActive,
+        isRowInteractionEnabled: currentConfiguration.selection.isRowInteractionEnabled(
+          for: action,
+          sectionID: sectionID,
+          isCancelGroup: isCancel
+        )
       )
       cell.backgroundColor = currentConfiguration.appearance.cellBackgroundColor
       return cell
@@ -525,14 +550,9 @@ extension FKActionSheetView: UITableViewDataSource, UITableViewDelegate {
     return false
   }
 
-  /// Whether ``FKActionSheetSelectionConfiguration/mode`` is single-selection (accessories may show).
+  /// Whether selection accessories and selection interaction rules are active.
   private var isSelectionModeActive: Bool {
-    switch currentConfiguration.selection.mode {
-    case .none:
-      return false
-    case .single:
-      return true
-    }
+    currentConfiguration.selection.isSelectionActive
   }
 
   private func resolvedCustomHeaderHeight(_ header: FKActionSheetCustomHeader) -> CGFloat {

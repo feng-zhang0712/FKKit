@@ -12,4 +12,8 @@ public enum FKActionSheetValidationError: Error, Equatable, Sendable {
   case popoverAnchorRequired
   /// The sheet is already presented from another view controller.
   case alreadyPresented
+  /// ``FKActionSheetSelectionConfiguration/selectedActionIDs`` exceeds ``FKActionSheetSelectionConfiguration/MultipleSelection/maxSelectionCount``.
+  case selectedCountExceedsMaximum
+  /// ``FKActionSheetSelectionConfiguration/selectedActionIDs`` contains identifiers that are not present in the configured scope.
+  case unknownSelectedActionIDs
 }

@@ -54,6 +54,17 @@ Window/scene hosting: `try sheet.present(in: windowScene)`.
 
 Use `FKActionSheetLifecycleHooks` on `FKActionSheetConfiguration` for lifecycle and row selection (`didSelect`). Action rows invoke `actionHandler` according to `handlerTiming`.
 
+## Selection
+
+| Mode | API |
+|------|-----|
+| Single | `selection.mode = .single(scope: .allSections)` + `selectedActionID` |
+| Multiple | `selection.mode = .multiple(MultipleSelection(...))` + `selectedActionIDs` |
+
+Multiple selection supports `maxSelectionCount` and `disablesUnselectedRowsAtMax` (dims and blocks unselected rows when the max is reached).
+
+When the list scrolls inside the sheet, set `selection.selectedActionID` / `selectedActionIDs` and leave `scrollsToSelectionOnPresent` at its default (`true`) to scroll the first selected row into view on present.
+
 ## SwiftUI
 
 ```swift
