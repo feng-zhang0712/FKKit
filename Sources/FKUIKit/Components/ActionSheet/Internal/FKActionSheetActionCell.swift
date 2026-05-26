@@ -97,12 +97,7 @@ final class FKActionSheetActionCell: UITableViewCell {
       && action.isSelected
       && !action.isLoading
       && selectionIndicatorStyle.usesHighlightedTitle
-    if highlightsTitle {
-      let base = UIFont.systemFont(ofSize: titleFont.pointSize, weight: .semibold)
-      titleLabel.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: base)
-    } else {
-      titleLabel.font = titleFont
-    }
+    titleLabel.font = titleFont
 
     if let subtitle = action.subtitle, !subtitle.isEmpty {
       subtitleLabel.isHidden = false

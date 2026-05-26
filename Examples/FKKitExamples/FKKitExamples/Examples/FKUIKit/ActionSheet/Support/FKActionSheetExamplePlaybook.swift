@@ -373,12 +373,42 @@ enum FKActionSheetExamplePlaybook {
     }
   }
 
+  static func presentCentered(from presenter: UIViewController) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Centered", message: "Tap outside the card to dismiss.")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Action") { log("Centered action") }])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: .centered
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentPopover(from presenter: UIViewController, anchor: UIView) {
+    var config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Popover")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Option A") { log("Popover A") }])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .plain,
+      presentation: .popover
+    )
+    do {
+      _ = try FKActionSheet.presentPopover(
+        configuration: config,
+        from: presenter,
+        sourceView: anchor
+      )
+      log("Popover present succeeded")
+    } catch {
+      log("Popover present failed: \(error)")
+    }
+  }
+
   static func presentSwipeAndBackdropOptions(from presenter: UIViewController) {
     var presentation = FKActionSheetPresentationConfiguration.default
-    presentation.allowsSwipeDismiss = true
     presentation.allowsTapOutsideDismiss = true
     let config = FKActionSheetConfiguration(
-      header: .text(FKActionSheetHeader(message: "Swipe down or tap outside to dismiss.")),
+      header: .text(FKActionSheetHeader(message: "Tap outside the sheet to dismiss.")),
       sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Action") { log("Action") }])],
       cancelAction: makeCancelAction(),
       presentation: presentation

@@ -55,7 +55,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     ),
     Row(
       title: "Presentation",
-      subtitle: "Swipe/backdrop dismiss and presentation configuration",
+      subtitle: "Bottom, centered, popover styles; backdrop dismiss",
       make: { FKActionSheetExamplePresentationViewController() }
     ),
     Row(

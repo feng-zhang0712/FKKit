@@ -2,7 +2,7 @@ import Foundation
 
 /// Visual treatment for a selected row when ``FKActionSheetSelectionConfiguration/mode`` is active.
 public enum FKActionSheetSelectionIndicatorStyle: Equatable, Sendable {
-  /// Emphasizes the title with semibold weight and tint (no accessory image).
+  /// Emphasizes the title with ``FKActionSheetAppearance/selectedTitleColor`` (no accessory image).
   case highlightedTitle
   /// Shows a check symbol when the row is selected.
   case check

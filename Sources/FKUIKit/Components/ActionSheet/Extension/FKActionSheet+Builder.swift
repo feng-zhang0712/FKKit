@@ -71,6 +71,13 @@ public struct FKActionSheetBuilder {
     return copy
   }
 
+  /// Sets the presentation placement style.
+  public func presentationStyle(_ style: FKActionSheetPresentationStyle) -> Self {
+    var copy = self
+    copy.configuration.presentation.style = style
+    return copy
+  }
+
   /// Sets whether non-cancel actions dismiss the sheet automatically.
   public func dismissesAfterActionSelection(_ enabled: Bool) -> Self {
     var copy = self

@@ -8,7 +8,6 @@ final class FKActionSheetSession {
   let haptics = FKActionSheetHaptics()
 
   private weak var viewController: FKActionSheetViewController?
-  private var lastInteractiveDismissProgress: CGFloat = 0
   private(set) var lastCapturedReason: FKActionSheetDismissReason = .tapOutside
   var onDidPresentExtra: (() -> Void)?
 
@@ -53,26 +52,17 @@ final class FKActionSheetSession {
     }
   }
 
-  func recordInteractiveDismissProgress(_ progress: CGFloat) {
-    lastInteractiveDismissProgress = max(lastInteractiveDismissProgress, progress)
-  }
-
   func captureDismissReason(default defaultReason: FKActionSheetDismissReason) -> FKActionSheetDismissReason {
     if let pending = handle.peekPendingDismissReason() {
       lastCapturedReason = pending
       handle.consumePendingDismissReason(default: defaultReason)
       return lastCapturedReason
     }
-    if lastInteractiveDismissProgress > 0.02 {
-      lastCapturedReason = .swipe
-    } else {
-      lastCapturedReason = defaultReason
-    }
+    lastCapturedReason = defaultReason
     return lastCapturedReason
   }
 
   func notifyWillPresent() {
-    lastInteractiveDismissProgress = 0
     configuration.hooks.willPresent?()
     configuration.delegate?.actionSheetWillPresent(handle)
   }

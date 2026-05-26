@@ -15,6 +15,7 @@ HIG-oriented action sheet for UIKit apps. The sheet is a custom modal `UIViewCon
 | `Public/FKActionSheetHandle.swift` | Dismiss / reload / per-row updates |
 | `Public/Core/FKActionSheetDelegate.swift` | Optional delegate callbacks |
 | `Public/Configuration/` | Appearance, presentation, haptics, selection |
+| `Public/Model/FKActionSheetPresentationStyle.swift` | `.bottom`, `.centered`, `.popover` |
 | `Public/Model/` | Actions, sections, header, toggle, host context, dismiss reasons |
 | `Public/SwiftUI/` | `View.fkActionSheet` modifier |
 | `Extension/` | Builder, handlers, toggle, SF Symbol, alert migration, selection scope, action replacement |
@@ -43,6 +44,34 @@ let configuration = FKActionSheetConfiguration(
 )
 
 try FKActionSheet.present(configuration: configuration, from: self)
+```
+
+### Centered card
+
+```swift
+var config = FKActionSheetConfiguration(
+  sections: [...],
+  presentation: .centered
+)
+try FKActionSheet.present(configuration: config, from: self)
+```
+
+### Popover (iPad / anchored)
+
+```swift
+try FKActionSheet.presentPopover(
+  configuration: config,
+  from: self,
+  sourceView: anchorButton
+)
+// or
+try FKActionSheet.present(
+  configuration: config,
+  hostContext: FKActionSheetPresentationHostContext(
+    presenter: self,
+    popoverSource: anchorButton
+  )
+)
 ```
 
 ## Custom header and rows (Phase 2)
@@ -99,12 +128,13 @@ This keeps the public API simple while still letting you drive UI from your own 
 
 ## Feature highlights
 
-- Bottom sheet modal with custom `UIViewController` presentation (Photon-style container)
+- Three presentation styles (Photon-aligned): **`.bottom`** (default), **`.centered`** (dimmed card), **`.popover`** (anchored; requires host-context anchor)
+- Bottom sheet modal with custom `UIViewController` presentation
 - Short content hugs measured row/header height; tall content scrolls within `maximumPanelHeight` / `maximumFitContentHeightFraction` (default **50%** of screen)
 - Bottom safe area reserved via table footer (home indicator)
-- Dismiss reasons: `actionSelected`, `userCancel`, `tapOutside`, `swipe` (when `allowsSwipeDismiss`), `programmatic`
+- Dismiss reasons: `actionSelected`, `userCancel`, `tapOutside`, `programmatic` (`swipe` reserved for future/system use)
 - Tap the dimmed backdrop to dismiss when `presentation.allowsTapOutsideDismiss` is `true` (default)
-- Default presentation: no swipe dismiss, no container corner radius, full-width plain rows
+- Default presentation: tap-outside dismiss (bottom/centered), no container corner radius, full-width plain rows
 - `presentOnce(id:)` de-duplication, `validate(_:)`, `FKActionSheet.isPresenting`
 - Dynamic Type scaling, minimum row height, row highlight, separator styling
 - `FKActionSheetRowAlignment` (`.center` / `.leading`), appearance presets (`.system`, `.card`, `.plain`)
@@ -185,7 +215,7 @@ Entry: **FKUIKit → ActionSheet** → `FKActionSheetExamplesHubViewController`
 | Toggle Rows | `FKActionSheetAction.toggle` |
 | Handlers & Lifecycle | Timing, `actionHandler`, haptics, delegate, hooks |
 | Live Updates | `reload`, `updateAction`, `presentOnce`, `isPresenting` |
-| Presentation | Swipe/backdrop dismiss, presentation configuration |
+| Presentation | Bottom / centered / popover styles, backdrop dismiss |
 | Builder & Alert Migration | `FKActionSheetBuilder`, alert-style config |
 | SwiftUI Bridge | `View.fkActionSheet` |
 

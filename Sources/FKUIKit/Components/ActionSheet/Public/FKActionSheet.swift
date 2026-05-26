@@ -20,9 +20,40 @@ public enum FKActionSheet {
     hostContext: FKActionSheetPresentationHostContext = .init()
   ) throws {
     try FKActionSheetValidator.validate(configuration)
+    try FKActionSheetValidator.validatePresentation(configuration, hostContext: hostContext)
     guard resolvePresenter(hostContext: hostContext) != nil else {
       throw FKActionSheetValidationError.presenterNotFound
     }
+  }
+
+  /// Presents a popover action sheet anchored to `sourceView`.
+  @discardableResult
+  public static func presentPopover(
+    configuration: FKActionSheetConfiguration,
+    from presenter: UIViewController,
+    sourceView: UIView,
+    sourceRect: CGRect? = nil,
+    permittedArrowDirections: UIPopoverArrowDirection = .any,
+    animated: Bool = true,
+    completion: (() -> Void)? = nil
+  ) throws -> FKActionSheetHandle {
+    var config = configuration
+    if config.presentation.style != .popover {
+      var presentation = config.presentation
+      presentation.style = .popover
+      config.presentation = presentation
+    }
+    return try present(
+      configuration: config,
+      hostContext: FKActionSheetPresentationHostContext(
+        presenter: presenter,
+        popoverSource: sourceView,
+        sourceRect: sourceRect,
+        permittedArrowDirections: permittedArrowDirections
+      ),
+      animated: animated,
+      completion: completion
+    )
   }
 
   /// Presents an action sheet using an explicit presenter.
@@ -53,7 +84,7 @@ public enum FKActionSheet {
     guard let presenter = resolvePresenter(hostContext: hostContext) else {
       throw FKActionSheetValidationError.presenterNotFound
     }
-    return presentValidated(
+    return try presentValidated(
       configuration: configuration,
       hostContext: hostContext,
       presenter: presenter,
@@ -142,7 +173,7 @@ public enum FKActionSheet {
     presenter: UIViewController,
     animated: Bool,
     presentationCompletion: (() -> Void)?
-  ) -> FKActionSheetHandle {
+  ) throws -> FKActionSheetHandle {
     if let activeHandle, activeHandle.isPresented {
       activeHandle.dismiss(reason: .programmatic, animated: false)
     }
@@ -176,6 +207,12 @@ public enum FKActionSheet {
     }
 
     wireContentCallbacks(handle: handle, session: session)
+
+    try FKActionSheetPresentationConfigurator.configure(
+      sheet: sheet,
+      hostContext: hostContext,
+      presenter: presenter
+    )
 
     presenter.present(sheet, animated: animated, completion: nil)
     return handle

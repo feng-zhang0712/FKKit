@@ -8,4 +8,6 @@ public enum FKActionSheetValidationError: Error, Equatable, Sendable {
   case multipleCancelActions
   /// No presenter could be resolved from the supplied host context.
   case presenterNotFound
+  /// Popover presentation requires `popoverSourceView` or `popoverBarButtonItem` in the host context.
+  case popoverAnchorRequired
 }

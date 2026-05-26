@@ -15,6 +15,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
   }
 
   func attach(to viewController: FKActionSheetViewController) {
+    guard presentationConfiguration.usesCustomModalPresentation else { return }
     actionSheetViewController = viewController
     viewController.modalPresentationStyle = .custom
     viewController.transitioningDelegate = self
@@ -31,7 +32,8 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
     presenting: UIViewController?,
     source: UIViewController
   ) -> UIPresentationController? {
-    FKActionSheetUIKitPresentationController(
+    guard presentationConfiguration.usesCustomModalPresentation else { return nil }
+    return FKActionSheetUIKitPresentationController(
       presentedViewController: presented,
       presenting: presenting,
       configuration: presentationConfiguration,
@@ -44,7 +46,8 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
     presenting: UIViewController,
     source: UIViewController
   ) -> UIViewControllerAnimatedTransitioning? {
-    FKActionSheetAnimator(
+    guard presentationConfiguration.usesCustomModalPresentation else { return nil }
+    return FKActionSheetAnimator(
       isPresenting: true,
       configuration: presentationConfiguration,
       actionSheetViewController: actionSheetViewController
@@ -52,14 +55,12 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
   }
 
   func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-    FKActionSheetAnimator(
+    guard presentationConfiguration.usesCustomModalPresentation else { return nil }
+    return FKActionSheetAnimator(
       isPresenting: false,
       configuration: presentationConfiguration,
       actionSheetViewController: actionSheetViewController
     )
   }
 
-  func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-    actionSheetViewController?.interactiveDismissal
-  }
 }

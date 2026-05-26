@@ -14,4 +14,14 @@ enum FKActionSheetValidator {
       throw FKActionSheetValidationError.multipleCancelActions
     }
   }
+
+  static func validatePresentation(
+    _ configuration: FKActionSheetConfiguration,
+    hostContext: FKActionSheetPresentationHostContext
+  ) throws {
+    guard configuration.presentation.style == .popover else { return }
+    guard hostContext.hasPopoverAnchor else {
+      throw FKActionSheetValidationError.popoverAnchorRequired
+    }
+  }
 }

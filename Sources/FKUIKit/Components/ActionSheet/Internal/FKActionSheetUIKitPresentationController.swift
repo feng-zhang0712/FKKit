@@ -33,6 +33,13 @@ final class FKActionSheetUIKitPresentationController: UIPresentationController {
     containerView?.bounds ?? .zero
   }
 
+  override func containerViewWillLayoutSubviews() {
+    super.containerViewWillLayoutSubviews()
+    guard configuration.style != .popover, let presentedView else { return }
+    presentedView.frame = frameOfPresentedViewInContainerView
+    presentedView.layoutIfNeeded()
+  }
+
   override func presentationTransitionWillBegin() {
     guard let containerView else { return }
     backdropView.frame = containerView.bounds

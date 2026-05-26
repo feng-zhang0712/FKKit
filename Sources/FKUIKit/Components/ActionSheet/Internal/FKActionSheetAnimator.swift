@@ -37,7 +37,10 @@ final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioni
         return
       }
       containerView.addSubview(presentedView)
-      presentedView.frame = transitionContext.finalFrame(for: sheet)
+      let targetFrame = containerView.bounds.width > 0
+        ? containerView.bounds
+        : transitionContext.finalFrame(for: sheet)
+      presentedView.frame = targetFrame
       presentedView.layoutIfNeeded()
       sheet.prepareForPresentationAnimation()
 
