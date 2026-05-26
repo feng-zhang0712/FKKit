@@ -246,8 +246,19 @@ public final class FKActionSheet: UIViewController {
           configuration.selection.isSelectionActive,
           lastScrollEnabled == true
     else { return }
-    if actionSheetView.scrollToRevealSelection(animated: animated) {
-      hasScrolledToSelectionOnPresent = true
+
+    let scroll = { [weak self] in
+      guard let self, !self.hasScrolledToSelectionOnPresent else { return }
+      if self.actionSheetView.scrollToRevealSelection(animated: animated) {
+        self.hasScrolledToSelectionOnPresent = true
+      }
+    }
+
+    // Defer once so panel height and table content size match the presented layout.
+    if actionSheetView.isReadyForSelectionScroll {
+      scroll()
+    } else {
+      DispatchQueue.main.async(execute: scroll)
     }
   }
 

@@ -63,7 +63,7 @@ Use `FKActionSheetLifecycleHooks` on `FKActionSheetConfiguration` for lifecycle 
 
 Multiple selection supports `maxSelectionCount` and `disablesUnselectedRowsAtMax` (dims and blocks unselected rows when the max is reached).
 
-When the list scrolls inside the sheet, set `selection.selectedActionID` / `selectedActionIDs` and leave `scrollsToSelectionOnPresent` at its default (`true`) to scroll the first selected row into view on present.
+When the list scrolls inside the sheet, set `selection.selectedActionID` / `selectedActionIDs` and leave `scrollsToSelectionOnPresent` at its default (`true`) to scroll the first selected row near the vertical center of the visible list on present (clamped at the top and bottom of the list).
 
 ## SwiftUI
 

@@ -65,6 +65,11 @@ final class FKActionSheetView: UIView {
     tableView.showsVerticalScrollIndicator = false
   }
 
+  /// Whether the table has a non-zero size and content height for selection scrolling.
+  var isReadyForSelectionScroll: Bool {
+    bounds.height > 0 && tableView.contentSize.height > 0
+  }
+
   /// Enables scrolling when content exceeds the presented sheet height cap.
   func setScrollEnabled(_ isEnabled: Bool) {
     tableView.isScrollEnabled = isEnabled
@@ -72,7 +77,10 @@ final class FKActionSheetView: UIView {
     tableView.showsVerticalScrollIndicator = isEnabled
   }
 
-  /// Scrolls the table so the first selected row in table order is visible.
+  /// Scrolls so the first selected row in table order is near the vertical center of the visible list.
+  ///
+  /// Uses the row’s layout rect and clamps ``contentOffset`` to valid bounds, so edge rows stay as
+  /// centered as possible without leaving the list (best effort, not a hard guarantee).
   ///
   /// - Returns: `true` when scrolling was applied.
   @discardableResult
@@ -88,7 +96,33 @@ final class FKActionSheetView: UIView {
     }
 
     tableView.layoutIfNeeded()
-    tableView.scrollToRow(at: indexPath, at: .middle, animated: animated)
+
+    // Materialize the row rect when the cell has not been displayed yet.
+    if tableView.cellForRow(at: indexPath) == nil {
+      tableView.scrollToRow(at: indexPath, at: .none, animated: false)
+      tableView.layoutIfNeeded()
+    }
+
+    let rowRect = tableView.rectForRow(at: indexPath)
+    guard rowRect.height > 0 else { return false }
+
+    let topInset = tableView.adjustedContentInset.top
+    let bottomInset = tableView.adjustedContentInset.bottom
+    let visibleHeight = tableView.bounds.height - topInset - bottomInset
+    guard visibleHeight > 0 else { return false }
+
+    // Align the row midpoint with the midpoint of the visible viewport (content coordinates).
+    let rowMidY = rowRect.midY
+    let desiredOffsetY = rowMidY - topInset - visibleHeight / 2
+    let minOffsetY = -topInset
+    let maxOffsetY = max(
+      minOffsetY,
+      tableView.contentSize.height + bottomInset - tableView.bounds.height
+    )
+    let clampedOffsetY = min(max(desiredOffsetY, minOffsetY), maxOffsetY)
+
+    guard abs(tableView.contentOffset.y - clampedOffsetY) > 0.5 else { return true }
+    tableView.setContentOffset(CGPoint(x: tableView.contentOffset.x, y: clampedOffsetY), animated: animated)
     return true
   }
 
