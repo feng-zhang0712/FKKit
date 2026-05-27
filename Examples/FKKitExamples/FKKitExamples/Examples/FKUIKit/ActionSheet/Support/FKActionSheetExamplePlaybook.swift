@@ -405,15 +405,164 @@ enum FKActionSheetExamplePlaybook {
     log("updateAction → ready")
   }
 
+  // MARK: - Centered presentation
+
+  /// Builds ``FKActionSheetPresentationConfiguration/centered`` tuning for card-style sheets.
+  static func centeredPresentation(
+    allowsTapOutsideDismiss: Bool = true,
+    backdropAlpha: CGFloat? = nil,
+    maxPanelWidth: CGFloat? = nil,
+    horizontalInset: CGFloat? = nil,
+    maximumPanelHeight: CGFloat? = nil,
+    cornerRadius: CGFloat? = nil
+  ) -> FKActionSheetPresentationConfiguration {
+    var presentation = FKActionSheetPresentationConfiguration.centered
+    presentation.allowsTapOutsideDismiss = allowsTapOutsideDismiss
+    if let backdropAlpha { presentation.backdropAlpha = backdropAlpha }
+    if let maxPanelWidth { presentation.maxPanelWidth = maxPanelWidth }
+    if let horizontalInset { presentation.horizontalInset = horizontalInset }
+    if let maximumPanelHeight { presentation.maximumPanelHeight = maximumPanelHeight }
+    if let cornerRadius { presentation.cornerRadius = cornerRadius }
+    return presentation
+  }
+
   static func presentCentered(from presenter: UIViewController) {
+    presentCenteredCard(from: presenter)
+  }
+
+  static func presentCenteredCard(from presenter: UIViewController) {
     let config = FKActionSheetConfiguration(
-      header: .text(FKActionSheetHeader(title: "Centered", message: "Tap outside the card to dismiss.")),
+      header: .text(FKActionSheetHeader(title: "Centered card", message: "Tap outside the card to dismiss.")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Continue") { log("Centered continue") }])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation()
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentCenteredPlain(from presenter: UIViewController) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Plain centered", message: "appearancePreset: .plain")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Action") { log("Plain centered") }])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .plain,
+      presentation: centeredPresentation()
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentCenteredSystem(from presenter: UIViewController) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "System centered", message: "appearancePreset: .system")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Action") { log("System centered") }])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .system,
+      presentation: centeredPresentation()
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentCenteredBackdropDismissDisabled(from presenter: UIViewController) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(message: "Backdrop taps are ignored. Use Cancel.")),
       sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Action") { log("Centered action") }])],
       cancelAction: makeCancelAction(),
       appearancePreset: .card,
-      presentation: .centered
+      presentation: centeredPresentation(allowsTapOutsideDismiss: false)
     )
     _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentCenteredStrongBackdrop(from presenter: UIViewController) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Strong backdrop", message: "backdropAlpha = 0.6")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Action") { log("Strong backdrop") }])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation(backdropAlpha: 0.6)
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentCenteredCompactCard(from presenter: UIViewController) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Compact card", message: "maxPanelWidth 300, inset 32")),
+      sections: [FKActionSheetSection(actions: [FKActionSheetAction(title: "Action") { log("Compact centered") }])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation(maxPanelWidth: 300, horizontalInset: 32)
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentCenteredDestructive(from presenter: UIViewController) {
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Delete draft?", message: "This cannot be undone.")),
+      sections: [
+        FKActionSheetSection(actions: [
+          FKActionSheetAction(title: "Delete", style: .destructive) { log("Delete") },
+          FKActionSheetAction(title: "Archive") { log("Archive") },
+        ]),
+      ],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation()
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentCenteredScrollableList(from presenter: UIViewController) {
+    let rows = (1 ... 14).map { index in
+      FKActionSheetAction(title: "Topic \(index)") { log("Topic \(index)") }
+    }
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Notifications", message: "Scroll inside the card")),
+      sections: [FKActionSheetSection(actions: rows)],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation(maximumPanelHeight: 280)
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  @discardableResult
+  static func presentCenteredSingleSelection(from presenter: UIViewController) -> FKActionSheet? {
+    let email = FKActionSheetAction(title: "Email", symbolName: "envelope.fill") { log("Email") }
+    let phone = FKActionSheetAction(title: "Phone", symbolName: "phone.fill") { log("Phone") }
+    let chat = FKActionSheetAction(title: "Chat", symbolName: "message.fill") { log("Chat") }
+    var selection = FKActionSheetSelectionConfiguration()
+    selection.mode = .single(scope: .allSections)
+    selection.indicatorStyle = .radio
+    selection.selectedActionID = email.id
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Contact method", message: "Single selection")),
+      sections: [FKActionSheetSection(actions: [email, phone, chat])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation(),
+      dismissesAfterActionSelection: false,
+      selection: selection
+    )
+    return presentInstance(config, from: presenter, logEvents: true)
+  }
+
+  /// Presents a centered loading sheet; retain the returned instance for `finishLoading`.
+  @discardableResult
+  static func presentCenteredLoading(from presenter: UIViewController) -> FKActionSheet? {
+    let config = FKActionSheetConfiguration.loading(
+      .standard(
+        FKActionSheetStandardLoadingContent(
+          title: "Loading options",
+          message: "Centered card while fetching…"
+        )
+      ),
+      preferredPanelHeight: 180,
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation()
+    )
+    return presentInstance(config, from: presenter, logEvents: true)
   }
 
   static func presentPopover(from presenter: UIViewController, anchor: UIView) {

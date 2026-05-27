@@ -6,6 +6,8 @@ public extension FKActionSheetValidationError {
     switch self {
     case .noActions:
       return "Add at least one action before presenting the action sheet."
+    case .emptyLoadingContent:
+      return "Enable the activity indicator or provide loading title or message text."
     case .multipleCancelActions:
       return "Only one cancel action is allowed."
     case .presenterNotFound:

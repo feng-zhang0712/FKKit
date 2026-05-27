@@ -54,8 +54,18 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
       make: { FKActionSheetExampleLiveUpdatesViewController() }
     ),
     Row(
+      title: "Loading Content",
+      subtitle: "Bottom & centered loading, finishLoading merge, retry/failure",
+      make: { FKActionSheetExampleLoadingContentViewController() }
+    ),
+    Row(
+      title: "Centered",
+      subtitle: "Card/plain/system, backdrop, scroll, selection, centered loading",
+      make: { FKActionSheetExampleCenteredViewController() }
+    ),
+    Row(
       title: "Presentation",
-      subtitle: "Bottom, centered, popover, window scene, backdrop dismiss",
+      subtitle: "Bottom sheet, popover, window scene, backdrop dismiss",
       make: { FKActionSheetExamplePresentationViewController() }
     ),
     Row(

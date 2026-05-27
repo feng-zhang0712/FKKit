@@ -120,6 +120,42 @@ public struct FKActionSheetBuilder {
     return copy
   }
 
+  /// Sets whether the sheet shows action rows or a loading presentation.
+  public func contentMode(_ contentMode: FKActionSheetContentMode) -> Self {
+    var copy = self
+    copy.configuration.contentMode = contentMode
+    return copy
+  }
+
+  /// Configures a loading presentation with standard spinner content.
+  public func loading(
+    title: String? = nil,
+    message: String? = nil,
+    preferredPanelHeight: CGFloat = 180,
+    showsCancelWhileLoading: Bool = true
+  ) -> Self {
+    var copy = self
+    copy.configuration.sections = []
+    copy.configuration.contentMode = .loading(
+      FKActionSheetLoadingConfiguration(
+        content: .standard(
+          FKActionSheetStandardLoadingContent(title: title, message: message)
+        ),
+        preferredPanelHeight: preferredPanelHeight,
+        showsCancelWhileLoading: showsCancelWhileLoading
+      )
+    )
+    return copy
+  }
+
+  /// Configures a loading presentation explicitly.
+  public func loadingConfiguration(_ loadingConfiguration: FKActionSheetLoadingConfiguration) -> Self {
+    var copy = self
+    copy.configuration.sections = []
+    copy.configuration.contentMode = .loading(loadingConfiguration)
+    return copy
+  }
+
   /// Builds the configuration value.
   public func build() -> FKActionSheetConfiguration {
     configuration

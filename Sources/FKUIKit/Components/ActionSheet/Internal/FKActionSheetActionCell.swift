@@ -18,6 +18,8 @@ final class FKActionSheetActionCell: UITableViewCell {
 
   private var centerRowStack: UIStackView?
   private var leadingRowStack: UIStackView?
+  private var showsRowActivityIndicator = false
+  private var showsRowIcon = false
   private var minimumHeightConstraint: NSLayoutConstraint?
   private var selectionIndicatorTrailingConstraint: NSLayoutConstraint?
   private var selectionIndicatorCenterYConstraint: NSLayoutConstraint?
@@ -51,7 +53,6 @@ final class FKActionSheetActionCell: UITableViewCell {
     selectionIndicator.translatesAutoresizingMaskIntoConstraints = false
     selectionIndicator.isUserInteractionEnabled = false
     contentView.addSubview(rowContainer)
-    rowContainer.addSubview(selectionIndicator)
 
     minimumHeightConstraint = rowContainer.heightAnchor.constraint(greaterThanOrEqualToConstant: 48)
     minimumHeightConstraint?.priority = .required
@@ -136,9 +137,11 @@ final class FKActionSheetActionCell: UITableViewCell {
       iconView.isHidden = false
       iconView.image = image
       iconView.tintColor = showsDisabledAppearance ? appearance.disabledTitleColor : appearance.iconTintColor
+      showsRowIcon = true
     } else {
       iconView.isHidden = true
       iconView.image = nil
+      showsRowIcon = false
     }
 
     if action.isLoading {
@@ -146,6 +149,7 @@ final class FKActionSheetActionCell: UITableViewCell {
     } else {
       activityIndicator.stopAnimating()
     }
+    showsRowActivityIndicator = action.isLoading
 
     updateSelectionAccessoryState(
       action: action,
@@ -199,11 +203,19 @@ final class FKActionSheetActionCell: UITableViewCell {
     accessoryView = nil
 
     let showsIcon = showsSelectionAccessoryIcon
-    selectionIndicator.isHidden = !showsIcon
-    selectionIndicatorTrailingConstraint?.isActive = showsIcon
-    selectionIndicatorCenterYConstraint?.isActive = showsIcon
     if showsIcon {
+      if selectionIndicator.superview == nil {
+        rowContainer.addSubview(selectionIndicator)
+      }
+      selectionIndicator.isHidden = false
+      selectionIndicatorTrailingConstraint?.isActive = true
+      selectionIndicatorCenterYConstraint?.isActive = true
       rowContainer.bringSubviewToFront(selectionIndicator)
+    } else {
+      selectionIndicator.isHidden = true
+      selectionIndicatorTrailingConstraint?.isActive = false
+      selectionIndicatorCenterYConstraint?.isActive = false
+      selectionIndicator.removeFromSuperview()
     }
   }
 
@@ -272,13 +284,21 @@ final class FKActionSheetActionCell: UITableViewCell {
     textStack.spacing = 2
 
     let horizontalPadding = Layout.horizontalPadding
+    var rowItems: [UIView] = []
+    if showsRowIcon {
+      rowItems.append(iconView)
+    }
+    rowItems.append(textStack)
+    if showsRowActivityIndicator {
+      rowItems.append(activityIndicator)
+    }
 
     switch alignment {
     case .center:
       textStack.alignment = .center
       titleLabel.textAlignment = .center
       subtitleLabel.textAlignment = .center
-      let stack = UIStackView(arrangedSubviews: [iconView, textStack, activityIndicator])
+      let stack = UIStackView(arrangedSubviews: rowItems)
       stack.axis = .horizontal
       stack.alignment = .center
       stack.spacing = 10
@@ -297,7 +317,16 @@ final class FKActionSheetActionCell: UITableViewCell {
       textStack.alignment = .leading
       titleLabel.textAlignment = .natural
       subtitleLabel.textAlignment = .natural
-      let stack = UIStackView(arrangedSubviews: [iconView, textStack, UIView(), activityIndicator])
+      var leadingItems: [UIView] = []
+      if showsRowIcon {
+        leadingItems.append(iconView)
+      }
+      leadingItems.append(textStack)
+      leadingItems.append(UIView())
+      if showsRowActivityIndicator {
+        leadingItems.append(activityIndicator)
+      }
+      let stack = UIStackView(arrangedSubviews: leadingItems)
       stack.axis = .horizontal
       stack.alignment = .center
       stack.spacing = 12
@@ -326,7 +355,10 @@ final class FKActionSheetActionCell: UITableViewCell {
     selectionIndicator.isHidden = true
     selectionIndicatorTrailingConstraint?.isActive = false
     selectionIndicatorCenterYConstraint?.isActive = false
+    selectionIndicator.removeFromSuperview()
     activityIndicator.stopAnimating()
+    showsRowActivityIndicator = false
+    showsRowIcon = false
     subtitleLabel.isHidden = true
     centerRowStack?.removeFromSuperview()
     leadingRowStack?.removeFromSuperview()

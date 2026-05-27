@@ -20,58 +20,36 @@ final class FKActionSheetView: UIView {
   private var bottomSafeAreaFooterHeight: CGFloat = 0
   private var bottomSafeAreaFooterView: UIView?
 
+  private var tableView: UITableView?
+  private var tableViewConstraints: [NSLayoutConstraint] = []
+  private var loadingHostView: FKActionSheetLoadingHostView?
+
+  private var loadingHostConstraints: [NSLayoutConstraint] = []
+
   private enum SectionKind {
     case header(FKActionSheetHeaderContent)
     case actions(FKActionSheetSection)
     case cancel(FKActionSheetAction)
   }
 
-  private lazy var tableView: UITableView = {
-    let table = UITableView(frame: .zero, style: .plain)
-    table.translatesAutoresizingMaskIntoConstraints = false
-    table.backgroundColor = .clear
-    table.sectionHeaderTopPadding = 0
-    table.dataSource = self
-    table.delegate = self
-    table.register(FKActionSheetActionCell.self, forCellReuseIdentifier: FKActionSheetActionCell.reuseIdentifier)
-    table.register(
-      FKActionSheetCustomRowCell.self,
-      forCellReuseIdentifier: FKActionSheetCustomRowCell.defaultReuseIdentifier
-    )
-    table.register(
-      FKActionSheetToggleCell.self,
-      forCellReuseIdentifier: FKActionSheetToggleCell.defaultReuseIdentifier
-    )
-    registeredReuseIdentifiers.insert(FKActionSheetCustomRowCell.defaultReuseIdentifier)
-    registeredReuseIdentifiers.insert(FKActionSheetToggleCell.defaultReuseIdentifier)
-    table.rowHeight = UITableView.automaticDimension
-    table.estimatedRowHeight = 48
-    table.contentInsetAdjustmentBehavior = .never
-    return table
-  }()
-
   override init(frame: CGRect) {
     super.init(frame: frame)
     translatesAutoresizingMaskIntoConstraints = false
-    addSubview(tableView)
-    NSLayoutConstraint.activate([
-      tableView.topAnchor.constraint(equalTo: topAnchor),
-      tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
-      tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
-      tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
-    ])
-    tableView.isScrollEnabled = false
-    tableView.alwaysBounceVertical = false
-    tableView.showsVerticalScrollIndicator = false
   }
 
   /// Whether the table has a non-zero size and content height for selection scrolling.
   var isReadyForSelectionScroll: Bool {
-    bounds.height > 0 && tableView.contentSize.height > 0
+    guard !isLoadingPresentationActive, let tableView else { return false }
+    return bounds.height > 0 && tableView.contentSize.height > 0
+  }
+
+  private var isLoadingPresentationActive: Bool {
+    currentConfiguration.isLoadingContentActive
   }
 
   /// Enables scrolling when content exceeds the presented sheet height cap.
   func setScrollEnabled(_ isEnabled: Bool) {
+    guard let tableView else { return }
     tableView.isScrollEnabled = isEnabled
     tableView.alwaysBounceVertical = isEnabled
     tableView.showsVerticalScrollIndicator = isEnabled
@@ -85,7 +63,7 @@ final class FKActionSheetView: UIView {
   /// - Returns: `true` when scrolling was applied.
   @discardableResult
   func scrollToRevealSelection(animated: Bool) -> Bool {
-    guard tableView.isScrollEnabled else { return false }
+    guard let tableView, tableView.isScrollEnabled else { return false }
     guard
       let actionID = currentConfiguration.selection.scrollTargetActionIDInTableOrder(
         sections: currentConfiguration.sections
@@ -134,16 +112,31 @@ final class FKActionSheetView: UIView {
   func apply(configuration: FKActionSheetConfiguration) {
     currentConfiguration = configuration
     invalidateMeasurementCache()
-    registerCustomRowReuseIdentifiers()
     rebuildSectionKinds()
     backgroundColor = currentConfiguration.appearance.backgroundColor
-    tableView.backgroundColor = currentConfiguration.appearance.backgroundColor
     bottomSafeAreaFooterView?.backgroundColor = currentConfiguration.appearance.backgroundColor
-    applySeparatorStyle()
-    tableView.estimatedRowHeight = configuration.appearance.minimumRowHeight
-    tableView.reloadData()
-    if bottomSafeAreaFooterHeight > 0 {
-      applyBottomSafeAreaFooter(height: bottomSafeAreaFooterHeight)
+
+    if isLoadingPresentationActive, let loadingConfiguration = configuration.loadingConfiguration {
+      removeTableViewIfNeeded()
+      let host = ensureLoadingHostView()
+      host.updateBottomSafeAreaInset(bottomSafeAreaFooterHeight)
+      host.apply(
+        loadingConfiguration: loadingConfiguration,
+        appearance: configuration.appearance,
+        cancelAction: configuration.cancelAction,
+        layoutWidth: max(1, bounds.width)
+      )
+    } else {
+      removeLoadingHostIfNeeded()
+      let tableView = ensureTableView()
+      tableView.backgroundColor = currentConfiguration.appearance.backgroundColor
+      tableView.estimatedRowHeight = configuration.appearance.minimumRowHeight
+      applySeparatorStyle(on: tableView)
+      registerCustomRowReuseIdentifiers()
+      tableView.reloadData()
+      if bottomSafeAreaFooterHeight > 0 {
+        applyBottomSafeAreaFooter(height: bottomSafeAreaFooterHeight)
+      }
     }
     setNeedsLayout()
   }
@@ -152,6 +145,7 @@ final class FKActionSheetView: UIView {
   func syncSelectionConfiguration(_ configuration: FKActionSheetConfiguration) {
     currentConfiguration = configuration
     rebuildSectionKinds()
+    guard let tableView else { return }
     let indexPaths = indexPathsInSelectionScope(for: configuration.selection)
     guard !indexPaths.isEmpty else { return }
     tableView.reloadRows(at: indexPaths, with: .none)
@@ -159,7 +153,11 @@ final class FKActionSheetView: UIView {
 
   /// Preferred accessibility focus after present when a selection row is restored.
   func accessibilityElementToFocus() -> Any? {
+    if isLoadingPresentationActive {
+      return loadingHostView?.accessibilityElementToFocus()
+    }
     guard
+      let tableView,
       let actionID = currentConfiguration.selection.scrollTargetActionIDInTableOrder(
         sections: currentConfiguration.sections
       ),
@@ -173,6 +171,7 @@ final class FKActionSheetView: UIView {
 
   /// Updates a single row in place without reloading the full table when possible.
   func refreshAction(_ action: FKActionSheetAction) {
+    guard let tableView else { return }
     guard replaceStoredAction(action) else { return }
     invalidateMeasurementCache()
     rebuildSectionKinds()
@@ -196,6 +195,11 @@ final class FKActionSheetView: UIView {
     let bottom = max(0, inset)
     guard abs(bottomSafeAreaFooterHeight - bottom) > 0.5 else { return }
     bottomSafeAreaFooterHeight = bottom
+    if isLoadingPresentationActive {
+      loadingHostView?.updateBottomSafeAreaInset(bottom)
+      return
+    }
+    let tableView = ensureTableView()
     if tableView.contentInset.bottom > 0 {
       var contentInset = tableView.contentInset
       contentInset.bottom = 0
@@ -207,9 +211,98 @@ final class FKActionSheetView: UIView {
   override func layoutSubviews() {
     super.layoutSubviews()
     updateBottomSafeAreaFooterFrameIfNeeded()
+    if isLoadingPresentationActive {
+      loadingHostView?.updateLayoutIfNeeded(layoutWidth: max(1, bounds.width))
+    }
+  }
+
+  @discardableResult
+  private func ensureLoadingHostView() -> FKActionSheetLoadingHostView {
+    if let loadingHostView {
+      return loadingHostView
+    }
+    let view = FKActionSheetLoadingHostView()
+    view.delegate = self
+    view.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(view)
+    let constraints = [
+      view.topAnchor.constraint(equalTo: topAnchor),
+      view.leadingAnchor.constraint(equalTo: leadingAnchor),
+      view.trailingAnchor.constraint(equalTo: trailingAnchor),
+      view.bottomAnchor.constraint(equalTo: bottomAnchor),
+    ]
+    NSLayoutConstraint.activate(constraints)
+    loadingHostConstraints = constraints
+    loadingHostView = view
+    return view
+  }
+
+  private func removeLoadingHostIfNeeded() {
+    guard let host = loadingHostView else { return }
+    host.teardownContent()
+    host.removeFromSuperview()
+    NSLayoutConstraint.deactivate(loadingHostConstraints)
+    loadingHostConstraints = []
+    loadingHostView = nil
+  }
+
+  @discardableResult
+  private func ensureTableView() -> UITableView {
+    if let tableView {
+      return tableView
+    }
+
+    let table = UITableView(frame: .zero, style: .plain)
+    table.translatesAutoresizingMaskIntoConstraints = false
+    table.backgroundColor = .clear
+    table.sectionHeaderTopPadding = 0
+    table.dataSource = self
+    table.delegate = self
+    table.register(FKActionSheetActionCell.self, forCellReuseIdentifier: FKActionSheetActionCell.reuseIdentifier)
+    table.register(
+      FKActionSheetCustomRowCell.self,
+      forCellReuseIdentifier: FKActionSheetCustomRowCell.defaultReuseIdentifier
+    )
+    table.register(
+      FKActionSheetToggleCell.self,
+      forCellReuseIdentifier: FKActionSheetToggleCell.defaultReuseIdentifier
+    )
+    registeredReuseIdentifiers.insert(FKActionSheetCustomRowCell.defaultReuseIdentifier)
+    registeredReuseIdentifiers.insert(FKActionSheetToggleCell.defaultReuseIdentifier)
+    table.rowHeight = UITableView.automaticDimension
+    table.estimatedRowHeight = 48
+    table.contentInsetAdjustmentBehavior = .never
+    table.isScrollEnabled = false
+    table.alwaysBounceVertical = false
+    table.showsVerticalScrollIndicator = false
+
+    addSubview(table)
+    let constraints = [
+      table.topAnchor.constraint(equalTo: topAnchor),
+      table.leadingAnchor.constraint(equalTo: leadingAnchor),
+      table.trailingAnchor.constraint(equalTo: trailingAnchor),
+      table.bottomAnchor.constraint(equalTo: bottomAnchor),
+    ]
+    NSLayoutConstraint.activate(constraints)
+    tableViewConstraints = constraints
+    tableView = table
+    return table
+  }
+
+  private func removeTableViewIfNeeded() {
+    guard let table = tableView else { return }
+    table.dataSource = nil
+    table.delegate = nil
+    table.removeFromSuperview()
+    NSLayoutConstraint.deactivate(tableViewConstraints)
+    tableViewConstraints = []
+    bottomSafeAreaFooterView = nil
+    registeredReuseIdentifiers.removeAll()
+    tableView = nil
   }
 
   private func applyBottomSafeAreaFooter(height: CGFloat) {
+    guard let tableView else { return }
     guard height > 0 else {
       bottomSafeAreaFooterView = nil
       tableView.tableFooterView = nil
@@ -225,7 +318,7 @@ final class FKActionSheetView: UIView {
   }
 
   private func updateBottomSafeAreaFooterFrameIfNeeded() {
-    guard bottomSafeAreaFooterHeight > 0 else { return }
+    guard bottomSafeAreaFooterHeight > 0, let tableView else { return }
     let width = max(tableView.bounds.width, bounds.width, 1)
     guard let footer = bottomSafeAreaFooterView else {
       applyBottomSafeAreaFooter(height: bottomSafeAreaFooterHeight)
@@ -244,6 +337,10 @@ final class FKActionSheetView: UIView {
   /// (which can cause presentation ↔ content layout feedback loops on long lists).
   func measuredContentHeight(for width: CGFloat) -> CGFloat {
     let fittingWidth = max(width, 1)
+    if isLoadingPresentationActive {
+      return loadingHostView?.measuredContentHeight(for: fittingWidth)
+        ?? currentConfiguration.appearance.minimumRowHeight
+    }
     if fittingWidth == lastMeasuredWidth, let cachedContentHeight {
       return cachedContentHeight
     }
@@ -330,6 +427,7 @@ final class FKActionSheetView: UIView {
   }
 
   private func registerCustomRowReuseIdentifiers() {
+    guard let tableView else { return }
     for action in currentConfiguration.allActions {
       switch action.rowContent {
       case .custom(let row):
@@ -343,12 +441,14 @@ final class FKActionSheetView: UIView {
   }
 
   private func registerCustomRowReuseIdentifier(_ identifier: String) {
+    guard let tableView else { return }
     guard !registeredReuseIdentifiers.contains(identifier) else { return }
     tableView.register(FKActionSheetCustomRowCell.self, forCellReuseIdentifier: identifier)
     registeredReuseIdentifiers.insert(identifier)
   }
 
   private func registerToggleRowReuseIdentifier(_ identifier: String) {
+    guard let tableView else { return }
     guard !registeredReuseIdentifiers.contains(identifier) else { return }
     tableView.register(FKActionSheetToggleCell.self, forCellReuseIdentifier: identifier)
     registeredReuseIdentifiers.insert(identifier)
@@ -413,7 +513,7 @@ final class FKActionSheetView: UIView {
     return nil
   }
 
-  private func applySeparatorStyle() {
+  private func applySeparatorStyle(on tableView: UITableView) {
     switch currentConfiguration.appearance.separatorStyle {
     case .automatic:
       tableView.separatorStyle = .singleLine
@@ -728,6 +828,12 @@ extension FKActionSheetView: UITableViewDataSource, UITableViewDelegate {
       label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -2),
     ])
     return container
+  }
+}
+
+extension FKActionSheetView: FKActionSheetLoadingHostViewDelegate {
+  func loadingHostView(_ view: FKActionSheetLoadingHostView, didSelectCancel action: FKActionSheetAction) {
+    delegate?.actionSheetView(self, didSelect: action, sectionID: nil, isCancelGroup: true)
   }
 }
 

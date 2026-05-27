@@ -4,7 +4,7 @@ import Foundation
 enum FKActionSheetValidator {
   static func validate(_ configuration: FKActionSheetConfiguration) throws {
     let actions = configuration.allActions
-    guard !actions.isEmpty else {
+    guard configuration.isLoadingContentActive || !actions.isEmpty else {
       throw FKActionSheetValidationError.noActions
     }
 
@@ -14,10 +14,21 @@ enum FKActionSheetValidator {
       throw FKActionSheetValidationError.multipleCancelActions
     }
 
+    try validateLoadingContent(configuration)
     try validateSelection(configuration)
   }
 
+  private static func validateLoadingContent(_ configuration: FKActionSheetConfiguration) throws {
+    guard case .loading(let loading) = configuration.contentMode else { return }
+    guard case .standard(let standard) = loading.content else { return }
+    guard standard.hasVisibleContent else {
+      throw FKActionSheetValidationError.emptyLoadingContent
+    }
+  }
+
   private static func validateSelection(_ configuration: FKActionSheetConfiguration) throws {
+    guard !configuration.isLoadingContentActive else { return }
+
     switch configuration.selection.mode {
     case .none:
       return
