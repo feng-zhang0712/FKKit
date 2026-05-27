@@ -8,6 +8,18 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.54.0] - 2026-05-28
+
+### Added (FKUIKit — ActionSheet)
+
+- **Loading content mode**: standard spinner/title/message stack, custom **`FKActionSheetCustomLoadingProvider`**, optional cancel row, and **`finishLoading(_:)`** merge back to action rows.
+- **Builder / configuration**: **`FKActionSheetConfiguration+Loading`**, **`FKActionSheetLoadingContent`**, and **`emptyLoadingContent`** validation.
+- **Examples**: dedicated **Centered** and **Loading Content** hub scenarios with expanded playbook coverage.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.54.0** (Git tag **`0.54.0`**).
+
 ## [0.53.0] - 2026-05-25
 
 ### Added (FKUIKit — ActionSheet)
@@ -2221,7 +2233,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.53.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.54.0...HEAD
+[0.54.0]: https://github.com/feng-zhang0712/FKKit/compare/0.53.0...0.54.0
 [0.53.0]: https://github.com/feng-zhang0712/FKKit/compare/0.52.0...0.53.0
 [0.52.0]: https://github.com/feng-zhang0712/FKKit/compare/0.51.0...0.52.0
 [0.51.0]: https://github.com/feng-zhang0712/FKKit/compare/0.50.2...0.51.0

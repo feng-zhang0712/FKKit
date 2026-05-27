@@ -31,7 +31,7 @@ Protocol contracts for **pluggable** iOS app infrastructure. Sources live under 
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.53.0"),
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.54.0"),
 ],
 targets: [
   .target(name: "MyApp", dependencies: [.product(name: "FKCoreKit", package: "FKKit")]),
