@@ -139,15 +139,25 @@ extension FKActionSheet {
       let dismissReason: FKActionSheetDismissReason = isCancel ? .userCancel : .actionSelected
 
       let actionForCallbacks: FKActionSheetAction
+      let appliesSingleSelection: Bool
       switch selection.mode {
       case .none:
+        appliesSingleSelection = false
         actionForCallbacks = action
         session.notifyDidSelect(actionForCallbacks)
       case .single where !isCancel:
-        session.applySingleSelection(action: action)
-        actionForCallbacks = session.configuration.allActions.first(where: { $0.id == action.id }) ?? action
+        appliesSingleSelection = sectionID.map {
+          selection.canToggleSelection(for: action, sectionID: $0, isCancelGroup: false)
+        } ?? false
+        if appliesSingleSelection {
+          session.applySingleSelection(action: action)
+          actionForCallbacks = session.configuration.allActions.first(where: { $0.id == action.id }) ?? action
+        } else {
+          actionForCallbacks = action
+        }
         session.notifyDidSelect(actionForCallbacks)
       case .multiple where !isCancel:
+        appliesSingleSelection = false
         guard let sectionID else { return }
         if !selection.canToggleSelection(for: action, sectionID: sectionID, isCancelGroup: false) {
           if configuration.haptics.onActionSelection {
@@ -161,6 +171,7 @@ extension FKActionSheet {
         actionForCallbacks = session.configuration.allActions.first(where: { $0.id == action.id }) ?? action
         session.notifyDidSelect(actionForCallbacks)
       default:
+        appliesSingleSelection = false
         actionForCallbacks = action
         session.notifyDidSelect(actionForCallbacks)
       }
@@ -169,7 +180,7 @@ extension FKActionSheet {
         session.haptics.playSelection()
       }
 
-      if case .single = selection.mode, !isCancel, selection.keepsSheetPresentedOnSelection {
+      if case .single = selection.mode, !isCancel, selection.keepsSheetPresentedOnSelection, appliesSingleSelection {
         Self.invokeHandler(
           for: actionForCallbacks,
           timing: configuration.handlerTiming,

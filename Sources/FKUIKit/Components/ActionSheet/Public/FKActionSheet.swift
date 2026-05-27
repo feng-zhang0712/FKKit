@@ -221,6 +221,7 @@ public final class FKActionSheet: UIViewController {
       return false
     }
 
+    let wasLoading = self.configuration.isLoadingContentActive
     self.configuration = configuration
     session?.updateConfiguration(configuration)
     transitioningDelegateBox.updatePresentationConfiguration(configuration.presentation)
@@ -243,6 +244,9 @@ public final class FKActionSheet: UIViewController {
       actionSheetView.apply(configuration: configuration)
       applyPanelChrome()
       updatePanelLayout(force: true, attemptSelectionScroll: true)
+      if wasLoading, !configuration.isLoadingContentActive {
+        announceActionContentAfterLoading()
+      }
     case .selectionOnly:
       actionSheetView.syncSelectionConfiguration(configuration)
     case .singleAction(let action):
@@ -257,6 +261,15 @@ public final class FKActionSheet: UIViewController {
   func focusAccessibility() {
     let target = actionSheetView.accessibilityElementToFocus() ?? view
     UIAccessibility.post(notification: .screenChanged, argument: target)
+  }
+
+  /// Moves VoiceOver focus to action rows after a loading presentation ends.
+  private func announceActionContentAfterLoading() {
+    DispatchQueue.main.async { [weak self] in
+      guard let self, self.isPresented, !self.configuration.isLoadingContentActive else { return }
+      self.view.layoutIfNeeded()
+      self.focusAccessibility()
+    }
   }
 
   /// Scrolls a scrollable list to the restored selection once per configuration apply / present cycle.

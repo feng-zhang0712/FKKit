@@ -22,6 +22,8 @@ public struct FKActionSheetConfiguration {
   public var haptics: FKActionSheetHapticsConfiguration
   /// Lifecycle and selection callbacks.
   public var hooks: FKActionSheetLifecycleHooks
+  /// Whether the sheet shows action rows or a loading presentation.
+  public var contentMode: FKActionSheetContentMode
 
   /// Creates a configuration.
   public init(
@@ -35,7 +37,8 @@ public struct FKActionSheetConfiguration {
     handlerTiming: FKActionSheetHandlerTiming = .beforeDismiss,
     selection: FKActionSheetSelectionConfiguration = .init(),
     haptics: FKActionSheetHapticsConfiguration = .init(),
-    hooks: FKActionSheetLifecycleHooks = .init()
+    hooks: FKActionSheetLifecycleHooks = .init(),
+    contentMode: FKActionSheetContentMode = .actions
   ) {
     self.header = header
     self.sections = sections
@@ -53,6 +56,7 @@ public struct FKActionSheetConfiguration {
     self.selection = selection
     self.haptics = haptics
     self.hooks = hooks
+    self.contentMode = contentMode
   }
 
   /// Flattens all configured actions (sections + cancel) for validation and lookup.
@@ -74,7 +78,8 @@ public extension FKActionSheetConfiguration {
     handlerTiming: FKActionSheetHandlerTiming = .beforeDismiss,
     selection: FKActionSheetSelectionConfiguration = .init(),
     haptics: FKActionSheetHapticsConfiguration = .init(),
-    hooks: FKActionSheetLifecycleHooks = .init()
+    hooks: FKActionSheetLifecycleHooks = .init(),
+    contentMode: FKActionSheetContentMode = .actions
   ) {
     self.init(
       header: header.map { .text($0) },
@@ -87,7 +92,8 @@ public extension FKActionSheetConfiguration {
       handlerTiming: handlerTiming,
       selection: selection,
       haptics: haptics,
-      hooks: hooks
+      hooks: hooks,
+      contentMode: contentMode
     )
   }
 }

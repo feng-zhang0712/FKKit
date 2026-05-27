@@ -22,9 +22,6 @@ final class FKActionSheetExamplePresentationViewController: FKActionSheetExample
     body.addArrangedSubview(FKActionSheetExampleUI.button("Backdrop dismiss disabled") { [weak self] in
       self.map { FKActionSheetExamplePlaybook.presentBackdropDismissDisabled(from: $0) }
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Centered card") { [weak self] in
-      self.map { FKActionSheetExamplePlaybook.presentCentered(from: $0) }
-    })
     body.addArrangedSubview(FKActionSheetExampleUI.button("Present via window scene") { [weak self] in
       guard let self, let scene = self.view.window?.windowScene else {
         FKActionSheetExamplePlaybook.log("No window scene — open from a window first")
@@ -37,7 +34,7 @@ final class FKActionSheetExamplePresentationViewController: FKActionSheetExample
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Presentation styles",
-        description: "FKActionSheetPresentationStyle: .bottom (default), .centered (dimmed card), .popover (requires present(from:anchoredTo:)). Window-scene presentation resolves the topmost presenter automatically.",
+        description: "FKActionSheetPresentationStyle: .bottom (default) and .popover (requires present(from:anchoredTo:)). See the Centered hub page for card-style sheets. Window-scene presentation resolves the topmost presenter automatically.",
         body: body
       )
     )
