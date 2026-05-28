@@ -12,7 +12,7 @@ fi
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
-specs=(FKCoreKit.podspec FKEmptyStateCoreLite.podspec FKUIKit.podspec FKCompositeKit.podspec)
+specs=(FKCoreKit.podspec FKEmptyStateCoreLite.podspec FKUIKit.podspec)
 for f in "${specs[@]}"; do
   if [[ ! -f "$f" ]]; then
     echo "error: missing $f" >&2

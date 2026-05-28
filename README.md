@@ -15,7 +15,6 @@
   - [FKCoreKit](#fkcorekit)
   - [FKCoreKit: Extension vs Utils](#fkcorekit-extension-vs-utils)
   - [FKUIKit](#fkuikit)
-  - [FKCompositeKit](#fkcompositekit)
 - [Requirements](#requirements)
 - [Installation (SPM)](#installation-spm)
 - [Installation (CocoaPods)](#installation-cocoapods)
@@ -31,10 +30,9 @@
 FKKit is a modular, pure-native Swift component library for iOS applications.  
 It is built on top of Apple system frameworks and distributed via **Swift Package Manager (SPM)** and **CocoaPods** (see root `*.podspec` files), with no third-party runtime dependencies.
 
-The repository is organized into three primary product modules:
+The repository is organized into two primary product modules:
 - `FKCoreKit` (includes `Pluggable/` protocol contracts for networking, analytics, storage, routing, etc.)
-- `FKUIKit`
-- `FKCompositeKit`
+- `FKUIKit` (reusable UIKit components plus composite screen helpers such as Base, Filter, and AnchoredDropdownController)
 
 Each module focuses on a different layer of app development, from infrastructure and utilities to UI components and composite business widgets.
 
@@ -70,28 +68,29 @@ FKKit/
 │  │  ├─ Security/
 │  │  ├─ Storage/
 │  │  └─ Utils/
-│  ├─ FKUIKit/
-│  │  └─ Components/
-│  │     ├─ Badge/
-│  │     ├─ BlurView/
-│  │     ├─ Button/
-│  │     ├─ CornerShadow/
-│  │     ├─ Divider/
-│  │     ├─ EmptyState/
-│  │     ├─ ExpandableText/
-│  │     ├─ MultiPicker/
-│  │     ├─ PagingController/
-│  │     ├─ PresentationController/
-│  │     ├─ Refresh/
-│  │     ├─ Skeleton/
-│  │     ├─ TabBar/
-│  │     ├─ TextField/
-│  │     └─ Toast/
-│  └─ FKCompositeKit/
+│  └─ FKUIKit/
 │     └─ Components/
+│        ├─ ActionSheet/
 │        ├─ AnchoredDropdownController/
+│        ├─ Badge/
 │        ├─ Base/
-│        └─ Filter/
+│        ├─ BlurView/
+│        ├─ Button/
+│        ├─ CornerShadow/
+│        ├─ Divider/
+│        ├─ EmptyState/
+│        ├─ ExpandableText/
+│        ├─ Filter/
+│        ├─ MultiPicker/
+│        ├─ PagingController/
+│        ├─ Player/
+│        ├─ PresentationController/
+│        ├─ ProgressBar/
+│        ├─ Refresh/
+│        ├─ Skeleton/
+│        ├─ TabBar/
+│        ├─ TextField/
+│        └─ Toast/
 └─ Examples/
 ```
 
@@ -134,15 +133,11 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `TabBar`: high-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only).
 - `TextField`: one-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback.
 - `Toast`: unified Toast / HUD / Snackbar presenter (`Public/` + `Internal/`) with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, per-instance progress updates, presentation sound policy, and SwiftUI hosting support (see `Sources/FKUIKit/Components/Toast/README.md`).
+- `Base`: reusable base foundation for cells and controllers — see `Sources/FKUIKit/Components/Base/README.md`.
+- `AnchoredDropdownController`: tab bar + anchor-embedded dropdown panels (e.g. filter UIs) built on `FKPresentationController` — see `Sources/FKUIKit/Components/AnchoredDropdownController/README.md`.
+- `Filter`: filter chrome and panels on top of **`AnchoredDropdownController`** (`FKFilterConfiguration`, `FKFilterController`, `FKFilterHosting`, panel kinds and factory) under `Sources/FKUIKit/Components/Filter/`.
 
-### FKCompositeKit
-`FKCompositeKit` builds business-facing composite components on top of `FKCoreKit` + `FKUIKit`:
-
-- `Base`: reusable base foundation for cells and controllers — see `Sources/FKCompositeKit/Components/Base/README.md`.
-- `AnchoredDropdownController`: tab bar + anchor-embedded dropdown panels (e.g. filter UIs) built on `FKPresentationController` — see `Sources/FKCompositeKit/Components/AnchoredDropdownController/README.md`.
-- `Filter`: filter chrome and panels on top of **`AnchoredDropdownController`** (`FKFilterConfiguration`, `FKFilterController`, `FKFilterHosting`, panel kinds and factory) under `Sources/FKCompositeKit/Components/Filter/` (see sources alongside **`AnchoredDropdownController`** for integration patterns).
-
-This module keeps **deep docs next to sources** (`README.md` per major folder); the root `README` stays a high-level map only.
+`FKUIKit` depends on **`FKCoreKit`** and **`FKEmptyStateCoreLite`**. Component **README.md** files live next to sources; the root `README` stays a high-level map only.
 
 ## Requirements
 - **iOS 15.0+** (declared in `Package.swift`; all package products are **iOS-only**)
@@ -158,7 +153,6 @@ This module keeps **deep docs next to sources** (`README.md` per major folder); 
    - `FKCoreKit`
    - `FKEmptyStateCoreLite`
    - `FKUIKit`
-   - `FKCompositeKit`
 
 ### Package.swift
 ```swift
@@ -171,8 +165,7 @@ targets: [
     dependencies: [
       .product(name: "FKCoreKit", package: "FKKit"),
       .product(name: "FKEmptyStateCoreLite", package: "FKKit"),
-      .product(name: "FKUIKit", package: "FKKit"),
-      .product(name: "FKCompositeKit", package: "FKKit")
+      .product(name: "FKUIKit", package: "FKKit")
     ]
   )
 ]
@@ -180,7 +173,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKEmptyStateCoreLite`, `FKUIKit`, `FKCompositeKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.54.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKEmptyStateCoreLite`, `FKUIKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.54.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — **`docs/RELEASING.md`**.
 
@@ -192,10 +185,9 @@ platform :ios, '15.0'
 pod 'FKEmptyStateCoreLite', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
 pod 'FKCoreKit',           :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
 pod 'FKUIKit',             :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
-pod 'FKCompositeKit',      :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
 ```
 
-Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKEmptyStateCoreLite`; `FKCompositeKit` → `FKCoreKit`, `FKUIKit`).
+Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKEmptyStateCoreLite`, `FKCoreKit`).
 
 ### Podfile (local path, for development)
 
@@ -207,7 +199,6 @@ platform :ios, '15.0'
 pod 'FKEmptyStateCoreLite', :path => '../FKKit'
 pod 'FKCoreKit',           :path => '../FKKit'
 pod 'FKUIKit',             :path => '../FKKit'
-pod 'FKCompositeKit',      :path => '../FKKit'
 ```
 
 ### Linting podspecs (maintainers)
@@ -216,7 +207,6 @@ pod 'FKCompositeKit',      :path => '../FKKit'
 pod spec lint FKCoreKit.podspec --allow-warnings
 pod spec lint FKEmptyStateCoreLite.podspec --allow-warnings
 pod spec lint FKUIKit.podspec --allow-warnings
-pod spec lint FKCompositeKit.podspec --allow-warnings
 ```
 
 ## Usage
@@ -226,7 +216,6 @@ Import only what you need:
 ```swift
 import FKCoreKit
 import FKUIKit
-import FKCompositeKit
 ```
 
 Example quick integrations:
@@ -239,7 +228,7 @@ let trimmed = "  hello  ".fk_trimmed
 // FKUIKit
 someView.fk_showSkeleton()
 
-// FKCompositeKit
+// FKUIKit (Filter)
 let filterConfig = FKFilterConfiguration()
 ```
 

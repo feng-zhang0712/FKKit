@@ -11,17 +11,18 @@ let package = Package(
     .library(name: "FKUIKit", targets: ["FKUIKit"]),
     .library(name: "FKEmptyStateCoreLite", targets: ["FKEmptyStateCoreLite"]),
     .library(name: "FKCoreKit", targets: ["FKCoreKit"]),
-    .library(name: "FKCompositeKit", targets: ["FKCompositeKit"]),
   ],
   targets: [
     .target(
       name: "FKUIKit",
-      dependencies: ["FKEmptyStateCoreLite"],
+      dependencies: ["FKEmptyStateCoreLite", "FKCoreKit"],
       path: "Sources/FKUIKit",
       exclude: [
         "Components/EmptyState/CoreLite",
         // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
+        "Components/AnchoredDropdownController/README.md",
         "Components/Badge/README.md",
+        "Components/Base/README.md",
         "Components/BlurView/README.md",
         "Components/Button/README.md",
         "Components/CornerShadow/README.md",
@@ -63,16 +64,6 @@ let package = Package(
         "Storage/README.md",
         "Utils/README.md",
         "Pluggable/README.md",
-      ]
-    ),
-    .target(
-      name: "FKCompositeKit",
-      dependencies: ["FKUIKit", "FKCoreKit"],
-      path: "Sources/FKCompositeKit",
-      exclude: [
-        // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
-        "Components/AnchoredDropdownController/README.md",
-        "Components/Base/README.md",
       ]
     ),
     .testTarget(

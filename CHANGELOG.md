@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Removed **Breaking**
+
+- **`FKCompositeKit`** SwiftPM product and CocoaPods pod — **`Base`**, **`Filter`**, and **`AnchoredDropdownController`** now ship from **`FKUIKit`**. Replace `import FKCompositeKit` with `import FKUIKit` and depend only on the **`FKUIKit`** product (which now depends on **`FKCoreKit`**).
+
 ### Planned
 
 - Optional: Example app under `Examples/` (depending on this package locally)
