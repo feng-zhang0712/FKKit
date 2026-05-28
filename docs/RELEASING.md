@@ -12,12 +12,10 @@ chmod +x scripts/bump-version.sh scripts/verify-podspec-versions.sh   # once
 ./scripts/verify-podspec-versions.sh
 ```
 
-That updates **`s.version`** in all four root podspecs:
+That updates **`s.version`** in all root podspecs:
 
 - `FKCoreKit.podspec`
-- `FKEmptyStateCoreLite.podspec`
 - `FKUIKit.podspec`
-- `FKCompositeKit.podspec`
 
 ## 2. Changelog
 
@@ -50,9 +48,7 @@ After the tag exists on the remote (so `:git` + `:tag` resolve):
 
 ```bash
 pod spec lint FKCoreKit.podspec --allow-warnings
-pod spec lint FKEmptyStateCoreLite.podspec --allow-warnings
 pod spec lint FKUIKit.podspec --allow-warnings
-pod spec lint FKCompositeKit.podspec --allow-warnings
 ```
 
 See also **`README.md`** → **Installation (CocoaPods)** → **Linting podspecs**.

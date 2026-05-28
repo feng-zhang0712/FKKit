@@ -1,4 +1,3 @@
-import FKEmptyStateCoreLite
 import UIKit
 
 // MARK: - Custom accessory placement

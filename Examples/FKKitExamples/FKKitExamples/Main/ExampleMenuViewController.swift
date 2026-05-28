@@ -1,10 +1,5 @@
-//
-//  ExampleMenuViewController.swift
-//  FKKitExamples
-//
-
 import UIKit
-import FKCompositeKit
+import FKUIKit
 
 fileprivate struct ExampleMenuItem {
   let title: String
@@ -19,7 +14,7 @@ fileprivate struct KitEntry {
 }
 
 /// Two-level example index:
-/// - Level 1: three target entries (`FKUIKit`, `FKCoreKit`, `FKCompositeKit`)
+/// - Level 1: two target entries (`FKUIKit`, `FKCoreKit`)
 /// - Level 2: examples under the selected target
 final class ExampleMenuViewController: UITableViewController {
 
@@ -32,6 +27,11 @@ final class ExampleMenuViewController: UITableViewController {
           title: "ActionSheet",
           subtitle: "Hub: basics, appearance, selection, custom rows, toggle, lifecycle, live updates, presentation, builder, SwiftUI",
           make: { FKActionSheetExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "Base",
+          subtitle: "Hub: FKBaseViewController, table/collection shells, composition, search",
+          make: { FKBaseExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Badge",
@@ -89,9 +89,9 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKPagingControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          title: "PresentationController",
-          subtitle: "Custom PresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
-          make: { FKPresentationControllerExamplesHubViewController() }
+          title: "SheetPresentationController",
+          subtitle: "Custom SheetPresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
+          make: { FKSheetPresentationControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "ProgressBar",
@@ -180,27 +180,6 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKUtilsExampleViewController() }
         ),
       ]
-    ),
-    KitEntry(
-      title: "FKCompositeKit",
-      subtitle: "Composed modules built on FKUIKit and FKCoreKit",
-      items: [
-        ExampleMenuItem(
-          title: "Base",
-          subtitle: "Hub: FKBaseViewController, table/collection shells, composition, search",
-          make: { FKBaseExamplesHubViewController() }
-        ),
-        ExampleMenuItem(
-          title: "Anchored Dropdown",
-          subtitle: "Hub → tab-bar anchor demo vs custom UIView anchor demo",
-          make: { FKAnchoredDropdownExampleViewController() }
-        ),
-        ExampleMenuItem(
-          title: "Filter",
-          subtitle: "Hub: full demo, equal-width hosts — see Examples/FKCompositeKit/Filter/README.md",
-          make: { FKFilterExamplesHubViewController() }
-        ),
-      ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),
   ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
 

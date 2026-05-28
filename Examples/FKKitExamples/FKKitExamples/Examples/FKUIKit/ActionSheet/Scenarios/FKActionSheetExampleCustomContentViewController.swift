@@ -18,7 +18,7 @@ final class FKActionSheetExampleCustomContentViewController: FKActionSheetExampl
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
-        title: "Phase 2 custom content",
+        title: "Custom content",
         description: "FKActionSheetCustomHeader, FKActionSheetAction.custom with metadata, and isSelectable = false rows.",
         body: body
       )

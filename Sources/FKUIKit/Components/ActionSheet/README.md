@@ -215,7 +215,14 @@ See **Loading content → SwiftUI** for deferred data with the same `configurati
 
 ## FKKitExamples
 
-**FKUIKit → ActionSheet** — covers instance present, centered card hub, loading (bottom + centered), popover anchors, reload/updateAction, builder, SwiftUI bridge.
+**FKUIKit → ActionSheet** — grouped hub:
+
+| Section | Scenarios |
+|---------|-----------|
+| Getting started | Basics, Presentation (bottom/popover/window), Centered card |
+| Rows & appearance | Appearance, Symbols & states (incl. toggle), Custom header/rows |
+| Selection & behavior | Long list & scroll, Selection, Handlers, Live updates, Loading |
+| Integration | Builder & alert migration, SwiftUI bridge (including loading binding) |
 
 ## Notes
 

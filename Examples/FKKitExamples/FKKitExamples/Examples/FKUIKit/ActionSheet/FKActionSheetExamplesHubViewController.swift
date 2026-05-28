@@ -1,5 +1,6 @@
 import UIKit
 
+/// Index of ``FKActionSheet`` examples, grouped by integration path.
 final class FKActionSheetExamplesHubViewController: UITableViewController {
   private struct Row {
     let title: String
@@ -7,78 +8,102 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     let make: () -> UIViewController
   }
 
-  private let rows: [Row] = [
-    Row(
-      title: "Basics",
-      subtitle: "init + present, validate, retain instance",
-      make: { FKActionSheetExampleBasicsViewController() }
+  private struct Section {
+    let title: String
+    let rows: [Row]
+  }
+
+  private let sections: [Section] = [
+    Section(
+      title: "Getting started",
+      rows: [
+        Row(
+          title: "Basics",
+          subtitle: "init, present, validate, retain instance",
+          make: { FKActionSheetExampleBasicsViewController() }
+        ),
+        Row(
+          title: "Presentation",
+          subtitle: "Bottom sheet, popover anchors, window scene, panel height",
+          make: { FKActionSheetExamplePresentationViewController() }
+        ),
+        Row(
+          title: "Centered card",
+          subtitle: "Floating card, backdrop, presets, scroll, destructive flows",
+          make: { FKActionSheetExampleCenteredViewController() }
+        ),
+      ]
     ),
-    Row(
-      title: "Many Actions",
-      subtitle: "Long list, scroll restore, centered card, scrollsToSelectionOnPresent",
-      make: { FKActionSheetExampleManyActionsViewController() }
+    Section(
+      title: "Rows & appearance",
+      rows: [
+        Row(
+          title: "Appearance & layout",
+          subtitle: "Presets, leading alignment, separators, section titles",
+          make: { FKActionSheetExampleAppearanceViewController() }
+        ),
+        Row(
+          title: "Symbols & row states",
+          subtitle: "Symbols, disabled/loading, stay-open, toggle rows",
+          make: { FKActionSheetExampleSymbolsAndStatesViewController() }
+        ),
+        Row(
+          title: "Custom header & rows",
+          subtitle: "Custom views, metadata, non-selectable banner row",
+          make: { FKActionSheetExampleCustomContentViewController() }
+        ),
+      ]
     ),
-    Row(
-      title: "Appearance & Layout",
-      subtitle: "Presets, leading alignment, separators, section titles",
-      make: { FKActionSheetExampleAppearanceViewController() }
+    Section(
+      title: "Selection & behavior",
+      rows: [
+        Row(
+          title: "Long list & scroll",
+          subtitle: "Tall lists, selection memory, scroll-to-selection, indicator styles",
+          make: { FKActionSheetExampleLongListViewController() }
+        ),
+        Row(
+          title: "Single & multiple selection",
+          subtitle: "Scopes, max count, validation, keepsSheetPresentedOnSelection",
+          make: { FKActionSheetExampleSelectionViewController() }
+        ),
+        Row(
+          title: "Handlers & lifecycle",
+          subtitle: "Handler timing, haptics, hooks, dismiss reasons",
+          make: { FKActionSheetExampleHandlersViewController() }
+        ),
+        Row(
+          title: "Live updates",
+          subtitle: "reload, updateAction, dismiss, alreadyPresented guard",
+          make: { FKActionSheetExampleLiveUpdatesViewController() }
+        ),
+        Row(
+          title: "Loading content",
+          subtitle: "Deferred rows, finishLoading, setLoading retry, cancel while loading",
+          make: { FKActionSheetExampleLoadingContentViewController() }
+        ),
+      ]
     ),
-    Row(
-      title: "Symbols & Row States",
-      subtitle: "SF Symbols, subtitles, disabled, loading, stay-open rows",
-      make: { FKActionSheetExampleSymbolsAndStatesViewController() }
-    ),
-    Row(
-      title: "Single & Multiple Selection",
-      subtitle: "Single & multiple selection, max limit, section scope, validation",
-      make: { FKActionSheetExampleSelectionViewController() }
-    ),
-    Row(
-      title: "Custom Header & Rows",
-      subtitle: "Custom views, metadata, non-selectable banner row",
-      make: { FKActionSheetExampleCustomContentViewController() }
-    ),
-    Row(
-      title: "Toggle Rows",
-      subtitle: "Switch rows that keep the sheet presented",
-      make: { FKActionSheetExampleToggleViewController() }
-    ),
-    Row(
-      title: "Handlers & Lifecycle",
-      subtitle: "Handler timing, actionHandler, haptics, hooks, dismiss reasons",
-      make: { FKActionSheetExampleHandlersViewController() }
-    ),
-    Row(
-      title: "Live Updates",
-      subtitle: "Retained sheet reload/updateAction/dismiss, alreadyPresented guard",
-      make: { FKActionSheetExampleLiveUpdatesViewController() }
-    ),
-    Row(
-      title: "Loading Content",
-      subtitle: "Bottom & centered loading, finishLoading merge, retry/failure",
-      make: { FKActionSheetExampleLoadingContentViewController() }
-    ),
-    Row(
-      title: "Centered",
-      subtitle: "Card/plain/system, backdrop, scroll, selection, centered loading",
-      make: { FKActionSheetExampleCenteredViewController() }
-    ),
-    Row(
-      title: "Presentation",
-      subtitle: "Bottom sheet, popover, window scene, backdrop dismiss",
-      make: { FKActionSheetExamplePresentationViewController() }
-    ),
-    Row(
-      title: "Builder & Alert Migration",
-      subtitle: "FKActionSheetBuilder and UIAlertAction-style configuration",
-      make: { FKActionSheetExampleBuilderViewController() }
-    ),
-    Row(
-      title: "SwiftUI Bridge",
-      subtitle: "View.fkActionSheet, popover anchors (view & bar button item)",
-      make: { FKActionSheetExampleSwiftUIViewController() }
+    Section(
+      title: "Integration",
+      rows: [
+        Row(
+          title: "Builder & alert migration",
+          subtitle: "FKActionSheetBuilder and UIAlertAction-style configuration",
+          make: { FKActionSheetExampleBuilderViewController() }
+        ),
+        Row(
+          title: "SwiftUI bridge",
+          subtitle: "View.fkActionSheet, popover anchors, loading via configuration binding",
+          make: { FKActionSheetExampleSwiftUIViewController() }
+        ),
+      ]
     ),
   ]
+
+  convenience init() {
+    self.init(style: .insetGrouped)
+  }
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -87,13 +112,21 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
     tableView.cellLayoutMarginsFollowReadableWidth = true
   }
 
+  override func numberOfSections(in tableView: UITableView) -> Int {
+    sections.count
+  }
+
+  override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    sections[section].title
+  }
+
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    rows.count
+    sections[section].rows.count
   }
 
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-    let row = rows[indexPath.row]
+    let row = sections[indexPath.section].rows[indexPath.row]
     var config = cell.defaultContentConfiguration()
     config.text = row.title
     config.secondaryText = row.subtitle
@@ -105,6 +138,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
 
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
-    navigationController?.pushViewController(rows[indexPath.row].make(), animated: true)
+    let row = sections[indexPath.section].rows[indexPath.row]
+    navigationController?.pushViewController(row.make(), animated: true)
   }
 }

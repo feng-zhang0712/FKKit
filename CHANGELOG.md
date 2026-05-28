@@ -8,6 +8,34 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.55.0] - 2026-05-29
+
+### Added (FKUIKit — SheetPresentationController)
+
+- **Anchor content replacement**: `FKSheetPresentationAnchorReplacementPolicy` for dismiss-then-present vs in-place content swaps while an anchor popup stays visible.
+- **Anchor repeat presentation**: policy to prevent stacking duplicate anchor presentations on repeated taps.
+- **Layout engine**: centralized sheet layout and overlay transition coordination; scrollable sheet layout and pan/scroll handoff improvements.
+- **Examples**: anchor replacement and expanded SheetPresentationController scenario coverage.
+
+### Added (FKUIKit — ActionSheet)
+
+- **Centered transitions**: aligned animation behavior with sheet-style presentations; reorganized example hub layout.
+
+### Removed **Breaking**
+
+- **`FKCompositeKit`** SwiftPM product and CocoaPods pod. Use **`FKUIKit`** (and **`FKCoreKit`**) only; replace `import FKCompositeKit` with `import FKUIKit`.
+- **`Filter`** and **`AnchoredDropdownController`** components removed from **`FKUIKit`** (library sources and FKKitExamples scenarios).
+- **`FKEmptyStateCoreLite`** as a separate SwiftPM product and CocoaPods pod. Resolver, i18n, and factory sources remain under `EmptyState/CoreLite/` and ship inside **`FKUIKit`**; depend on **`FKUIKit`** (or **`FKCoreKit`** + UI elsewhere) instead of a standalone CoreLite product.
+
+### Changed **Breaking**
+
+- **`FKPresentationController`** renamed to **`FKSheetPresentationController`** (`Sources/FKUIKit/Components/SheetPresentationController/`). Update imports and symbols (`FKSheetPresentationConfiguration`, `FKSheetPresentationDetent`, `FKSheetPresentationControllerDelegate`, …). Internal modal host type is **`FKContainerSheetPresentationController`**.
+- **Sheet animation types** namespaced under the SheetPresentationController module; coordinator types extracted from monolithic presentation code paths.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.55.0** (Git tag **`0.55.0`**). Only **`FKCoreKit`** and **`FKUIKit`** podspecs remain.
+
 ## [0.54.0] - 2026-05-28
 
 ### Added (FKUIKit — ActionSheet)
@@ -796,7 +824,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Corrected basic bottom-sheet example narrative to match actual configuration behavior.
 
 ### Changed (Documentation)
-- Updated `Sources/FKUIKit/Components/PresentationController/README.md` with zero-dim backdrop behavior and overlay host architecture notes.
+- Updated `Sources/FKUIKit/Components/SheetPresentationController/README.md` with zero-dim backdrop behavior and overlay host architecture notes.
 - Updated root `README.md` FKUIKit module structure/component list to match current on-disk components:
   - removed stale references to deleted modules (`Carousel`, `LoadingAnimator`, `StarRating`, `StickyHeader`, `SwipeAction`)
   - renamed `Presentation` references to `PresentationController`.
@@ -2233,7 +2261,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.54.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.55.0...HEAD
+[0.55.0]: https://github.com/feng-zhang0712/FKKit/compare/0.54.0...0.55.0
 [0.54.0]: https://github.com/feng-zhang0712/FKKit/compare/0.53.0...0.54.0
 [0.53.0]: https://github.com/feng-zhang0712/FKKit/compare/0.52.0...0.53.0
 [0.52.0]: https://github.com/feng-zhang0712/FKKit/compare/0.51.0...0.52.0

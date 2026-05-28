@@ -31,7 +31,7 @@ Protocol contracts for **pluggable** iOS app infrastructure. Sources live under 
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.54.0"),
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.55.0"),
 ],
 targets: [
   .target(name: "MyApp", dependencies: [.product(name: "FKCoreKit", package: "FKKit")]),
@@ -62,7 +62,7 @@ final class AppServices {
 ## Relationship to other FKCoreKit areas
 
 - **`Network`**, **`Storage`**, **`BusinessKit`**, and **`Logger`** may provide default implementations that conform to these protocols.
-- **`FKUIKit`** / **`FKCompositeKit`** can adopt the same contracts at their public API edge over time.
+- **`FKUIKit`** can adopt the same contracts at its public API edge over time.
 
 ## Versioning
 

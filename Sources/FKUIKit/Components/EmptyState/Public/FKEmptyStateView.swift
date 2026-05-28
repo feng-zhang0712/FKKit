@@ -1,4 +1,3 @@
-import FKEmptyStateCoreLite
 import UIKit
 
 // MARK: - Delegate

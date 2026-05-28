@@ -1,6 +1,7 @@
 import UIKit
 import FKUIKit
 
+/// Deferred action rows: loading content, finishLoading, setLoading retry, and cancel visibility.
 final class FKActionSheetExampleLoadingContentViewController: FKActionSheetExampleBaseViewController {
   private weak var loadingSheet: FKActionSheet?
   private var fetchTask: Task<Void, Never>?
@@ -11,64 +12,78 @@ final class FKActionSheetExampleLoadingContentViewController: FKActionSheetExamp
     super.viewDidLoad()
     title = "Loading Content"
 
-    let body = UIStackView()
-    body.axis = .vertical
-    body.spacing = 8
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Standard loading → fetch") { [weak self] in
+    let standard = UIStackView()
+    standard.axis = .vertical
+    standard.spacing = 8
+    standard.addArrangedSubview(FKActionSheetExampleUI.button("Standard → fetch success") { [weak self] in
       self?.nextFetchShouldFail = false
       self?.presentStandardLoadingSheet()
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Standard loading → fetch (fails)") { [weak self] in
+    standard.addArrangedSubview(FKActionSheetExampleUI.button("Standard → fetch failure (retry)") { [weak self] in
       self?.nextFetchShouldFail = true
       self?.presentStandardLoadingSheet()
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Spinner only") { [weak self] in
+    standard.addArrangedSubview(FKActionSheetExampleUI.button("Spinner only") { [weak self] in
       self?.nextFetchShouldFail = false
       self?.presentSpinnerOnlyLoadingSheet()
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Title only (no spinner)") { [weak self] in
+    standard.addArrangedSubview(FKActionSheetExampleUI.button("Title only (no spinner)") { [weak self] in
       self?.nextFetchShouldFail = false
       self?.presentTitleOnlyLoadingSheet()
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Custom loading view") { [weak self] in
+    standard.addArrangedSubview(FKActionSheetExampleUI.button("Hide cancel while loading") { [weak self] in
+      guard let self else { return }
+      self.loadingSheet = FKActionSheetExamplePlaybook.presentLoadingWithoutCancelWhileLoading(from: self)
+      self.scheduleSimulatedFetch(on: self.loadingSheet, delaySeconds: 2, shouldFail: false)
+    })
+
+    let advanced = UIStackView()
+    advanced.axis = .vertical
+    advanced.spacing = 8
+    advanced.addArrangedSubview(FKActionSheetExampleUI.button("Custom loading view") { [weak self] in
       self?.nextFetchShouldFail = false
       self?.presentCustomLoadingSheet()
     })
-
-    let centered = UIStackView()
-    centered.axis = .vertical
-    centered.spacing = 8
-    centered.addArrangedSubview(FKActionSheetExampleUI.button("Centered card loading → fetch") { [weak self] in
+    advanced.addArrangedSubview(FKActionSheetExampleUI.button("Centered card loading → fetch") { [weak self] in
       self?.nextFetchShouldFail = false
       self?.presentCenteredLoadingSheet()
     })
-    centered.addArrangedSubview(FKActionSheetExampleUI.button("Centered loading → fetch (fails)") { [weak self] in
-      self?.nextFetchShouldFail = true
-      self?.presentCenteredLoadingSheet()
+    advanced.addArrangedSubview(FKActionSheetExampleUI.button("finishLoading(updating:)") { [weak self] in
+      self?.applyFinishLoadingUpdating()
     })
 
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Simulate fetch success") { [weak self] in
+    let controls = UIStackView()
+    controls.axis = .vertical
+    controls.spacing = 8
+    controls.addArrangedSubview(FKActionSheetExampleUI.button("Simulate fetch success") { [weak self] in
       self?.finishSimulatedFetch(succeeded: true)
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Simulate fetch failure") { [weak self] in
+    controls.addArrangedSubview(FKActionSheetExampleUI.button("Simulate fetch failure") { [weak self] in
       self?.finishSimulatedFetch(succeeded: false)
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Dismiss sheet") { [weak self] in
+    controls.addArrangedSubview(FKActionSheetExampleUI.button("Dismiss sheet") { [weak self] in
       self?.loadingSheet?.dismiss(reason: .programmatic, animated: true)
     })
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
-        title: "Deferred action content",
-        description: "Success uses finishLoading. Failure stays in loading mode with a centered FKEmptyStateView (Retry restores the spinner without dismissing). Cancel fetch tasks in didDismiss.",
-        body: body
+        title: "Standard loading (bottom sheet)",
+        description: "contentMode = .loading. Success calls finishLoading; failure uses setLoading with FKEmptyStateView + Retry without dismissing.",
+        body: standard
       )
     )
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
-        title: "Centered presentation",
-        description: "Same loading flow with presentation: .centered — floating card on a dimmed backdrop.",
-        body: centered
+        title: "Variants",
+        description: "Custom provider, centered presentation, and in-place finishLoading(updating:) merge.",
+        body: advanced
+      )
+    )
+    contentStack.addArrangedSubview(
+      FKActionSheetExampleUI.section(
+        title: "Simulate network",
+        description: "Use after presenting a loading sheet. Cancel tasks in hooks.didDismiss.",
+        body: controls
       )
     )
     addClearLogButton()
@@ -124,17 +139,8 @@ final class FKActionSheetExampleLoadingContentViewController: FKActionSheetExamp
 
   private func presentCenteredLoadingSheet() {
     fetchTask?.cancel()
-    let config = makeLoadingConfiguration(
-      content: .standard(
-        FKActionSheetStandardLoadingContent(
-          title: "Loading options",
-          message: "Centered card while fetching…"
-        )
-      ),
-      preferredPanelHeight: 180,
-      presentation: FKActionSheetExamplePlaybook.centeredPresentation(),
-      appearancePreset: .card
-    )
+    var config = FKActionSheetExamplePlaybook.centeredLoadingConfiguration()
+    attachFetchLifecycle(to: &config)
     guard let sheet = presentLoadingSheet(config, logLabel: "Presented centered loading sheet") else { return }
     scheduleSimulatedFetch(on: sheet, delaySeconds: 2.5, shouldFail: nextFetchShouldFail)
   }
@@ -152,10 +158,6 @@ final class FKActionSheetExampleLoadingContentViewController: FKActionSheetExamp
         symbol.tintColor = .secondaryLabel
         symbol.contentMode = .scaleAspectFit
         symbol.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .title2)
-        symbol.setContentHuggingPriority(.required, for: .vertical)
-        symbol.setContentHuggingPriority(.required, for: .horizontal)
-        symbol.setContentCompressionResistancePriority(.required, for: .vertical)
-        symbol.setContentCompressionResistancePriority(.required, for: .horizontal)
         let label = UILabel()
         label.font = .preferredFont(forTextStyle: .subheadline)
         label.textColor = .secondaryLabel
@@ -191,7 +193,6 @@ final class FKActionSheetExampleLoadingContentViewController: FKActionSheetExamp
     return config
   }
 
-  /// Starts the simulated request when the sheet finishes presenting (alternative to scheduling after `present`).
   private func attachFetchLifecycle(to config: inout FKActionSheetConfiguration) {
     config = FKActionSheetExamplePlaybook.withEventLogging(config)
     let baseDidPresent = config.hooks.didPresent
@@ -227,15 +228,17 @@ final class FKActionSheetExampleLoadingContentViewController: FKActionSheetExamp
   }
 
   private func scheduleSimulatedFetch(
-    on sheet: FKActionSheet,
+    on sheet: FKActionSheet?,
     delaySeconds: TimeInterval,
     shouldFail: Bool
   ) {
+    guard sheet != nil else { return }
     fetchTask?.cancel()
     fetchTask = Task { @MainActor [weak self] in
       let nanoseconds = UInt64(delaySeconds * 1_000_000_000)
       try? await Task.sleep(nanoseconds: nanoseconds)
       guard !Task.isCancelled else { return }
+      self?.nextFetchShouldFail = shouldFail
       self?.finishSimulatedFetch(succeeded: !shouldFail)
     }
   }
@@ -270,6 +273,34 @@ final class FKActionSheetExampleLoadingContentViewController: FKActionSheetExamp
       FKActionSheetExamplePlaybook.log("finishLoading(sections:header:) → hooks/appearance preserved")
     } else {
       FKActionSheetExamplePlaybook.log("finishLoading failed validation")
+    }
+  }
+
+  private func applyFinishLoadingUpdating() {
+    guard let sheet = loadingSheet, sheet.isPresented else {
+      FKActionSheetExamplePlaybook.log("Present a loading sheet first")
+      return
+    }
+    let extra = FKActionSheetAction(title: "AirDrop", symbolName: "airdrop") {
+      FKActionSheetExamplePlaybook.log("AirDrop")
+    }
+    if sheet.finishLoading(updating: { config in
+      config.header = .text(FKActionSheetHeader(title: "Share", message: "Merged via finishLoading(updating:)"))
+      config.sections = [
+        FKActionSheetSection(
+          title: "Targets",
+          actions: [
+            FKActionSheetAction(title: "Messages", symbolName: "message.fill") {
+              FKActionSheetExamplePlaybook.log("Messages")
+            },
+            extra,
+          ]
+        ),
+      ]
+    }) {
+      FKActionSheetExamplePlaybook.log("finishLoading(updating:) succeeded")
+    } else {
+      FKActionSheetExamplePlaybook.log("finishLoading(updating:) failed validation")
     }
   }
 

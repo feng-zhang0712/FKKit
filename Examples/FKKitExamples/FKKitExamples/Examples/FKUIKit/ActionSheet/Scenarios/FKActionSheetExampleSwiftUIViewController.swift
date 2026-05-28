@@ -51,14 +51,25 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
   @State private var showBasics = false
   @State private var showToggle = false
   @State private var showCentered = false
+  @State private var showLoading = false
   @State private var showPopover = false
+  @State private var loadingConfiguration = FKActionSheetConfiguration.loading(
+    .standard(
+      FKActionSheetStandardLoadingContent(
+        title: "Loading options",
+        message: "SwiftUI binding will swap configuration when fetch completes."
+      )
+    ),
+    preferredPanelHeight: 180,
+    cancelAction: FKActionSheetAction(title: "Cancel", style: .cancel)
+  )
   @State private var popoverAnchor: UIView?
-  @State private var statusMessage = "Use buttons to present sheets."
+  @State private var statusMessage = "Events also appear on UIKit scenario pages (shared log)."
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
-        Text("SwiftUI presents the same FKActionSheet UIViewController as UIKit. Events append to the shared Event log on UIKit scenario pages.")
+        Text("SwiftUI presents the same FKActionSheet UIViewController as UIKit. Keep isPresented true and replace configuration to finish loading.")
           .font(.subheadline)
           .foregroundStyle(.secondary)
 
@@ -66,21 +77,30 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
           .font(.footnote)
           .foregroundStyle(.secondary)
 
-        Button("Basic sheet") { showBasics = true }
-          .buttonStyle(.borderedProminent)
+        Group {
+          Button("Basic sheet") { showBasics = true }
+            .buttonStyle(.borderedProminent)
 
-        Button("Toggle sheet") { showToggle = true }
+          Button("Toggle sheet") { showToggle = true }
+            .buttonStyle(.bordered)
+
+          Button("Centered card") { showCentered = true }
+            .buttonStyle(.bordered)
+
+          Button("Loading → fetch (binding)") {
+            loadingConfiguration = Self.makeLoadingConfiguration()
+            showLoading = true
+            startSwiftUILoadingFetch()
+          }
           .buttonStyle(.bordered)
 
-        Button("Centered card") { showCentered = true }
-          .buttonStyle(.bordered)
-
-        FKActionSheetPopoverAnchorButton(title: "Popover (popoverSourceView)") { anchor in
-          popoverAnchor = anchor
-        } onTap: {
-          showPopover = true
+          FKActionSheetPopoverAnchorButton(title: "Popover (popoverSourceView)") { anchor in
+            popoverAnchor = anchor
+          } onTap: {
+            showPopover = true
+          }
+          .frame(maxWidth: .infinity, minHeight: 44)
         }
-        .frame(maxWidth: .infinity, minHeight: 44)
 
         Button("Clear status") { statusMessage = "Cleared." }
           .buttonStyle(.borderless)
@@ -99,28 +119,34 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
         },
       ],
       onDismiss: { reason in
-        let message = "Basics dismissed: \(String(describing: reason))"
-        Task { @MainActor in statusMessage = message }
+        statusMessage = "Basics dismissed: \(String(describing: reason))"
       },
       onPresentFailure: { error in
-        let message = "Present failed: \(error)"
-        Task { @MainActor in statusMessage = message }
+        statusMessage = "Present failed: \(error)"
       }
     )
     .fkActionSheet(
       isPresented: $showToggle,
       configuration: toggleConfiguration,
       onDismiss: { reason in
-        let message = "Toggle dismissed: \(String(describing: reason))"
-        Task { @MainActor in statusMessage = message }
+        statusMessage = "Toggle dismissed: \(String(describing: reason))"
       }
     )
     .fkActionSheet(
       isPresented: $showCentered,
       configuration: centeredConfiguration,
       onDismiss: { reason in
-        let message = "Centered dismissed: \(String(describing: reason))"
-        Task { @MainActor in statusMessage = message }
+        statusMessage = "Centered dismissed: \(String(describing: reason))"
+      }
+    )
+    .fkActionSheet(
+      isPresented: $showLoading,
+      configuration: loadingConfiguration,
+      onDismiss: { reason in
+        statusMessage = "Loading flow dismissed: \(String(describing: reason))"
+      },
+      onPresentFailure: { error in
+        statusMessage = "Loading present failed: \(error)"
       }
     )
     .fkActionSheet(
@@ -128,14 +154,47 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
       configuration: popoverConfiguration,
       popoverSourceView: popoverAnchor,
       onDismiss: { reason in
-        let message = "Popover dismissed: \(String(describing: reason))"
-        Task { @MainActor in statusMessage = message }
+        statusMessage = "Popover dismissed: \(String(describing: reason))"
       },
       onPresentFailure: { error in
-        let message = "Popover failed: \(error)"
-        Task { @MainActor in statusMessage = message }
+        statusMessage = "Popover failed: \(error)"
       }
     )
+  }
+
+  private static func makeLoadingConfiguration() -> FKActionSheetConfiguration {
+    FKActionSheetConfiguration.loading(
+      .standard(
+        FKActionSheetStandardLoadingContent(
+          title: "Loading options",
+          message: "SwiftUI binding will swap configuration when fetch completes."
+        )
+      ),
+      preferredPanelHeight: 180,
+      cancelAction: FKActionSheetAction(title: "Cancel", style: .cancel)
+    )
+  }
+
+  private func startSwiftUILoadingFetch() {
+    Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 2_000_000_000)
+      guard showLoading else { return }
+      loadingConfiguration = FKActionSheetConfiguration(
+        header: .text(FKActionSheetHeader(title: "Share", message: "Loaded via configuration binding")),
+        sections: [
+          FKActionSheetSection(actions: [
+            FKActionSheetAction(title: "Messages") {
+              FKActionSheetExamplePlaybook.log("SwiftUI Messages")
+            },
+          ]),
+        ],
+        cancelAction: FKActionSheetAction(title: "Cancel", style: .cancel),
+        appearance: loadingConfiguration.appearance,
+        presentation: loadingConfiguration.presentation
+      )
+      FKActionSheetExamplePlaybook.log("SwiftUI configuration → actions after fetch")
+      statusMessage = "Loading configuration replaced with action rows."
+    }
   }
 
   private var toggleConfiguration: FKActionSheetConfiguration {

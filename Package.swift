@@ -9,19 +9,17 @@ let package = Package(
   ],
   products: [
     .library(name: "FKUIKit", targets: ["FKUIKit"]),
-    .library(name: "FKEmptyStateCoreLite", targets: ["FKEmptyStateCoreLite"]),
     .library(name: "FKCoreKit", targets: ["FKCoreKit"]),
-    .library(name: "FKCompositeKit", targets: ["FKCompositeKit"]),
   ],
   targets: [
     .target(
       name: "FKUIKit",
-      dependencies: ["FKEmptyStateCoreLite"],
+      dependencies: ["FKCoreKit"],
       path: "Sources/FKUIKit",
       exclude: [
-        "Components/EmptyState/CoreLite",
         // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
         "Components/Badge/README.md",
+        "Components/Base/README.md",
         "Components/BlurView/README.md",
         "Components/Button/README.md",
         "Components/CornerShadow/README.md",
@@ -29,7 +27,7 @@ let package = Package(
         "Components/EmptyState/README.md",
         "Components/ExpandableText/README.md",
         "Components/MultiPicker/README.md",
-        "Components/PresentationController/README.md",
+        "Components/SheetPresentationController/README.md",
         "Components/ProgressBar/README.md",
         "Components/Refresh/README.md",
         "Components/Player/Core/README.md",
@@ -46,10 +44,6 @@ let package = Package(
       ]
     ),
     .target(
-      name: "FKEmptyStateCoreLite",
-      path: "Sources/FKUIKit/Components/EmptyState/CoreLite"
-    ),
-    .target(
       name: "FKCoreKit",
       path: "Sources/FKCoreKit",
       exclude: [
@@ -63,16 +57,6 @@ let package = Package(
         "Storage/README.md",
         "Utils/README.md",
         "Pluggable/README.md",
-      ]
-    ),
-    .target(
-      name: "FKCompositeKit",
-      dependencies: ["FKUIKit", "FKCoreKit"],
-      path: "Sources/FKCompositeKit",
-      exclude: [
-        // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
-        "Components/AnchoredDropdownController/README.md",
-        "Components/Base/README.md",
       ]
     ),
     .testTarget(
