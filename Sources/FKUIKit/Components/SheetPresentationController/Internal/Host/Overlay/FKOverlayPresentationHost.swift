@@ -65,6 +65,12 @@ final class FKOverlayPresentationHost: NSObject, FKSheetPresentationHost {
       return
     }
 
+    if overlayVC.consumeSkipsDismissPresentationAnimation() {
+      cleanup()
+      completion?()
+      return
+    }
+
     overlayVC.animatePresentation(isPresentation: false, animated: animated) { [weak self] in
       self?.cleanup()
       completion?()

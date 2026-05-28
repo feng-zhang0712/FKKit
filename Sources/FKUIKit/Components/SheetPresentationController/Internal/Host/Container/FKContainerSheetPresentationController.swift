@@ -67,31 +67,13 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
       return dismissalStartingFrame
     }
     guard let containerView else { return .zero }
-    let bounds = containerView.bounds
-    let safeInsets = containerSafeInsets(in: containerView)
 
-    switch configuration.layout {
-    case .bottomSheet(_):
-      let height = resolvedSheetHeight(in: containerView, bounds: bounds, safeInsets: safeInsets)
-      let width = resolvedSheetWidth(in: bounds, safeInsets: safeInsets)
-      let x = (bounds.width - width) / 2
-      let y = bounds.height - height - (configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.bottom)
-      return CGRect(x: x, y: y, width: width, height: height)
-    case .topSheet(_):
-      let height = resolvedSheetHeight(in: containerView, bounds: bounds, safeInsets: safeInsets)
-      let width = resolvedSheetWidth(in: bounds, safeInsets: safeInsets)
-      let x = (bounds.width - width) / 2
-      let y: CGFloat = configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.top
-      return CGRect(x: x, y: y, width: width, height: height)
-    case .center(_):
-      return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
-    case .anchor:
-      // Anchor-hosteds are not presented via UIPresentationController.
-      // Fall back to center frame for safety if misconfigured.
-      return resolvedCenterFrame(in: containerView, bounds: bounds, safeInsets: safeInsets)
-    case let .edge(edge):
-      return edgeFrame(in: bounds, edge: edge)
-    }
+    recalculateDetentsIfNeeded()
+    let environment = layoutEnvironment(in: containerView)
+    return FKSheetPresentationLayoutEngine.wrapperFrame(
+      environment: environment,
+      detentState: currentDetentState(in: containerView)
+    )
   }
 
   public override func presentationTransitionWillBegin() {

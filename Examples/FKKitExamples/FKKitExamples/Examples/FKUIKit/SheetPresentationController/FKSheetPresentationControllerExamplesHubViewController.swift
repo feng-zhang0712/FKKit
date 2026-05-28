@@ -150,6 +150,21 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           subtitle: "Uses `.auto` direction to choose upward/downward expansion based on available space.",
           make: { AnchorAutoDirectionExampleViewController() }
         ),
+        Row(
+          title: "Navigation bar anchor popup",
+          subtitle: "Expands downward from the navigation bar bottom edge (typical title-bar menu pattern).",
+          make: { AnchorNavigationBarExampleViewController() }
+        ),
+        Row(
+          title: "Screen top edge anchor popup",
+          subtitle: "Rect provider at the window top (`y = 0`); panel drops from the physical screen top.",
+          make: { AnchorScreenTopEdgeExampleViewController() }
+        ),
+        Row(
+          title: "Screen bottom edge anchor popup",
+          subtitle: "Rect provider at the window bottom; panel grows upward from the physical screen bottom.",
+          make: { AnchorScreenBottomEdgeExampleViewController() }
+        ),
       ]
     ),
     Section(

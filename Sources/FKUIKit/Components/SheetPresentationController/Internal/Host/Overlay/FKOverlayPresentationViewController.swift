@@ -30,6 +30,14 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
   private var centerDismissBaseBackdropAlpha: CGFloat = 1
   private var isCenterInteractivelyDragging = false
   private var lastBoundsSize: CGSize = .zero
+  /// When true, ``FKOverlayPresentationHost`` tears down without running a second dismiss animation.
+  private var skipsDismissPresentationAnimation = false
+
+  /// Returns whether an interactive dismiss already animated off-screen and clears the latch.
+  func consumeSkipsDismissPresentationAnimation() -> Bool {
+    defer { skipsDismissPresentationAnimation = false }
+    return skipsDismissPresentationAnimation
+  }
 
   init(configuration: FKSheetPresentationConfiguration) {
     self.configuration = configuration
@@ -252,34 +260,35 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   func animatePresentation(isPresentation: Bool, animated: Bool, completion: @escaping () -> Void) {
     if isPresentation {
-      // Normalize frame before presenting animation.
       updateLayout(animated: false, duration: 0, options: .curveLinear)
     } else {
-      // For dismissal, animate from the current on-screen interactive state to avoid snap/flash.
       updatePassthroughHitTesting()
     }
 
-    let duration: TimeInterval = animated ? 0.28 : 0
-    if duration == 0 {
-      backdropView.alpha = isPresentation ? 1 : 0
-      wrapperView.alpha = isPresentation ? 1 : 0
-      wrapperView.transform = .identity
-      completion()
-      return
-    }
+    let baseFrame = frameOfWrapper()
+    FKSheetPresentationOverlayTransition.animatePresentation(
+      configuration: configuration,
+      isPresentation: isPresentation,
+      animated: animated,
+      backdropView: backdropView,
+      wrapperView: wrapperView,
+      baseFrame: baseFrame,
+      completion: completion
+    )
+  }
 
-    if isPresentation {
-      wrapperView.alpha = 0
-      wrapperView.transform = CGAffineTransform(scaleX: 0.98, y: 0.98)
-      backdropView.alpha = 0
-    }
-
-    UIView.animate(withDuration: duration, delay: 0, options: [.curveEaseInOut, .allowUserInteraction]) {
-      self.backdropView.alpha = isPresentation ? 1 : 0
-      self.wrapperView.alpha = isPresentation ? 1 : 0
-      self.wrapperView.transform = isPresentation ? .identity : CGAffineTransform(scaleX: 0.98, y: 0.98)
-    } completion: { _ in
-      completion()
+  /// Animates from the current interactive sheet state, then requests host dismissal without a second transition.
+  func performInteractiveDismiss(velocityY: CGFloat) {
+    skipsDismissPresentationAnimation = true
+    let baseFrame = frameOfWrapper()
+    FKSheetPresentationOverlayTransition.animateInteractiveDismiss(
+      configuration: configuration,
+      backdropView: backdropView,
+      wrapperView: wrapperView,
+      baseFrame: baseFrame,
+      dismissalVelocityY: velocityY
+    ) { [weak self] in
+      self?.onRequestDismiss?()
     }
   }
 
@@ -357,7 +366,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
       isCenterInteractivelyDragging = false
       if shouldDismiss {
         onProgress?(1)
-        onRequestDismiss?()
+        performInteractiveDismiss(velocityY: velocityY)
       } else {
         onProgress?(0)
         let timing = UISpringTimingParameters(dampingRatio: 0.86, initialVelocity: .zero)
@@ -450,7 +459,7 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
         velocityY: velocity.y
       ) {
         onProgress?(1)
-        onRequestDismiss?()
+        performInteractiveDismiss(velocityY: velocity.y)
         return
       }
 
@@ -471,30 +480,29 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
 
   // MARK: - Layout helpers
 
-  private func frameOfWrapper() -> CGRect {
-    let bounds = view.bounds
-    let safeInsets = containerSafeInsets()
+  private func layoutEnvironment() -> FKSheetPresentationLayoutEngine.Environment {
+    FKSheetPresentationLayoutEngine.Environment(
+      configuration: configuration,
+      containerBounds: view.bounds,
+      containerSafeAreaInsets: view.safeAreaInsets,
+      preferredContentSize: children.first?.preferredContentSize ?? .zero,
+      contentViewForFitting: children.first?.view
+    )
+  }
 
-    switch configuration.layout {
-    case .bottomSheet(_):
-      let height = resolvedSheetHeight(bounds: bounds, safeInsets: safeInsets)
-      let width = resolvedSheetWidth(bounds: bounds, safeInsets: safeInsets)
-      let x = (bounds.width - width) / 2
-      let y = bounds.height - height - (configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.bottom)
-      return CGRect(x: x, y: y, width: width, height: height)
-    case .topSheet(_):
-      let height = resolvedSheetHeight(bounds: bounds, safeInsets: safeInsets)
-      let width = resolvedSheetWidth(bounds: bounds, safeInsets: safeInsets)
-      let x = (bounds.width - width) / 2
-      let y: CGFloat = configuration.safeAreaPolicy.positionsShellAtContainerBottomEdge ? 0 : safeInsets.top
-      return CGRect(x: x, y: y, width: width, height: height)
-    case .center(_):
-      return resolvedCenterFrame(bounds: bounds, safeInsets: safeInsets)
-    case .anchor:
-      return resolvedCenterFrame(bounds: bounds, safeInsets: safeInsets)
-    case let .edge(edge):
-      return edgeFrame(bounds: bounds, edge: edge)
-    }
+  private func currentDetentState() -> FKSheetPresentationLayoutEngine.DetentState {
+    FKSheetPresentationLayoutEngine.DetentState(
+      resolvedHeights: resolvedDetentHeights,
+      selectedIndex: selectedDetentIndex
+    )
+  }
+
+  private func frameOfWrapper() -> CGRect {
+    recalculateDetentsIfNeeded()
+    return FKSheetPresentationLayoutEngine.wrapperFrame(
+      environment: layoutEnvironment(),
+      detentState: currentDetentState()
+    )
   }
 
   private func layoutContent() {
@@ -518,129 +526,19 @@ final class FKOverlayPresentationViewController: UIViewController, UIGestureReco
   }
 
   private func containerSafeInsets() -> UIEdgeInsets {
-    switch configuration.safeAreaPolicy {
-    case .contentRespectsSafeArea, .shellExtendsToScreenBottomEdge:
-      return .zero
-    case .containerRespectsSafeArea:
-      return view.safeAreaInsets
-    }
+    FKSheetPresentationLayoutEngine.presentationSafeInsets(
+      configuration: configuration,
+      containerSafeAreaInsets: view.safeAreaInsets
+    )
   }
-
-  // MARK: - Sheet sizing
 
   private func recalculateDetentsIfNeeded() {
-    let bounds = view.bounds
-    let availableHeight = bounds.height - (configuration.safeAreaPolicy == .containerRespectsSafeArea ? (view.safeAreaInsets.top + view.safeAreaInsets.bottom) : 0)
-    resolvedDetentHeights = configuration.sheet.detents.map { detent in
-      resolve(detent: detent, availableHeight: availableHeight)
-    }
-    selectedDetentIndex = max(0, min(selectedDetentIndex, max(0, resolvedDetentHeights.count - 1)))
-  }
-
-  private func resolve(detent: FKSheetPresentationDetent, availableHeight: CGFloat) -> CGFloat {
-    let value: CGFloat
-    switch detent {
-    case .fitContent:
-      let maxHeight = availableHeight * configuration.sheet.maximumFitContentHeightFraction
-      let preferred = contentPreferredHeight()
-      value = min(maxHeight, preferred)
-    case let .fixed(points):
-      value = min(availableHeight, max(0, points))
-    case let .fraction(fraction):
-      value = min(availableHeight, max(0, fraction) * availableHeight)
-    case .medium:
-      value = availableHeight * 0.5
-    case .large:
-      value = max(0, availableHeight - largeDetentEdgeGap())
-    case .full:
-      value = availableHeight
-    }
-    return value
-  }
-
-  /// System-sheet-like "large" detent that keeps a visible edge gap instead of true full-screen.
-  private func largeDetentEdgeGap() -> CGFloat {
-    let extraGap: CGFloat = 8
-    switch configuration.layout {
-    case .topSheet(_):
-      let safeBottom = configuration.safeAreaPolicy == .containerRespectsSafeArea ? 0 : view.safeAreaInsets.bottom
-      return safeBottom + extraGap
-    default:
-      let safeTop = configuration.safeAreaPolicy == .containerRespectsSafeArea ? 0 : view.safeAreaInsets.top
-      return safeTop + extraGap
-    }
-  }
-
-  private func contentPreferredHeight() -> CGFloat {
-    let preferred = children.first?.preferredContentSize.height ?? 0
-    switch configuration.preferredContentSizePolicy {
-    case .strict:
-      if preferred > 0 { return preferred }
-    case .automatic:
-      if preferred > 0 { return preferred }
-    case .ignore:
-      break
-    }
-    return 320
-  }
-
-  private func resolvedSheetHeight(bounds: CGRect, safeInsets: UIEdgeInsets) -> CGFloat {
-    recalculateDetentsIfNeeded()
-    if resolvedDetentHeights.indices.contains(selectedDetentIndex) {
-      return resolvedDetentHeights[selectedDetentIndex]
-    }
-    return min(bounds.height * 0.5, 320)
-  }
-
-  private func resolvedSheetWidth(bounds: CGRect, safeInsets: UIEdgeInsets) -> CGFloat {
-    let availableWidth = bounds.width - safeInsets.left - safeInsets.right
-    switch configuration.sheet.widthPolicy {
-    case .fill:
-      return bounds.width
-    case let .fraction(value):
-      return min(availableWidth, max(220, availableWidth * min(max(value, 0.2), 1)))
-    case let .max(value):
-      return min(availableWidth, max(220, value))
-    }
-  }
-
-  // MARK: - Center sizing
-
-  private func resolvedCenterFrame(bounds: CGRect, safeInsets: UIEdgeInsets) -> CGRect {
-    let margins = configuration.center.minimumMargins
-    let maxWidth = bounds.width - (CGFloat(margins.leading + margins.trailing) + safeInsets.left + safeInsets.right)
-    let maxHeight = bounds.height - (CGFloat(margins.top + margins.bottom) + safeInsets.top + safeInsets.bottom)
-
-    let size: CGSize
-    switch configuration.center.size {
-    case let .fixed(fixed):
-      size = .init(width: min(maxWidth, max(0, fixed.width)), height: min(maxHeight, max(0, fixed.height)))
-    case let .fitted(maxSize):
-      let contentW = max(220, children.first?.preferredContentSize.width ?? 0)
-      let contentH = max(220, contentPreferredHeight())
-      size = .init(
-        width: min(maxWidth, min(maxSize.width, contentW)),
-        height: min(maxHeight, min(maxSize.height, contentH))
-      )
-    }
-    let originX = (bounds.width - size.width) / 2
-    let originY = (bounds.height - size.height) / 2
-    return CGRect(x: originX, y: originY, width: size.width, height: size.height)
-  }
-
-  private func edgeFrame(bounds: CGRect, edge: UIRectEdge) -> CGRect {
-    let width = min(bounds.width * 0.85, 420)
-    let height = min(bounds.height * 0.85, 640)
-    if edge.contains(.left) {
-      return CGRect(x: 0, y: 0, width: width, height: bounds.height)
-    }
-    if edge.contains(.right) {
-      return CGRect(x: bounds.width - width, y: 0, width: width, height: bounds.height)
-    }
-    if edge.contains(.top) {
-      return CGRect(x: 0, y: 0, width: bounds.width, height: height)
-    }
-    return CGRect(x: 0, y: bounds.height - height, width: bounds.width, height: height)
+    let state = FKSheetPresentationLayoutEngine.recalculateDetents(
+      environment: layoutEnvironment(),
+      selectedIndex: selectedDetentIndex
+    )
+    resolvedDetentHeights = state.resolvedHeights
+    selectedDetentIndex = state.selectedIndex
   }
 
   // MARK: UIGestureRecognizerDelegate

@@ -50,7 +50,9 @@ final class FKModalPresentationHost: NSObject, FKSheetPresentationHost {
   }
 
   func updateLayout(animated: Bool, duration: TimeInterval, options: UIView.AnimationOptions) {
-    // Modal path updates via UIPresentationController layout lifecycle.
+    (contentController.transitioningDelegate as? FKSheetPresentationTransitioningDelegate)?
+      .activeContainerController?
+      .applyExplicitLayoutUpdate(animated: animated, duration: duration, options: options)
   }
 }
 

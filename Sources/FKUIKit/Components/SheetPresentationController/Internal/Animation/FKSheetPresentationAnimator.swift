@@ -431,9 +431,15 @@ enum FKAnimationStyleResolver {
 
     switch animationConfiguration.preset {
     case .systemLike:
-      // Keep both directions soft and rounded.
-      duration = isPresentation ? 0.42 : 0.32
-      timing = anchorLikeLayout(layout) ? .curve(.easeInOut) : .spring(dampingRatio: isPresentation ? 0.84 : 0.86)
+      if anchorLikeLayout(layout) {
+        // Anchor dropdowns: shorter, linear motion keeps the panel edge-locked to the source.
+        duration = isPresentation ? 0.26 : 0.20
+        timing = .curve(.linear)
+      } else {
+        // Keep sheet directions soft and rounded.
+        duration = isPresentation ? 0.42 : 0.32
+        timing = .spring(dampingRatio: isPresentation ? 0.84 : 0.86)
+      }
     case .spring:
       let clamped = max(0.3, min(0.42, animationConfiguration.duration))
       duration = isPresentation ? clamped : max(0.22, clamped * 0.82)

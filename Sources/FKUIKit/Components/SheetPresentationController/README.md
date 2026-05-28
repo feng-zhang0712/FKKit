@@ -351,7 +351,8 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - `Internal/Host/Container`: modal `UIPresentationController` pipeline split by concern (`+Layout`, `+Gesture`, `+Keyboard`, `+Backdrop`, `+Scroll`, `+Callbacks`)
 - `Internal/Host/Overlay`: in-hierarchy passthrough host for zero-dim/background interaction scenarios
 - `Internal/Host/Anchor`: in-hierarchy anchor hosting (`FKAnchorHost`, host view controller, reposition coordinator)
-- `Internal/Core`: routing contracts and shared resolvers (`FKSheetPresentationHost`, transitioning delegate, anchor layout resolver, sheet detent index resolver, sheet interaction engine)
+- `Internal/Core`: routing contracts and shared resolvers (`FKSheetPresentationHost`, transitioning delegate, `FKSheetPresentationLayoutEngine`, anchor layout resolver, sheet detent index resolver, sheet interaction engine)
+- `Internal/Animation`: modal animators plus `FKSheetPresentationOverlayTransition` (overlay present/dismiss uses the same `FKAnimationStyleResolver` as modal)
 - `Internal/Support`: shared internal utilities (for example responder-chain lookup)
 
 ### Host capability matrix

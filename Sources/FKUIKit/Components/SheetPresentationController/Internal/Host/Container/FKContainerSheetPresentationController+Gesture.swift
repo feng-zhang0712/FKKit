@@ -6,13 +6,7 @@ extension FKContainerSheetPresentationController {
 
   /// Installs/removes outside-tap and pan gestures according to interaction policy.
   func installGesturesIfNeeded() {
-    let allowsPassthrough: Bool = {
-      if configuration.backgroundInteraction.isEnabled { return true }
-      if case let .dim(_, alpha) = configuration.backdropStyle, alpha <= 0 {
-        return configuration.zeroDimBackdropBehavior == .passthrough
-      }
-      return false
-    }()
+    let allowsPassthrough = configuration.requiresPassthroughOverlayHost
     backdropView.isUserInteractionEnabled = !allowsPassthrough
     if allowsPassthrough, !configuration.backgroundInteraction.showsBackdropWhenEnabled {
       backdropView.isHidden = true
@@ -306,19 +300,6 @@ extension FKContainerSheetPresentationController {
     } else {
       animations()
     }
-  }
-
-  func clampedContentHeight(_ height: CGFloat, containerView: UIView) -> CGFloat {
-    var value = max(0, height)
-    if let minimum = configuration.sheet.minimumContentHeight {
-      value = max(value, minimum)
-    }
-    if let maximum = configuration.sheet.maximumContentHeight {
-      value = min(value, maximum)
-    }
-    let safe = containerSafeInsets(in: containerView)
-    let maxAvailable = containerView.bounds.height - safe.top - safe.bottom
-    return min(value, maxAvailable)
   }
 
   func resolvesSheetPanBypassesScrollHandoff(

@@ -62,14 +62,7 @@ public final class FKSheetPresentationController: NSObject {
         anchorConfiguration: anchorConfig
       )
     } else {
-      let wantsPassthrough: Bool = {
-        if configuration.backgroundInteraction.isEnabled { return true }
-        if case let .dim(_, alpha) = configuration.backdropStyle, alpha <= 0 {
-          return configuration.zeroDimBackdropBehavior == .passthrough
-        }
-        return false
-      }()
-      if wantsPassthrough {
+      if configuration.requiresPassthroughOverlayHost {
         self.host = FKOverlayPresentationHost(owner: self, contentController: contentController, configuration: configuration)
       } else {
         self.host = FKModalPresentationHost(owner: self, contentController: contentController, configuration: configuration)
@@ -119,8 +112,8 @@ public final class FKSheetPresentationController: NSObject {
 
   /// Re-applies host layout with optional animation.
   ///
-  /// This is especially useful for embedded anchor presentations when content height changes and
-  /// you want the container frame to resize smoothly.
+  /// Supported on anchor, overlay passthrough, and modal hosts when content geometry changes outside
+  /// `preferredContentSizeDidChange` (for example after async layout in a fit-content sheet).
   public func updateLayout(
     animated: Bool = false,
     duration: TimeInterval = 0.24,
