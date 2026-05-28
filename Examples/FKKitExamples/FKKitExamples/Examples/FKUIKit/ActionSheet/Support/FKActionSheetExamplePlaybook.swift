@@ -352,6 +352,26 @@ enum FKActionSheetExamplePlaybook {
     _ = present(config, from: presenter)
   }
 
+  static func presentDismissReasonsDemo(from presenter: UIViewController) {
+    let destructive = FKActionSheetAction(title: "Delete", style: .destructive) { log("Delete tapped") }
+    var config = FKActionSheetConfiguration(
+      header: .text(
+        FKActionSheetHeader(
+          title: "Dismiss reasons",
+          message: "Cancel → userCancel. Action → actionSelected. Backdrop → tapOutside (if enabled)."
+        )
+      ),
+      sections: [FKActionSheetSection(actions: [destructive])],
+      cancelAction: makeCancelAction(),
+      presentation: {
+        var configuration = FKActionSheetPresentationConfiguration.default
+        configuration.allowsTapOutsideDismiss = true
+        return configuration
+      }()
+    )
+    _ = presentInstance(config, from: presenter, logEvents: true)
+  }
+
   static func presentHooksDidSelect(from presenter: UIViewController) {
     var config = FKActionSheetConfiguration(
       header: .text(FKActionSheetHeader(message: "hooks.didSelect fires on every row tap.")),
@@ -426,8 +446,19 @@ enum FKActionSheetExamplePlaybook {
     return presentation
   }
 
-  static func presentCentered(from presenter: UIViewController) {
-    presentCenteredCard(from: presenter)
+  static func centeredLoadingConfiguration() -> FKActionSheetConfiguration {
+    FKActionSheetConfiguration.loading(
+      .standard(
+        FKActionSheetStandardLoadingContent(
+          title: "Loading options",
+          message: "Centered card while fetching…"
+        )
+      ),
+      preferredPanelHeight: 180,
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation()
+    )
   }
 
   static func presentCenteredCard(from presenter: UIViewController) {
@@ -526,43 +557,10 @@ enum FKActionSheetExamplePlaybook {
     _ = present(config, from: presenter, logEvents: true)
   }
 
-  @discardableResult
-  static func presentCenteredSingleSelection(from presenter: UIViewController) -> FKActionSheet? {
-    let email = FKActionSheetAction(title: "Email", symbolName: "envelope.fill") { log("Email") }
-    let phone = FKActionSheetAction(title: "Phone", symbolName: "phone.fill") { log("Phone") }
-    let chat = FKActionSheetAction(title: "Chat", symbolName: "message.fill") { log("Chat") }
-    var selection = FKActionSheetSelectionConfiguration()
-    selection.mode = .single(scope: .allSections)
-    selection.indicatorStyle = .radio
-    selection.selectedActionID = email.id
-    let config = FKActionSheetConfiguration(
-      header: .text(FKActionSheetHeader(title: "Contact method", message: "Single selection")),
-      sections: [FKActionSheetSection(actions: [email, phone, chat])],
-      cancelAction: makeCancelAction(),
-      appearancePreset: .card,
-      presentation: centeredPresentation(),
-      dismissesAfterActionSelection: false,
-      selection: selection
-    )
-    return presentInstance(config, from: presenter, logEvents: true)
-  }
-
   /// Presents a centered loading sheet; retain the returned instance for `finishLoading`.
   @discardableResult
   static func presentCenteredLoading(from presenter: UIViewController) -> FKActionSheet? {
-    let config = FKActionSheetConfiguration.loading(
-      .standard(
-        FKActionSheetStandardLoadingContent(
-          title: "Loading options",
-          message: "Centered card while fetching…"
-        )
-      ),
-      preferredPanelHeight: 180,
-      cancelAction: makeCancelAction(),
-      appearancePreset: .card,
-      presentation: centeredPresentation()
-    )
-    return presentInstance(config, from: presenter, logEvents: true)
+    presentInstance(centeredLoadingConfiguration(), from: presenter, logEvents: true)
   }
 
   static func presentPopover(from presenter: UIViewController, anchor: UIView) {
@@ -624,6 +622,109 @@ enum FKActionSheetExamplePlaybook {
       presentation: presentation
     )
     _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentBottomSheetWithHeightCap(from presenter: UIViewController) {
+    var presentation = FKActionSheetPresentationConfiguration.default
+    presentation.maximumPanelHeight = 280
+    presentation.maximumFitContentHeightFraction = 0.45
+    let rows = (1 ... 12).map { index in
+      FKActionSheetAction(title: "Row \(index)") { log("Row \(index)") }
+    }
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Tall bottom sheet", message: "maximumPanelHeight = 280")),
+      sections: [FKActionSheetSection(actions: rows)],
+      cancelAction: makeCancelAction(),
+      presentation: presentation
+    )
+    _ = present(config, from: presenter, logEvents: true)
+  }
+
+  static func presentLoadingWithoutCancelWhileLoading(from presenter: UIViewController) -> FKActionSheet? {
+    let loading = FKActionSheetLoadingConfiguration(
+      content: .standard(
+        FKActionSheetStandardLoadingContent(
+          title: "Loading",
+          message: "Cancel row hidden until content loads."
+        )
+      ),
+      preferredPanelHeight: 160,
+      showsCancelWhileLoading: false
+    )
+    var config = FKActionSheetConfiguration(
+      sections: [],
+      cancelAction: makeCancelAction(),
+      contentMode: .loading(loading)
+    )
+    return presentInstance(config, from: presenter, logEvents: true)
+  }
+
+  static func presentSelectionValidationFailure(from presenter: UIViewController) {
+    let a = FKActionSheetAction(title: "A")
+    let b = FKActionSheetAction(title: "B")
+    let c = FKActionSheetAction(title: "C")
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(message: "Three pre-selected rows but max is 2")),
+      sections: [FKActionSheetSection(actions: [a, b, c])],
+      cancelAction: makeCancelAction(),
+      selection: FKActionSheetSelectionConfiguration(
+        mode: .multiple(
+          FKActionSheetSelectionConfiguration.MultipleSelection(
+            scope: .allSections,
+            maxSelectionCount: 2,
+            disablesUnselectedRowsAtMax: true
+          )
+        ),
+        selectedActionIDs: [a.id, b.id, c.id]
+      )
+    )
+    do {
+      try FKActionSheet.validate(config)
+      log("Unexpected: over-max selection validated")
+    } catch let error as FKActionSheetValidationError {
+      log("validate rejected: \(error)")
+      FKToast.show(error.exampleToastMessage, style: .error, kind: .toast)
+    } catch {
+      log("validate failed: \(error)")
+    }
+  }
+
+  static func presentSingleSelectionKeepsSheetOpen(from presenter: UIViewController) {
+    let email = FKActionSheetAction(title: "Email", symbolName: "envelope.fill") { log("Email") }
+    let phone = FKActionSheetAction(title: "Phone", symbolName: "phone.fill") { log("Phone") }
+    var selection = FKActionSheetSelectionConfiguration()
+    selection.mode = .single(scope: .allSections)
+    selection.keepsSheetPresentedOnSelection = true
+    selection.indicatorStyle = .radio
+    selection.selectedActionID = email.id
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Contact method", message: "Tap rows without dismissing; use Cancel when done.")),
+      sections: [FKActionSheetSection(actions: [email, phone])],
+      cancelAction: makeCancelAction(),
+      dismissesAfterActionSelection: false,
+      selection: selection
+    )
+    _ = presentInstance(config, from: presenter, logEvents: true)
+  }
+
+  static func presentCenteredSingleSelection(from presenter: UIViewController) -> FKActionSheet? {
+    let email = FKActionSheetAction(title: "Email", symbolName: "envelope.fill") { log("Email") }
+    let phone = FKActionSheetAction(title: "Phone", symbolName: "phone.fill") { log("Phone") }
+    let chat = FKActionSheetAction(title: "Chat", symbolName: "message.fill") { log("Chat") }
+    var selection = FKActionSheetSelectionConfiguration()
+    selection.mode = .single(scope: .allSections)
+    selection.indicatorStyle = .radio
+    selection.selectedActionID = email.id
+    let config = FKActionSheetConfiguration(
+      header: .text(FKActionSheetHeader(title: "Contact method", message: "Single selection on centered card")),
+      sections: [FKActionSheetSection(actions: [email, phone, chat])],
+      cancelAction: makeCancelAction(),
+      appearancePreset: .card,
+      presentation: centeredPresentation(),
+      dismissesAfterActionSelection: false,
+      selection: selection
+    )
+    return presentInstance(config, from: presenter, logEvents: true)
   }
 
   static func presentFromWindowScene(_ windowScene: UIWindowScene) {

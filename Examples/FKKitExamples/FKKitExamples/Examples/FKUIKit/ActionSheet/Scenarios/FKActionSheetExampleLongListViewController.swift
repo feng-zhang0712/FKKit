@@ -1,7 +1,8 @@
 import UIKit
 import FKUIKit
 
-final class FKActionSheetExampleManyActionsViewController: FKActionSheetExampleBaseViewController {
+/// Scrollable action lists, selection memory, and scroll-to-selection on present.
+final class FKActionSheetExampleLongListViewController: FKActionSheetExampleBaseViewController {
   private struct LanguageOption {
     let id: UUID
     let title: String
@@ -42,42 +43,53 @@ final class FKActionSheetExampleManyActionsViewController: FKActionSheetExampleB
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "Many Actions"
+    title = "Long List & Scroll"
 
-    let body = UIStackView()
-    body.axis = .vertical
-    body.spacing = 8
-    body.addArrangedSubview(FKActionSheetExampleUI.button("28 options (scroll, default max height)") { [weak self] in
+    let scroll = UIStackView()
+    scroll.axis = .vertical
+    scroll.spacing = 8
+    scroll.addArrangedSubview(FKActionSheetExampleUI.button("28 options (default height cap)") { [weak self] in
       self?.presentLanguageSheet(indicatorStyle: .check, remembersSelection: false)
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Language picker (check + memory)") { [weak self] in
+    scroll.addArrangedSubview(FKActionSheetExampleUI.button("Tight cap (maxPanelHeight 240)") { [weak self] in
+      var presentation = FKActionSheetPresentationConfiguration.default
+      presentation.maximumPanelHeight = 240
+      self?.presentLanguageSheet(
+        indicatorStyle: .check,
+        remembersSelection: false,
+        presentation: presentation
+      )
+    })
+
+    let selection = UIStackView()
+    selection.axis = .vertical
+    selection.spacing = 8
+    selection.addArrangedSubview(FKActionSheetExampleUI.button("Check + memory (re-open restores)") { [weak self] in
       self?.presentLanguageSheet(indicatorStyle: .check, remembersSelection: true)
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Language picker (highlight + memory)") { [weak self] in
+    selection.addArrangedSubview(FKActionSheetExampleUI.button("Highlighted title + memory") { [weak self] in
       self?.presentLanguageSheet(indicatorStyle: .highlightedTitle, remembersSelection: true)
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Language picker (memory, no auto-scroll)") { [weak self] in
+    selection.addArrangedSubview(FKActionSheetExampleUI.button("Memory without auto-scroll") { [weak self] in
       self?.presentLanguageSheet(
         indicatorStyle: .check,
         remembersSelection: true,
         scrollsToSelectionOnPresent: false
       )
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Centered card + memory + scroll") { [weak self] in
-      var presentation = FKActionSheetPresentationConfiguration.centered
-      presentation.maximumPanelHeight = 360
-      self?.presentLanguageSheet(
-        indicatorStyle: .check,
-        remembersSelection: true,
-        presentation: presentation
-      )
-    })
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Scrollable list",
-        description: "No header. Scroll cap uses min(screen fraction, maximumPanelHeight). With selection memory, scrolls to the restored row on present unless scrollsToSelectionOnPresent is false.",
-        body: body
+        description: "Panel height uses min(screen × maximumFitContentHeightFraction, maximumPanelHeight). No header keeps the list compact.",
+        body: scroll
+      )
+    )
+    contentStack.addArrangedSubview(
+      FKActionSheetExampleUI.section(
+        title: "Selection + scroll restore",
+        description: "Set selectedActionID and leave scrollsToSelectionOnPresent at true (default) to scroll the restored row near the center on present.",
+        body: selection
       )
     )
     addClearLogButton()
@@ -93,8 +105,7 @@ final class FKActionSheetExampleManyActionsViewController: FKActionSheetExampleB
       FKActionSheetAction(id: option.id, title: option.title) { [weak self] in
         guard let self else { return }
         self.selectedLanguageID = option.id
-        let name = option.title
-        FKActionSheetExamplePlaybook.log("Selected \(name)")
+        FKActionSheetExamplePlaybook.log("Selected \(option.title)")
       }
     }
 
@@ -107,7 +118,9 @@ final class FKActionSheetExampleManyActionsViewController: FKActionSheetExampleB
     )
 
     var resolvedPresentation = presentation ?? FKActionSheetPresentationConfiguration.default
-    resolvedPresentation.maximumPanelHeight = 360
+    if resolvedPresentation.maximumPanelHeight == nil {
+      resolvedPresentation.maximumPanelHeight = 360
+    }
 
     let config = FKActionSheetConfiguration(
       sections: [FKActionSheetSection(actions: actions)],

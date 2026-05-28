@@ -32,11 +32,14 @@ final class FKActionSheetExampleSymbolsAndStatesViewController: FKActionSheetExa
     body.addArrangedSubview(FKActionSheetExampleUI.button("Stay-open row") { [weak self] in
       self.map { FKActionSheetExamplePlaybook.presentStayOpenAction(from: $0) }
     })
+    body.addArrangedSubview(FKActionSheetExampleUI.button("Toggle row") { [weak self] in
+      self.map { FKActionSheetExamplePlaybook.presentToggleRows(from: $0) }
+    })
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Row content",
-        description: "SF Symbol actions, subtitles, disabled/loading guards, and per-row dismissesSheetWhenSelected.",
+        description: "SF Symbol actions, subtitles, disabled/loading guards, stay-open rows, and FKActionSheetAction.toggle.",
         body: body
       )
     )

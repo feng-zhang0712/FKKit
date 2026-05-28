@@ -22,7 +22,13 @@ final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioni
     if configuration.respectsReduceMotion, UIAccessibility.isReduceMotionEnabled {
       return 0.2
     }
-    return isPresenting ? 0.42 : 0.34
+    switch configuration.style {
+    case .centered:
+      // Matches `FKPresentationAnimator` / `FKAnimationStyleResolver` alertLikeCenter + `.systemLike` present.
+      return isPresenting ? 0.30 : 0.22
+    case .bottom, .popover:
+      return isPresenting ? 0.42 : 0.34
+    }
   }
 
   func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -51,8 +57,10 @@ final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioni
         return
       }
 
+      sheet.centeredTransitionReveals = true
       sheet.setPresentationProgress(0, animated: false)
-      animate(
+      runTransitionAnimation(
+        for: sheet,
         duration: transitionDuration(using: transitionContext),
         animations: {
           sheet.setPresentationProgress(1, animated: false)
@@ -74,7 +82,9 @@ final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioni
         return
       }
 
-      animate(
+      sheet.centeredTransitionReveals = false
+      runTransitionAnimation(
+        for: sheet,
         duration: transitionDuration(using: transitionContext),
         animations: {
           sheet.setPresentationProgress(0, animated: false)
@@ -89,19 +99,55 @@ final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioni
     }
   }
 
-  private func animate(
+  private func runTransitionAnimation(
+    for sheet: FKActionSheet,
     duration: TimeInterval,
     animations: @escaping () -> Void,
     completion: @escaping (Bool) -> Void
   ) {
-    UIView.animate(
-      withDuration: duration,
-      delay: 0,
-      usingSpringWithDamping: isPresenting ? 0.86 : 1,
-      initialSpringVelocity: isPresenting ? 0.3 : 0,
-      options: [.curveEaseInOut, .allowUserInteraction],
-      animations: animations,
-      completion: completion
-    )
+    switch configuration.style {
+    case .centered:
+      runCenteredTransitionAnimation(
+        isPresenting: isPresenting,
+        duration: duration,
+        animations: animations,
+        completion: completion
+      )
+    case .bottom, .popover:
+      UIView.animate(
+        withDuration: duration,
+        delay: 0,
+        usingSpringWithDamping: isPresenting ? 0.86 : 1,
+        initialSpringVelocity: isPresenting ? 0.3 : 0,
+        options: [.curveEaseInOut, .allowUserInteraction],
+        animations: animations,
+        completion: completion
+      )
+    }
+  }
+
+  private func runCenteredTransitionAnimation(
+    isPresenting: Bool,
+    duration: TimeInterval,
+    animations: @escaping () -> Void,
+    completion: @escaping (Bool) -> Void
+  ) {
+    if isPresenting {
+      let parameters = UISpringTimingParameters(dampingRatio: 0.82, initialVelocity: .zero)
+      let animator = UIViewPropertyAnimator(duration: duration, timingParameters: parameters)
+      animator.addAnimations(animations)
+      animator.addCompletion { position in
+        completion(position == .end)
+      }
+      animator.startAnimation()
+    } else {
+      UIView.animate(
+        withDuration: duration,
+        delay: 0,
+        options: [.curveEaseInOut, .allowUserInteraction],
+        animations: animations,
+        completion: completion
+      )
+    }
   }
 }

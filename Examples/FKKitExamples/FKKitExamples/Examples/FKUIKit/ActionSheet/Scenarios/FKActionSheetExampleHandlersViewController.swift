@@ -1,6 +1,7 @@
 import UIKit
 import FKUIKit
 
+/// Handler timing, haptics, lifecycle hooks, and dismiss reasons.
 final class FKActionSheetExampleHandlersViewController: FKActionSheetExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -15,25 +16,39 @@ final class FKActionSheetExampleHandlersViewController: FKActionSheetExampleBase
       },
     ])
 
-    let body = UIStackView()
-    body.axis = .vertical
-    body.spacing = 8
-    body.addArrangedSubview(timing)
-    body.addArrangedSubview(FKActionSheetExampleUI.button("actionHandler") { [weak self] in
+    let callbacks = UIStackView()
+    callbacks.axis = .vertical
+    callbacks.spacing = 8
+    callbacks.addArrangedSubview(timing)
+    callbacks.addArrangedSubview(FKActionSheetExampleUI.button("actionHandler") { [weak self] in
       self.map { FKActionSheetExamplePlaybook.presentActionHandler(from: $0) }
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("Selection haptics") { [weak self] in
+    callbacks.addArrangedSubview(FKActionSheetExampleUI.button("Selection haptics") { [weak self] in
       self.map { FKActionSheetExamplePlaybook.presentWithHaptics(from: $0) }
     })
-    body.addArrangedSubview(FKActionSheetExampleUI.button("hooks.didSelect") { [weak self] in
+    callbacks.addArrangedSubview(FKActionSheetExampleUI.button("hooks.didSelect") { [weak self] in
       self.map { FKActionSheetExamplePlaybook.presentHooksDidSelect(from: $0) }
+    })
+
+    let dismiss = UIStackView()
+    dismiss.axis = .vertical
+    dismiss.spacing = 8
+    dismiss.addArrangedSubview(FKActionSheetExampleUI.button("Log all dismiss reasons") { [weak self] in
+      self.map { FKActionSheetExamplePlaybook.presentDismissReasonsDemo(from: $0) }
     })
 
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
-        title: "Callbacks",
-        description: "handlerTiming, actionHandler, optional haptics, and FKActionSheetLifecycleHooks (will/did present & dismiss, didSelect).",
-        body: body
+        title: "Handlers",
+        description: "handlerTiming controls when actionHandler runs relative to dismissal. Optional haptics fire on row selection.",
+        body: callbacks
+      )
+    )
+    contentStack.addArrangedSubview(
+      FKActionSheetExampleUI.section(
+        title: "Dismiss reasons",
+        description: "hooks.willDismiss / didDismiss receive FKActionSheetDismissReason: actionSelected, userCancel, tapOutside, programmatic.",
+        body: dismiss
       )
     )
     addClearLogButton()

@@ -40,6 +40,8 @@ public final class FKActionSheet: UIViewController {
   var lastTableSafeBottom: CGFloat = -1
   var isUpdatingPanelLayout = false
   var presentationProgress: CGFloat = 1
+  /// For ``FKActionSheetPresentationStyle/centered``, selects present (zoom from 1.08) vs dismiss (shrink to 0.92) scale curves.
+  var centeredTransitionReveals = true
   private var sessionNotifiedWillDismiss = false
   private var sessionNotifiedDidDismiss = false
   private var pendingDismissReason: FKActionSheetDismissReason?
@@ -317,7 +319,14 @@ public final class FKActionSheet: UIViewController {
         self.panelView.transform = CGAffineTransform(translationX: 0, y: offset)
         self.panelView.alpha = 1
       case .centered:
-        let scale = 0.9 + (0.1 * self.presentationProgress)
+        let scale: CGFloat
+        if self.centeredTransitionReveals {
+          // Present: subtle zoom-down from 1.08 (matches FKPresentationController `.center` / alertLikeCenter).
+          scale = 1.08 - (0.08 * self.presentationProgress)
+        } else {
+          // Dismiss: fade out with slight shrink to 0.92.
+          scale = 0.92 + (0.08 * self.presentationProgress)
+        }
         self.panelView.transform = CGAffineTransform(scaleX: scale, y: scale)
         self.panelView.alpha = self.presentationProgress
       case .popover:

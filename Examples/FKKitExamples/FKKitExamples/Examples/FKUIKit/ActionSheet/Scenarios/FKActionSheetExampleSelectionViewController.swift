@@ -107,6 +107,9 @@ final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBas
     singleBody.addArrangedSubview(FKActionSheetExampleUI.button("Single (section scope)") { [weak self] in
       self?.presentSectionScopedExportSheet()
     })
+    singleBody.addArrangedSubview(FKActionSheetExampleUI.button("Keeps sheet open (single)") { [weak self] in
+      self.map { FKActionSheetExamplePlaybook.presentSingleSelectionKeepsSheetOpen(from: $0) }
+    })
 
     let multiBody = UIStackView()
     multiBody.axis = .vertical
@@ -124,6 +127,16 @@ final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBas
       self?.presentLongListMultiSelectSheet()
     })
 
+    let validation = UIStackView()
+    validation.axis = .vertical
+    validation.spacing = 8
+    validation.addArrangedSubview(FKActionSheetExampleUI.button("Validation: too many pre-selected") { [weak self] in
+      self.map { FKActionSheetExamplePlaybook.presentSelectionValidationFailure(from: $0) }
+    })
+    validation.addArrangedSubview(FKActionSheetExampleUI.button("Centered card + radio") { [weak self] in
+      self.map { FKActionSheetExamplePlaybook.presentCenteredSingleSelection(from: $0) }
+    })
+
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Single selection",
@@ -134,8 +147,15 @@ final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBas
     contentStack.addArrangedSubview(
       FKActionSheetExampleUI.section(
         title: "Multiple selection",
-        description: "Toggle rows, then tap Done. Selection is validated on present (e.g. too many pre-selected items for a lower max shows a toast). The long-list scenario scrolls to the last restored selection on re-open.",
+        description: "Toggle rows, then tap Done. Use keepsSheetPresentedOnSelection = true so rows toggle without dismissing.",
         body: multiBody
+      )
+    )
+    contentStack.addArrangedSubview(
+      FKActionSheetExampleUI.section(
+        title: "Validation",
+        description: "init/present validate selection against maxSelectionCount. Over-limit pre-selection fails with FKActionSheetValidationError and localizedMessage for UI.",
+        body: validation
       )
     )
     addClearLogButton()
