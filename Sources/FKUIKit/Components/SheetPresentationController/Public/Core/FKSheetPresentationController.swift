@@ -12,7 +12,11 @@ public final class FKSheetPresentationController: NSObject {
   }
 
   /// Content controller that will be presented.
-  public let contentController: UIViewController
+  ///
+  /// For anchor layouts, this reference updates when you call
+  /// ``presentOrReplaceAnchorContent(from:contentController:replacement:presentAnimated:completion:)`` or
+  /// ``replaceAnchorContent(_:transition:animateLayout:layoutAnimationDuration:completion:)``.
+  public private(set) var contentController: UIViewController
   /// Configuration describing the desired presentation behavior.
   public let configuration: FKSheetPresentationConfiguration
   /// Optional delegate receiving lifecycle updates.
@@ -287,5 +291,134 @@ public final class FKSheetPresentationController: NSObject {
       return false
     }
     return true
+  }
+
+  private var isAnchorPresentation: Bool {
+    if case .anchor = configuration.layout { return true }
+    return false
+  }
+
+  private func bindContentController(_ contentController: UIViewController) {
+    self.contentController = contentController
+    (host as? FKAnchorHost)?.setContentController(contentController)
+  }
+
+  private func wireAnchorPreferredContentSizeRelay(
+    for hostContainer: FKSheetPresentationAnchorContentHostViewController,
+    animateLayout: Bool,
+    duration: TimeInterval
+  ) {
+    hostContainer.onPreferredContentSizeDidChange = { [weak self] in
+      guard let self else { return }
+      self.updateLayout(
+        animated: animateLayout,
+        duration: animateLayout ? duration : 0,
+        options: .curveEaseInOut
+      )
+    }
+  }
+}
+
+// MARK: - Anchor replacement
+
+public extension FKSheetPresentationController {
+  /// Whether ``configuration/layout`` is anchor-hosted.
+  var isAnchorHosted: Bool {
+    if case .anchor = configuration.layout { return true }
+    return false
+  }
+
+  /// Presents anchor content, or replaces it when this controller already owns a visible anchor popup.
+  ///
+  /// - Note: Calling ``present(from:animated:completion:)`` while already presented is a no-op. Use this API
+  ///   when tapping the same anchor again with different content or height.
+  func presentOrReplaceAnchorContent(
+    from presentingViewController: UIViewController,
+    contentController: UIViewController,
+    replacement: FKSheetPresentationAnchorReplacementPolicy = .replaceInPlace(),
+    presentAnimated: Bool = true,
+    completion: (@MainActor () -> Void)? = nil
+  ) {
+    guard assertMainThread("presentOrReplaceAnchorContent", completion: completion) else { return }
+    guard isAnchorPresentation, host is FKAnchorHost else {
+      assertionFailure("presentOrReplaceAnchorContent requires anchor layout.")
+      completion?()
+      return
+    }
+
+    if !host.isPresented {
+      bindContentController(contentController)
+      present(from: presentingViewController, animated: presentAnimated, completion: completion)
+      return
+    }
+
+    switch replacement {
+    case let .dismissThenPresent(dismissAnimated, presentAnimated):
+      bindContentController(contentController)
+      dismiss(animated: dismissAnimated) { [weak self] in
+        guard let self else {
+          completion?()
+          return
+        }
+        self.present(from: presentingViewController, animated: presentAnimated, completion: completion)
+      }
+
+    case let .replaceInPlace(contentTransition, animateLayout, layoutDuration):
+      replaceAnchorContent(
+        contentController,
+        transition: contentTransition,
+        animateLayout: animateLayout,
+        layoutAnimationDuration: layoutDuration,
+        completion: completion
+      )
+    }
+  }
+
+  /// Swaps anchor-hosted content while presented and relayouts the attached popup frame.
+  ///
+  /// When the presented root is a ``FKSheetPresentationAnchorContentHostViewController``, passing a child
+  /// routes through ``FKSheetPresentationAnchorContentHostViewController/setContent(_:transition:completion:)``.
+  func replaceAnchorContent(
+    _ contentController: UIViewController,
+    transition: FKSheetPresentationAnchorContentTransition = .crossfade(duration: 0.18),
+    animateLayout: Bool = true,
+    layoutAnimationDuration: TimeInterval = 0.24,
+    completion: (@MainActor () -> Void)? = nil
+  ) {
+    guard assertMainThread("replaceAnchorContent", completion: completion) else { return }
+    guard isAnchorPresentation, let anchorHost = host as? FKAnchorHost else {
+      assertionFailure("replaceAnchorContent requires anchor layout.")
+      completion?()
+      return
+    }
+
+    if let hostContainer = self.contentController as? FKSheetPresentationAnchorContentHostViewController,
+       contentController !== hostContainer,
+       !(contentController is FKSheetPresentationAnchorContentHostViewController) {
+      wireAnchorPreferredContentSizeRelay(for: hostContainer, animateLayout: animateLayout, duration: layoutAnimationDuration)
+      hostContainer.setContent(contentController, transition: transition) { [weak anchorHost] in
+        anchorHost?.updateLayout(
+          animated: animateLayout,
+          duration: animateLayout ? layoutAnimationDuration : 0,
+          options: .curveEaseInOut
+        )
+        completion?()
+      }
+      return
+    }
+
+    bindContentController(contentController)
+
+    guard host.isPresented else {
+      completion?()
+      return
+    }
+
+    anchorHost.replaceEmbeddedContent(
+      transition: transition,
+      animateLayout: animateLayout,
+      layoutDuration: layoutAnimationDuration,
+      completion: completion
+    )
   }
 }

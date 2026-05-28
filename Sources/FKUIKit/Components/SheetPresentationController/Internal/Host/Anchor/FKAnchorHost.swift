@@ -14,7 +14,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
    - Corners/shadow round the free edge and follow free-edge shadow behavior.
    */
   private unowned let owner: FKSheetPresentationController
-  private let contentController: UIViewController
+  private var contentController: UIViewController
   private let configuration: FKSheetPresentationConfiguration
   private let anchorConfiguration: FKAnchorConfiguration
 
@@ -105,6 +105,57 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
     animator.startAnimation()
   }
   
+  func setContentController(_ contentController: UIViewController) {
+    self.contentController = contentController
+  }
+
+  func replaceEmbeddedContent(
+    transition: FKSheetPresentationAnchorContentTransition,
+    animateLayout: Bool,
+    layoutDuration: TimeInterval,
+    layoutOptions: UIView.AnimationOptions = .curveEaseInOut,
+    completion: (() -> Void)? = nil
+  ) {
+    guard isPresented, let anchorHostViewController else {
+      completion?()
+      return
+    }
+
+    let relayout = { [weak self] in
+      guard let self else {
+        completion?()
+        return
+      }
+      self.updateLayout(
+        animated: animateLayout,
+        duration: animateLayout ? layoutDuration : 0,
+        options: layoutOptions
+      )
+      completion?()
+    }
+
+    let outgoing = contentController
+    if outgoing.parent === anchorHostViewController {
+      outgoing.willMove(toParent: nil)
+      outgoing.view.removeFromSuperview()
+      outgoing.removeFromParent()
+    }
+
+    if let container = contentController as? FKSheetPresentationAnchorContentHostViewController {
+      container.onPreferredContentSizeDidChange = { [weak self] in
+        guard let self else { return }
+        self.updateLayout(
+          animated: animateLayout,
+          duration: animateLayout ? layoutDuration : 0,
+          options: layoutOptions
+        )
+      }
+    }
+
+    embedContent(into: anchorHostViewController)
+    relayout()
+  }
+
   func updateLayout(animated: Bool, duration: TimeInterval, options: UIView.AnimationOptions) {
     guard let hostView, let hostVC = anchorHostViewController else { return }
 
@@ -250,7 +301,8 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
   }
 
   private func embedContent(into anchorHostViewController: FKAnchorHostViewController) {
-    if contentController.parent === anchorHostViewController {
+    if contentController.parent === anchorHostViewController,
+       contentController.view.superview === anchorHostViewController.contentContainerView {
       return
     }
 

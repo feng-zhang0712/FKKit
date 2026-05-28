@@ -67,58 +67,6 @@ extension FKContainerSheetPresentationController {
     }
   }
 
-  func interactiveBottomSheetFrame(in containerView: UIView, translationY: CGFloat) -> CGRect {
-    guard let environment = sheetInteractionEnvironment(in: containerView) else { return .zero }
-    return FKSheetPresentationInteractionEngine.interactiveFrame(
-      environment: environment,
-      state: sheetInteractionState(),
-      translationY: translationY
-    )
-  }
-
-  func interactiveTopSheetFrame(in containerView: UIView, translationY: CGFloat) -> CGRect {
-    interactiveBottomSheetFrame(in: containerView, translationY: translationY)
-  }
-
-  func sheetDismissProgress(in containerView: UIView) -> CGFloat {
-    guard let environment = sheetInteractionEnvironment(in: containerView) else { return 0 }
-    return FKSheetPresentationInteractionEngine.sheetDismissProgress(
-      environment: environment,
-      state: sheetInteractionState()
-    )
-  }
-
-  func sheetShouldDismiss(translationY: CGFloat, velocityY: CGFloat, in containerView: UIView) -> Bool {
-    guard let environment = sheetInteractionEnvironment(in: containerView) else { return false }
-    recalculateDetentsIfNeeded()
-    return FKSheetPresentationInteractionEngine.sheetShouldDismiss(
-      environment: environment,
-      state: sheetInteractionState(),
-      translationY: translationY,
-      velocityY: velocityY
-    )
-  }
-
-  func nearestDetentIndex(for frame: CGRect, in containerView: UIView, velocityY: CGFloat) -> Int {
-    guard let environment = sheetInteractionEnvironment(in: containerView) else { return 0 }
-    return FKSheetPresentationInteractionEngine.nearestDetentIndex(
-      environment: environment,
-      state: sheetInteractionState(),
-      frame: frame,
-      velocityY: velocityY
-    )
-  }
-
-  func shouldTransferPanFromScrollView(_ scrollView: UIScrollView, translationY: CGFloat) -> Bool {
-    guard let containerView, let environment = sheetInteractionEnvironment(in: containerView) else { return true }
-    return FKSheetPresentationInteractionEngine.shouldTransferPanFromScrollView(
-      environment: environment,
-      state: sheetInteractionState(),
-      scrollView: scrollView,
-      translationY: translationY
-    )
-  }
-
   func selectDetentIndex(_ index: Int, animated: Bool) {
     let clamped = max(0, min(index, max(0, resolvedDetentHeights.count - 1)))
     if clamped == selectedDetentIndex { animateToSelectedDetent(animated: animated); return }

@@ -31,6 +31,9 @@ public struct FKSheetPresentationConfiguration: @unchecked Sendable {
   /// Preferred content size policy.
   public var preferredContentSizePolicy: PreferredContentSizePolicy
   /// Sheet behavior. For non-sheet layouts, a default sheet configuration is synthesized.
+  ///
+  /// The setter only applies when ``layout`` is `.bottomSheet` or `.topSheet`; otherwise use
+  /// ``applyingSheet(_:)`` or ``setBottomSheet(_:)`` / ``setTopSheet(_:)``.
   public var sheet: SheetConfiguration {
     get {
       switch layout {
@@ -52,6 +55,9 @@ public struct FKSheetPresentationConfiguration: @unchecked Sendable {
     }
   }
   /// Center behavior. For non-center layouts, a default center configuration is synthesized.
+  ///
+  /// The setter always switches ``layout`` to `.center`. Use ``applyingCenter(_:)`` when you only
+  /// need to mutate center fields on an existing center layout.
   public var center: CenterConfiguration {
     get {
       if case let .center(configuration) = layout {

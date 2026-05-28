@@ -146,6 +146,30 @@ FKSheetPresentationController.present(
 )
 ```
 
+### Anchor content replacement
+
+While a popup is already visible, use ``FKSheetPresentationController/presentOrReplaceAnchorContent(from:contentController:replacement:presentAnimated:completion:)`` instead of calling ``present(from:animated:completion:)`` again (a second `present` is a no-op).
+
+```swift
+let host = FKSheetPresentationAnchorContentHostViewController()
+let controller = FKSheetPresentationController(contentController: host, configuration: anchorConfiguration)
+controller.present(from: self, animated: true)
+
+// In place (AnchoredDropdown-style):
+controller.presentOrReplaceAnchorContent(
+  from: self,
+  contentController: nextMenuViewController,
+  replacement: .replaceInPlace(contentTransition: .crossfade(duration: 0.18))
+)
+
+// Dismiss then present with independent animation flags:
+controller.presentOrReplaceAnchorContent(
+  from: self,
+  contentController: host,
+  replacement: .dismissThenPresent(dismissAnimated: true, presentAnimated: true)
+)
+```
+
 ### Anchor Popup
 
 ```swift
@@ -349,27 +373,33 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - `FKSheetAnimationPreset`
 - `FKSheetAnimationConfiguration`
 - `FKSheetAnimationContext`
+- `FKSheetPresentationAnchorContentHostViewController`
+- `FKSheetPresentationAnchorReplacementPolicy`
 - `UIViewController.fk_presentSheet(...)`
 
 ### Main APIs
 
-- `FKSheetPresentationController.init(contentController:configuration:delegate:handlers:)`
+- `FKSheetPresentationController.init(contentController:configuration:delegate:handlers:callbackDelivery:)`
 - `FKSheetPresentationController.present(from:animated:completion:)`
 - `FKSheetPresentationController.dismiss(animated:completion:)`
+- `FKSheetPresentationController.updateLayout(animated:duration:options:)`
 - `FKSheetPresentationController.selectDetent(_:animated:)`
 - `FKSheetPresentationController.selectDetent(at:animated:)`
-- `FKSheetPresentationController.present(contentController:from:configuration:delegate:handlers:animated:completion:)`
+- `FKSheetPresentationController.present(contentController:from:configuration:delegate:handlers:callbackDelivery:animated:completion:)`
+- `UIViewController.fk_presentSheet(...)`
 - Runtime sheet state: `FKSheetPresentationController.detents`, `selectedDetent`, `selectedDetentIndex`
 
 ### Configuration Highlights
 
-- Placement: `layout`
-- Sheet behavior: `sheet.detents`, `sheet.initialSelectedDetentIndex`, `sheet.prefersGrabberVisible`, thresholds, magnetic snapping
+- Placement: `layout` (presets: `bottomSheetDefault`, `topSheetDefault`, `centerCard`, `centerAlert`, `passthroughOverlay`)
+- Safe mutation: `applyingSheet`, `applyingCenter`, `setBottomSheet`, `setTopSheet`, `setCenter`
+- Sheet behavior: `sheet.detents`, `sheet.multiStageBackdrop`, `sheet.crossDetentSwipeDismissPolicy`, grabber, thresholds, magnetic snapping
 - Center behavior: `center.size`, margins, interactive dismiss settings
 - Interaction: `dismissBehavior`, `backgroundInteraction`
 - Visuals: `cornerRadius`, `shadow`, `border`, `backdropStyle`, `contentInsets`
 - Adaptation: `safeAreaPolicy`, `keyboardAvoidance`, `rotationHandling`, `preferredContentSizePolicy`
-- Motion: `animation`
+- Motion: `animation` (`FKSheetAnimationPreset`, `customPropertyAnimator`, `customAnimatorProvider`)
+- Presenting chrome: `presentingViewEffect`
 - Accessibility/Haptics: `accessibility`, `haptics`
 
 ## Best Practices
@@ -377,19 +407,36 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - Keep all presentation operations on main actor (`present`, `dismiss`, `selectDetent`).
 - Prefer `.anchor` for in-page dropdown UX where anchor z-order and hierarchy attachment matter.
 - Use `preferredContentSize` on content controllers for predictable fit-content behavior.
-- Use callback/delegate hooks to sync business state with transition state.
+- Use `callbackDelivery` to pick delegate, handlers, or both; default is `.handlersOnly`.
+- Prefer `applyingSheet` / `applyingCenter` over assigning `configuration.sheet` when layout may not be a sheet mode (the property setter is a no-op outside sheet layouts).
 - For deterministic no-motion UX, set `configuration.animation.preset = .none`.
+
+## Source Layout
+
+| Folder | Responsibility |
+|--------|----------------|
+| `Public/Core/` | `FKSheetPresentationController`, delegate, lifecycle handlers, callback delivery |
+| `Public/Configuration/` | `FKSheetPresentationConfiguration` and topic extensions (layout, sizing, interaction, presets, applying) |
+| `Public/Animation/` | `FKSheetAnimationConfiguration`, presets, custom animator protocol |
+| `Public/Anchor/` | `FKAnchor`, `FKAnchorConfiguration`, content host, replacement policies |
+| `Public/Extension/` | `UIViewController.fk_presentSheet`, anchor replacement APIs |
+| `Public/Model/` | Detents, scroll-tracking strategy |
+| `Public/Support/` | Safe area, keyboard strategy, weak references |
+| `Internal/Core/` | Host protocol, layout engine, pan/keyboard coordinators, interaction engine |
+| `Internal/Animation/` | Style resolver, modal animator, overlay transition, interactive dismiss |
+| `Internal/Host/Container/` | Modal `UIPresentationController` pipeline (`+Layout`, `+Gesture`, `+Keyboard`, …) |
+| `Internal/Host/Overlay/` | Passthrough overlay host (`FKOverlayPresentationViewController` + extensions) |
+| `Internal/Host/Anchor/` | In-hierarchy anchor host and reposition |
+| `Internal/Appearance/` | Backdrop view chrome |
+| `Internal/Configuration/` | Internal configuration helpers (host routing predicate) |
+| `Internal/Support/` | Scroll tracking, view-controller lookup |
 
 ## Internal Architecture
 
-- `Public/`: stable API surface (`Core`, `Configuration`, `Animation`, `Anchor`, `Model`, `Support`)
-- `Internal/Host/Container`: modal `UIPresentationController` pipeline split by concern (`+Layout`, `+Gesture`, `+Keyboard`, `+Backdrop`, `+Scroll`, `+Callbacks`)
-- `Internal/Host/Overlay`: in-hierarchy passthrough host for zero-dim/background interaction scenarios
-- `Internal/Host/Anchor`: in-hierarchy anchor hosting (`FKAnchorHost`, host view controller, reposition coordinator)
-- `Internal/Core`: routing contracts and shared resolvers (`FKSheetPresentationHost`, transitioning delegate, `FKSheetPresentationLayoutEngine`, `FKSheetPresentationSheetPanCoordinator`, `FKSheetPresentationCenterPanCoordinator`, `FKSheetPresentationKeyboardCoordinator`, `FKSheetPresentationSheetInteractionContext`, anchor layout resolver, sheet detent index resolver, sheet interaction engine)
-- `Internal/Animation`: `FKSheetAnimationStyleResolver`, modal animators, and `FKSheetPresentationOverlayTransition` (overlay present/dismiss shares the same style resolver as modal)
-- `Internal/Host/Overlay/`: `FKOverlayPresentationViewController` split by concern (`+Layout`, `+Gesture`, `+Presentation`) mirroring the modal container extensions
-- `Internal/Support`: shared internal utilities (for example responder-chain lookup)
+- **Modal path** (`FKModalPresentationHost` → `FKContainerSheetPresentationController`): system modal transitions for standard sheets and center modals.
+- **Overlay path** (`FKOverlayPresentationHost` → `FKOverlayPresentationViewController`): in-hierarchy hosting when background passthrough is required.
+- **Anchor path** (`FKAnchorHost`): dropdown-style popups attached to source views without modal presentation.
+- **Shared core**: `FKSheetPresentationLayoutEngine`, `FKSheetPresentationInteractionEngine`, and pan coordinators keep modal and overlay gesture math aligned.
 
 ### Host capability matrix
 

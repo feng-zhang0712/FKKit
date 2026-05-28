@@ -208,7 +208,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
   }
 
   private var fkSheetPresentationController: FKSheetPresentationController?
-  private var presentedContentContainer: FKAnchoredDropdownContentContainerViewController?
+  private var presentedContentContainer: FKSheetPresentationAnchorContentHostViewController?
   private var scheduledDismissReason: DismissReason?
   private var lastCollapsingTabID: TabID?
   private var pendingSwitchTargetTabID: TabID?
@@ -342,7 +342,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
     expandedTabInternal = id
     rebuildTabBarItems(keepSelectedTab: selectedTabInternal ?? id)
 
-    let container = FKAnchoredDropdownContentContainerViewController()
+      let container = FKSheetPresentationAnchorContentHostViewController()
     container.onPreferredContentSizeDidChange = { [weak self] in
       guard let self else { return }
       let shouldAnimate = self.configuration.switchAnimationStyle.isReplaceInPlace
@@ -503,13 +503,13 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
     return (from: from, to: to, animated: animated)
   }
 
-  private func containerTransition(for animation: FKAnchoredDropdownConfiguration.ReplaceInPlaceAnimation) -> FKAnchoredDropdownContentContainerViewController.Transition {
+  private func containerTransition(for animation: FKAnchoredDropdownConfiguration.ReplaceInPlaceAnimation) -> FKSheetPresentationAnchorContentTransition {
     switch animation {
     case let .crossfade(duration):
       return .crossfade(duration: duration)
     case let .slideVertical(direction, duration):
-      let d: FKAnchoredDropdownContentContainerViewController.Transition.SlideDirection = (direction == .up) ? .up : .down
-      return .slideVertical(direction: d, duration: duration)
+      let slideDirection: FKSheetPresentationAnchorContentTransition.SlideDirection = (direction == .up) ? .up : .down
+      return .slideVertical(direction: slideDirection, duration: duration)
     }
   }
 }

@@ -804,7 +804,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Corrected basic bottom-sheet example narrative to match actual configuration behavior.
 
 ### Changed (Documentation)
-- Updated `Sources/FKUIKit/Components/PresentationController/README.md` with zero-dim backdrop behavior and overlay host architecture notes.
+- Updated `Sources/FKUIKit/Components/SheetPresentationController/README.md` with zero-dim backdrop behavior and overlay host architecture notes.
 - Updated root `README.md` FKUIKit module structure/component list to match current on-disk components:
   - removed stale references to deleted modules (`Carousel`, `LoadingAnimator`, `StarRating`, `StickyHeader`, `SwipeAction`)
   - renamed `Presentation` references to `PresentationController`.

@@ -171,6 +171,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           make: { AnchorAutoDirectionExampleViewController() }
         ),
         Row(
+          title: "Anchor content replacement",
+          subtitle: "Dismiss-then-present vs in-place content/height swap at the same anchor.",
+          make: { AnchorContentReplacementExampleViewController() }
+        ),
+        Row(
           title: "Navigation bar anchor popup",
           subtitle: "Expands downward from the navigation bar bottom edge (typical title-bar menu pattern).",
           make: { AnchorNavigationBarExampleViewController() }

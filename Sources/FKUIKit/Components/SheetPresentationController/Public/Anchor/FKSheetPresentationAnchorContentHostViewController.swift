@@ -1,32 +1,37 @@
 import UIKit
 
+/// Hosts interchangeable anchor popup content and forwards ``preferredContentSize`` to the sheet layout engine.
+///
+/// Use this as the `contentController` passed to ``FKSheetPresentationController`` when you plan to call
+/// ``FKSheetPresentationController/presentOrReplaceAnchorContent(from:contentController:replacement:presentAnimated:completion:)``
+/// or ``setAnchorContent(_:transition:animateLayout:layoutAnimationDuration:completion:)`` on the same instance.
 @MainActor
-internal final class FKAnchoredDropdownContentContainerViewController: UIViewController {
-  enum Transition {
-    case none
-    case crossfade(duration: TimeInterval)
-    case slideVertical(direction: SlideDirection, duration: TimeInterval)
+public final class FKSheetPresentationAnchorContentHostViewController: UIViewController {
+  /// Content transition applied by ``setContent(_:transition:completion:)``.
+  public typealias Transition = FKSheetPresentationAnchorContentTransition
 
-    enum SlideDirection {
-      case up
-      case down
-    }
-  }
+  /// Whether a content transition is running.
+  public private(set) var isTransitioningContent: Bool = false
 
-  private(set) var isTransitioningContent: Bool = false
+  /// Called after ``preferredContentSize`` changes so the anchor host can relayout.
+  public var onPreferredContentSizeDidChange: (() -> Void)?
+
   private var current: UIViewController?
-  /// Child whose view is being shown or animated in; `current` still points at the outgoing controller until finalize.
   private var inFlightContent: UIViewController?
   private var pendingRequest: (UIViewController, Transition, (() -> Void)?)?
   private var coalescedCompletion: (() -> Void)?
-  var onPreferredContentSizeDidChange: (() -> Void)?
 
-  override func viewDidLoad() {
+  public override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .clear
   }
 
-  func setContent(_ content: UIViewController, transition: Transition, completion: (() -> Void)? = nil) {
+  /// Replaces the hosted child, optionally animating the swap and publishing the new preferred size immediately.
+  public func setContent(
+    _ content: UIViewController,
+    transition: Transition = .none,
+    completion: (() -> Void)? = nil
+  ) {
     if isTransitioningContent {
       if inFlightContent === content {
         mergeCompletion(completion)
@@ -40,7 +45,6 @@ internal final class FKAnchoredDropdownContentContainerViewController: UIViewCon
       return
     }
 
-    // If content is already displayed, treat as no-op.
     if current === content {
       preferredContentSize = content.preferredContentSize
       completion?()
@@ -62,8 +66,6 @@ internal final class FKAnchoredDropdownContentContainerViewController: UIViewCon
     ])
     view.layoutIfNeeded()
 
-    // Publish the target size immediately so the host can animate frame changes in parallel
-    // with content transition (instead of waiting until transition completion).
     preferredContentSize = resolvedPreferredContentSize(for: content)
     onPreferredContentSizeDidChange?()
 
@@ -108,7 +110,11 @@ internal final class FKAnchoredDropdownContentContainerViewController: UIViewCon
 
     case let .crossfade(duration):
       content.view.alpha = 0
-      UIView.animate(withDuration: max(0, duration), delay: 0, options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]) {
+      UIView.animate(
+        withDuration: max(0, duration),
+        delay: 0,
+        options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]
+      ) {
         content.view.alpha = 1
         previous.view.alpha = 0
       } completion: { _ in
@@ -117,10 +123,14 @@ internal final class FKAnchoredDropdownContentContainerViewController: UIViewCon
       }
 
     case let .slideVertical(direction, duration):
-      let h = max(1, view.bounds.height)
-      let offset: CGFloat = (direction == .up) ? h : -h
+      let height = max(1, self.view.bounds.height)
+      let offset: CGFloat = (direction == .up) ? height : -height
       content.view.transform = CGAffineTransform(translationX: 0, y: offset)
-      UIView.animate(withDuration: max(0, duration), delay: 0, options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]) {
+      UIView.animate(
+        withDuration: max(0, duration),
+        delay: 0,
+        options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]
+      ) {
         content.view.transform = .identity
         previous.view.transform = CGAffineTransform(translationX: 0, y: -offset * 0.35)
         previous.view.alpha = 0
@@ -132,7 +142,7 @@ internal final class FKAnchoredDropdownContentContainerViewController: UIViewCon
     }
   }
 
-  override func preferredContentSizeDidChange(forChildContentContainer container: any UIContentContainer) {
+  public override func preferredContentSizeDidChange(forChildContentContainer container: any UIContentContainer) {
     super.preferredContentSizeDidChange(forChildContentContainer: container)
     guard let current, container === current else { return }
     preferredContentSize = current.preferredContentSize
@@ -154,9 +164,9 @@ internal final class FKAnchoredDropdownContentContainerViewController: UIViewCon
   private static func chainCompletions(_ first: (() -> Void)?, _ second: (() -> Void)?) -> (() -> Void)? {
     switch (first, second) {
     case (nil, nil): return nil
-    case (let a?, nil): return a
-    case (nil, let b?): return b
-    case (let a?, let b?): return { a(); b() }
+    case (let first?, nil): return first
+    case (nil, let second?): return second
+    case (let first?, let second?): return { first(); second() }
     }
   }
 
