@@ -99,9 +99,9 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKPagingControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          title: "PresentationController",
-          subtitle: "Custom PresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
-          make: { FKPresentationControllerExamplesHubViewController() }
+          title: "SheetPresentationController",
+          subtitle: "Custom SheetPresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
+          make: { FKSheetPresentationControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "ProgressBar",

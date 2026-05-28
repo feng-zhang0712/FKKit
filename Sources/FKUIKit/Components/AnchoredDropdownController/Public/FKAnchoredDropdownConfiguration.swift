@@ -4,7 +4,7 @@ import UIKit
 public struct FKAnchoredDropdownConfiguration {
   /// How the component switches tabs while a panel stays presented.
   public enum SwitchAnimationStyle: Equatable, Sendable {
-    /// Dismiss, then present again (uses full ``FKPresentationController`` transitions).
+    /// Dismiss, then present again (uses full ``FKSheetPresentationController`` transitions).
     case dismissThenPresent(dismissAnimated: Bool, presentAnimated: Bool)
 
     /// Replace only the content; backdrop and shell stay visible.
@@ -28,7 +28,7 @@ public struct FKAnchoredDropdownConfiguration {
     case cachePerTab
   }
 
-  /// Durations used when the presented shell asks ``FKPresentationController`` to relayout after
+  /// Durations used when the presented shell asks ``FKSheetPresentationController`` to relayout after
   /// content height changes (``preferredContentSize`` / in-place tab switch completion).
   ///
   /// This is separate from ``SwitchAnimationStyle`` crossfade/slide durations, which only affect
@@ -75,7 +75,7 @@ public struct FKAnchoredDropdownConfiguration {
 
   public var tabBarConfiguration: FKTabBarConfiguration
   /// Dismiss behavior, backdrop, keyboard, and other presentation options. Layout is always anchor; the host overwrites `layout` when presenting.
-  public var presentationConfiguration: FKPresentationConfiguration
+  public var presentationConfiguration: FKSheetPresentationConfiguration
   public var switchAnimationStyle: SwitchAnimationStyle
   public var contentCachingPolicy: ContentCachingPolicy
   /// Anchor presentation relayout animation after content size / tab content changes.
@@ -85,7 +85,7 @@ public struct FKAnchoredDropdownConfiguration {
 
   public init(
     tabBarConfiguration: FKTabBarConfiguration = FKAnchoredDropdownConfiguration.default.tabBarConfiguration,
-    presentationConfiguration: FKPresentationConfiguration = FKAnchoredDropdownConfiguration.default.presentationConfiguration,
+    presentationConfiguration: FKSheetPresentationConfiguration = FKAnchoredDropdownConfiguration.default.presentationConfiguration,
     switchAnimationStyle: SwitchAnimationStyle = .replaceInPlace(animation: .crossfade(duration: 0.18)),
     contentCachingPolicy: ContentCachingPolicy = .cachePerTab,
     presentationLayoutAnimation: PresentationLayoutAnimation = PresentationLayoutAnimation(),

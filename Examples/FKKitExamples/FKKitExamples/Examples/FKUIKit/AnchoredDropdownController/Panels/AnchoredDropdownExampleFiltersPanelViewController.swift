@@ -20,7 +20,7 @@ final class AnchoredDropdownExampleFiltersPanelViewController: UIViewController,
     ])
 
     // Encourage intrinsic height measurement while still allowing internal scrolling:
-    // FKPresentationController will clamp by available space and content will scroll.
+    // FKSheetPresentationController will clamp by available space and content will scroll.
     preferredContentSize = CGSize(width: 0, height: 420)
   }
 

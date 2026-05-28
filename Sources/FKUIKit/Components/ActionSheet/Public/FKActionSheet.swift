@@ -321,7 +321,7 @@ public final class FKActionSheet: UIViewController {
       case .centered:
         let scale: CGFloat
         if self.centeredTransitionReveals {
-          // Present: subtle zoom-down from 1.08 (matches FKPresentationController `.center` / alertLikeCenter).
+          // Present: subtle zoom-down from 1.08 (matches FKSheetPresentationController `.center` / alertLikeCenter).
           scale = 1.08 - (0.08 * self.presentationProgress)
         } else {
           // Dismiss: fade out with slight shrink to 0.92.

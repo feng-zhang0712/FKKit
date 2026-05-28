@@ -51,7 +51,7 @@ public final class FKFilterSingleListViewController: UITableViewController {
   private let onSelection: ((FKFilterPanelSelection) -> Void)?
   private let allowsMultipleSelection: Bool
 
-  /// Row height used for `FKPresentation` sizing before the table has a real layout pass.
+  /// Row height used for `FKSheetPresentationController` sizing before the table has a real layout pass.
   private static let fallbackSizingRowHeight: CGFloat = 44
 
   public init(

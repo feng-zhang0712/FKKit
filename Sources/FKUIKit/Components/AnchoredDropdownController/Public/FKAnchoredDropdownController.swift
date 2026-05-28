@@ -1,6 +1,6 @@
 import UIKit
 
-/// Hosts an ``FKTabBar`` and presents an anchor-attached panel per tab via ``FKPresentationController``.
+/// Hosts an ``FKTabBar`` and presents an anchor-attached panel per tab via ``FKSheetPresentationController``.
 ///
 /// Typical interaction: tap a tab to expand its panel below the bar (or a custom anchor), tap again to collapse,
 /// switch tabs while expanded, or dismiss via backdrop / swipe when enabled in ``FKAnchoredDropdownConfiguration/presentationConfiguration``.
@@ -207,7 +207,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
     didSet { events.onExpandedTabChange?(expandedTabInternal) }
   }
 
-  private var fkPresentationController: FKPresentationController?
+  private var fkSheetPresentationController: FKSheetPresentationController?
   private var presentedContentContainer: FKAnchoredDropdownContentContainerViewController?
   private var scheduledDismissReason: DismissReason?
   private var lastCollapsingTabID: TabID?
@@ -296,7 +296,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
     guard isReconciling == false else { return }
     guard let desiredExpanded else { return }
     guard isSwitchingContentInPlace == false else { return }
-    guard let presented = fkPresentationController else {
+    guard let presented = fkSheetPresentationController else {
       if let target = desiredExpanded.tab {
         let started = transitionToExpand(tab: target, animated: desiredExpanded.animated)
         if started {
@@ -334,7 +334,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
   @discardableResult
   private func transitionToExpand(tab id: TabID, animated: Bool) -> Bool {
     guard let tab = tabs.first(where: { $0.id == id }) else { return false }
-    guard fkPresentationController == nil else { return false }
+    guard fkSheetPresentationController == nil else { return false }
     guard viewIfLoaded?.window != nil else { return false }
 
     events.onWillExpand?(id)
@@ -347,7 +347,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
       guard let self else { return }
       let shouldAnimate = self.configuration.switchAnimationStyle.isReplaceInPlace
       let layoutDuration = self.configuration.presentationLayoutAnimation.duration
-      self.fkPresentationController?.updateLayout(
+      self.fkSheetPresentationController?.updateLayout(
         animated: shouldAnimate,
         duration: shouldAnimate ? layoutDuration : 0,
         options: .curveEaseInOut
@@ -360,8 +360,8 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
     var cfg = configuration.presentationConfiguration
     cfg.layout = .anchor(makePresentationAnchorConfiguration())
 
-    let controller = FKPresentationController(contentController: container, configuration: cfg, delegate: self)
-    fkPresentationController = controller
+    let controller = FKSheetPresentationController(contentController: container, configuration: cfg, delegate: self)
+    fkSheetPresentationController = controller
     controller.present(from: self, animated: animated, completion: nil)
     return true
   }
@@ -397,7 +397,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
   }
 
   private func transitionToCollapse(reason: DismissReason, animated: Bool) {
-    guard let controller = fkPresentationController else { return }
+    guard let controller = fkSheetPresentationController else { return }
     let closingTab = expandedTabInternal
     lastCollapsingTabID = closingTab
     scheduledDismissReason = reason
@@ -413,7 +413,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
   }
 
   private func transitionToSwitch(from: TabID, to: TabID, animated: Bool) {
-    guard let controller = fkPresentationController else {
+    guard let controller = fkSheetPresentationController else {
       transitionToExpand(tab: to, animated: animated)
       return
     }
@@ -450,7 +450,7 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
       let layoutDuration = configuration.presentationLayoutAnimation.duration
       container.setContent(nextContent, transition: containerTransition(for: animation)) { [weak self] in
         guard let self else { return }
-        self.fkPresentationController?.updateLayout(
+        self.fkSheetPresentationController?.updateLayout(
           animated: true,
           duration: layoutDuration,
           options: .curveEaseInOut
@@ -514,17 +514,17 @@ public final class FKAnchoredDropdownController<TabID: Hashable>: UIViewControll
   }
 }
 
-// MARK: - FKPresentationControllerDelegate
+// MARK: - FKSheetPresentationControllerDelegate
 
-extension FKAnchoredDropdownController: FKPresentationControllerDelegate {
-  public func presentationControllerDidPresent(_ controller: FKPresentationController) {
+extension FKAnchoredDropdownController: FKSheetPresentationControllerDelegate {
+  public func presentationControllerDidPresent(_ controller: FKSheetPresentationController) {
     guard let expanded = expandedTabInternal else { return }
     events.onDidExpand?(expanded)
     setState(.expanded(tab: expanded))
     reconcileIfPossible()
   }
 
-  public func presentationControllerWillDismiss(_ controller: FKPresentationController) {
+  public func presentationControllerWillDismiss(_ controller: FKSheetPresentationController) {
     if scheduledDismissReason == nil {
       scheduledDismissReason = .backdropOrSwipe
       lastCollapsingTabID = expandedTabInternal
@@ -536,11 +536,11 @@ extension FKAnchoredDropdownController: FKPresentationControllerDelegate {
     }
   }
 
-  public func presentationControllerDidDismiss(_ controller: FKPresentationController) {
+  public func presentationControllerDidDismiss(_ controller: FKSheetPresentationController) {
     let reason = scheduledDismissReason ?? .backdropOrSwipe
     let collapsingTab = lastCollapsingTabID ?? expandedTabInternal
 
-    fkPresentationController = nil
+    fkSheetPresentationController = nil
     presentedContentContainer = nil
     expandedTabInternal = nil
     scheduledDismissReason = nil

@@ -21,7 +21,7 @@ final class AnchoredDropdownExampleSearchPanelViewController: UIViewController, 
 
     let hint = UILabel()
     hint.translatesAutoresizingMaskIntoConstraints = false
-    hint.text = "Keyboard avoidance comes from FKPresentationController configuration."
+    hint.text = "Keyboard avoidance comes from FKSheetPresentationController configuration."
     hint.textColor = .secondaryLabel
     hint.numberOfLines = 0
     hint.font = .preferredFont(forTextStyle: .subheadline)

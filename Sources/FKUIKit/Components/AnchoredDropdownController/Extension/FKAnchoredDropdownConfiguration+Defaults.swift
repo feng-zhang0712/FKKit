@@ -14,7 +14,7 @@ public extension FKAnchoredDropdownConfiguration {
     tab.appearance.showsDivider = true
     tab.appearance.dividerPosition = .bottom
 
-    var presentation = FKPresentationConfiguration.default
+    var presentation = FKSheetPresentationConfiguration.default
     presentation.cornerRadius = 10
     presentation.backdropStyle = .dim(alpha: 0.25)
     presentation.dismissBehavior = .init(allowsTapOutside: true, allowsSwipe: true, allowsBackdropTap: true)

@@ -84,7 +84,7 @@ FKKit/
 │        ├─ MultiPicker/
 │        ├─ PagingController/
 │        ├─ Player/
-│        ├─ PresentationController/
+│        ├─ SheetPresentationController/
 │        ├─ ProgressBar/
 │        ├─ Refresh/
 │        ├─ Skeleton/
@@ -127,14 +127,14 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `ExpandableText`: long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; sources under `Public/`, `Internal/`, `Extension/` with `FKExpandableText.defaultConfiguration` and layout cache (see component README).
 - `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
 - `PagingController`: **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress; includes **`FKPagingConfiguration`** (retention, gestures, tab alignment) and SwiftUI **`FKPagingControllerRepresentable`** (`Public/` + `Internal/` under `Sources/FKUIKit/Components/PagingController/`).
-- `PresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
+- `SheetPresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
 - `Refresh`: pull-to-refresh and load-more controls for scroll views.
 - `Skeleton`: skeleton loading system for views/lists/containers with animation options.
 - `TabBar`: high-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only).
 - `TextField`: one-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback.
 - `Toast`: unified Toast / HUD / Snackbar presenter (`Public/` + `Internal/`) with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, per-instance progress updates, presentation sound policy, and SwiftUI hosting support (see `Sources/FKUIKit/Components/Toast/README.md`).
 - `Base`: reusable base foundation for cells and controllers — see `Sources/FKUIKit/Components/Base/README.md`.
-- `AnchoredDropdownController`: tab bar + anchor-embedded dropdown panels (e.g. filter UIs) built on `FKPresentationController` — see `Sources/FKUIKit/Components/AnchoredDropdownController/README.md`.
+- `AnchoredDropdownController`: tab bar + anchor-embedded dropdown panels (e.g. filter UIs) built on `FKSheetPresentationController` — see `Sources/FKUIKit/Components/AnchoredDropdownController/README.md`.
 - `Filter`: filter chrome and panels on top of **`AnchoredDropdownController`** (`FKFilterConfiguration`, `FKFilterController`, `FKFilterHosting`, panel kinds and factory) under `Sources/FKUIKit/Components/Filter/`.
 
 `FKUIKit` depends on **`FKCoreKit`** and **`FKEmptyStateCoreLite`**. Component **README.md** files live next to sources; the root `README` stays a high-level map only.

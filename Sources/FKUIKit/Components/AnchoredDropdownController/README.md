@@ -1,6 +1,6 @@
 # Anchored dropdown (`FKAnchoredDropdownController`)
 
-Composite UIKit controller: **`FKTabBar`** + **anchor-embedded panel** via **`FKPresentationController`** (`FKUIKit`).
+Composite UIKit controller: **`FKTabBar`** + **anchor-embedded panel** via **`FKSheetPresentationController`** (`FKUIKit`).
 
 ## Layout
 
@@ -33,14 +33,14 @@ Choose `overlayHost` as an ancestor of `source` when possible so mask and layout
 |------|------|
 | ``FKAnchoredDropdownController`` | Child-friendly `UIViewController`; generic `TabID: Hashable`. |
 | ``FKAnchoredDropdownTab`` | Tab id, `makeTabBarItem`, and content factory. |
-| ``FKAnchoredDropdownConfiguration`` | Tab bar + **full** `FKPresentationConfiguration` (dismiss, backdrop, keyboard, …), switch animation, caching, optional `anchorPlacement`. |
+| ``FKAnchoredDropdownConfiguration`` | Tab bar + **full** `FKSheetPresentationConfiguration` (dismiss, backdrop, keyboard, …), switch animation, caching, optional `anchorPlacement`. |
 | ``FKAnchoredDropdownConfiguration/Events`` | Optional `on*` closures for state and transitions. |
 | ``FKAnchoredDropdownAnchorPlacement`` | Weak `sourceView` / `overlayHostView` + `FKAnchor` fields. |
 | ``FKAnchoredDropdownTabBarHost`` | Custom chrome around `FKTabBar`; default type ``FKAnchoredDropdownDefaultTabBarHost``. |
 
 ## Dependencies
 
-- **FKUIKit**: `FKTabBar`, `FKPresentationController`, anchor types.
+- **FKUIKit**: `FKTabBar`, `FKSheetPresentationController`, anchor types.
 - **FKCoreKit**: optional for your own panel code.
 
 Integration: build `[FKAnchoredDropdownTab]`, pick `configuration`, optionally `events`, then ``embed(in:pinTo:)`` or add as a child view controller.

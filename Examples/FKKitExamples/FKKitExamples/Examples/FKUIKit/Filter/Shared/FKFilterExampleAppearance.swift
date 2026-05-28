@@ -117,7 +117,7 @@ enum FKFilterExampleAppearance {
     return cfg
   }
 
-  /// Invisible dim + passthrough hits on the presenting screen (see ``FKPresentationConfiguration/ZeroDimBackdropBehavior``).
+  /// Invisible dim + passthrough hits on the presenting screen (see ``FKSheetPresentationConfiguration/ZeroDimBackdropBehavior``).
   static func equalThreePassthroughBackdrop() -> FKAnchoredDropdownConfiguration {
     var cfg = equalThreeAnchoredConfiguration()
     cfg.presentationConfiguration.backdropStyle = .dim(alpha: 0)
