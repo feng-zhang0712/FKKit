@@ -1,7 +1,7 @@
 import UIKit
 
-/// Built-in transition presets for FK presentation animations.
-public enum FKAnimationPreset {
+/// Built-in transition presets for FK sheet presentation animations.
+public enum FKSheetAnimationPreset: Sendable, Equatable {
   /// Tries to match native sheet-like motion.
   case systemLike
   /// Uses spring motion with configurable damping/response.
@@ -13,4 +13,3 @@ public enum FKAnimationPreset {
   /// Disables transition animation.
   case none
 }
-

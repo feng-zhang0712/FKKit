@@ -2,11 +2,11 @@ import UIKit
 
 public extension FKSheetPresentationConfiguration {
   /// Effects applied to the presenting view controller while content is shown.
-  struct PresentingViewEffectConfiguration {
+  struct PresentingViewEffectConfiguration: Sendable, Equatable {
     /// Enables presenting-view effects.
-    var isEnabled: Bool
+    public var isEnabled: Bool
     /// Scale applied to presenting view at peak presentation.
-    var scale: CGFloat
+    public var scale: CGFloat
 
     /// Creates presenting-view effects.
     ///

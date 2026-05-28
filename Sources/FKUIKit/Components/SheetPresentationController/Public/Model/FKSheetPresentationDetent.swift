@@ -1,7 +1,7 @@
 import UIKit
 
 /// Height strategy used by sheet-style presentation modes.
-public enum FKSheetPresentationDetent: Equatable {
+public enum FKSheetPresentationDetent: Equatable, Sendable {
   /// Uses the intrinsic or preferred content size of the presented controller.
   case fitContent
   /// Uses a fixed height in points.

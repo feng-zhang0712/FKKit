@@ -2,6 +2,7 @@ import UIKit
 
 public extension FKAnchoredDropdownConfiguration {
   /// Default configuration tuned for an anchored dropdown below a top tab bar.
+  @MainActor
   static var `default`: FKAnchoredDropdownConfiguration {
     var tab = FKTabBarConfiguration()
     tab.layout.isScrollable = true

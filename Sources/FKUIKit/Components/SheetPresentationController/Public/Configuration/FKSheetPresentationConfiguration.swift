@@ -1,7 +1,7 @@
 import UIKit
 
 /// Top-level configuration that describes what kind of presentation experience to build.
-public struct FKSheetPresentationConfiguration {
+public struct FKSheetPresentationConfiguration: @unchecked Sendable {
   /// Placement and mode-specific sizing behavior.
   public var layout: Layout
   /// Safe area adaptation policy.
@@ -64,7 +64,7 @@ public struct FKSheetPresentationConfiguration {
     }
   }
   /// Animation behavior.
-  public var animation: FKAnimationConfiguration
+  public var animation: FKSheetAnimationConfiguration
   /// Insets applied around the presented content view inside the container.
   ///
   /// This controls the padding between the container chrome and your content view, and is useful for:
@@ -94,7 +94,7 @@ public struct FKSheetPresentationConfiguration {
     keyboardAvoidance: KeyboardAvoidanceConfiguration = .init(),
     rotationHandling: RotationHandling = .relayoutAnimated,
     preferredContentSizePolicy: PreferredContentSizePolicy = .automatic,
-    animation: FKAnimationConfiguration = .init(),
+    animation: FKSheetAnimationConfiguration = .init(),
     contentInsets: NSDirectionalEdgeInsets = .zero,
     haptics: HapticsConfiguration = .init(),
     accessibility: AccessibilityConfiguration = .init()
@@ -120,7 +120,10 @@ public struct FKSheetPresentationConfiguration {
   }
 
   /// Sensible baseline that mirrors common bottom-sheet interactions.
-  public nonisolated(unsafe) static let `default` = FKSheetPresentationConfiguration()
+  ///
+  /// Prefer ``bottomSheetDefault`` for explicit layout-scoped naming.
+  @MainActor
+  public static var `default`: FKSheetPresentationConfiguration { bottomSheetDefault }
 }
 
 extension UIEdgeInsets {

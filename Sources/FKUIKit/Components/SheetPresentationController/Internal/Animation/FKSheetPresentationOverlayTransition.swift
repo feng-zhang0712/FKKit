@@ -9,7 +9,7 @@ enum FKSheetPresentationOverlayTransition {
     var transform: CGAffineTransform
   }
 
-  /// Animates overlay chrome for present/dismiss using ``FKAnimationStyleResolver``.
+  /// Animates overlay chrome for present/dismiss using ``FKSheetAnimationStyleResolver``.
   static func animatePresentation(
     configuration: FKSheetPresentationConfiguration,
     isPresentation: Bool,
@@ -19,7 +19,7 @@ enum FKSheetPresentationOverlayTransition {
     baseFrame: CGRect,
     completion: @escaping () -> Void
   ) {
-    let style = FKAnimationStyleResolver.resolveTransitionStyle(
+    let style = FKSheetAnimationStyleResolver.resolveTransitionStyle(
       layout: configuration.layout,
       animationConfiguration: configuration.animation,
       isPresentation: isPresentation,
@@ -63,7 +63,7 @@ enum FKSheetPresentationOverlayTransition {
     dismissalVelocityY: CGFloat,
     completion: @escaping () -> Void
   ) {
-    let style = FKAnimationStyleResolver.resolveTransitionStyle(
+    let style = FKSheetAnimationStyleResolver.resolveTransitionStyle(
       layout: configuration.layout,
       animationConfiguration: configuration.animation,
       isPresentation: false,
@@ -116,7 +116,7 @@ enum FKSheetPresentationOverlayTransition {
 
   private static func onScreenVisualState(
     baseFrame: CGRect,
-    style: FKAnimationStyleResolver.TransitionStyle
+    style: FKSheetAnimationStyleResolver.TransitionStyle
   ) -> VisualState {
     VisualState(
       frame: baseFrame,
@@ -127,7 +127,7 @@ enum FKSheetPresentationOverlayTransition {
 
   private static func offScreenVisualState(
     baseFrame: CGRect,
-    style: FKAnimationStyleResolver.TransitionStyle,
+    style: FKSheetAnimationStyleResolver.TransitionStyle,
     layout: FKSheetPresentationConfiguration.Layout
   ) -> VisualState {
     let frame = style.family == .alertLikeCenter ? baseFrame : offsetFrame(for: baseFrame, layout: layout)
@@ -162,7 +162,7 @@ enum FKSheetPresentationOverlayTransition {
   private static func apply(
     _ state: VisualState,
     to wrapperView: UIView,
-    family: FKAnimationStyleResolver.Family
+    family: FKSheetAnimationStyleResolver.Family
   ) {
     wrapperView.alpha = state.alpha
     switch family {
@@ -177,7 +177,7 @@ enum FKSheetPresentationOverlayTransition {
   }
 
   private static func makePropertyAnimator(
-    style: FKAnimationStyleResolver.TransitionStyle,
+    style: FKSheetAnimationStyleResolver.TransitionStyle,
     animations: @escaping () -> Void
   ) -> UIViewPropertyAnimator {
     switch style.timing {

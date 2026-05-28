@@ -26,6 +26,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           make: { BottomSheetBasicsExampleViewController() }
         ),
         Row(
+          title: "Configuration presets",
+          subtitle: "`bottomSheetDefault`, `centerCard`, `passthroughOverlay`, and `applyingSheet`.",
+          make: { ConfigurationPresetsExampleViewController() }
+        ),
+        Row(
           title: "Top sheet — Basics",
           subtitle: "A top-attached sheet and common use cases (e.g. drop-down trays).",
           make: { TopSheetBasicsExampleViewController() }
@@ -34,6 +39,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           title: "Center — Basics",
           subtitle: "Fixed vs fitted sizing with max constraints for large screens.",
           make: { CenterModalBasicsExampleViewController() }
+        ),
+        Row(
+          title: "Edge layout",
+          subtitle: "Left/right/top/bottom edge-attached trays without detents.",
+          make: { EdgeLayoutExampleViewController() }
         ),
       ]
     ),
@@ -100,6 +110,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           subtitle: "Use progress updates to drive UI (e.g. a progress label).",
           make: { InteractiveDismissProgressExampleViewController() }
         ),
+        Row(
+          title: "Callback delivery",
+          subtitle: "Delegate-only vs handlers-only vs both lifecycle channels.",
+          make: { CallbackDeliveryExampleViewController() }
+        ),
       ]
     ),
     Section(
@@ -129,6 +144,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           title: "Anchor popup blur",
           subtitle: "Anchor popup blur with dim/material/backend/mode and custom blur controls.",
           make: { AnchorBlurExampleViewController() }
+        ),
+        Row(
+          title: "Presenting view effect",
+          subtitle: "Scale the presenting hierarchy while content is visible.",
+          make: { PresentingViewEffectExampleViewController() }
         ),
       ]
     ),
@@ -190,6 +210,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           subtitle: "Adjust alpha with a slider and understand readability trade-offs.",
           make: { DimBackdropExampleViewController() }
         ),
+        Row(
+          title: "Multi-stage backdrop",
+          subtitle: "Detent-aware dim intensity between minimum and maximum alpha.",
+          make: { MultiStageBackdropExampleViewController() }
+        ),
       ]
     ),
     Section(
@@ -204,6 +229,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           title: "Custom timing",
           subtitle: "When you need explicit duration/curve/spring tuning.",
           make: { CustomAnimationTimingExampleViewController() }
+        ),
+        Row(
+          title: "Custom animator provider",
+          subtitle: "Replace built-in transitions with `FKSheetPresentationAnimatorProviding`.",
+          make: { CustomAnimatorProviderExampleViewController() }
         ),
         Row(
           title: "Reduce Motion aware",

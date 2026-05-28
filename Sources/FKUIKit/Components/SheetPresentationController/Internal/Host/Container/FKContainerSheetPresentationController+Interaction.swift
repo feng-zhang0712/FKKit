@@ -12,7 +12,7 @@ extension FKContainerSheetPresentationController {
   func performInteractiveDismiss(velocityY: CGFloat, completionFraction: CGFloat) {
     keepsInteractiveFrameForDismissal = true
     dismissalStartingFrame = wrapperView.frame
-    sheetPanVelocityY = velocityY
+    sheetPanCoordinator.sheetPanVelocityY = velocityY
 
     let fraction = min(max(completionFraction, 0), 1)
     if let delegate = presentationTransitioningDelegate() {
@@ -50,27 +50,25 @@ extension FKContainerSheetPresentationController {
     guard case .center(_) = configuration.layout else { return }
     switch configuration.backdropStyle {
     case let .dim(_, alpha):
-      centerDismissBaseBackdropAlpha = alpha
+      centerPanCoordinator.baseBackdropAlpha = alpha
     default:
-      centerDismissBaseBackdropAlpha = 1
+      centerPanCoordinator.baseBackdropAlpha = 1
     }
   }
 
   func applyCenterInteractiveDismissTransform(translationY: CGFloat, progress: CGFloat) {
     guard let containerView else { return }
-    isCenterInteractivelyDragging = true
     wrapperView.transform = FKSheetPresentationInteractionSupport.centerDismissTransform(
       translationY: translationY,
       containerHeight: containerView.bounds.height
     )
     backdropView.alpha = FKSheetPresentationInteractionSupport.centerDismissBackdropAlpha(
-      baseAlpha: centerDismissBaseBackdropAlpha,
+      baseAlpha: centerPanCoordinator.baseBackdropAlpha,
       progress: progress
     )
   }
 
   func resetCenterInteractiveDismissVisuals(animated: Bool = false, completion: (() -> Void)? = nil) {
-    isCenterInteractivelyDragging = false
     let updates = {
       self.wrapperView.transform = .identity
       self.updateBackdropForCurrentState()

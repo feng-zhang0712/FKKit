@@ -2,8 +2,8 @@ import UIKit
 
 public extension FKSheetPresentationConfiguration {
   /// Sheet-specific behavior and allowed heights.
-  struct SheetConfiguration {
-    public enum WidthPolicy {
+  struct SheetConfiguration: Sendable {
+    public enum WidthPolicy: Sendable, Equatable {
       /// Uses full container width.
       case fill
       /// Uses a fraction of container width and centers the sheet.
@@ -25,7 +25,7 @@ public extension FKSheetPresentationConfiguration {
     }
 
     /// Backdrop tuning that reacts to detent state.
-    public struct MultiStageBackdropConfiguration {
+    public struct MultiStageBackdropConfiguration: Sendable, Equatable {
       /// Enables detent-based backdrop intensity updates.
       public var isEnabled: Bool
       /// Minimum backdrop alpha used at the smallest detent.
@@ -129,9 +129,9 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Sizing rules for the `.center` mode.
-  struct CenterConfiguration {
+  struct CenterConfiguration: Sendable, Equatable {
     /// Size strategy for centered presentation.
-    public enum Size {
+    public enum Size: Sendable, Equatable {
       /// Uses a fixed size.
       case fixed(CGSize)
       /// Uses content-fitting size clamped by maximum bounds.
@@ -166,7 +166,7 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Rotation handling strategy used when interface orientation changes.
-  public enum RotationHandling {
+  public enum RotationHandling: Sendable, Equatable {
     /// Relayouts and animates to the new frame when the container bounds change.
     case relayoutAnimated
     /// Relayouts without animation when the container bounds change.
@@ -176,7 +176,7 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Preferred content size policy when modes support intrinsic content.
-  public enum PreferredContentSizePolicy {
+  public enum PreferredContentSizePolicy: Sendable, Equatable {
     /// Uses `preferredContentSize` when it is at least 44pt; otherwise falls back to layout fitting.
     case automatic
     /// Ignores `preferredContentSize` and uses layout fitting for fit-content sizing.

@@ -24,7 +24,7 @@ final class FKActionSheetAnimator: NSObject, UIViewControllerAnimatedTransitioni
     }
     switch configuration.style {
     case .centered:
-      // Matches `FKSheetPresentationAnimator` / `FKAnimationStyleResolver` alertLikeCenter + `.systemLike` present.
+      // Matches `FKSheetPresentationAnimator` / `FKSheetAnimationStyleResolver` alertLikeCenter + `.systemLike` present.
       return isPresenting ? 0.30 : 0.22
     case .bottom, .popover:
       return isPresenting ? 0.42 : 0.34

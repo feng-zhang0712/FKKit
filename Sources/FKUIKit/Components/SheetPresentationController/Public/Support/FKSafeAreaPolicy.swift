@@ -1,7 +1,7 @@
 import UIKit
 
 /// Defines whether safe area is respected by container bounds or only by inner content.
-public enum FKSafeAreaPolicy: Equatable {
+public enum FKSafeAreaPolicy: Equatable, Sendable {
   /// Container edges can touch screen edges while content is inset inside the wrapper.
   ///
   /// The wrapper reaches the physical bottom edge; the content container is shortened by the home-indicator inset.

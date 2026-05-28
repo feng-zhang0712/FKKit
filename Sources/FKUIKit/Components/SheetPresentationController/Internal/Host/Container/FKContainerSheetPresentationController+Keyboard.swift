@@ -6,54 +6,14 @@ extension FKContainerSheetPresentationController {
 
   /// Subscribes to keyboard frame updates once per presentation lifecycle.
   func startKeyboardTrackingIfNeeded() {
-    guard configuration.keyboardAvoidance.isEnabled else { return }
-    guard keyboardObservers.isEmpty else { return }
-
-    let center = NotificationCenter.default
-    keyboardObservers.append(center.addObserver(
-      forName: UIResponder.keyboardWillChangeFrameNotification,
-      object: nil,
-      queue: .main
-    ) { [weak self] note in
-      let userInfo = note.userInfo ?? [:]
-      let endFrameScreen = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .zero
-      let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
-      let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
-      Task { @MainActor [weak self] in
-        self?.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
-      }
-    })
-
-    keyboardObservers.append(center.addObserver(
-      forName: UIResponder.keyboardWillHideNotification,
-      object: nil,
-      queue: .main
-    ) { [weak self] note in
-      let userInfo = note.userInfo ?? [:]
-      let endFrameScreen = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .zero
-      let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
-      let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
-      Task { @MainActor [weak self] in
-        self?.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
-      }
-    })
+    keyboardCoordinator.startTracking(isEnabled: configuration.keyboardAvoidance.isEnabled) { [weak self] endFrame, duration, curveRaw in
+      self?.handleKeyboard(endFrameScreen: endFrame, duration: duration, curveRaw: curveRaw)
+    }
   }
 
   /// Removes keyboard observers and restores any insets/transforms we touched.
   func stopKeyboardTracking() {
-    let center = NotificationCenter.default
-    for token in keyboardObservers {
-      center.removeObserver(token)
-    }
-    keyboardObservers.removeAll()
-
-    // Restore scroll insets if we changed them.
-    if let scroll = findPrimaryScrollView(in: presentedViewController.view), let originalScrollInsets {
-      scroll.contentInset = originalScrollInsets.content
-      scroll.scrollIndicatorInsets = originalScrollInsets.indicator
-    }
-    originalScrollInsets = nil
-    keyboardBottomInset = 0
+    keyboardCoordinator.stopTracking(restoreScrollIn: presentedViewController.view)
     wrapperView.transform = .identity
   }
 
@@ -65,15 +25,11 @@ extension FKContainerSheetPresentationController {
     guard configuration.keyboardAvoidance.isEnabled else { return }
 
     let options = UIView.AnimationOptions(rawValue: UInt(curveRaw << 16))
-
-    let endFrameInWindow = containerView.window?.convert(endFrameScreen, from: nil) ?? endFrameScreen
-    let endFrame = containerView.convert(endFrameInWindow, from: containerView.window)
-
-    let intersection = containerView.bounds.intersection(endFrame)
-    let keyboardHeight = intersection.isNull ? 0 : intersection.height
-    let safeBottom = containerView.safeAreaInsets.bottom
-    let targetInset = max(0, keyboardHeight - safeBottom + configuration.keyboardAvoidance.additionalBottomInset)
-    keyboardBottomInset = targetInset
+    keyboardCoordinator.updateBottomInset(
+      endFrameScreen: endFrameScreen,
+      in: containerView,
+      additionalBottomInset: configuration.keyboardAvoidance.additionalBottomInset
+    )
 
     let animations: () -> Void = { [weak self] in
       self?.applyKeyboardAvoidance(in: containerView)
@@ -97,21 +53,9 @@ extension FKContainerSheetPresentationController {
       return
     case .adjustContentInsets:
       guard let scroll = resolveKeyboardTargetScrollView() else { return }
-      if originalScrollInsets == nil {
-        originalScrollInsets = (scroll.contentInset, scroll.scrollIndicatorInsets)
-      }
-      var inset = originalScrollInsets?.content ?? scroll.contentInset
-      inset.bottom = (originalScrollInsets?.content.bottom ?? 0) + keyboardBottomInset
-      scroll.contentInset = inset
-      var indicators = originalScrollInsets?.indicator ?? scroll.scrollIndicatorInsets
-      indicators.bottom = (originalScrollInsets?.indicator.bottom ?? 0) + keyboardBottomInset
-      scroll.scrollIndicatorInsets = indicators
+      keyboardCoordinator.applyContentInsetAvoidance(to: scroll)
     case .adjustContainer, .interactive:
-      // Re-layout by shrinking available height for bottom/center modes.
-      // We do this by temporarily translating the wrapper when it would overlap the keyboard.
-      let keyboardTopY = containerView.bounds.height - keyboardBottomInset
-      let overlap = max(0, wrapperView.frame.maxY - keyboardTopY)
-      wrapperView.transform = CGAffineTransform(translationX: 0, y: -overlap)
+      keyboardCoordinator.translateWrapperAvoidingKeyboard(wrapperView, in: containerView)
     }
   }
 }

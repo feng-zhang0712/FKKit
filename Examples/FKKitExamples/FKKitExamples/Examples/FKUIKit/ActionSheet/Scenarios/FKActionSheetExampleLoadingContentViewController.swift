@@ -232,7 +232,7 @@ final class FKActionSheetExampleLoadingContentViewController: FKActionSheetExamp
     delaySeconds: TimeInterval,
     shouldFail: Bool
   ) {
-    guard let sheet else { return }
+    guard sheet != nil else { return }
     fetchTask?.cancel()
     fetchTask = Task { @MainActor [weak self] in
       let nanoseconds = UInt64(delaySeconds * 1_000_000_000)

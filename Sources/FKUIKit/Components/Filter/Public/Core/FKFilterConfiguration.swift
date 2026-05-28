@@ -60,7 +60,7 @@ public struct FKFilterConfiguration<TabID: Hashable> {
   public var wrapsPanelWithTopHairline: Bool
 
   public init(
-    anchoredDropdown: FKAnchoredDropdownConfiguration = .default,
+    anchoredDropdown: FKAnchoredDropdownConfiguration,
     anchoredEvents: FKAnchoredDropdownConfiguration.Events<TabID> = .init(),
     defaultTabStrip: FKFilterTabStripConfiguration = .init(),
     panelLoadingTitle: String = "Loading...",
@@ -71,5 +71,11 @@ public struct FKFilterConfiguration<TabID: Hashable> {
     self.defaultTabStrip = defaultTabStrip
     self.panelLoadingTitle = panelLoadingTitle
     self.wrapsPanelWithTopHairline = wrapsPanelWithTopHairline
+  }
+
+  /// Creates filter settings with tuned anchored-dropdown defaults.
+  @MainActor
+  public init() {
+    self.init(anchoredDropdown: FKAnchoredDropdownConfiguration())
   }
 }

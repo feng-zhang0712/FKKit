@@ -4,14 +4,14 @@ import UIKit
 final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTransitioning {
   private let isPresentation: Bool
   private let layout: FKSheetPresentationConfiguration.Layout
-  private let animationConfiguration: FKAnimationConfiguration
+  private let animationConfiguration: FKSheetAnimationConfiguration
   private weak var interactiveDismiss: FKSheetPresentationInteractiveDismissTransition?
   private var cachedAnimator: UIViewImplicitlyAnimating?
 
   init(
     isPresentation: Bool,
     layout: FKSheetPresentationConfiguration.Layout,
-    animationConfiguration: FKAnimationConfiguration,
+    animationConfiguration: FKSheetAnimationConfiguration,
     interactiveDismiss: FKSheetPresentationInteractiveDismissTransition?
   ) {
     self.isPresentation = isPresentation
@@ -22,7 +22,7 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
   }
 
   func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
-    let style = FKAnimationStyleResolver.resolveTransitionStyle(
+    let style = FKSheetAnimationStyleResolver.resolveTransitionStyle(
       layout: layout,
       animationConfiguration: animationConfiguration,
       isPresentation: isPresentation,
@@ -77,7 +77,7 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
       ? transitionContext.finalFrame(for: controller)
       : transitionContext.initialFrame(for: controller)
 
-    let style = FKAnimationStyleResolver.resolveTransitionStyle(
+    let style = FKSheetAnimationStyleResolver.resolveTransitionStyle(
       layout: layout,
       animationConfiguration: animationConfiguration,
       isPresentation: isPresentation,
@@ -99,7 +99,7 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
       return fallback
     }
 
-    let context = FKAnimationContext(
+    let context = FKSheetAnimationContext(
       isPresentation: isPresentation,
       layout: layout,
       animatingView: animatingView,
@@ -137,7 +137,7 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
     var transform: CGAffineTransform
   }
 
-  private func initialState(for baseFrame: CGRect, style: FKAnimationStyleResolver.TransitionStyle) -> State {
+  private func initialState(for baseFrame: CGRect, style: FKSheetAnimationStyleResolver.TransitionStyle) -> State {
     // Center keeps frame stable and communicates motion with subtle scale+alpha.
     // Sheet-like families start from an offset frame to preserve directional attachment cues.
     let frame = style.family == .alertLikeCenter ? baseFrame : initialFrame(for: baseFrame)
@@ -148,7 +148,7 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
     )
   }
 
-  private func finalState(for baseFrame: CGRect, style: FKAnimationStyleResolver.TransitionStyle) -> State {
+  private func finalState(for baseFrame: CGRect, style: FKSheetAnimationStyleResolver.TransitionStyle) -> State {
     return .init(
       frame: baseFrame,
       alpha: style.finalAlpha,
@@ -156,7 +156,7 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
     )
   }
 
-  private func apply(state: State, to view: UIView, family: FKAnimationStyleResolver.Family) {
+  private func apply(state: State, to view: UIView, family: FKSheetAnimationStyleResolver.Family) {
     view.alpha = state.alpha
     switch family {
     case .alertLikeCenter:
@@ -210,8 +210,8 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
   }
 
   private func makePropertyAnimator(
-    style: FKAnimationStyleResolver.TransitionStyle,
-    context: FKAnimationContext,
+    style: FKSheetAnimationStyleResolver.TransitionStyle,
+    context: FKSheetAnimationContext,
     animations: @escaping () -> Void
   ) -> UIViewPropertyAnimator {
     if let custom = animationConfiguration.customPropertyAnimator?(context) {
@@ -234,7 +234,7 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
     }
   }
 
-  private func springInitialVelocity(for context: FKAnimationContext) -> CGVector {
+  private func springInitialVelocity(for context: FKSheetAnimationContext) -> CGVector {
     if !isPresentation, let interactiveDismiss, interactiveDismiss.isArmed {
       return springInitialVelocityForInteractiveDismiss(context: context, dismissalVelocityY: interactiveDismiss.dismissalVelocityY)
     }
@@ -254,7 +254,7 @@ final class FKSheetPresentationAnimator: NSObject, UIViewControllerAnimatedTrans
     }
   }
 
-  private func springInitialVelocityForInteractiveDismiss(context: FKAnimationContext, dismissalVelocityY: CGFloat) -> CGVector {
+  private func springInitialVelocityForInteractiveDismiss(context: FKSheetAnimationContext, dismissalVelocityY: CGFloat) -> CGVector {
     let travel = max(1, abs(context.endFrame.minY - context.startFrame.minY))
     let normalized = min(1.25, abs(dismissalVelocityY) / max(900, travel * 3.2))
     switch layout {
@@ -274,218 +274,6 @@ private extension UIViewPropertyAnimator {
   func addingAnimations(_ block: @escaping () -> Void) -> UIViewPropertyAnimator {
     addAnimations(block)
     return self
-  }
-}
-
-// MARK: - Mode-aware animation resolver
-
-/// Resolves mode-aware animation styles for FK presentation transitions.
-///
-/// This lives in the animator file intentionally so it is always compiled into the FKUIKit target
-/// even when the Xcode project uses an explicit file list (instead of directory-based discovery).
-enum FKAnimationStyleResolver {
-  enum Family {
-    case alertLikeCenter
-    case sheetLike
-  }
-
-  enum InteractionState {
-    case nonInteractive
-    case interactive
-  }
-
-  struct TransitionStyle {
-    let family: Family
-    let duration: TimeInterval
-    let timing: Timing
-    let initialAlpha: CGFloat
-    let finalAlpha: CGFloat
-    let initialScale: CGFloat
-    let finalScale: CGFloat
-  }
-
-  enum Timing {
-    case spring(dampingRatio: CGFloat)
-    case curve(UIView.AnimationCurve)
-  }
-
-  static func resolveTransitionStyle(
-    layout: FKSheetPresentationConfiguration.Layout,
-    animationConfiguration: FKAnimationConfiguration,
-    isPresentation: Bool,
-    reduceMotionEnabled: Bool,
-    interactionState: InteractionState
-  ) -> TransitionStyle {
-    if animationConfiguration.preset == .none {
-      return .init(
-        family: family(for: layout),
-        duration: 0,
-        timing: .curve(.linear),
-        initialAlpha: 1,
-        finalAlpha: 1,
-        initialScale: 1,
-        finalScale: 1
-      )
-    }
-
-    let family = family(for: layout)
-
-    if reduceMotionEnabled {
-      // Reduce Motion: keep movement minimal; fade is the primary signal.
-      let scale: CGFloat
-      if family == .alertLikeCenter {
-        scale = isPresentation ? 0.985 : 0.97
-      } else {
-        scale = 1
-      }
-      return .init(
-        family: family,
-        duration: min(0.2, max(0, animationConfiguration.duration)),
-        timing: .curve(.easeInOut),
-        initialAlpha: isPresentation ? 0 : 1,
-        finalAlpha: isPresentation ? 1 : 0,
-        initialScale: scale,
-        finalScale: 1
-      )
-    }
-
-    switch family {
-    case .alertLikeCenter:
-      return resolveAlertLikeCenterStyle(
-        animationConfiguration: animationConfiguration,
-        isPresentation: isPresentation,
-        interactionState: interactionState
-      )
-    case .sheetLike:
-      return resolveSheetLikeStyle(
-        layout: layout,
-        animationConfiguration: animationConfiguration,
-        isPresentation: isPresentation,
-        interactionState: interactionState
-      )
-    }
-  }
-
-  private static func resolveAlertLikeCenterStyle(
-    animationConfiguration: FKAnimationConfiguration,
-    isPresentation: Bool,
-    interactionState: InteractionState
-  ) -> TransitionStyle {
-    // Target feel: UIAlertController(.alert)-like.
-    // System alert appears with a subtle zoom-down + fade in, then dismisses with a short
-    // fade out + slight shrink.
-    let initialScale: CGFloat = isPresentation ? 1.08 : 1
-    let finalScale: CGFloat = isPresentation ? 1 : 0.92
-    let initialAlpha: CGFloat = isPresentation ? 0 : 1
-    let finalAlpha: CGFloat = isPresentation ? 1 : 0
-
-    let duration: TimeInterval
-    let timing: Timing
-
-    switch animationConfiguration.preset {
-    case .systemLike:
-      if isPresentation {
-        duration = 0.30
-        timing = .spring(dampingRatio: 0.82)
-      } else {
-        duration = 0
-        timing = .curve(.linear)
-      }
-    case .spring:
-      duration = max(0.24, min(0.34, animationConfiguration.duration))
-      timing = .spring(dampingRatio: min(max(animationConfiguration.dampingRatio, 0.78), 0.92))
-    case .easeInOut:
-      duration = max(0.2, min(0.32, animationConfiguration.duration))
-      timing = .curve(.easeInOut)
-    case .fade:
-      duration = isPresentation ? 0.22 : 0.18
-      timing = .curve(.linear)
-    case .none:
-      duration = 0
-      timing = .curve(.linear)
-    }
-
-    // Interactive center dismiss should stay “modal card”, not “sheet drag”.
-    let adjustedDuration = interactionState == .interactive && !isPresentation ? min(duration, 0.2) : duration
-
-    return .init(
-      family: .alertLikeCenter,
-      duration: adjustedDuration,
-      timing: timing,
-      initialAlpha: initialAlpha,
-      finalAlpha: finalAlpha,
-      initialScale: initialScale,
-      finalScale: finalScale
-    )
-  }
-
-  private static func resolveSheetLikeStyle(
-    layout: FKSheetPresentationConfiguration.Layout,
-    animationConfiguration: FKAnimationConfiguration,
-    isPresentation: Bool,
-    interactionState: InteractionState
-  ) -> TransitionStyle {
-    // Target feel: UISheetPresentationController-like.
-    let duration: TimeInterval
-    let timing: Timing
-
-    switch animationConfiguration.preset {
-    case .systemLike:
-      if anchorLikeLayout(layout) {
-        // Anchor dropdowns: shorter, linear motion keeps the panel edge-locked to the source.
-        duration = isPresentation ? 0.26 : 0.20
-        timing = .curve(.linear)
-      } else {
-        // Keep sheet directions soft and rounded.
-        duration = isPresentation ? 0.42 : 0.32
-        timing = .spring(dampingRatio: isPresentation ? 0.84 : 0.86)
-      }
-    case .spring:
-      let clamped = max(0.3, min(0.42, animationConfiguration.duration))
-      duration = isPresentation ? clamped : max(0.22, clamped * 0.82)
-      if anchorLikeLayout(layout) {
-        timing = .curve(.easeInOut)
-      } else {
-        timing = .spring(dampingRatio: min(max(animationConfiguration.dampingRatio, 0.8), 0.95))
-      }
-    case .easeInOut:
-      let clamped = max(0.24, min(0.38, animationConfiguration.duration))
-      duration = isPresentation ? clamped : max(0.22, clamped * 0.82)
-      timing = .curve(.easeInOut)
-    case .fade:
-      duration = isPresentation ? 0.24 : 0.2
-      timing = .curve(.linear)
-    case .none:
-      duration = 0
-      timing = .curve(.linear)
-    }
-
-    let adjustedDuration = interactionState == .interactive && !isPresentation ? min(duration, 0.3) : duration
-    return .init(
-      family: .sheetLike,
-      duration: adjustedDuration,
-      timing: timing,
-      initialAlpha: 1,
-      finalAlpha: 1,
-      initialScale: 1,
-      finalScale: 1
-    )
-  }
-
-  private static func anchorLikeLayout(_ layout: FKSheetPresentationConfiguration.Layout) -> Bool {
-    switch layout {
-    case .anchor:
-      // Anchor-attached surfaces should feel "edge-locked" to the source view.
-      // Spring rebound can briefly expose a gap between anchor and panel, which reads as a visual seam.
-      return true
-    default:
-      return false
-    }
-  }
-
-  private static func family(for layout: FKSheetPresentationConfiguration.Layout) -> Family {
-    if case .center(_) = layout { return .alertLikeCenter }
-    return .sheetLike
   }
 }
 

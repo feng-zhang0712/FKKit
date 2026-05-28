@@ -1,7 +1,7 @@
 import Foundation
 
 /// Strategy used to avoid keyboard occlusion while presenting content.
-public enum FKKeyboardAvoidanceStrategy: Equatable {
+public enum FKKeyboardAvoidanceStrategy: Equatable, Sendable {
   /// Disables keyboard avoidance.
   case disabled
   /// Adjusts the presented container frame (move/resize).

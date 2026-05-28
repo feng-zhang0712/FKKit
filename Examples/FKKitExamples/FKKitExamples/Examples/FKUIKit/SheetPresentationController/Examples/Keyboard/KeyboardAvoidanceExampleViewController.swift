@@ -20,13 +20,14 @@ final class KeyboardAvoidanceExampleViewController: FKSheetPresentationExamplePa
       Choose strategy:
       - adjustContainer: moves/resizes the whole container (often best for compact forms).
       - adjustContentInsets: keeps container stable and scrolls content (best for lists).
+      - interactive: follows keyboard motion for chat-like experiences.
       """
     )
 
     addView(
       FKExampleControls.segmented(
         title: "Strategy",
-        items: ["adjustContainer", "adjustContentInsets"],
+        items: ["adjustContainer", "adjustContentInsets", "interactive"],
         selectedIndex: strategyIndex
       ) { [weak self] idx in
         self?.strategyIndex = idx
@@ -49,7 +50,11 @@ final class KeyboardAvoidanceExampleViewController: FKSheetPresentationExamplePa
       var configuration = FKSheetPresentationExampleHelpers.bottomSheetConfiguration()
       configuration.sheet.detents = [.fraction(0.55), .full]
       configuration.keyboardAvoidance.isEnabled = true
-      configuration.keyboardAvoidance.strategy = (self.strategyIndex == 0) ? .adjustContainer : .adjustContentInsets
+      configuration.keyboardAvoidance.strategy = switch self.strategyIndex {
+      case 0: .adjustContainer
+      case 1: .adjustContentInsets
+      default: .interactive
+      }
 
       FKSheetPresentationController.present(
         contentController: content,

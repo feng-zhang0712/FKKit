@@ -27,6 +27,8 @@ public extension FKSheetPresentationControllerDelegate {
 }
 
 /// Closure-based lifecycle handlers for teams that prefer lightweight integration.
+///
+/// Pair with ``FKSheetPresentationController/callbackDelivery`` to avoid duplicate delegate + handler delivery.
 public struct FKSheetPresentationLifecycleHandlers {
   /// Called before the presentation animation starts.
   public var willPresent: (@MainActor () -> Void)?

@@ -19,6 +19,8 @@ public final class FKSheetPresentationController: NSObject {
   public weak var delegate: FKSheetPresentationControllerDelegate?
   /// Closure-based lifecycle handlers.
   public var handlers: FKSheetPresentationLifecycleHandlers
+  /// Chooses whether lifecycle events are delivered through the delegate, handlers, or both.
+  public var callbackDelivery: FKSheetPresentationCallbackDelivery
   /// Current controller state.
   public private(set) var state: State = .idle
   /// Whether content is currently visible.
@@ -39,12 +41,14 @@ public final class FKSheetPresentationController: NSObject {
     contentController: UIViewController,
     configuration: FKSheetPresentationConfiguration = .default,
     delegate: FKSheetPresentationControllerDelegate? = nil,
-    handlers: FKSheetPresentationLifecycleHandlers = .init()
+    handlers: FKSheetPresentationLifecycleHandlers = .init(),
+    callbackDelivery: FKSheetPresentationCallbackDelivery = .handlersOnly
   ) {
     self.contentController = contentController
     self.configuration = configuration
     self.delegate = delegate
     self.handlers = handlers
+    self.callbackDelivery = callbackDelivery
     super.init()
 
     // Host routing:
@@ -71,7 +75,7 @@ public final class FKSheetPresentationController: NSObject {
   }
 
   /// Presents content from a source view controller.
-  public func present(from presentingViewController: UIViewController, animated: Bool = true, completion: (() -> Void)? = nil) {
+  public func present(from presentingViewController: UIViewController, animated: Bool = true, completion: (@MainActor () -> Void)? = nil) {
     guard assertMainThread("present", completion: completion) else { return }
     guard !isTransitioning else {
       completion?()
@@ -91,7 +95,7 @@ public final class FKSheetPresentationController: NSObject {
   }
 
   /// Dismisses presented content if currently visible.
-  public func dismiss(animated: Bool = true, completion: (() -> Void)? = nil) {
+  public func dismiss(animated: Bool = true, completion: (@MainActor () -> Void)? = nil) {
     guard assertMainThread("dismiss", completion: completion) else { return }
     guard !isTransitioning else {
       completion?()
@@ -129,7 +133,8 @@ public final class FKSheetPresentationController: NSObject {
 
   /// Selects a detent when the active mode supports sheet detents.
   ///
-  /// - Note: Modal and overlay passthrough hosts support programmatic detent selection for sheet layouts.
+  /// Supported for bottom/top sheet layouts on modal and overlay passthrough hosts.
+  /// Anchor layout ignores detent APIs; edge and center layouts have no detents.
   public func selectDetent(_ detent: FKSheetPresentationDetent, animated: Bool = true) {
     guard assertMainThread("selectDetent") else { return }
     if let index = configuration.sheet.detents.firstIndex(of: detent) {
@@ -138,8 +143,17 @@ public final class FKSheetPresentationController: NSObject {
   }
 
   /// Selects a detent by index when sheet modes are active.
+  ///
+  /// No-op when ``configuration/layout`` is `.anchor`, `.center`, or `.edge`.
   public func selectDetent(at index: Int, animated: Bool = true) {
     guard assertMainThread("selectDetent(at:)") else { return }
+    switch configuration.layout {
+    case .anchor, .center, .edge:
+      assertionFailure("FKSheetPresentationController.selectDetent(at:) is not supported for the active layout.")
+      return
+    default:
+      break
+    }
     let clamped = max(0, min(index, max(0, configuration.sheet.detents.count - 1)))
     guard configuration.sheet.detents.indices.contains(clamped) else { return }
     if host is FKModalPresentationHost {
@@ -159,52 +173,114 @@ public final class FKSheetPresentationController: NSObject {
     configuration: FKSheetPresentationConfiguration = .default,
     delegate: FKSheetPresentationControllerDelegate? = nil,
     handlers: FKSheetPresentationLifecycleHandlers = .init(),
+    callbackDelivery: FKSheetPresentationCallbackDelivery = .handlersOnly,
     animated: Bool = true,
-    completion: (() -> Void)? = nil
+    completion: (@MainActor () -> Void)? = nil
   ) -> FKSheetPresentationController {
     let controller = FKSheetPresentationController(
       contentController: contentController,
       configuration: configuration,
       delegate: delegate,
-      handlers: handlers
+      handlers: handlers,
+      callbackDelivery: callbackDelivery
     )
     controller.present(from: presentingViewController, animated: animated, completion: completion)
     return controller
   }
 
   func notifyProgress(_ progress: CGFloat) {
-    delegate?.presentationController(self, didUpdateProgress: progress)
-    handlers.progress?(progress)
+    switch callbackDelivery {
+    case .delegateOnly, .both:
+      delegate?.presentationController(self, didUpdateProgress: progress)
+    case .handlersOnly:
+      break
+    }
+    switch callbackDelivery {
+    case .handlersOnly, .both:
+      handlers.progress?(progress)
+    case .delegateOnly:
+      break
+    }
   }
 
   func notifySelectedDetentDidChange(_ detent: FKSheetPresentationDetent, index: Int) {
     selectedDetent = detent
     selectedDetentIndex = index
-    delegate?.presentationController(self, didChangeSelectedDetent: detent, at: index)
-    handlers.selectedDetentDidChange?(detent, index)
+    switch callbackDelivery {
+    case .delegateOnly, .both:
+      delegate?.presentationController(self, didChangeSelectedDetent: detent, at: index)
+    case .handlersOnly:
+      break
+    }
+    switch callbackDelivery {
+    case .handlersOnly, .both:
+      handlers.selectedDetentDidChange?(detent, index)
+    case .delegateOnly:
+      break
+    }
   }
 
   func notifyWillPresent() {
-    delegate?.presentationControllerWillPresent(self)
-    handlers.willPresent?()
+    switch callbackDelivery {
+    case .delegateOnly, .both:
+      delegate?.presentationControllerWillPresent(self)
+    case .handlersOnly:
+      break
+    }
+    switch callbackDelivery {
+    case .handlersOnly, .both:
+      handlers.willPresent?()
+    case .delegateOnly:
+      break
+    }
   }
 
   func notifyDidPresent() {
-    delegate?.presentationControllerDidPresent(self)
-    handlers.didPresent?()
+    switch callbackDelivery {
+    case .delegateOnly, .both:
+      delegate?.presentationControllerDidPresent(self)
+    case .handlersOnly:
+      break
+    }
+    switch callbackDelivery {
+    case .handlersOnly, .both:
+      handlers.didPresent?()
+    case .delegateOnly:
+      break
+    }
   }
 
   func notifyWillDismiss() {
-    delegate?.presentationControllerWillDismiss(self)
-    handlers.willDismiss?()
+    switch callbackDelivery {
+    case .delegateOnly, .both:
+      delegate?.presentationControllerWillDismiss(self)
+    case .handlersOnly:
+      break
+    }
+    switch callbackDelivery {
+    case .handlersOnly, .both:
+      handlers.willDismiss?()
+    case .delegateOnly:
+      break
+    }
   }
 
   func notifyDidDismiss() {
-    delegate?.presentationControllerDidDismiss(self)
-    handlers.didDismiss?()
+    switch callbackDelivery {
+    case .delegateOnly, .both:
+      delegate?.presentationControllerDidDismiss(self)
+    case .handlersOnly:
+      break
+    }
+    switch callbackDelivery {
+    case .handlersOnly, .both:
+      handlers.didDismiss?()
+    case .delegateOnly:
+      break
+    }
   }
 
-  private func assertMainThread(_ operation: String, completion: (() -> Void)? = nil) -> Bool {
+  private func assertMainThread(_ operation: String, completion: (@MainActor () -> Void)? = nil) -> Bool {
     guard Thread.isMainThread else {
       assertionFailure("FKSheetPresentationController.\(operation) must be called on the main thread.")
       completion?()

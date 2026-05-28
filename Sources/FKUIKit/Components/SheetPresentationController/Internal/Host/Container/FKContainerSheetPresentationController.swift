@@ -25,23 +25,15 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
 
   var resolvedDetentHeights: [CGFloat] = []
   var selectedDetentIndex: Int = 0
-  /// Detent index at the start of the active sheet pan; used by `crossDetentSwipeDismissPolicy`.
-  var sheetPanBeganDetentIndex: Int = 0
-  var panStartFrame: CGRect = .zero
-  var isPanningSheet: Bool = false
-  var sheetPanVelocityY: CGFloat = 0
   var keepsInteractiveFrameForDismissal = false
   var dismissalStartingFrame: CGRect = .zero
-  var sheetPanDeferredToScrollView = false
-  var sheetPanBypassesScrollHandoff = false
-  /// Backdrop alpha before center-card interactive dragging mutates it.
-  var centerDismissBaseBackdropAlpha: CGFloat = 1
-  /// Whether center interactive dismiss is driving backdrop/transform.
-  var isCenterInteractivelyDragging = false
 
-  var keyboardBottomInset: CGFloat = 0
-  var keyboardObservers: [NSObjectProtocol] = []
-  var originalScrollInsets: (content: UIEdgeInsets, indicator: UIEdgeInsets)?
+  let sheetPanCoordinator = FKSheetPresentationSheetPanCoordinator()
+  let centerPanCoordinator = FKSheetPresentationCenterPanCoordinator()
+  let keyboardCoordinator = FKSheetPresentationKeyboardCoordinator()
+
+  var isPanningSheet: Bool { sheetPanCoordinator.isPanningSheet }
+  var isCenterInteractivelyDragging: Bool { centerPanCoordinator.isInteractivelyDragging }
   weak var presentingEffectHostView: UIView?
   private var lastContainerBoundsSize: CGSize = .zero
 
@@ -149,7 +141,8 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
     defer { lastContainerBoundsSize = newBoundsSize }
 
     let skipRotationRelayout = containerBoundsChanged && configuration.rotationHandling == .ignore
-    let canAssignFrame = !isPanningSheet && !isCenterInteractivelyDragging && !keepsInteractiveFrameForDismissal
+    let canAssignFrame = !sheetPanCoordinator.isPanningSheet && !centerPanCoordinator.isInteractivelyDragging
+      && !keepsInteractiveFrameForDismissal
       && presentedViewController.transitionCoordinator == nil
       && !skipRotationRelayout
 

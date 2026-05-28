@@ -59,142 +59,9 @@ extension FKContainerSheetPresentationController {
 
     switch configuration.layout {
     case .bottomSheet(_), .topSheet(_):
-      handleSheetPan(recognizer, in: containerView)
+      sheetPanCoordinator.handlePan(recognizer, in: containerView, actions: makeSheetPanActions(in: containerView))
     case .center(_):
-      handleCenterPan(recognizer, in: containerView)
-    default:
-      break
-    }
-  }
-
-  /// Tracks vertical drag progress for center layouts and decides finish/cancel.
-  func handleCenterPan(_ recognizer: UIPanGestureRecognizer, in containerView: UIView) {
-    guard configuration.center.dismissEnabled else { return }
-    let translation = recognizer.translation(in: containerView)
-    let progress = min(max(abs(translation.y) / max(1, containerView.bounds.height * 0.4), 0), 1)
-
-    switch recognizer.state {
-    case .began:
-      captureCenterDismissBaseBackdropAlphaIfNeeded()
-      isCenterInteractivelyDragging = true
-    case .changed:
-      applyCenterInteractiveDismissTransform(translationY: translation.y, progress: progress)
-      notifyProgress(progress)
-    case .ended, .cancelled, .failed:
-      let velocityY = recognizer.velocity(in: containerView).y
-      let shouldDismiss = progress > configuration.center.dismissProgressThreshold
-        || abs(velocityY) > configuration.center.dismissVelocityThreshold
-      if shouldDismiss {
-        notifyProgress(1)
-        commitCenterInteractiveStateForDismissal()
-        performInteractiveDismiss(velocityY: velocityY, completionFraction: progress)
-      } else {
-        notifyProgress(0)
-        resetCenterInteractiveDismissVisuals(animated: true)
-      }
-      isCenterInteractivelyDragging = false
-    default:
-      break
-    }
-  }
-
-  /// Drives sheet detent interpolation and interactive dismiss transitions.
-  func handleSheetPan(_ recognizer: UIPanGestureRecognizer, in containerView: UIView) {
-    guard let environment = sheetInteractionEnvironment(in: containerView) else { return }
-
-    recalculateDetentsIfNeeded()
-    guard !resolvedDetentHeights.isEmpty else { return }
-
-    let translation = recognizer.translation(in: containerView)
-    let velocity = recognizer.velocity(in: containerView)
-    let trackedScrollView = resolvedTrackedScrollView()
-
-    switch recognizer.state {
-    case .began:
-      isPanningSheet = true
-      sheetPanDeferredToScrollView = false
-      sheetPanBypassesScrollHandoff = resolvesSheetPanBypassesScrollHandoff(
-        recognizer: recognizer,
-        trackedScrollView: trackedScrollView
-      )
-      panStartFrame = wrapperView.frame
-      sheetPanBeganDetentIndex = selectedDetentIndex
-      sheetPanVelocityY = 0
-      trackedScrollView?.panGestureRecognizer.isEnabled = true
-
-    case .changed:
-      guard isPanningSheet else { return }
-      sheetPanVelocityY = velocity.y
-      var state = sheetInteractionState()
-
-      if !sheetPanBypassesScrollHandoff,
-         let trackedScrollView,
-         !FKSheetPresentationInteractionEngine.shouldTransferPanFromScrollView(
-          environment: environment,
-          state: state,
-          scrollView: trackedScrollView,
-          translationY: translation.y
-         ) {
-        if !sheetPanDeferredToScrollView {
-          sheetPanDeferredToScrollView = true
-          animateToSelectedDetent(animated: false, layoutKind: .settling)
-        }
-        return
-      }
-
-      if sheetPanDeferredToScrollView {
-        sheetPanDeferredToScrollView = false
-      }
-      state = sheetInteractionState()
-      let frame = FKSheetPresentationInteractionEngine.interactiveFrame(
-        environment: environment,
-        state: state,
-        translationY: translation.y
-      )
-      applyInteractiveFrame(frame, updateKind: .tracking)
-      state.wrapperFrame = wrapperView.frame
-      notifyProgress(FKSheetPresentationInteractionEngine.sheetDismissProgress(environment: environment, state: state))
-
-    case .ended, .cancelled, .failed:
-      guard isPanningSheet else { return }
-      isPanningSheet = false
-
-      if sheetPanDeferredToScrollView {
-        sheetPanDeferredToScrollView = false
-        sheetPanBypassesScrollHandoff = false
-        sheetPanVelocityY = 0
-        return
-      }
-
-      sheetPanBypassesScrollHandoff = false
-      let state = sheetInteractionState()
-
-      if FKSheetPresentationInteractionEngine.sheetShouldDismiss(
-        environment: environment,
-        state: state,
-        translationY: translation.y,
-        velocityY: velocity.y
-      ) {
-        let progress = FKSheetPresentationInteractionEngine.sheetDismissProgress(
-          environment: environment,
-          state: state
-        )
-        notifyProgress(1)
-        performInteractiveDismiss(velocityY: velocity.y, completionFraction: progress)
-        sheetPanVelocityY = 0
-        return
-      }
-
-      let targetIndex = FKSheetPresentationInteractionEngine.nearestDetentIndex(
-        environment: environment,
-        state: state,
-        frame: wrapperView.frame,
-        velocityY: velocity.y
-      )
-      selectDetentIndex(targetIndex, animated: true)
-      notifyProgress(0)
-      sheetPanVelocityY = 0
-
+      centerPanCoordinator.handlePan(recognizer, in: containerView, actions: makeCenterPanActions())
     default:
       break
     }
@@ -285,12 +152,12 @@ extension FKContainerSheetPresentationController {
     if animated {
       let duration = FKSheetPresentationInteractionSupport.adaptiveDetentSnapDuration(
         distance: distance,
-        velocityY: sheetPanVelocityY
+        velocityY: sheetPanCoordinator.sheetPanVelocityY
       )
       let timing = UISpringTimingParameters(
         dampingRatio: 0.86,
         initialVelocity: FKSheetPresentationInteractionSupport.normalizedDetentSnapVelocity(
-          velocityY: sheetPanVelocityY,
+          velocityY: sheetPanCoordinator.sheetPanVelocityY,
           distance: distance
         )
       )
@@ -300,21 +167,6 @@ extension FKContainerSheetPresentationController {
     } else {
       animations()
     }
-  }
-
-  func resolvesSheetPanBypassesScrollHandoff(
-    recognizer: UIPanGestureRecognizer,
-    trackedScrollView: UIScrollView?
-  ) -> Bool {
-    guard let trackedScrollView else { return true }
-    let touchInWrapper = recognizer.location(in: wrapperView)
-    let touchInScroll = recognizer.location(in: trackedScrollView)
-    return FKSheetPresentationInteractionEngine.shouldBypassScrollHandoffForPan(
-      touchLocationInWrapper: touchInWrapper,
-      contentContainerFrame: contentContainerView.frame,
-      scrollView: trackedScrollView,
-      touchLocationInScrollView: touchInScroll
-    )
   }
 }
 

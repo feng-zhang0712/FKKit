@@ -22,7 +22,7 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Unified dismissal behavior used across modal and anchor-hosted presentations.
-  struct DismissBehavior {
+  struct DismissBehavior: Sendable, Equatable {
     /// Whether tapping outside content can dismiss.
     public var allowsTapOutside: Bool
     /// Whether drag gestures can dismiss.
@@ -44,7 +44,7 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Background interaction policy (passthrough) for advanced overlays.
-  struct BackgroundInteractionConfiguration {
+  struct BackgroundInteractionConfiguration: Sendable, Equatable {
     /// Whether background interaction is allowed while presented.
     public var isEnabled: Bool
     /// Whether the backdrop still renders when interaction is enabled.
@@ -60,7 +60,7 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Keyboard avoidance behavior used while editing fields.
-  struct KeyboardAvoidanceConfiguration {
+  struct KeyboardAvoidanceConfiguration: Sendable {
     /// Enables keyboard tracking for container layout updates.
     public var isEnabled: Bool
     /// Avoidance strategy.

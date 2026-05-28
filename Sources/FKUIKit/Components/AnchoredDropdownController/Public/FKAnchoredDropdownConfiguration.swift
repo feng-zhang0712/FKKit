@@ -84,8 +84,8 @@ public struct FKAnchoredDropdownConfiguration {
   public var anchorPlacement: FKAnchoredDropdownAnchorPlacement?
 
   public init(
-    tabBarConfiguration: FKTabBarConfiguration = FKAnchoredDropdownConfiguration.default.tabBarConfiguration,
-    presentationConfiguration: FKSheetPresentationConfiguration = FKAnchoredDropdownConfiguration.default.presentationConfiguration,
+    tabBarConfiguration: FKTabBarConfiguration,
+    presentationConfiguration: FKSheetPresentationConfiguration,
     switchAnimationStyle: SwitchAnimationStyle = .replaceInPlace(animation: .crossfade(duration: 0.18)),
     contentCachingPolicy: ContentCachingPolicy = .cachePerTab,
     presentationLayoutAnimation: PresentationLayoutAnimation = PresentationLayoutAnimation(),
@@ -97,5 +97,19 @@ public struct FKAnchoredDropdownConfiguration {
     self.contentCachingPolicy = contentCachingPolicy
     self.presentationLayoutAnimation = presentationLayoutAnimation
     self.anchorPlacement = anchorPlacement
+  }
+
+  /// Creates the tuned dropdown defaults (tab bar, presentation, keyboard, backdrop).
+  @MainActor
+  public init() {
+    let defaults = FKAnchoredDropdownConfiguration.default
+    self.init(
+      tabBarConfiguration: defaults.tabBarConfiguration,
+      presentationConfiguration: defaults.presentationConfiguration,
+      switchAnimationStyle: defaults.switchAnimationStyle,
+      contentCachingPolicy: defaults.contentCachingPolicy,
+      presentationLayoutAnimation: defaults.presentationLayoutAnimation,
+      anchorPlacement: defaults.anchorPlacement
+    )
   }
 }

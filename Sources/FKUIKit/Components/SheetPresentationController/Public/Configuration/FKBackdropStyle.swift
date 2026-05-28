@@ -1,7 +1,7 @@
 import UIKit
 
 /// Backdrop style behind the presented container.
-public enum FKBackdropStyle: Equatable {
+public enum FKBackdropStyle: Equatable, Sendable {
   /// No backdrop.
   case none
   /// A dim overlay using dynamic system colors.

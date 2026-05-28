@@ -30,9 +30,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
 
   private let repositionCoordinator = FKAnchorRepositionCoordinator()
   private var orientationObserver: NSObjectProtocol?
-  private var keyboardObservers: [NSObjectProtocol] = []
-  private var keyboardBottomInset: CGFloat = 0
-  private var originalScrollInsets: (content: UIEdgeInsets, indicator: UIEdgeInsets)?
+  private let keyboardCoordinator = FKSheetPresentationKeyboardCoordinator()
   private var didDeferPresentationForSourceView: Bool = false
 
   private struct ResolvedAnchorLayout {
@@ -361,7 +359,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
     guard let hostVC = anchorHostViewController else {
       return UIViewPropertyAnimator(duration: 0, curve: .linear) {}
     }
-    let style = FKAnimationStyleResolver.resolveTransitionStyle(
+    let style = FKSheetAnimationStyleResolver.resolveTransitionStyle(
       layout: .anchor(anchorConfiguration),
       animationConfiguration: configuration.animation,
       isPresentation: isPresentation,
@@ -525,60 +523,24 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
   // MARK: - Keyboard avoidance (anchor)
 
   private func startKeyboardTrackingIfNeeded() {
-    guard configuration.keyboardAvoidance.isEnabled else { return }
-    guard keyboardObservers.isEmpty else { return }
-
-    let center = NotificationCenter.default
-    let handler: (Notification) -> Void = { [weak self] note in
-      let userInfo = note.userInfo ?? [:]
-      let endFrameScreen = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .zero
-      let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
-      let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue ?? UIView.AnimationCurve.easeInOut.rawValue
-      Task { @MainActor [weak self] in
-        guard let self else { return }
-        self.handleKeyboard(endFrameScreen: endFrameScreen, duration: duration, curveRaw: curveRaw)
-      }
+    keyboardCoordinator.startTracking(isEnabled: configuration.keyboardAvoidance.isEnabled) { [weak self] endFrame, duration, curveRaw in
+      self?.handleKeyboard(endFrameScreen: endFrame, duration: duration, curveRaw: curveRaw)
     }
-
-    keyboardObservers.append(center.addObserver(
-      forName: UIResponder.keyboardWillChangeFrameNotification,
-      object: nil,
-      queue: .main,
-      using: handler
-    ))
-    keyboardObservers.append(center.addObserver(
-      forName: UIResponder.keyboardWillHideNotification,
-      object: nil,
-      queue: .main,
-      using: handler
-    ))
   }
 
   private func stopKeyboardTracking() {
-    let center = NotificationCenter.default
-    keyboardObservers.forEach { center.removeObserver($0) }
-    keyboardObservers.removeAll()
-    keyboardBottomInset = 0
-
-    if let scroll = findPrimaryScrollView(in: contentController.view), let originalScrollInsets {
-      scroll.contentInset = originalScrollInsets.content
-      scroll.scrollIndicatorInsets = originalScrollInsets.indicator
-    }
-    originalScrollInsets = nil
+    keyboardCoordinator.stopTracking(restoreScrollIn: contentController.view)
   }
 
   private func handleKeyboard(endFrameScreen: CGRect, duration: Double, curveRaw: Int) {
     guard let hostView else { return }
     guard configuration.keyboardAvoidance.isEnabled else { return }
 
-    let endFrameInWindow = hostView.window?.convert(endFrameScreen, from: nil) ?? endFrameScreen
-    let endFrame = hostView.convert(endFrameInWindow, from: hostView.window)
-    let intersection = hostView.bounds.intersection(endFrame)
-    let keyboardHeight = intersection.isNull ? 0 : intersection.height
-    let safeBottom = hostView.safeAreaInsets.bottom
-    let additional = configuration.keyboardAvoidance.additionalBottomInset
-    let targetInset = max(0, keyboardHeight - safeBottom + additional)
-    keyboardBottomInset = targetInset
+    keyboardCoordinator.updateBottomInset(
+      endFrameScreen: endFrameScreen,
+      in: hostView,
+      additionalBottomInset: configuration.keyboardAvoidance.additionalBottomInset
+    )
 
     let options = UIView.AnimationOptions(rawValue: UInt(curveRaw << 16))
     UIView.animate(withDuration: duration, delay: 0, options: [options, .allowUserInteraction]) {
@@ -588,48 +550,18 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
 
   private func applyKeyboardAvoidance(to frame: CGRect, in hostView: UIView) -> CGRect {
     guard configuration.keyboardAvoidance.isEnabled else { return frame }
-    let strategy = configuration.keyboardAvoidance.strategy
 
-    if keyboardBottomInset <= 0 {
-      return frame
-    }
-
-    switch strategy {
+    switch configuration.keyboardAvoidance.strategy {
     case .disabled:
       return frame
     case .adjustContainer, .interactive:
-      let keyboardTopY = hostView.bounds.height - keyboardBottomInset
-      let overlap = max(0, frame.maxY - keyboardTopY)
-      return frame.offsetBy(dx: 0, dy: -overlap)
+      return keyboardCoordinator.frameAvoidingKeyboard(frame, in: hostView)
     case .adjustContentInsets:
-      guard let scroll = findPrimaryScrollView(in: contentController.view) else { return frame }
-      if originalScrollInsets == nil {
-        originalScrollInsets = (scroll.contentInset, scroll.scrollIndicatorInsets)
+      if let scroll = FKSheetScrollTracking.findPrimaryScrollView(in: contentController.view) {
+        keyboardCoordinator.applyContentInsetAvoidance(to: scroll)
       }
-      let base = originalScrollInsets ?? (scroll.contentInset, scroll.scrollIndicatorInsets)
-      scroll.contentInset = .init(
-        top: base.content.top,
-        left: base.content.left,
-        bottom: base.content.bottom + keyboardBottomInset,
-        right: base.content.right
-      )
-      scroll.scrollIndicatorInsets = .init(
-        top: base.indicator.top,
-        left: base.indicator.left,
-        bottom: base.indicator.bottom + keyboardBottomInset,
-        right: base.indicator.right
-      )
       return frame
     }
-  }
-
-  private func findPrimaryScrollView(in root: UIView?) -> UIScrollView? {
-    guard let root else { return nil }
-    if let scroll = root as? UIScrollView { return scroll }
-    for sub in root.subviews {
-      if let found = findPrimaryScrollView(in: sub) { return found }
-    }
-    return nil
   }
 }
 

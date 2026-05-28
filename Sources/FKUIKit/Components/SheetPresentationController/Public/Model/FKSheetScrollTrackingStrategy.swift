@@ -1,7 +1,7 @@
 import UIKit
 
 /// Strategy used to resolve which scroll view participates in sheet gesture handoff.
-public enum FKSheetScrollTrackingStrategy {
+public enum FKSheetScrollTrackingStrategy: Sendable {
   /// Automatically finds the first scroll view in the presented hierarchy.
   ///
   /// Best default when content tree is simple and has one primary scroller.

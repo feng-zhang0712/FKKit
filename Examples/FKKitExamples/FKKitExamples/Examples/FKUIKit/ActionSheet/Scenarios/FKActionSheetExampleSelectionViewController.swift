@@ -108,7 +108,8 @@ final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBas
       self?.presentSectionScopedExportSheet()
     })
     singleBody.addArrangedSubview(FKActionSheetExampleUI.button("Keeps sheet open (single)") { [weak self] in
-      self.map { FKActionSheetExamplePlaybook.presentSingleSelectionKeepsSheetOpen(from: $0) }
+      guard let self else { return }
+      FKActionSheetExamplePlaybook.presentSingleSelectionKeepsSheetOpen(from: self)
     })
 
     let multiBody = UIStackView()
@@ -131,10 +132,12 @@ final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBas
     validation.axis = .vertical
     validation.spacing = 8
     validation.addArrangedSubview(FKActionSheetExampleUI.button("Validation: too many pre-selected") { [weak self] in
-      self.map { FKActionSheetExamplePlaybook.presentSelectionValidationFailure(from: $0) }
+      guard let self else { return }
+      FKActionSheetExamplePlaybook.presentSelectionValidationFailure(from: self)
     })
     validation.addArrangedSubview(FKActionSheetExampleUI.button("Centered card + radio") { [weak self] in
-      self.map { FKActionSheetExamplePlaybook.presentCenteredSingleSelection(from: $0) }
+      guard let self else { return }
+      _ = FKActionSheetExamplePlaybook.presentCenteredSingleSelection(from: self)
     })
 
     contentStack.addArrangedSubview(

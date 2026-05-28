@@ -2,7 +2,7 @@ import UIKit
 
 public extension FKSheetPresentationConfiguration {
   /// Haptics behavior around lifecycle transitions.
-  struct HapticsConfiguration {
+  struct HapticsConfiguration: Sendable, Equatable {
     /// Whether haptics are generated.
     public var isEnabled: Bool
     /// Feedback style for completion events.
@@ -16,7 +16,7 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Accessibility behavior for announcements and focus.
-  struct AccessibilityConfiguration {
+  struct AccessibilityConfiguration: Sendable, Equatable {
     /// Posts screen changed notifications after presentation.
     public var announcesScreenChange: Bool
     /// Optional label announced when content appears.

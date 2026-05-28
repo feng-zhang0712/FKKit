@@ -1,7 +1,7 @@
 import UIKit
 
-/// Runtime context passed to custom FK transition animator factories.
-public struct FKAnimationContext {
+/// Runtime context passed to custom FK sheet transition animator factories.
+public struct FKSheetAnimationContext {
   /// Whether this transition is a presentation.
   public let isPresentation: Bool
   /// Presentation layout being animated.
@@ -14,10 +14,10 @@ public struct FKAnimationContext {
   public let endFrame: CGRect
 }
 
-/// Configuration describing built-in or fully custom transition animations.
-public struct FKAnimationConfiguration {
+/// Configuration describing built-in or fully custom sheet transition animations.
+public struct FKSheetAnimationConfiguration {
   /// Selected built-in animation preset.
-  public var preset: FKAnimationPreset
+  public var preset: FKSheetAnimationPreset
   /// Duration used by built-in presets.
   public var duration: TimeInterval
   /// Spring damping ratio used by `.spring` / `.systemLike`.
@@ -30,18 +30,18 @@ public struct FKAnimationConfiguration {
   ///
   /// - Important: Capture external owners weakly (`[weak self]`) when referencing view controllers
   ///   to avoid retain cycles during transition storage and callbacks.
-  public var customPropertyAnimator: ((FKAnimationContext) -> UIViewPropertyAnimator?)?
+  public var customPropertyAnimator: (@MainActor (FKSheetAnimationContext) -> UIViewPropertyAnimator?)?
   /// Optional custom animator provider that replaces FK animator objects entirely.
   public var customAnimatorProvider: (any FKSheetPresentationAnimatorProviding)?
 
   /// Creates animation configuration with useful defaults.
   public init(
-    preset: FKAnimationPreset = .systemLike,
+    preset: FKSheetAnimationPreset = .systemLike,
     duration: TimeInterval = 0.32,
     dampingRatio: CGFloat = 0.9,
     response: CGFloat = 0.45,
     timingCurve: UICubicTimingParameters? = nil,
-    customPropertyAnimator: ((FKAnimationContext) -> UIViewPropertyAnimator?)? = nil,
+    customPropertyAnimator: (@MainActor (FKSheetAnimationContext) -> UIViewPropertyAnimator?)? = nil,
     customAnimatorProvider: (any FKSheetPresentationAnimatorProviding)? = nil
   ) {
     self.preset = preset
@@ -53,4 +53,3 @@ public struct FKAnimationConfiguration {
     self.customAnimatorProvider = customAnimatorProvider
   }
 }
-

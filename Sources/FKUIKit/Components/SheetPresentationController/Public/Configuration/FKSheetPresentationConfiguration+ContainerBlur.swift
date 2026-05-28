@@ -2,7 +2,7 @@ import UIKit
 
 public extension FKSheetPresentationConfiguration {
   /// Blur material applied to the presented container itself (not the backdrop mask).
-  struct ContainerBlurConfiguration {
+  struct ContainerBlurConfiguration: Sendable, Equatable {
     /// Enables container blur.
     public var isEnabled: Bool
     /// Material configuration reused from FKBlurView.

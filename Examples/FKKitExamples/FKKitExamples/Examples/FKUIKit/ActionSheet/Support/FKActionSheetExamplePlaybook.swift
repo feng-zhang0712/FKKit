@@ -354,7 +354,7 @@ enum FKActionSheetExamplePlaybook {
 
   static func presentDismissReasonsDemo(from presenter: UIViewController) {
     let destructive = FKActionSheetAction(title: "Delete", style: .destructive) { log("Delete tapped") }
-    var config = FKActionSheetConfiguration(
+    let config = FKActionSheetConfiguration(
       header: .text(
         FKActionSheetHeader(
           title: "Dismiss reasons",
@@ -651,7 +651,7 @@ enum FKActionSheetExamplePlaybook {
       preferredPanelHeight: 160,
       showsCancelWhileLoading: false
     )
-    var config = FKActionSheetConfiguration(
+    let config = FKActionSheetConfiguration(
       sections: [],
       cancelAction: makeCancelAction(),
       contentMode: .loading(loading)

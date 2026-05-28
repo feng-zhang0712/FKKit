@@ -259,8 +259,10 @@ configuration.keyboardAvoidance.additionalBottomInset = 8
 
 ### Animation Control
 
+Animation types are namespaced as `FKSheetAnimation*` (`FKSheetAnimationPreset`, `FKSheetAnimationConfiguration`, `FKSheetAnimationContext`).
+
 ```swift
-var configuration = FKSheetPresentationConfiguration()
+var configuration = FKSheetPresentationConfiguration.bottomSheetDefault
 configuration.animation.preset = .spring
 configuration.animation.duration = 0.32
 configuration.animation.dampingRatio = 0.9
@@ -270,7 +272,24 @@ configuration.animation.dampingRatio = 0.9
 // configuration.animation.duration = 0
 ```
 
+### Layout Presets
+
+```swift
+// Explicit layout-scoped starting points:
+let bottom = FKSheetPresentationConfiguration.bottomSheetDefault
+let top = FKSheetPresentationConfiguration.topSheetDefault
+let card = FKSheetPresentationConfiguration.centerCard
+let alert = FKSheetPresentationConfiguration.centerAlert
+let passthrough = FKSheetPresentationConfiguration.passthroughOverlay
+
+// Safe sheet mutation when layout is already `.bottomSheet` / `.topSheet`:
+var configuration = FKSheetPresentationConfiguration.bottomSheetDefault
+configuration.applyingSheet { $0.detents = [.fitContent, .medium, .full] }
+```
+
 ### Lifecycle Handlers / Delegate
+
+Use ``FKSheetPresentationCallbackDelivery`` when you want delegate-only, handlers-only, or both channels (default is `.handlersOnly`).
 
 ```swift
 let handlers = FKSheetPresentationLifecycleHandlers(
@@ -288,9 +307,20 @@ let controller = FKSheetPresentationController(
   contentController: contentVC,
   configuration: configuration,
   delegate: nil,
-  handlers: handlers
+  handlers: handlers,
+  callbackDelivery: .handlersOnly
 )
 controller.present(from: self, animated: true)
+```
+
+### UIViewController Convenience
+
+```swift
+let controller = fk_presentSheet(
+  contentController: contentVC,
+  configuration: configuration,
+  callbackDelivery: .handlersOnly
+)
 ```
 
 ### Background Interaction Policy
@@ -315,6 +345,11 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - `FKKeyboardAvoidanceStrategy`
 - `FKSheetPresentationControllerDelegate`
 - `FKSheetPresentationLifecycleHandlers`
+- `FKSheetPresentationCallbackDelivery`
+- `FKSheetAnimationPreset`
+- `FKSheetAnimationConfiguration`
+- `FKSheetAnimationContext`
+- `UIViewController.fk_presentSheet(...)`
 
 ### Main APIs
 
@@ -351,8 +386,9 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - `Internal/Host/Container`: modal `UIPresentationController` pipeline split by concern (`+Layout`, `+Gesture`, `+Keyboard`, `+Backdrop`, `+Scroll`, `+Callbacks`)
 - `Internal/Host/Overlay`: in-hierarchy passthrough host for zero-dim/background interaction scenarios
 - `Internal/Host/Anchor`: in-hierarchy anchor hosting (`FKAnchorHost`, host view controller, reposition coordinator)
-- `Internal/Core`: routing contracts and shared resolvers (`FKSheetPresentationHost`, transitioning delegate, `FKSheetPresentationLayoutEngine`, anchor layout resolver, sheet detent index resolver, sheet interaction engine)
-- `Internal/Animation`: modal animators plus `FKSheetPresentationOverlayTransition` (overlay present/dismiss uses the same `FKAnimationStyleResolver` as modal)
+- `Internal/Core`: routing contracts and shared resolvers (`FKSheetPresentationHost`, transitioning delegate, `FKSheetPresentationLayoutEngine`, `FKSheetPresentationSheetPanCoordinator`, `FKSheetPresentationCenterPanCoordinator`, `FKSheetPresentationKeyboardCoordinator`, `FKSheetPresentationSheetInteractionContext`, anchor layout resolver, sheet detent index resolver, sheet interaction engine)
+- `Internal/Animation`: `FKSheetAnimationStyleResolver`, modal animators, and `FKSheetPresentationOverlayTransition` (overlay present/dismiss shares the same style resolver as modal)
+- `Internal/Host/Overlay/`: `FKOverlayPresentationViewController` split by concern (`+Layout`, `+Gesture`, `+Presentation`) mirroring the modal container extensions
 - `Internal/Support`: shared internal utilities (for example responder-chain lookup)
 
 ### Host capability matrix

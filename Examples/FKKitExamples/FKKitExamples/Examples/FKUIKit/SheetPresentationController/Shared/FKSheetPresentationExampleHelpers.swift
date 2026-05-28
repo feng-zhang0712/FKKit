@@ -5,7 +5,7 @@ enum FKSheetPresentationExampleHelpers {
   /// Returns the default sheet configuration used by most examples.
   @MainActor
   static func bottomSheetConfiguration() -> FKSheetPresentationConfiguration {
-    var configuration = FKSheetPresentationConfiguration.default
+    var configuration = FKSheetPresentationConfiguration.bottomSheetDefault
     configuration.shadow = .custom(color: .black, opacity: 0.18, radius: 16, offset: CGSize(width: 0, height: 8))
     return configuration
   }
@@ -13,7 +13,7 @@ enum FKSheetPresentationExampleHelpers {
   /// Returns a top-sheet configuration while preserving default sheet tuning.
   @MainActor
   static func topSheetConfiguration() -> FKSheetPresentationConfiguration {
-    var configuration = FKSheetPresentationConfiguration.default
+    var configuration = FKSheetPresentationConfiguration.bottomSheetDefault
     configuration.layout = .topSheet(configuration.sheet)
     configuration.shadow = .custom(color: .black, opacity: 0.18, radius: 16, offset: CGSize(width: 0, height: 8))
     return configuration
