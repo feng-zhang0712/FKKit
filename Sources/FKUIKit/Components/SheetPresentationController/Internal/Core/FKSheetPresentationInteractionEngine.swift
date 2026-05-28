@@ -296,6 +296,28 @@ enum FKSheetPresentationInteractionEngine {
     }
   }
 
+  /// Clamps a tracked scroll view to the sheet handoff edge so rubber-banding does not fight detent pans.
+  static func clampScrollViewToSheetHandoffEdge(
+    _ scrollView: UIScrollView,
+    axis: FKSheetPresentationAxis
+  ) {
+    switch axis {
+    case .bottom:
+      let top = -scrollView.adjustedContentInset.top
+      if scrollView.contentOffset.y < top {
+        scrollView.contentOffset.y = top
+      }
+    case .top:
+      let maxOffsetY = max(
+        -scrollView.adjustedContentInset.top,
+        scrollView.contentSize.height - scrollView.bounds.height + scrollView.adjustedContentInset.bottom
+      )
+      if scrollView.contentOffset.y > maxOffsetY {
+        scrollView.contentOffset.y = maxOffsetY
+      }
+    }
+  }
+
   static func shouldTransferPanFromScrollView(
     environment: FKSheetPresentationInteractionEnvironment,
     state: FKSheetPresentationInteractionState,

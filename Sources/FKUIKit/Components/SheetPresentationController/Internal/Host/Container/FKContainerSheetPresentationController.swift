@@ -36,6 +36,9 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
   var isCenterInteractivelyDragging: Bool { centerPanCoordinator.isInteractivelyDragging }
   weak var presentingEffectHostView: UIView?
   private var lastContainerBoundsSize: CGSize = .zero
+  /// Stabilizes top-sheet bottom-pinned content height while a sheet pan is active.
+  var pinnedHostedContentHeight: CGFloat = 0
+  var pinnedHostedContentContainerWidth: CGFloat = 0
 
   /// Creates a container presentation controller with configuration and interaction dependencies.
   init(
@@ -87,6 +90,7 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
       hostedPresentedView = systemPresentedView
       systemPresentedView.removeFromSuperview()
       contentContainerView.addSubview(systemPresentedView)
+      resetPinnedHostedContentHeightCache()
     }
     configureContainerBlurIfNeeded()
 
@@ -113,7 +117,6 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
     if keepsInteractiveFrameForDismissal {
       wrapperView.frame = dismissalStartingFrame
       layoutContentContainer()
-      hostedPresentedView?.frame = contentContainerView.bounds
     }
     applyPresentingViewEffectIfNeeded(isPresenting: false)
     if let coordinator = presentedViewController.transitionCoordinator {
@@ -131,7 +134,6 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
 
     guard let containerView else {
       layoutContentContainer()
-      hostedPresentedView?.frame = contentContainerView.bounds
       applyContainerAppearance()
       return
     }
@@ -166,7 +168,6 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
     }
 
     layoutContentContainer()
-    hostedPresentedView?.frame = contentContainerView.bounds
 
     applyContainerAppearance()
     applyKeyboardAvoidance(in: containerView)
@@ -202,12 +203,12 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
   public override func preferredContentSizeDidChange(forChildContentContainer container: any UIContentContainer) {
     super.preferredContentSizeDidChange(forChildContentContainer: container)
     guard let containerView else { return }
+    resetPinnedHostedContentHeightCache()
     recalculateDetentsIfNeeded()
     let targetFrame = frameOfPresentedViewInContainerView
     let applyLayout: () -> Void = {
       self.wrapperView.frame = targetFrame
       self.layoutContentContainer()
-      self.hostedPresentedView?.frame = self.contentContainerView.bounds
       self.applyContainerAppearance()
       self.applyKeyboardAvoidance(in: containerView)
       self.updateBackdropForCurrentState()

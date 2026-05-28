@@ -28,7 +28,6 @@ extension FKContainerSheetPresentationController {
     wrapperView.transform = .identity
     wrapperView.frame = frame
     layoutContentContainer()
-    hostedPresentedView?.frame = contentContainerView.bounds
 
     switch updateKind {
     case .tracking:
@@ -96,7 +95,6 @@ extension FKContainerSheetPresentationController {
     frame.origin.y += translationY
     wrapperView.frame = frame
     layoutContentContainer()
-    hostedPresentedView?.frame = contentContainerView.bounds
     dismissalStartingFrame = frame
   }
 }

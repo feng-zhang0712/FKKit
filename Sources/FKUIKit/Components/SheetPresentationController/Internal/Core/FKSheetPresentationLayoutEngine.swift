@@ -63,6 +63,7 @@ enum FKSheetPresentationLayoutEngine {
     case .fitContent:
       let maxHeight = availableHeight * configuration.sheet.maximumFitContentHeightFraction
       value = min(maxHeight, measuredFitContentHeight(environment: environment))
+      return clampedContentHeightValue(value, environment: environment, appliesMinimumContentHeight: false)
     case let .fixed(points):
       value = min(availableHeight, max(0, points))
     case let .fraction(fraction):
@@ -171,7 +172,19 @@ enum FKSheetPresentationLayoutEngine {
 
   /// Clamps a raw content height using sheet min/max and container safe-area bounds.
   static func clampedContentHeight(_ height: CGFloat, environment: Environment) -> CGFloat {
-    clampedContentHeightValue(height, environment: environment)
+    clampedContentHeightValue(height, environment: environment, appliesMinimumContentHeight: true)
+  }
+
+  /// Measures the presented content height used by `.fitContent` and edge-pinned sheet layouts.
+  ///
+  /// - Parameter appliesLegacyFittingFloor: When `false`, skips the 180pt fitting fallback used only for
+  ///   historical detent defaults. Top-sheet bottom pinning passes `false` so shell growth does not force
+  ///   full-height content measurement.
+  static func measuredContentHeight(
+    for environment: Environment,
+    appliesLegacyFittingFloor: Bool = true
+  ) -> CGFloat {
+    measuredFitContentHeight(environment: environment, appliesLegacyFittingFloor: appliesLegacyFittingFloor)
   }
 
   static func edgeFrame(in bounds: CGRect, edge: UIRectEdge) -> CGRect {
@@ -210,31 +223,39 @@ enum FKSheetPresentationLayoutEngine {
     }
   }
 
-  private static func measuredFitContentHeight(environment: Environment) -> CGFloat {
+  private static func measuredFitContentHeight(
+    environment: Environment,
+    appliesLegacyFittingFloor: Bool = true
+  ) -> CGFloat {
     let targetWidth = environment.containerBounds.width
     let preferred = environment.preferredContentSize.height
+    let minimumMeasured: CGFloat = appliesLegacyFittingFloor ? 180 : 44
 
     switch environment.configuration.preferredContentSizePolicy {
     case .strict:
-      if preferred > 0 { return max(180, preferred) }
+      if preferred > 0 { return max(minimumMeasured, preferred) }
     case .automatic:
       if preferred >= 44 { return preferred }
     case .ignore:
       break
     }
 
-    guard let view = environment.contentViewForFitting else { return 360 }
+    guard let view = environment.contentViewForFitting else { return appliesLegacyFittingFloor ? 360 : 44.0 }
     let size = view.systemLayoutSizeFitting(
       CGSize(width: targetWidth, height: UIView.layoutFittingCompressedSize.height),
       withHorizontalFittingPriority: .required,
       verticalFittingPriority: .fittingSizeLevel
     )
-    return max(180, size.height)
+    return max(minimumMeasured, size.height)
   }
 
-  private static func clampedContentHeightValue(_ height: CGFloat, environment: Environment) -> CGFloat {
-    var value = max(0, height)
-    if let minimum = environment.configuration.sheet.minimumContentHeight {
+  private static func clampedContentHeightValue(
+    _ height: CGFloat,
+    environment: Environment,
+    appliesMinimumContentHeight: Bool = true
+  ) -> CGFloat {
+    var value = max(44, height)
+    if appliesMinimumContentHeight, let minimum = environment.configuration.sheet.minimumContentHeight {
       value = max(value, minimum)
     }
     if let maximum = environment.configuration.sheet.maximumContentHeight {

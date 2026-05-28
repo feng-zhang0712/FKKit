@@ -14,7 +14,6 @@ extension FKContainerSheetPresentationController {
     let applyLayout: () -> Void = {
       self.wrapperView.frame = targetFrame
       self.layoutContentContainer()
-      self.hostedPresentedView?.frame = self.contentContainerView.bounds
       self.applyContainerAppearance()
       self.applyKeyboardAvoidance(in: containerView)
       self.updateBackdropForCurrentState()

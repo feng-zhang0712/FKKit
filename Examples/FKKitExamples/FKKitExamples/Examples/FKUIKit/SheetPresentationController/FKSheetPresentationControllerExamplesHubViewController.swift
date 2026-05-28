@@ -26,6 +26,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           make: { BottomSheetBasicsExampleViewController() }
         ),
         Row(
+          title: "Bottom sheet — Scrollable content",
+          subtitle: "Table, collection, or scroll view with automatic pan/scroll handoff.",
+          make: { BottomSheetScrollableContentExampleViewController() }
+        ),
+        Row(
           title: "Configuration presets",
           subtitle: "`bottomSheetDefault`, `centerCard`, `passthroughOverlay`, and `applyingSheet`.",
           make: { ConfigurationPresetsExampleViewController() }

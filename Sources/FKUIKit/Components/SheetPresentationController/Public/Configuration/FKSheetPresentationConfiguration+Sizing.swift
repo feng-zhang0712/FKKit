@@ -94,7 +94,7 @@ public extension FKSheetPresentationConfiguration {
       scrollTrackingStrategy: FKSheetScrollTrackingStrategy = .automatic,
       enablesMagneticSnapping: Bool = true,
       magneticSnapThreshold: CGFloat = 28,
-      minimumContentHeight: CGFloat? = 180,
+      minimumContentHeight: CGFloat? = nil,
       maximumContentHeight: CGFloat? = nil,
       widthPolicy: WidthPolicy = .fill,
       multiStageBackdrop: MultiStageBackdropConfiguration = .init(),

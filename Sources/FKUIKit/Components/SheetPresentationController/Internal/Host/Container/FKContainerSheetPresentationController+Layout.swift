@@ -64,6 +64,68 @@ extension FKContainerSheetPresentationController {
     }
 
     layoutGrabber()
+    layoutHostedPresentedView()
+  }
+
+  /// Sizes the system-provided presented view inside the content container.
+  ///
+  /// - Bottom sheet: fills the shell (content should be top-aligned in the child view controller).
+  /// - Top sheet: pins non-scroll content to the bottom edge (above the grabber) so detent growth expands upward.
+  /// - Scroll/table/collection hosts always fill the shell.
+  func layoutHostedPresentedView() {
+    guard let hostedPresentedView else { return }
+    let bounds = contentContainerView.bounds
+    guard !bounds.isEmpty else {
+      hostedPresentedView.frame = .zero
+      return
+    }
+
+    if usesTopSheetBottomPinnedHostedLayout {
+      let height = min(max(44, resolvedPinnedHostedContentHeight()), bounds.height)
+      hostedPresentedView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
+      hostedPresentedView.frame = CGRect(
+        x: 0,
+        y: bounds.height - height,
+        width: bounds.width,
+        height: height
+      )
+      return
+    }
+
+    hostedPresentedView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    hostedPresentedView.frame = bounds
+  }
+
+  private var usesTopSheetBottomPinnedHostedLayout: Bool {
+    guard case .topSheet(_) = configuration.layout else { return false }
+    return !hostedContentPrefersFillLayout()
+  }
+
+  private func hostedContentPrefersFillLayout() -> Bool {
+    findPrimaryScrollView(in: hostedPresentedView) != nil
+  }
+
+  private func resolvedPinnedHostedContentHeight() -> CGFloat {
+    guard let containerView else { return contentContainerView.bounds.height }
+    let width = contentContainerView.bounds.width
+    if sheetPanCoordinator.isPanningSheet,
+       pinnedHostedContentHeight > 0,
+       abs(pinnedHostedContentContainerWidth - width) < 0.5 {
+      return pinnedHostedContentHeight
+    }
+
+    let measured = FKSheetPresentationLayoutEngine.measuredContentHeight(
+      for: layoutEnvironment(in: containerView),
+      appliesLegacyFittingFloor: false
+    )
+    pinnedHostedContentHeight = measured
+    pinnedHostedContentContainerWidth = width
+    return measured
+  }
+
+  func resetPinnedHostedContentHeightCache() {
+    pinnedHostedContentHeight = 0
+    pinnedHostedContentContainerWidth = 0
   }
 
   // MARK: - Grabber & Accessibility
