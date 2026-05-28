@@ -71,13 +71,42 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
     resolveHostAndParent(for: anchorConfiguration, fallbackParent: presentingViewController)
     guard let hostView, let parentViewController else { completion?(); return }
 
-    let hostVC = ensureAnchorHostViewController(parent: parentViewController, hostView: hostView)
+    let registryKey = makePresentationRegistryKey(hostView: hostView)
+    resolveRepeatPresentation(
+      key: registryKey,
+      parent: parentViewController,
+      hostView: hostView,
+      animated: animated
+    ) { [weak self] shouldPresent in
+      guard let self, shouldPresent else {
+        completion?()
+        return
+      }
+      self.performPresent(
+        registryKey: registryKey,
+        parent: parentViewController,
+        hostView: hostView,
+        animated: animated,
+        completion: completion
+      )
+    }
+  }
+
+  private func performPresent(
+    registryKey: FKAnchorPresentationRegistry.Key,
+    parent: UIViewController,
+    hostView: UIView,
+    animated: Bool,
+    completion: (() -> Void)?
+  ) {
+    let hostVC = ensureAnchorHostViewController(parent: parent, hostView: hostView)
     embedContent(into: hostVC)
 
     updateLayout(animated: false, duration: 0, options: .curveLinear)
     applyZOrderPolicy()
 
     isPresented = true
+    FKAnchorPresentationRegistry.register(owner, for: registryKey)
 
     let animator = makeAnimator(isPresentation: true, animated: animated)
     animator.addCompletion { [weak self] _ in
@@ -90,19 +119,130 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
     startKeyboardTrackingIfNeeded()
   }
 
+  private func resolveRepeatPresentation(
+    key: FKAnchorPresentationRegistry.Key,
+    parent: UIViewController,
+    hostView: UIView,
+    animated: Bool,
+    completion: @escaping (_ shouldPresent: Bool) -> Void
+  ) {
+    if let existing = FKAnchorPresentationRegistry.existingController(for: key),
+       existing !== owner,
+       existing.isPresented {
+      switch anchorConfiguration.repeatPresentationPolicy {
+      case let .replaceExisting(dismissAnimated):
+        existing.dismiss(animated: dismissAnimated) { [weak self] in
+          guard let self else {
+            completion(false)
+            return
+          }
+          self.teardownOrphanedAnchorHosts(parent: parent, hostView: hostView)
+          completion(true)
+        }
+        return
+
+      case .ignoreIfAlreadyPresented:
+        completion(false)
+        return
+
+      case let .toggle(dismissAnimated):
+        existing.dismiss(animated: dismissAnimated) {
+          completion(false)
+        }
+        return
+      }
+    }
+
+    if hasVisibleAnchorHost(parent: parent, hostView: hostView) {
+      switch anchorConfiguration.repeatPresentationPolicy {
+      case .replaceExisting:
+        teardownOrphanedAnchorHosts(parent: parent, hostView: hostView)
+        completion(true)
+        return
+
+      case .ignoreIfAlreadyPresented:
+        completion(false)
+        return
+
+      case .toggle:
+        teardownOrphanedAnchorHosts(parent: parent, hostView: hostView)
+        completion(false)
+        return
+      }
+    }
+
+    completion(true)
+  }
+
+  private func makePresentationRegistryKey(hostView: UIView) -> FKAnchorPresentationRegistry.Key {
+    let sourceID: ObjectIdentifier? = {
+      switch anchorConfiguration.anchor.source {
+      case let .view(box):
+        return box.object.map(ObjectIdentifier.init(_:))
+      case .rect:
+        return nil
+      }
+    }()
+    return .init(hostViewID: ObjectIdentifier(hostView), anchorSourceID: sourceID)
+  }
+
+  private func hasVisibleAnchorHost(parent: UIViewController, hostView: UIView) -> Bool {
+    parent.children.contains { child in
+      guard let hostVC = child as? FKAnchorHostViewController else { return false }
+      guard hostVC.view.superview === hostView else { return false }
+      return !hostVC.view.isHidden && hostVC.view.alpha > 0
+    }
+  }
+
+  private func teardownOrphanedAnchorHosts(parent: UIViewController, hostView: UIView) {
+    for child in parent.children {
+      guard let hostVC = child as? FKAnchorHostViewController else { continue }
+      guard hostVC.view.superview === hostView else { continue }
+      hostVC.willMove(toParent: nil)
+      hostVC.view.removeFromSuperview()
+      hostVC.removeFromParent()
+    }
+  }
+
   func dismiss(animated: Bool, completion: (() -> Void)?) {
     guard isPresented else { completion?(); return }
     isPresented = false
     stopRepositionObservation()
     stopKeyboardTracking()
 
-    let animator = makeAnimator(isPresentation: false, animated: animated)
+    guard animated else {
+      applyImmediateDismissPresentationState()
+      cleanup()
+      completion?()
+      return
+    }
+
+    let animator = makeAnimator(isPresentation: false, animated: true)
     animator.addCompletion { [weak self] _ in
       guard let self else { return }
       self.cleanup()
       completion?()
     }
     animator.startAnimation()
+  }
+
+  private func applyImmediateDismissPresentationState() {
+    guard let hostVC = anchorHostViewController, let hostView else { return }
+    let resolved = resolveLayout(in: hostView)
+    hostVC.animateMaskAlpha(0)
+    hostVC.wrapperView.frame = offsetFrameByHeight(
+      from: hostVC.currentPresentationFrame,
+      direction: resolved.direction
+    )
+    hostVC.applyLayout(
+      .init(
+        hostBounds: hostView.bounds,
+        presentationFrame: hostVC.wrapperView.frame,
+        maskCoverageRect: resolved.maskCoverageRect,
+        anchorLineY: resolved.anchorLineY,
+        direction: resolved.direction
+      )
+    )
   }
   
   func setContentController(_ contentController: UIViewController) {
@@ -337,6 +477,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
     hostView = nil
     directAnchorChild = nil
     sourceView = nil
+    FKAnchorPresentationRegistry.unregister(owner)
   }
 
   // MARK: - Layout

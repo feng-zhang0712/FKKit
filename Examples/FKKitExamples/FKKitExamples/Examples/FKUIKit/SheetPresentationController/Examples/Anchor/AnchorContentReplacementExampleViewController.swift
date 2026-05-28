@@ -29,6 +29,7 @@ final class AnchorContentReplacementExampleViewController: FKSheetPresentationEx
   private let anchorBar = UIView()
   private let anchorLabel = UILabel()
   private var policyIndex = 1
+  private var dismissAnimated = true
   private var nextMenu: MenuKind = .short
   private var activePresentation: FKSheetPresentationController?
   private let contentHost = FKSheetPresentationAnchorContentHostViewController()
@@ -41,7 +42,7 @@ final class AnchorContentReplacementExampleViewController: FKSheetPresentationEx
       notes: """
       Use the navigation bar Present / Switch actions while a popup is open (body controls are behind the mask).
       `replaceInPlace` keeps the shell visible (like FKAnchoredDropdownController tab switches).
-      `dismissThenPresent` dismisses first, then presents the new content with independent animation flags.
+      `dismissThenPresent` dismisses first, then presents the new content. Animate dismiss controls both phases.
       """
     )
 
@@ -54,6 +55,12 @@ final class AnchorContentReplacementExampleViewController: FKSheetPresentationEx
         selectedIndex: policyIndex
       ) { [weak self] index in
         self?.policyIndex = index
+      }
+    )
+
+    addView(
+      FKExampleControls.toggle(title: "Animate dismiss", isOn: dismissAnimated) { [weak self] isOn in
+        self?.dismissAnimated = isOn
       }
     )
 
@@ -135,7 +142,7 @@ final class AnchorContentReplacementExampleViewController: FKSheetPresentationEx
       })
     )
     activePresentation = controller
-    controller.present(from: self, animated: isInitial, completion: nil)
+    controller.present(from: self, animated: isInitial && dismissAnimated, completion: nil)
   }
 
   private func switchMenu() {
@@ -149,12 +156,14 @@ final class AnchorContentReplacementExampleViewController: FKSheetPresentationEx
 
     switch policyIndex {
     case 0:
-      contentHost.setContent(makeMenuContent(menu), transition: .none, completion: nil)
       controller.presentOrReplaceAnchorContent(
         from: self,
-        contentController: contentHost,
-        replacement: .dismissThenPresent(dismissAnimated: true, presentAnimated: true),
-        presentAnimated: true,
+        contentController: makeMenuContent(menu),
+        replacement: .dismissThenPresent(
+          dismissAnimated: dismissAnimated,
+          presentAnimated: dismissAnimated
+        ),
+        presentAnimated: dismissAnimated,
         completion: nil
       )
     default:

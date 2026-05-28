@@ -170,6 +170,25 @@ controller.presentOrReplaceAnchorContent(
 )
 ```
 
+### Repeat presentation (same anchor button)
+
+When each tap creates a **new** ``FKSheetPresentationController``, configure ``FKAnchorConfiguration/repeatPresentationPolicy`` so masks and panels do not stack:
+
+| Policy | Behavior |
+|--------|----------|
+| ``replaceExisting`` (default) | Dismiss the popup already shown for this anchor scope, then present. |
+| ``ignoreIfAlreadyPresented`` | Keep the existing popup; `present` completes without showing another layer. |
+| ``toggle`` | Dismiss the existing popup without presenting (tap again to close). |
+
+Scope = resolved host view + view-based anchor source. Reuse one controller instance and call ``presentOrReplaceAnchorContent`` to swap content instead.
+
+```swift
+var anchorConfig = FKAnchorConfiguration(
+  anchor: anchor,
+  repeatPresentationPolicy: .toggle()
+)
+```
+
 ### Anchor Popup
 
 ```swift
@@ -364,6 +383,7 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - `FKSheetPresentationConfiguration.Layout`
 - `FKSheetPresentationDetent`
 - `FKAnchorConfiguration`
+- `FKAnchorRepeatPresentationPolicy`
 - `FKBackdropStyle`
 - `FKSafeAreaPolicy`
 - `FKKeyboardAvoidanceStrategy`

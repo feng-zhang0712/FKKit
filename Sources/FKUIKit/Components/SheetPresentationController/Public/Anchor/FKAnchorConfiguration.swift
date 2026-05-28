@@ -28,19 +28,24 @@ public struct FKAnchorConfiguration {
   /// Reposition behavior when host or anchor geometry changes.
   public var repositionPolicy: RepositionPolicy
 
+  /// Behavior when `present` is requested while this anchor scope already shows a popup.
+  public var repeatPresentationPolicy: FKAnchorRepeatPresentationPolicy
+
   /// Creates an anchor-hosted configuration.
   public init(
     anchor: FKAnchor,
     hostStrategy: HostStrategy = .inSameSuperviewBelowAnchor,
     zOrderPolicy: ZOrderPolicy = .keepAnchorAbovePresentation,
     maskCoveragePolicy: MaskCoveragePolicy = .belowAnchorOnly,
-    repositionPolicy: RepositionPolicy = .init()
+    repositionPolicy: RepositionPolicy = .init(),
+    repeatPresentationPolicy: FKAnchorRepeatPresentationPolicy = .replaceExisting()
   ) {
     self.anchor = anchor
     self.hostStrategy = hostStrategy
     self.zOrderPolicy = zOrderPolicy
     self.maskCoveragePolicy = maskCoveragePolicy
     self.repositionPolicy = repositionPolicy
+    self.repeatPresentationPolicy = repeatPresentationPolicy
   }
 }
 

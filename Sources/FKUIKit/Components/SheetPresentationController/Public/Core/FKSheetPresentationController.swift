@@ -100,6 +100,14 @@ public final class FKSheetPresentationController: NSObject {
 
   /// Dismisses presented content if currently visible.
   public func dismiss(animated: Bool = true, completion: (@MainActor () -> Void)? = nil) {
+    dismiss(animated: animated, notifiesLifecycle: true, completion: completion)
+  }
+
+  private func dismiss(
+    animated: Bool,
+    notifiesLifecycle: Bool,
+    completion: (@MainActor () -> Void)?
+  ) {
     guard assertMainThread("dismiss", completion: completion) else { return }
     guard !isTransitioning else {
       completion?()
@@ -110,10 +118,18 @@ public final class FKSheetPresentationController: NSObject {
       return
     }
     state = .dismissing
-    notifyWillDismiss()
+    if notifiesLifecycle {
+      notifyWillDismiss()
+    }
     host.dismiss(animated: animated) { [weak self] in
-      self?.state = .idle
-      self?.notifyDidDismiss()
+      guard let self else {
+        completion?()
+        return
+      }
+      self.state = .idle
+      if notifiesLifecycle {
+        self.notifyDidDismiss()
+      }
       completion?()
     }
   }
@@ -355,7 +371,7 @@ public extension FKSheetPresentationController {
     switch replacement {
     case let .dismissThenPresent(dismissAnimated, presentAnimated):
       bindContentController(contentController)
-      dismiss(animated: dismissAnimated) { [weak self] in
+      dismiss(animated: dismissAnimated, notifiesLifecycle: false) { [weak self] in
         guard let self else {
           completion?()
           return
