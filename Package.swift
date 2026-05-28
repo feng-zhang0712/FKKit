@@ -9,16 +9,14 @@ let package = Package(
   ],
   products: [
     .library(name: "FKUIKit", targets: ["FKUIKit"]),
-    .library(name: "FKEmptyStateCoreLite", targets: ["FKEmptyStateCoreLite"]),
     .library(name: "FKCoreKit", targets: ["FKCoreKit"]),
   ],
   targets: [
     .target(
       name: "FKUIKit",
-      dependencies: ["FKEmptyStateCoreLite", "FKCoreKit"],
+      dependencies: ["FKCoreKit"],
       path: "Sources/FKUIKit",
       exclude: [
-        "Components/EmptyState/CoreLite",
         // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
         "Components/Badge/README.md",
         "Components/Base/README.md",
@@ -44,10 +42,6 @@ let package = Package(
       resources: [
         .process("Resources"),
       ]
-    ),
-    .target(
-      name: "FKEmptyStateCoreLite",
-      path: "Sources/FKUIKit/Components/EmptyState/CoreLite"
     ),
     .target(
       name: "FKCoreKit",

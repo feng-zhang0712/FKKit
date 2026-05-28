@@ -5,7 +5,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
-specs=(FKCoreKit.podspec FKEmptyStateCoreLite.podspec FKUIKit.podspec)
+specs=(FKCoreKit.podspec FKUIKit.podspec)
 versions=()
 for f in "${specs[@]}"; do
   v="$(grep -E '^  s\.version = ' "$f" | head -1 | sed -E "s/^  s\.version = '([^']+)'.*/\1/")"

@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.description = <<-DESC
     Reusable UIKit building blocks from FKKit (ActionSheet, Base,
     Badge, BlurView, Button, PresentationController, Refresh, TabBar, Toast, and more).
-    Depends on FKEmptyStateCoreLite and FKCoreKit (same repository and tag).
+    Depends on FKCoreKit (same repository and tag).
   DESC
   s.homepage = 'https://github.com/feng-zhang0712/FKKit'
   s.license = { :type => 'MIT', :file => 'LICENSE' }
@@ -15,13 +15,9 @@ Pod::Spec.new do |s|
   s.swift_version = '6.0'
   s.requires_arc = true
 
-  s.dependency 'FKEmptyStateCoreLite', s.version.to_s
   s.dependency 'FKCoreKit', s.version.to_s
 
   s.source_files = 'Sources/FKUIKit/**/*.swift'
-  s.exclude_files = [
-    'Sources/FKUIKit/Components/EmptyState/CoreLite/**/*',
-  ]
   s.resource_bundles = {
     'FKUIKit' => ['Sources/FKUIKit/Resources/Assets.xcassets']
   }

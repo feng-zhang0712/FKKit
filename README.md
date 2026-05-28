@@ -36,9 +36,6 @@ The repository is organized into two primary product modules:
 
 Each module focuses on a different layer of app development, from infrastructure and utilities to UI components and composite business widgets.
 
-Additional products:
-- `FKEmptyStateCoreLite` — Foundation-only EmptyState resolver + i18n (also linked by **`FKUIKit`**)
-
 ## Features
 - Pure Swift implementation (Swift 6 language mode in package settings).
 - No third-party dependencies.
@@ -121,7 +118,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `Button`: configurable button system with style/content/loading behavior.
 - `CornerShadow`: rounded-rect masks, borders, gradient fill/stroke, and explicit-path shadows (`Public` / `Internal` / `Extension`); see `Sources/FKUIKit/Components/CornerShadow/README.md`.
 - `Divider`: hairline separator (`FKDivider` / `FKDividerView`); dashed & gradient strokes; `FKDivider.defaultConfiguration`; layout under `Public/`, `Internal/`, `Extension/` (see module README).
-- `EmptyState`: loading/empty/error overlay (`Public` / `Internal` / `Extension`) plus **`FKEmptyStateCoreLite`** (resolver + i18n); `import FKUIKit` re-exports CoreLite.
+- `EmptyState`: loading/empty/error overlay (`Public` / `Internal` / `Extension` / `CoreLite` resolver + i18n); see `Sources/FKUIKit/Components/EmptyState/README.md`.
 - `ExpandableText`: long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; sources under `Public/`, `Internal/`, `Extension/` with `FKExpandableText.defaultConfiguration` and layout cache (see component README).
 - `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
 - `PagingController`: **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress; includes **`FKPagingConfiguration`** (retention, gestures, tab alignment) and SwiftUI **`FKPagingControllerRepresentable`** (`Public/` + `Internal/` under `Sources/FKUIKit/Components/PagingController/`).
@@ -133,7 +130,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `Toast`: unified Toast / HUD / Snackbar presenter (`Public/` + `Internal/`) with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, per-instance progress updates, presentation sound policy, and SwiftUI hosting support (see `Sources/FKUIKit/Components/Toast/README.md`).
 - `Base`: reusable base foundation for cells and controllers — see `Sources/FKUIKit/Components/Base/README.md`.
 
-`FKUIKit` depends on **`FKCoreKit`** and **`FKEmptyStateCoreLite`**. Component **README.md** files live next to sources; the root `README` stays a high-level map only.
+`FKUIKit` depends on **`FKCoreKit`**. Component **README.md** files live next to sources; the root `README` stays a high-level map only.
 
 ## Requirements
 - **iOS 15.0+** (declared in `Package.swift`; all package products are **iOS-only**)
@@ -147,7 +144,6 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
    - `https://github.com/feng-zhang0712/FKKit.git`
 3. Select one or more products:
    - `FKCoreKit`
-   - `FKEmptyStateCoreLite`
    - `FKUIKit`
 
 ### Package.swift
@@ -160,7 +156,6 @@ targets: [
     name: "YourTarget",
     dependencies: [
       .product(name: "FKCoreKit", package: "FKKit"),
-      .product(name: "FKEmptyStateCoreLite", package: "FKKit"),
       .product(name: "FKUIKit", package: "FKKit")
     ]
   )
@@ -169,7 +164,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKEmptyStateCoreLite`, `FKUIKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.54.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.54.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — **`docs/RELEASING.md`**.
 
@@ -178,12 +173,11 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKEmptyStateCoreLite', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
-pod 'FKCoreKit',           :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
-pod 'FKUIKit',             :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.54.0'
 ```
 
-Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKEmptyStateCoreLite`, `FKCoreKit`).
+Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).
 
 ### Podfile (local path, for development)
 
@@ -192,16 +186,14 @@ Point `pod` to a **checkout that contains the podspec files at its root** (same 
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKEmptyStateCoreLite', :path => '../FKKit'
-pod 'FKCoreKit',           :path => '../FKKit'
-pod 'FKUIKit',             :path => '../FKKit'
+pod 'FKCoreKit', :path => '../FKKit'
+pod 'FKUIKit',   :path => '../FKKit'
 ```
 
 ### Linting podspecs (maintainers)
 
 ```text
 pod spec lint FKCoreKit.podspec --allow-warnings
-pod spec lint FKEmptyStateCoreLite.podspec --allow-warnings
 pod spec lint FKUIKit.podspec --allow-warnings
 ```
 

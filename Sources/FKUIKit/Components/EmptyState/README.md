@@ -5,26 +5,25 @@ UIKit overlay for **loading**, **empty**, **error**, and **custom** placeholders
 ## Requirements
 
 - Swift 6 / iOS 15+
-- `import FKUIKit` (includes resolver / i18n types from **`FKEmptyStateCoreLite`** via re-export)
+- `import FKUIKit` (includes resolver / i18n types from **`CoreLite/`**)
 
-## Products
+## Layout
 
-| Product | Contents |
+| Layer | Contents |
 |--------|----------|
-| **`FKUIKit`** | `FKEmptyStateView`, `FKEmptyStateConfiguration`, extensions, UIKit-only layout enums |
-| **`FKEmptyStateCoreLite`** | `FKEmptyStateType`, `FKEmptyStateInputs`, `FKEmptyStateResolver`, i18n + `FKEmptyStateFactory` (Foundation only) |
-
-`Package.swift` wires **`FKUIKit` → `FKEmptyStateCoreLite`** so duplicate type definitions are removed. Apps that only need the resolver can depend on **`FKEmptyStateCoreLite`** alone.
+| **`Public/`** | `FKEmptyStateView`, `FKEmptyStateConfiguration`, extensions, UIKit-only layout enums |
+| **`Internal/`** | Threading, host storage |
+| **`Extension/`** | `UIView`, `UIScrollView`, `UIViewController` conveniences |
+| **`CoreLite/`** | `FKEmptyStateType`, `FKEmptyStateInputs`, `FKEmptyStateResolver`, i18n + `FKEmptyStateFactory` (Foundation only, compiled into **`FKUIKit`**) |
 
 ## Source layout (`Sources/FKUIKit/Components/EmptyState/`)
 
-Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plus **`CoreLite/`** (excluded from the `FKUIKit` target path but kept under this folder for cohesion).
+Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plus **`CoreLite/`** (Foundation-only resolver and i18n sources under this folder).
 
 ### `Public/`
 
 | File | Role |
 |------|------|
-| `FKEmptyStateCoreLiteExport.swift` | `@_exported import FKEmptyStateCoreLite` |
 | `FKEmptyStatePhase.swift` | `.content` / `.loading` / `.empty` / `.error` / `.custom` |
 | `FKEmptyStateLayoutHints.swift` | `FKEmptyStateLayoutContext`, `Density`, `Axis` (hints carried on the configuration) |
 | `FKEmptyStateConfiguration.swift` | Main configuration struct, ``FKEmptyState`` namespace (`defaultConfiguration`, `configureDefault(_:)`), scenarios, fluent `with*` helpers |
@@ -49,7 +48,7 @@ Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plu
 
 ### `CoreLite/`
 
-Foundation-only sources compiled into the **`FKEmptyStateCoreLite`** SPM target (see `Package.swift`).
+Foundation-only sources compiled as part of the **`FKUIKit`** target.
 
 | File | Role |
 |------|------|
