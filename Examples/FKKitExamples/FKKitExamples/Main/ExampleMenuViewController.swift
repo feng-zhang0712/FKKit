@@ -29,11 +29,6 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKActionSheetExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          title: "Anchored Dropdown",
-          subtitle: "Hub: tab-bar anchor vs custom UIView anchor demos",
-          make: { FKAnchoredDropdownExampleViewController() }
-        ),
-        ExampleMenuItem(
           title: "Base",
           subtitle: "Hub: FKBaseViewController, table/collection shells, composition, search",
           make: { FKBaseExamplesHubViewController() }
@@ -62,11 +57,6 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Divider",
           subtitle: "Hub: basics, line styles, edge pinning, defaults, SwiftUI",
           make: { FKDividerExamplesHubViewController() }
-        ),
-        ExampleMenuItem(
-          title: "Filter",
-          subtitle: "Hub: chips, lists, two-column panels, anchored dropdown hosting",
-          make: { FKFilterExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "EmptyState",

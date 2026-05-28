@@ -155,7 +155,7 @@ let host = FKSheetPresentationAnchorContentHostViewController()
 let controller = FKSheetPresentationController(contentController: host, configuration: anchorConfiguration)
 controller.present(from: self, animated: true)
 
-// In place (AnchoredDropdown-style):
+// In place (anchor content swap):
 controller.presentOrReplaceAnchorContent(
   from: self,
   contentController: nextMenuViewController,

@@ -1,10 +1,10 @@
 Pod::Spec.new do |s|
   s.name = 'FKUIKit'
   s.version = '0.54.0'
-  s.summary = 'FKKit UIKit components: presentation, filters, base controllers, toast, and more.'
+  s.summary = 'FKKit UIKit components: presentation, base controllers, toast, and more.'
   s.description = <<-DESC
-    Reusable UIKit building blocks from FKKit (ActionSheet, AnchoredDropdownController, Base,
-    Badge, BlurView, Button, Filter, PresentationController, Refresh, TabBar, Toast, and more).
+    Reusable UIKit building blocks from FKKit (ActionSheet, Base,
+    Badge, BlurView, Button, PresentationController, Refresh, TabBar, Toast, and more).
     Depends on FKEmptyStateCoreLite and FKCoreKit (same repository and tag).
   DESC
   s.homepage = 'https://github.com/feng-zhang0712/FKKit'
@@ -19,7 +19,9 @@ Pod::Spec.new do |s|
   s.dependency 'FKCoreKit', s.version.to_s
 
   s.source_files = 'Sources/FKUIKit/**/*.swift'
-  s.exclude_files = 'Sources/FKUIKit/Components/EmptyState/CoreLite/**/*'
+  s.exclude_files = [
+    'Sources/FKUIKit/Components/EmptyState/CoreLite/**/*',
+  ]
   s.resource_bundles = {
     'FKUIKit' => ['Sources/FKUIKit/Resources/Assets.xcassets']
   }

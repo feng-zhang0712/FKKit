@@ -32,7 +32,7 @@ It is built on top of Apple system frameworks and distributed via **Swift Packag
 
 The repository is organized into two primary product modules:
 - `FKCoreKit` (includes `Pluggable/` protocol contracts for networking, analytics, storage, routing, etc.)
-- `FKUIKit` (reusable UIKit components plus composite screen helpers such as Base, Filter, and AnchoredDropdownController)
+- `FKUIKit` (reusable UIKit components plus composite screen helpers such as Base)
 
 Each module focuses on a different layer of app development, from infrastructure and utilities to UI components and composite business widgets.
 
@@ -71,7 +71,6 @@ FKKit/
 │  └─ FKUIKit/
 │     └─ Components/
 │        ├─ ActionSheet/
-│        ├─ AnchoredDropdownController/
 │        ├─ Badge/
 │        ├─ Base/
 │        ├─ BlurView/
@@ -80,7 +79,6 @@ FKKit/
 │        ├─ Divider/
 │        ├─ EmptyState/
 │        ├─ ExpandableText/
-│        ├─ Filter/
 │        ├─ MultiPicker/
 │        ├─ PagingController/
 │        ├─ Player/
@@ -134,8 +132,6 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `TextField`: one-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback.
 - `Toast`: unified Toast / HUD / Snackbar presenter (`Public/` + `Internal/`) with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, per-instance progress updates, presentation sound policy, and SwiftUI hosting support (see `Sources/FKUIKit/Components/Toast/README.md`).
 - `Base`: reusable base foundation for cells and controllers — see `Sources/FKUIKit/Components/Base/README.md`.
-- `AnchoredDropdownController`: tab bar + anchor-embedded dropdown panels (e.g. filter UIs) built on `FKSheetPresentationController` — see `Sources/FKUIKit/Components/AnchoredDropdownController/README.md`.
-- `Filter`: filter chrome and panels on top of **`AnchoredDropdownController`** (`FKFilterConfiguration`, `FKFilterController`, `FKFilterHosting`, panel kinds and factory) under `Sources/FKUIKit/Components/Filter/`.
 
 `FKUIKit` depends on **`FKCoreKit`** and **`FKEmptyStateCoreLite`**. Component **README.md** files live next to sources; the root `README` stays a high-level map only.
 
@@ -227,9 +223,6 @@ let trimmed = "  hello  ".fk_trimmed
 
 // FKUIKit
 someView.fk_showSkeleton()
-
-// FKUIKit (Filter)
-let filterConfig = FKFilterConfiguration()
 ```
 
 For complete usage and advanced APIs, refer to each module README in `Sources/...`.

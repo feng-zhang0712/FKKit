@@ -41,7 +41,7 @@ final class AnchorContentReplacementExampleViewController: FKSheetPresentationEx
       subtitle: "Switch popup content/height from the same anchor while presented.",
       notes: """
       Use the navigation bar Present / Switch actions while a popup is open (body controls are behind the mask).
-      `replaceInPlace` keeps the shell visible (like FKAnchoredDropdownController tab switches).
+      `replaceInPlace` keeps the shell visible (like in-place tab content switches).
       `dismissThenPresent` dismisses first, then presents the new content. Animate dismiss controls both phases.
       """
     )

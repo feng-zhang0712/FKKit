@@ -20,7 +20,6 @@ let package = Package(
       exclude: [
         "Components/EmptyState/CoreLite",
         // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
-        "Components/AnchoredDropdownController/README.md",
         "Components/Badge/README.md",
         "Components/Base/README.md",
         "Components/BlurView/README.md",
