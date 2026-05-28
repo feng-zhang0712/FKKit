@@ -1,6 +1,6 @@
 # Git hooks (local pre-push)
 
-This repository ships an **optional** Git hook: before **`git push`** actually talks to the remote, it runs **`scripts/verify-podspec-versions.sh`** so the four root **`*.podspec`** files share the same **`s.version`**. If they differ, the **push is blocked** (same check as CI, failing earlier locally).
+This repository ships an **optional** Git hook: before **`git push`** actually talks to the remote, it runs **`scripts/verify-podspec-versions.sh`** so all root **`*.podspec`** files share the same **`s.version`**. If they differ, the **push is blocked** (same check as CI, failing earlier locally).
 
 It does **not** run **`scripts/bump-version.sh`** on push (that script edits versions and is for manual release use only).
 
