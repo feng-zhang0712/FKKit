@@ -61,17 +61,12 @@ extension FKContainerSheetPresentationController {
       translationY: translationY,
       containerHeight: containerView.bounds.height
     )
-    backdropView.alpha = FKSheetPresentationInteractionSupport.centerDismissBackdropAlpha(
-      baseAlpha: centerPanCoordinator.baseBackdropAlpha,
-      progress: progress
-    )
   }
 
   func resetCenterInteractiveDismissVisuals(animated: Bool = false, completion: (() -> Void)? = nil) {
     let updates = {
       self.wrapperView.transform = .identity
       self.updateBackdropForCurrentState()
-      self.backdropView.alpha = 1
     }
     guard animated else {
       updates()

@@ -99,6 +99,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKProgressBarExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "RatingControl",
+          subtitle: "Hub: interactive/read-only stars, icon presets, playground, delegate, SwiftUI, RTL & a11y",
+          make: { FKRatingControlExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Refresh",
           subtitle: "Hub: default, GIF, hosted, delegate, settings, collection, scroll view, …",
           make: { FKRefreshExamplesHubViewController() }

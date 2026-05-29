@@ -123,6 +123,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
 - `PagingController`: **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress; includes **`FKPagingConfiguration`** (retention, gestures, tab alignment) and SwiftUI **`FKPagingControllerRepresentable`** (`Public/` + `Internal/` under `Sources/FKUIKit/Components/PagingController/`).
 - `SheetPresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
+- `RatingControl`: configurable read-only/interactive rating control (`FKRatingControl`) with icon presets, half-step snapping, caption, haptics, accessibility, and SwiftUI `FKRatingControlRepresentable` (see `Sources/FKUIKit/Components/RatingControl/README.md`).
 - `Refresh`: pull-to-refresh and load-more controls for scroll views.
 - `Skeleton`: skeleton loading system for views/lists/containers with animation options.
 - `TabBar`: high-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only).

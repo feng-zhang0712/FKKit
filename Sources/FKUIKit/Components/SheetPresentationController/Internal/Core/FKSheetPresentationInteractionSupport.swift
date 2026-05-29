@@ -36,17 +36,21 @@ enum FKSheetPresentationInteractionSupport {
   }
 
   /// Applies combined translation + subtle scale for center interactive dismiss tracking.
+  ///
+  /// Only downward drag (positive `translationY`) moves/scales the card; upward pans are ignored.
   static func centerDismissTransform(translationY: CGFloat, containerHeight: CGFloat) -> CGAffineTransform {
+    guard translationY > 0 else { return .identity }
     let dimension = max(1, containerHeight * 0.42)
-    let sign: CGFloat = translationY >= 0 ? 1 : -1
-    let bandedY = sign * rubberBandOffset(abs(translationY), dimension: dimension)
-    let progress = min(1, abs(translationY) / dimension)
+    let bandedY = rubberBandOffset(translationY, dimension: dimension)
+    let progress = min(1, translationY / dimension)
     let scale = max(0.9, 1 - progress * 0.1)
     return CGAffineTransform(translationX: 0, y: bandedY).scaledBy(x: scale, y: scale)
   }
 
   /// Dim/backdrop alpha while interactively dragging a center card.
+  ///
+  /// - Note: Center pan tracking no longer drives backdrop intensity; dismissal transitions own fade-out.
   static func centerDismissBackdropAlpha(baseAlpha: CGFloat, progress: CGFloat) -> CGFloat {
-    max(0, baseAlpha * (1 - progress * 0.55))
+    baseAlpha
   }
 }

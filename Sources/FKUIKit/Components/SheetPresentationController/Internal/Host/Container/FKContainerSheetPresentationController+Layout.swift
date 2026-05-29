@@ -44,7 +44,10 @@ extension FKContainerSheetPresentationController {
           return .init(top: 0, left: 0, bottom: safe.bottom, right: 0)
         case .topSheet(_):
           return .init(top: safe.top, left: 0, bottom: 0, right: 0)
-        case .center(_), .anchor:
+        case .center(_):
+          // Center cards are already positioned with margins; do not inset content by screen safe area.
+          return .zero
+        case .anchor:
           return safe
         case let .edge(edge):
           if edge.contains(.bottom) { return .init(top: 0, left: 0, bottom: safe.bottom, right: 0) }

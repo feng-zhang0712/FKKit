@@ -27,6 +27,7 @@ public extension FKSheetPresentationConfiguration {
         dismissEnabled: false
       )
     )
+    configuration.safeAreaPolicy = .containerRespectsSafeArea
     configuration.backdropStyle = .dim(alpha: 0.4)
     configuration.cornerRadius = 14
     return configuration
@@ -44,6 +45,7 @@ public extension FKSheetPresentationConfiguration {
         dismissProgressThreshold: 0.28
       )
     )
+    configuration.safeAreaPolicy = .containerRespectsSafeArea
     configuration.backdropStyle = .dim(alpha: 0.45)
     configuration.animation.preset = .systemLike
     return configuration
