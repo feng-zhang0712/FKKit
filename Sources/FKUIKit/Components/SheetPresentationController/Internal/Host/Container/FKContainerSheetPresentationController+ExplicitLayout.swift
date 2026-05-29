@@ -16,7 +16,9 @@ extension FKContainerSheetPresentationController {
       self.layoutContentContainer()
       self.applyContainerAppearance()
       self.applyKeyboardAvoidance(in: containerView)
-      self.updateBackdropForCurrentState()
+      if !self.isCenterInteractivelyDragging {
+        self.updateBackdropForCurrentState()
+      }
       self.wrapperView.layoutIfNeeded()
     }
 

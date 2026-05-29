@@ -123,6 +123,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
 - `PagingController`: **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress; includes **`FKPagingConfiguration`** (retention, gestures, tab alignment) and SwiftUI **`FKPagingControllerRepresentable`** (`Public/` + `Internal/` under `Sources/FKUIKit/Components/PagingController/`).
 - `SheetPresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
+- `RatingControl`: configurable read-only/interactive rating control (`FKRatingControl`) with icon presets, half-step snapping, caption, haptics, accessibility, and SwiftUI `FKRatingControlRepresentable` (see `Sources/FKUIKit/Components/RatingControl/README.md`).
 - `Refresh`: pull-to-refresh and load-more controls for scroll views.
 - `Skeleton`: skeleton loading system for views/lists/containers with animation options.
 - `TabBar`: high-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only).
@@ -149,7 +150,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.55.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.56.0")
 ],
 targets: [
   .target(
@@ -164,7 +165,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.55.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.56.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — **`docs/RELEASING.md`**.
 
@@ -173,8 +174,8 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.55.0'
-pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.55.0'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.56.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.56.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).

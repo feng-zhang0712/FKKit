@@ -23,19 +23,21 @@ final class FKSheetPresentationCenterPanCoordinator {
     actions: Actions
   ) {
     let translation = recognizer.translation(in: coordinateView)
-    let progress = min(max(abs(translation.y) / max(1, actions.containerHeight() * 0.4), 0), 1)
+    // Center alerts dismiss only when dragged downward (not upward).
+    let downwardTranslation = max(0, translation.y)
+    let progress = min(max(downwardTranslation / max(1, actions.containerHeight() * 0.4), 0), 1)
 
     switch recognizer.state {
     case .began:
       actions.captureBaseBackdropAlpha()
       isInteractivelyDragging = true
     case .changed:
-      actions.applyInteractiveDismiss(translation.y, progress)
+      actions.applyInteractiveDismiss(downwardTranslation, progress)
       actions.notifyProgress(progress)
     case .ended, .cancelled, .failed:
       let velocityY = recognizer.velocity(in: coordinateView).y
       let shouldDismiss = progress > actions.dismissProgressThreshold()
-        || abs(velocityY) > actions.dismissVelocityThreshold()
+        || velocityY > actions.dismissVelocityThreshold()
       isInteractivelyDragging = false
       if shouldDismiss {
         actions.notifyProgress(1)

@@ -8,6 +8,30 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - Optional: Example app under `Examples/` (depending on this package locally)
 
+## [0.56.0] - 2026-05-30
+
+### Added (FKUIKit — RatingControl)
+
+- **`FKRatingControl`**: configurable read-only and interactive star rating (`UIControl`) with icon presets, half-step snapping, caption, haptics, and accessibility.
+- **SwiftUI**: **`FKRatingControlRepresentable`** for hosting the control in SwiftUI hierarchies.
+- **Examples**: full FKKitExamples hub (interactive, read-only, playground, sheet integration, SwiftUI, RTL/a11y, and related scenarios).
+
+### Fixed (FKUIKit — SheetPresentationController)
+
+- **Backdrop dimming**: avoid flicker while dragging centered sheets by stabilizing dim-alpha updates during center pan gestures.
+- **Center dismiss**: vertical pan on centered presentations no longer dismisses when dismiss is disabled; only downward sheet-style pans trigger dismiss.
+- **Content fitting**: App Store–style centered sheets use fitted width and improved compression resistance so labels are not clipped.
+- **Layout debugging**: centered card layout and safe-area handling align frames in Xcode’s view hierarchy debugger.
+
+### Changed (FKUIKit — SheetPresentationController)
+
+- **Center preset**: `containerRespectsSafeArea` and layout engine updates for centered card sizing and content-fitting width.
+- **Dismiss mapping**: `dismissOnBackdrop` maps to unified dismiss behavior configuration.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.56.0** (Git tag **`0.56.0`**).
+
 ## [0.55.0] - 2026-05-29
 
 ### Added (FKUIKit — SheetPresentationController)
@@ -2261,7 +2285,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.55.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.56.0...HEAD
+[0.56.0]: https://github.com/feng-zhang0712/FKKit/compare/0.55.0...0.56.0
 [0.55.0]: https://github.com/feng-zhang0712/FKKit/compare/0.54.0...0.55.0
 [0.54.0]: https://github.com/feng-zhang0712/FKKit/compare/0.53.0...0.54.0
 [0.53.0]: https://github.com/feng-zhang0712/FKKit/compare/0.52.0...0.53.0

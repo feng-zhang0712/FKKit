@@ -6,6 +6,9 @@ extension FKContainerSheetPresentationController {
 
   /// Recomputes backdrop alpha using static style or detent-progress interpolation.
   func updateBackdropForCurrentState() {
+    // Center-card pan tracking only moves/scales the wrapper; keep backdrop intensity stable.
+    guard !isCenterInteractivelyDragging else { return }
+
     guard configuration.sheet.multiStageBackdrop.isEnabled else {
       // Respect configured backdrop intensity when multi-stage interpolation is disabled.
       switch configuration.backdropStyle {

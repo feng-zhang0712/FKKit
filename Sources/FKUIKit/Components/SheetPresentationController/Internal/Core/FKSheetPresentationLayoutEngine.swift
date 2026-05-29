@@ -227,7 +227,7 @@ enum FKSheetPresentationLayoutEngine {
     environment: Environment,
     appliesLegacyFittingFloor: Bool = true
   ) -> CGFloat {
-    let targetWidth = environment.containerBounds.width
+    let targetWidth = contentFittingWidth(for: environment)
     let preferred = environment.preferredContentSize.height
     let minimumMeasured: CGFloat = appliesLegacyFittingFloor ? 180 : 44
 
@@ -247,6 +247,24 @@ enum FKSheetPresentationLayoutEngine {
       verticalFittingPriority: .fittingSizeLevel
     )
     return max(minimumMeasured, size.height)
+  }
+
+  /// Width used when measuring intrinsic content height (center fitted cards use card width, not screen width).
+  private static func contentFittingWidth(for environment: Environment) -> CGFloat {
+    let maxContainerWidth = environment.containerBounds.width
+    guard case let .center(center) = environment.configuration.layout else {
+      return maxContainerWidth
+    }
+    switch center.size {
+    case let .fixed(size):
+      return min(maxContainerWidth, max(0, size.width))
+    case let .fitted(maxSize):
+      let preferredW = environment.preferredContentSize.width
+      if preferredW > 0 {
+        return min(maxContainerWidth, min(maxSize.width, preferredW))
+      }
+      return min(maxContainerWidth, maxSize.width)
+    }
   }
 
   private static func clampedContentHeightValue(

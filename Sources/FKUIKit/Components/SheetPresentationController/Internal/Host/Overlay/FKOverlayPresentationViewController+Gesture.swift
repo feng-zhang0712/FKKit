@@ -147,16 +147,17 @@ extension FKOverlayPresentationViewController {
       translationY: translationY,
       containerHeight: view.bounds.height
     )
-    backdropView.alpha = FKSheetPresentationInteractionSupport.centerDismissBackdropAlpha(
-      baseAlpha: centerPanCoordinator.baseBackdropAlpha,
-      progress: progress
-    )
   }
 
   func resetCenterInteractiveDismissVisuals(animated: Bool) {
     let updates = {
       self.wrapperView.transform = .identity
-      self.backdropView.alpha = 1
+      switch self.configuration.backdropStyle {
+      case let .dim(_, alpha):
+        self.backdropView.setDimAlpha(alpha)
+      default:
+        self.backdropView.alpha = 1
+      }
     }
     guard animated else {
       updates()
