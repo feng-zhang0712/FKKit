@@ -28,28 +28,32 @@
 
 ## Overview
 FKKit is a modular, pure-native Swift component library for iOS applications.  
-It is built on top of Apple system frameworks and distributed via **Swift Package Manager (SPM)** and **CocoaPods** (see root `*.podspec` files), with no third-party runtime dependencies.
+It is built on Apple system frameworks and distributed via **Swift Package Manager (SPM)** and **CocoaPods** (see root `*.podspec` files), with no third-party runtime dependencies.
 
-The repository is organized into two primary product modules:
-- `FKCoreKit` (includes `Pluggable/` protocol contracts for networking, analytics, storage, routing, etc.)
-- `FKUIKit` (reusable UIKit components plus composite screen helpers such as Base)
+The repository ships two library products:
+- **`FKCoreKit`** — infrastructure, utilities, and `Pluggable/` protocol contracts (networking, analytics, storage, routing, and related seams).
+- **`FKUIKit`** — reusable UIKit components, shared UI helpers under `Core/`, and screen foundations such as `Base`.
 
-Each module focuses on a different layer of app development, from infrastructure and utilities to UI components and composite business widgets.
+Each module targets a different layer of app development: from networking and storage to controls, overlays, and composite presentation flows.
 
 ## Features
-- Pure Swift implementation (Swift 6 language mode in package settings).
-- No third-party dependencies.
+- Pure Swift implementation (Swift 6 language mode in `Package.swift`).
+- No third-party runtime dependencies.
 - Swift Package Manager and CocoaPods integration (published pod names mirror SPM products).
-- Continuous integration via **GitHub Actions**: builds and runs **unit tests** for the Swift package on **iOS Simulator** on selected branches and PRs (see `.github/workflows/ci.yml`).
+- Continuous integration via **GitHub Actions**: builds and runs **unit tests** for the Swift package on **iOS Simulator** on `main`, `develop`, and pull requests (see `.github/workflows/ci.yml`).
 - Modular architecture with clear package products.
 - Protocol-oriented design in multiple components for extensibility and testability.
-- Example app under [`Examples/FKKitExamples`](Examples/FKKitExamples) for direct integration reference.
+- Example app under [`Examples/FKKitExamples`](Examples/FKKitExamples) demonstrating public APIs per component.
 
 ## Module Structure
 
 ```text
 FKKit/
 ├─ Package.swift
+├─ FKCoreKit.podspec
+├─ FKUIKit.podspec
+├─ docs/
+├─ scripts/
 ├─ Tests/
 │  └─ FKCoreKitTests/
 ├─ Sources/
@@ -66,28 +70,32 @@ FKKit/
 │  │  ├─ Storage/
 │  │  └─ Utils/
 │  └─ FKUIKit/
-│     └─ Components/
-│        ├─ ActionSheet/
-│        ├─ Badge/
-│        ├─ Base/
-│        ├─ BlurView/
-│        ├─ Button/
-│        ├─ Callout/
-│        ├─ CornerShadow/
-│        ├─ Divider/
-│        ├─ EmptyState/
-│        ├─ ExpandableText/
-│        ├─ MultiPicker/
-│        ├─ PagingController/
-│        ├─ Player/
-│        ├─ SheetPresentationController/
-│        ├─ ProgressBar/
-│        ├─ Refresh/
-│        ├─ Skeleton/
-│        ├─ TabBar/
-│        ├─ TextField/
-│        └─ Toast/
+│     ├─ Components/
+│     │  ├─ ActionSheet/
+│     │  ├─ Badge/
+│     │  ├─ Base/
+│     │  ├─ BlurView/
+│     │  ├─ Button/
+│     │  ├─ Callout/
+│     │  ├─ CornerShadow/
+│     │  ├─ Divider/
+│     │  ├─ EmptyState/
+│     │  ├─ ExpandableText/
+│     │  ├─ MultiPicker/
+│     │  ├─ PagingController/
+│     │  ├─ Player/
+│     │  ├─ ProgressBar/
+│     │  ├─ RatingControl/
+│     │  ├─ Refresh/
+│     │  ├─ SheetPresentationController/
+│     │  ├─ Skeleton/
+│     │  ├─ TabBar/
+│     │  ├─ TextField/
+│     │  └─ Toast/
+│     ├─ Core/
+│     └─ Resources/
 └─ Examples/
+   └─ FKKitExamples/
 ```
 
 ## Core Components
@@ -109,31 +117,36 @@ FKKit/
 
 ### FKCoreKit: Extension vs Utils
 
-Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: **`docs/EXTENSION_VS_UTILS.md`**.
+Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: [`docs/EXTENSION_VS_UTILS.md`](docs/EXTENSION_VS_UTILS.md).
 
 ### FKUIKit
-`FKUIKit` contains reusable UIKit components for modern iOS interfaces:
+`FKUIKit` contains reusable UIKit components for modern iOS interfaces. Each folder under `Components/` is a self-contained module; most ship a colocated **`README.md`** with layout maps, configuration defaults, and usage snippets. The list below is a high-level index only.
 
-- `Badge`: flexible badge display for views, bar items, and tab items, with corner/center anchoring and customizable styles/animations.
-- `BlurView`: high-performance blur component with system/custom pipelines, UIKit/SwiftUI adapters, image/view snapshot blur APIs, and IB/global-configuration support.
-- `Button`: configurable button system with style/content/loading behavior.
-- `Callout`: anchored tooltip/popover bubbles (`FKCallout`, `FKTooltip`, `FKPopover`) with beak placement and shared layout engine — see `Sources/FKUIKit/Components/Callout/README.md`.
-- `CornerShadow`: rounded-rect masks, borders, gradient fill/stroke, and explicit-path shadows (`Public` / `Internal` / `Extension`); see `Sources/FKUIKit/Components/CornerShadow/README.md`.
-- `Divider`: hairline separator (`FKDivider` / `FKDividerView`); dashed & gradient strokes; `FKDivider.defaultConfiguration`; layout under `Public/`, `Internal/`, `Extension/` (see module README).
-- `EmptyState`: loading/empty/error overlay (`Public` / `Internal` / `Extension` / `CoreLite` resolver + i18n); see `Sources/FKUIKit/Components/EmptyState/README.md`.
-- `ExpandableText`: long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; sources under `Public/`, `Internal/`, `Extension/` with `FKExpandableText.defaultConfiguration` and layout cache (see component README).
-- `MultiPicker`: native multi-level cascading picker with built-in region data and custom data provider support.
-- `PagingController`: **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress; includes **`FKPagingConfiguration`** (retention, gestures, tab alignment) and SwiftUI **`FKPagingControllerRepresentable`** (`Public/` + `Internal/` under `Sources/FKUIKit/Components/PagingController/`).
-- `SheetPresentationController`: modal/overlay presentation controller system (sheet/anchor modes, detents, keyboard/safe-area/interaction configuration).
-- `RatingControl`: configurable read-only/interactive rating control (`FKRatingControl`) with icon presets, half-step snapping, caption, haptics, accessibility, and SwiftUI `FKRatingControlRepresentable` (see `Sources/FKUIKit/Components/RatingControl/README.md`).
-- `Refresh`: pull-to-refresh and load-more controls for scroll views.
-- `Skeleton`: skeleton loading system for views/lists/containers with animation options.
-- `TabBar`: high-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only).
-- `TextField`: one-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback.
-- `Toast`: unified Toast / HUD / Snackbar presenter (`Public/` + `Internal/`) with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, per-instance progress updates, presentation sound policy, and SwiftUI hosting support (see `Sources/FKUIKit/Components/Toast/README.md`).
-- `Base`: reusable base foundation for cells and controllers — see `Sources/FKUIKit/Components/Base/README.md`.
+| Component | Summary |
+|-----------|---------|
+| **ActionSheet** | HIG-oriented modal action sheet (`FKActionSheet`) with bottom/centered/popover presentation, selection, toggles, validation, and SwiftUI modifier — see [`ActionSheet/README.md`](Sources/FKUIKit/Components/ActionSheet/README.md). |
+| **Badge** | Flexible badge display for views, bar items, and tab items, with corner/center anchoring and customizable styles/animations. |
+| **Base** | Reusable base foundation for cells and view controllers — see [`Base/README.md`](Sources/FKUIKit/Components/Base/README.md). |
+| **BlurView** | High-performance blur component with system/custom pipelines, UIKit/SwiftUI adapters, image/view snapshot blur APIs, and IB/global-configuration support. |
+| **Button** | Configurable button system with style/content/loading behavior. |
+| **Callout** | Anchored tooltip/popover bubbles (`FKCallout`, `FKTooltip`, `FKPopover`) with beak placement and shared layout engine — see [`Callout/README.md`](Sources/FKUIKit/Components/Callout/README.md). |
+| **CornerShadow** | Rounded-rect masks, borders, gradient fill/stroke, and explicit-path shadows (`Public` / `Internal` / `Extension`) — see [`CornerShadow/README.md`](Sources/FKUIKit/Components/CornerShadow/README.md). |
+| **Divider** | Hairline separator (`FKDivider` / `FKDividerView`); dashed and gradient strokes; `FKDivider.defaultConfiguration`. |
+| **EmptyState** | Loading/empty/error overlay (`Public` / `Internal` / `Extension` / `CoreLite` resolver + i18n) — see [`EmptyState/README.md`](Sources/FKUIKit/Components/EmptyState/README.md). |
+| **ExpandableText** | Long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; `FKExpandableText.defaultConfiguration` and layout cache. |
+| **MultiPicker** | Native multi-level cascading picker with built-in region data and custom data provider support. |
+| **PagingController** | **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress; includes **`FKPagingConfiguration`** and SwiftUI **`FKPagingControllerRepresentable`**. |
+| **Player** | Shared media playback kernel (`FKMediaPlaybackCoordinator`) plus **`FKVideoPlayer`** and **`FKAudioPlayer`** facades (PiP, subtitles, queues, Now Playing) — see [`Player/Core/README.md`](Sources/FKUIKit/Components/Player/Core/README.md). |
+| **ProgressBar** | Determinate/indeterminate linear and ring progress control with buffer, segments, gradient, label, accessibility, and SwiftUI wrapper — see [`ProgressBar/README.md`](Sources/FKUIKit/Components/ProgressBar/README.md). |
+| **RatingControl** | Configurable read-only/interactive rating control (`FKRatingControl`) with icon presets, half-step snapping, caption, haptics, accessibility, and SwiftUI `FKRatingControlRepresentable` — see [`RatingControl/README.md`](Sources/FKUIKit/Components/RatingControl/README.md). |
+| **Refresh** | Pull-to-refresh and load-more controls for scroll views. |
+| **SheetPresentationController** | Modal/overlay presentation infrastructure (bottom/top/center sheets, anchor dropdowns, detents, keyboard/safe-area/interaction configuration) — see [`SheetPresentationController/README.md`](Sources/FKUIKit/Components/SheetPresentationController/README.md). |
+| **Skeleton** | Skeleton loading system for views/lists/containers with animation options. |
+| **TabBar** | High-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only). |
+| **TextField** | One-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback. |
+| **Toast** | Unified Toast / HUD / Snackbar presenter with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, and SwiftUI hosting — see [`Toast/README.md`](Sources/FKUIKit/Components/Toast/README.md). |
 
-`FKUIKit` depends on **`FKCoreKit`**. Component **README.md** files live next to sources; the root `README` stays a high-level map only.
+`FKUIKit` depends on **`FKCoreKit`**. For API details, defaults, and migration notes, prefer each component **`README.md`** over this root index.
 
 ## Requirements
 - **iOS 15.0+** (declared in `Package.swift`; all package products are **iOS-only**)
@@ -142,7 +155,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 ## Installation (SPM)
 
 ### Xcode
-1. Open `File` -> `Add Package Dependencies...`
+1. Open `File` → `Add Package Dependencies...`
 2. Enter repository URL:
    - `https://github.com/feng-zhang0712/FKKit.git`
 3. Select one or more products:
@@ -152,7 +165,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.56.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.57.0")
 ],
 targets: [
   .target(
@@ -167,17 +180,17 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec’s **`s.version`** must match a **published Git tag** (for example `0.56.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.57.0`).
 
-**Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — **`docs/RELEASING.md`**.
+**Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — [`docs/RELEASING.md`](docs/RELEASING.md).
 
 ### Podfile (Git tag)
 
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.56.0'
-pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.56.0'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.57.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.57.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).
@@ -220,7 +233,7 @@ let trimmed = "  hello  ".fk_trimmed
 someView.fk_showSkeleton()
 ```
 
-For complete usage and advanced APIs, refer to each module README in `Sources/...`.
+For complete usage and advanced APIs, refer to each module README under `Sources/`.
 
 ## Contributing
 
@@ -236,13 +249,13 @@ Please report security vulnerabilities through [GitHub private security advisori
 
 ## Branching & Collaboration (Recommended)
 
-- **Optional Git hooks:** after cloning, run `./scripts/install-git-hooks.sh` so **`git push`** runs **`scripts/verify-podspec-versions.sh`** first (podspec version alignment). See **`docs/GIT_HOOKS.md`**.
+- **Optional Git hooks:** after cloning, run `./scripts/install-git-hooks.sh` so **`git push`** runs **`scripts/verify-podspec-versions.sh`** first (podspec version alignment). See [`docs/GIT_HOOKS.md`](docs/GIT_HOOKS.md).
 - Use `develop` as the integration branch.
-- Create feature branches from `develop` (for example: `feature/skeleton-auto-mode`).
+- Create feature branches from `develop` (for example: `feature/Callout`).
 - Keep commits focused and use clear conventional-style messages.
 - Follow this commit format:
   - `<type>(<scope>): <subject>`
-  - Example: `feat(ui): add auto skeleton exclusion options`
+  - Example: `feat(Callout): add anchored tooltip and popover overlays`
 - Recommended commit types:
   - `feat`: new feature
   - `fix`: bug fix
@@ -254,14 +267,14 @@ Please report security vulnerabilities through [GitHub private security advisori
   - `chore`: maintenance tasks
 - Commit message rules:
   - Use present tense and imperative mood (`add`, `fix`, `refactor`).
-  - Keep the subject concise (recommended <= 72 characters).
-  - Reference module scope whenever possible (for example: `core`, `ui`, `composite`, `examples`, `docs`).
+  - Keep the subject concise (recommended ≤ 72 characters).
+  - Reference module scope whenever possible (for example: `Callout`, `RatingControl`, `core`, `uikit`, `examples`, `docs`).
   - Add a body when context is needed (why, impact, migration notes).
 - Open pull requests into `develop` with:
   - change summary
   - test/verification notes
   - migration notes when APIs change
-- Tag stable releases with semantic versions (for example: `0.25.0`), then merge release work back into `develop`.
+- Tag stable releases with semantic versions (for example: `0.57.0`), then merge release work back into `develop`.
 
 ## License
 This repository is licensed under the MIT License.  

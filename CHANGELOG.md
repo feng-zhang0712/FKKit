@@ -4,15 +4,25 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Planned
+
+- None
+
+## [0.57.0] - 2026-05-31
+
 ### Added (FKUIKit — Callout)
 
 - **`FKCallout`**, **`FKTooltip`**, **`FKPopover`**: anchored speech-bubble overlays with shared layout engine, twelve placements, beak styles (including compound corner attachments), menus, coach marks, backdrop spotlight, keyboard avoidance, and SwiftUI anchor bridge (`FKCalloutSwiftUIAnchorBox`, `FKCalloutSwiftUIAnchorButton`).
 - **Presets**: `FKTooltip` / `FKPopover` facade APIs with global configuration stores; `FKCallout` advanced presenter (`show`, `showOrUpdate`, `update`, `dismiss`).
 - **Examples**: FKKitExamples **FKUIKit → Callout** hub covering tooltips, popover content, menus, layout/chrome, and advanced engine scenarios.
 
-### Planned
+### Changed
 
-- Optional: Example app under `Examples/` (depending on this package locally)
+- **Documentation**: refresh root `README.md` module index (complete FKUIKit component map and updated install examples).
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.57.0** (Git tag **`0.57.0`**).
 
 ## [0.56.0] - 2026-05-30
 
@@ -2291,7 +2301,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.56.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.57.0...HEAD
+[0.57.0]: https://github.com/feng-zhang0712/FKKit/compare/0.56.0...0.57.0
 [0.56.0]: https://github.com/feng-zhang0712/FKKit/compare/0.55.0...0.56.0
 [0.55.0]: https://github.com/feng-zhang0712/FKKit/compare/0.54.0...0.55.0
 [0.54.0]: https://github.com/feng-zhang0712/FKKit/compare/0.53.0...0.54.0
