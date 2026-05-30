@@ -1,7 +1,9 @@
 import UIKit
 
 /// One selectable or actionable row in a callout menu.
-public struct FKCalloutMenuItem: Sendable, Equatable, Identifiable {
+///
+/// - Note: Marked `@unchecked Sendable` because `UIImage` and `UIColor` are not `Sendable`; treat instances as main-thread snapshots.
+public struct FKCalloutMenuItem: @unchecked Sendable, Equatable, Identifiable {
   /// Stable row identifier.
   public var id: String
   /// Primary label.

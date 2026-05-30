@@ -100,6 +100,22 @@ enum FKCalloutExampleUI {
     return canvas
   }
 
+  /// Wraps Auto Layout content with a fixed width so ``FKPopover/show(customView:)`` can measure height reliably.
+  static func wrappingCustomContent(_ content: UIView, width: CGFloat) -> UIView {
+    let box = UIView()
+    box.translatesAutoresizingMaskIntoConstraints = false
+    content.translatesAutoresizingMaskIntoConstraints = false
+    box.addSubview(content)
+    NSLayoutConstraint.activate([
+      content.leadingAnchor.constraint(equalTo: box.leadingAnchor),
+      content.trailingAnchor.constraint(equalTo: box.trailingAnchor),
+      content.topAnchor.constraint(equalTo: box.topAnchor),
+      content.bottomAnchor.constraint(equalTo: box.bottomAnchor),
+      box.widthAnchor.constraint(equalToConstant: width),
+    ])
+    return box
+  }
+
   static func statusLabel() -> UILabel {
     let label = UILabel()
     label.font = .preferredFont(forTextStyle: .footnote)

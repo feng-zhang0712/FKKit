@@ -72,7 +72,7 @@ public enum FKCallout {
     FKCalloutCenter.shared.dismiss(id: id, reason: reason, animated: animated)
   }
 
-  /// Dismisses whichever callout is currently visible.
+  /// Dismisses every active callout session (including concurrent presentations).
   @MainActor
   public static func dismissActive(reason: FKCalloutDismissReason = .manual, animated: Bool = true) {
     FKCalloutCenter.shared.dismissActive(reason: reason, animated: animated)

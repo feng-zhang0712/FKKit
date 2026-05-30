@@ -87,7 +87,7 @@ final class FKCalloutInteractivePlaygroundViewController: FKCalloutExampleBaseVi
 
     let content: FKCalloutContent = usesCustomContent ? .customView { [weak self] in
       self?.makeCustomPreview() ?? UIView()
-    } : .titleSubtitle(title: "Tooltip Title", message: "Decide who can see your information, profile, and activity on the platform.")
+    } : .titleSubtitle(title: "Popover title", message: "Decide who can see your information, profile, and activity on the platform.")
 
     FKCallout.show(content: content, anchoredTo: anchor, configuration: config)
     log(summaryText())
@@ -102,6 +102,7 @@ final class FKCalloutInteractivePlaygroundViewController: FKCalloutExampleBaseVi
     let stack = UIStackView()
     stack.axis = .vertical
     stack.spacing = 10
+    stack.alignment = .fill
     stack.translatesAutoresizingMaskIntoConstraints = false
 
     let hero = UIView()
@@ -132,7 +133,10 @@ final class FKCalloutInteractivePlaygroundViewController: FKCalloutExampleBaseVi
     stack.addArrangedSubview(title)
     stack.addArrangedSubview(body)
     stack.addArrangedSubview(row)
-    return stack
+
+    // Match the actual available interior width by subtracting the preset's default horizontal insets.
+    let horizontalInsets: CGFloat = 16 + 16
+    return FKCalloutExampleCustomContent.wrapping(stack, width: CGFloat(width) - horizontalInsets)
   }
 
   private func summaryText() -> String {

@@ -39,7 +39,7 @@ final class FKCalloutExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Footer actions",
-          subtitle: "FKCalloutContent.messageWithActions and FKCalloutAction handlers",
+          subtitle: "FKPopover.show(message:actions:actionHandlers:)",
           make: { FKCalloutPopoverActionsExampleViewController() }
         ),
       ]
@@ -59,7 +59,7 @@ final class FKCalloutExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Account menu",
-          subtitle: "UICollectionView grid in customView popover",
+          subtitle: "Single-column compositional list in customView popover",
           make: { FKCalloutAccountMenuExampleViewController() }
         ),
       ]
@@ -122,7 +122,7 @@ final class FKCalloutExamplesHubViewController: UITableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "FKCallout"
+    title = "Callout"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
   }

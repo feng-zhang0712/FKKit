@@ -36,9 +36,12 @@ public enum FKPopover {
     configuration: FKCalloutConfiguration? = nil,
     hooks: FKCalloutLifecycleHooks = .init()
   ) -> FKCalloutHandle? {
-    var resolved = configuration ?? defaultConfiguration
-    if configuration == nil { resolved.placement = placement }
-    resolved.kind = .popover
+    let resolved = FKCalloutConfiguration.resolvingPreset(
+      configuration,
+      default: defaultConfiguration,
+      placement: placement,
+      kind: .popover
+    )
     return FKCallout.show(
       content: .titleSubtitle(title: title, message: message),
       anchoredTo: anchor,
@@ -60,9 +63,12 @@ public enum FKPopover {
     configuration: FKCalloutConfiguration? = nil,
     hooks: FKCalloutLifecycleHooks = .init()
   ) -> FKCalloutHandle? {
-    var resolved = configuration ?? defaultConfiguration
-    if configuration == nil { resolved.placement = placement }
-    resolved.kind = .popover
+    let resolved = FKCalloutConfiguration.resolvingPreset(
+      configuration,
+      default: defaultConfiguration,
+      placement: placement,
+      kind: .popover
+    )
     return FKCallout.show(
       content: .headerPanel(header: header, body: body),
       anchoredTo: anchor,
@@ -83,9 +89,12 @@ public enum FKPopover {
     configuration: FKCalloutConfiguration? = nil,
     hooks: FKCalloutLifecycleHooks = .init()
   ) -> FKCalloutHandle? {
-    var resolved = configuration ?? defaultConfiguration
-    if configuration == nil { resolved.placement = placement }
-    resolved.kind = .popover
+    let resolved = FKCalloutConfiguration.resolvingPreset(
+      configuration,
+      default: defaultConfiguration,
+      placement: placement,
+      kind: .popover
+    )
     return FKCallout.show(
       content: .message(message),
       anchoredTo: anchor,
@@ -113,12 +122,12 @@ public enum FKPopover {
     var builder = FKCalloutBuilder(
       sourceRect: sourceRect,
       content: .messageWithActions(message: message, actions: actions),
-      configuration: {
-        var resolved = configuration ?? defaultConfiguration
-        if configuration == nil { resolved.placement = placement }
-        resolved.kind = .popover
-        return resolved
-      }(),
+      configuration: FKCalloutConfiguration.resolvingPreset(
+        configuration,
+        default: defaultConfiguration,
+        placement: placement,
+        kind: .popover
+      ),
       hooks: hooks,
       actionHandlers: actionHandlers
     )
@@ -143,9 +152,12 @@ public enum FKPopover {
       sourceRect: sourceRect,
       content: .coachMark(content),
       configuration: {
-        var resolved = configuration ?? defaultConfiguration
-        if configuration == nil { resolved.placement = placement }
-        resolved.kind = .popover
+        var resolved = FKCalloutConfiguration.resolvingPreset(
+          configuration,
+          default: defaultConfiguration,
+          placement: placement,
+          kind: .popover
+        )
         if configuration == nil {
           resolved.backdrop = FKCalloutBackdropStyle(showsDimmedBackdrop: true, spotlightsAnchor: true)
         }
@@ -174,12 +186,12 @@ public enum FKPopover {
     var builder = FKCalloutBuilder(
       sourceRect: sourceRect,
       content: .menu(menu),
-      configuration: {
-        var resolved = configuration ?? menuConfiguration
-        if configuration == nil { resolved.placement = placement }
-        resolved.kind = .popover
-        return resolved
-      }(),
+      configuration: FKCalloutConfiguration.resolvingPreset(
+        configuration,
+        default: menuConfiguration,
+        placement: placement,
+        kind: .popover
+      ),
       hooks: hooks,
       menuSelectionHandler: onSelect
     )
@@ -198,9 +210,12 @@ public enum FKPopover {
     configuration: FKCalloutConfiguration? = nil,
     hooks: FKCalloutLifecycleHooks = .init()
   ) -> FKCalloutHandle? {
-    var resolved = configuration ?? defaultConfiguration
-    if configuration == nil { resolved.placement = placement }
-    resolved.kind = .popover
+    let resolved = FKCalloutConfiguration.resolvingPreset(
+      configuration,
+      default: defaultConfiguration,
+      placement: placement,
+      kind: .popover
+    )
     return FKCallout.show(
       content: .customView(customView),
       anchoredTo: anchor,
@@ -210,7 +225,7 @@ public enum FKPopover {
     )
   }
 
-  /// Dismisses the active popover or any visible callout.
+  /// Dismisses every active callout session (including concurrent presentations).
   @MainActor
   public static func dismissActive(reason: FKCalloutDismissReason = .manual, animated: Bool = true) {
     FKCallout.dismissActive(reason: reason, animated: animated)

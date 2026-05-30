@@ -66,8 +66,8 @@ private struct FKCalloutSwiftUIExampleSurface: View {
         .buttonStyle(.bordered)
 
         Button("Dismiss active") {
-          FKPopover.dismissActive()
-          statusMessage = "Dismissed active callout."
+          FKTooltip.dismissActive()
+          statusMessage = "Dismissed active callout (FKTooltip.dismissActive dismisses all sessions)."
         }
         .buttonStyle(.borderless)
       }

@@ -61,6 +61,11 @@ final class FKCalloutPopoverContentExampleViewController: FKCalloutExampleBaseVi
       }
     )
     controls.addArrangedSubview(
+      FKCalloutExampleUI.button("Title popover with hooks") { [weak self] in
+        self?.showTitleWithHooks()
+      }
+    )
+    controls.addArrangedSubview(
       FKCalloutExampleUI.button("Header card (light)") { [weak self] in
         guard let self else { return }
         FKPopover.show(
@@ -80,7 +85,7 @@ final class FKCalloutPopoverContentExampleViewController: FKCalloutExampleBaseVi
     contentStack.addArrangedSubview(
       FKCalloutExampleUI.section(
         title: "Controls",
-        description: "FKPopover.show(title:message:), show(message:), and show(header:body:).",
+        description: "FKPopover.show overloads including hooks: on preset show methods.",
         body: controls
       )
     )
@@ -97,6 +102,23 @@ final class FKCalloutPopoverContentExampleViewController: FKCalloutExampleBaseVi
       configuration: config
     )
     log("FKPopover.show(title:message:) · .\(placement)")
+  }
+
+  private func showTitleWithHooks() {
+    var hooks = FKCalloutLifecycleHooks()
+    hooks.willShow = { [weak self] _ in self?.log("hooks.willShow") }
+    hooks.didShow = { [weak self] _ in self?.log("hooks.didShow") }
+    hooks.willDismiss = { [weak self] _, reason in self?.log("hooks.willDismiss · \(reason)") }
+    hooks.didDismiss = { [weak self] _, reason in self?.log("hooks.didDismiss · \(reason)") }
+    FKPopover.show(
+      title: "Popover with hooks",
+      message: FKCalloutExamplePlaybook.popoverBody,
+      anchoredTo: anchor,
+      placement: .top,
+      configuration: popoverConfig(placement: .top),
+      hooks: hooks
+    )
+    log("FKPopover.show(title:message:hooks:)")
   }
 
   private func popoverConfig(placement: FKCalloutPlacement) -> FKCalloutConfiguration {

@@ -51,12 +51,22 @@ final class FKCalloutLayoutBehaviorExampleViewController: FKCalloutExampleBaseVi
       }
     )
     controls.addArrangedSubview(
+      FKCalloutExampleUI.button("Keyboard dismiss popover") { [weak self] in
+        self?.showKeyboardDismissPopover()
+      }
+    )
+    controls.addArrangedSubview(
       FKCalloutExampleUI.button("Edge flip (automatic)") { [weak self] in
         self?.showEdgeFlipTooltip()
       }
     )
     controls.addArrangedSubview(
-      FKCalloutExampleUI.button("Dismiss") { FKCallout.dismissActive() }
+      FKCalloutExampleUI.button("Dim backdrop (no spotlight)") { [weak self] in
+        self?.showDimBackdropPopover()
+      }
+    )
+    controls.addArrangedSubview(
+      FKCalloutExampleUI.button("Dismiss") { FKTooltip.dismissActive() }
     )
 
     contentStack.addArrangedSubview(
@@ -112,6 +122,20 @@ final class FKCalloutLayoutBehaviorExampleViewController: FKCalloutExampleBaseVi
     log("keyboardAvoidance .relayout")
   }
 
+  private func showKeyboardDismissPopover() {
+    textField.becomeFirstResponder()
+    var config = FKCalloutConfiguration.popoverDefault(placement: .automatic)
+    config.keyboardAvoidance = .dismiss
+    config.maxWidth = 280
+    FKPopover.show(
+      title: "Keyboard dismiss",
+      message: "This bubble dismisses when the keyboard will show.",
+      anchoredTo: anchor,
+      configuration: config
+    )
+    log("keyboardAvoidance .dismiss")
+  }
+
   private func showEdgeFlipTooltip() {
     var config = FKCalloutConfiguration.tooltipDefault(placement: .automatic)
     config.autoDismissDuration = nil
@@ -123,5 +147,17 @@ final class FKCalloutLayoutBehaviorExampleViewController: FKCalloutExampleBaseVi
       configuration: config
     )
     log("flipsPlacementWhenNeeded · .automatic")
+  }
+
+  private func showDimBackdropPopover() {
+    var config = FKCalloutConfiguration.popoverDefault(placement: .bottom)
+    config.backdrop = FKCalloutBackdropStyle(showsDimmedBackdrop: true, spotlightsAnchor: false)
+    config.maxWidth = 280
+    FKPopover.show(
+      message: "Dimmed backdrop without an anchor spotlight cutout.",
+      anchoredTo: anchor,
+      configuration: config
+    )
+    log("backdrop dim · spotlightsAnchor false")
   }
 }

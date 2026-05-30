@@ -1,7 +1,9 @@
 import UIKit
 
 /// Visual chrome for callout bubbles (shared by tooltip and popover presets).
-public struct FKCalloutAppearance: Sendable, Equatable {
+///
+/// - Note: Marked `@unchecked Sendable` because `UIColor` is not `Sendable`; treat instances as main-thread configuration snapshots.
+public struct FKCalloutAppearance: @unchecked Sendable, Equatable {
   /// High-level light/dark preset.
   public enum Style: Sendable, Equatable {
     /// White surface, dark text, subtle shadow.

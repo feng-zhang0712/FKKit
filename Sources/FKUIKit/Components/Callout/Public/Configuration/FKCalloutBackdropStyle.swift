@@ -1,7 +1,9 @@
 import UIKit
 
 /// Optional dimmed backdrop and anchor spotlight used for coach marks and onboarding.
-public struct FKCalloutBackdropStyle: Sendable, Equatable {
+///
+/// - Note: Marked `@unchecked Sendable` because `UIColor` is not `Sendable`; treat instances as main-thread configuration snapshots.
+public struct FKCalloutBackdropStyle: @unchecked Sendable, Equatable {
   /// When `true`, draws a dimmed layer behind the bubble.
   public var showsDimmedBackdrop: Bool
   /// When `true` and ``showsDimmedBackdrop`` is enabled, cuts out a rounded rect around the anchor.

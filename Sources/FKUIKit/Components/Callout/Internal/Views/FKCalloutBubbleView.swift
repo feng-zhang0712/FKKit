@@ -578,30 +578,42 @@ final class FKCalloutBubbleView: UIView {
       )
     }
 
-    // Avoid measuring against a zero-sized superview; detached views only.
-    guard view.superview == nil else {
-      let fallback = view.sizeThatFits(CGSize(width: contentLimit, height: UIView.layoutFittingExpandedSize.height))
-      return CGSize(
-        width: min(max(fallback.width, 1), contentLimit),
-        height: max(fallback.height, 1)
-      )
-    }
+    return fittingSize(forCustomView: view, contentLimit: contentLimit)
+  }
 
-    let widthConstraint = view.widthAnchor.constraint(equalToConstant: contentLimit)
-    widthConstraint.priority = .required
-    widthConstraint.isActive = true
+  /// Measures Auto Layout custom content before the bubble has a non-zero frame.
+  private static func fittingSize(forCustomView view: UIView, contentLimit: CGFloat) -> CGSize {
+    let limit = max(1, contentLimit)
+    let fixedWidth = explicitFixedWidth(on: view)
+    let measurementWidth = min(fixedWidth ?? limit, limit)
+
     view.setNeedsLayout()
     view.layoutIfNeeded()
+
+    let horizontalPriority: UILayoutPriority = fixedWidth == nil ? .required : .fittingSizeLevel
     let size = view.systemLayoutSizeFitting(
-      CGSize(width: contentLimit, height: UIView.layoutFittingCompressedSize.height),
-      withHorizontalFittingPriority: .required,
+      CGSize(width: measurementWidth, height: UIView.layoutFittingCompressedSize.height),
+      withHorizontalFittingPriority: horizontalPriority,
       verticalFittingPriority: .fittingSizeLevel
     )
-    widthConstraint.isActive = false
+
+    let resolvedWidth = fixedWidth ?? min(max(size.width, 1), limit)
     return CGSize(
-      width: min(max(size.width, 1), contentLimit),
+      width: resolvedWidth,
       height: max(size.height, 1)
     )
+  }
+
+  /// Returns an active fixed-width constraint constant on `view`, if present.
+  private static func explicitFixedWidth(on view: UIView) -> CGFloat? {
+    for constraint in view.constraints where constraint.isActive {
+      guard constraint.firstItem as AnyObject === view,
+            constraint.firstAttribute == .width,
+            constraint.secondItem == nil,
+            constraint.relation == .equal else { continue }
+      return constraint.constant
+    }
+    return nil
   }
 
   private static func measuredFooterActionsHeight(_ actions: [FKCalloutAction]) -> CGFloat {

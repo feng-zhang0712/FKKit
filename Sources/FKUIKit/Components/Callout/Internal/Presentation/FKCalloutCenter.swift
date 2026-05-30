@@ -160,6 +160,12 @@ final class FKCalloutCenter {
     )
 
     relayout(presentation: presentation)
+    if case .customView = request.content {
+      DispatchQueue.main.async { [weak self, weak presentation] in
+        guard let self, let presentation else { return }
+        self.relayout(presentation: presentation)
+      }
+    }
     request.hooks.willShow?(request.id)
 
     FKCalloutAnimator.animateIn(

@@ -37,7 +37,7 @@ final class FKCalloutPopoverActionsExampleViewController: FKCalloutExampleBaseVi
     contentStack.addArrangedSubview(
       FKCalloutExampleUI.section(
         title: "Controls",
-        description: "FKPopover.show(message:actions:actionHandlers:) maps titles to handlers.",
+        description: "FKPopover.show(message:actions:actionHandlers:) maps handlers by FKCalloutAction.id.",
         body: controls
       )
     )
@@ -45,15 +45,15 @@ final class FKCalloutPopoverActionsExampleViewController: FKCalloutExampleBaseVi
 
   private func showLearnMore(style: FKCalloutAction.Style) {
     let message = "This is a tip to help you accomplish a task."
-    let action = FKCalloutAction(title: "Learn more", style: style)
+    let action = FKCalloutAction(id: "learn-more", title: "Learn more", style: style)
     var config = FKCalloutConfiguration.popoverDefault(placement: .bottom)
     config.maxWidth = 300
     FKPopover.show(
       message: message,
       actions: [action],
       actionHandlers: [
-        "Learn more": { [weak self] in
-          self?.log("Learn more tapped")
+        action.id: { [weak self] in
+          self?.log("Learn more tapped · id \(action.id)")
         },
       ],
       anchoredTo: anchor,
@@ -64,14 +64,15 @@ final class FKCalloutPopoverActionsExampleViewController: FKCalloutExampleBaseVi
   }
 
   private func showGotIt() {
+    let action = FKCalloutAction(id: "got-it", title: "Got it", style: .primary)
     var config = FKCalloutConfiguration.popoverDefault(placement: .top)
     config.maxWidth = 300
     FKPopover.show(
       message: "This is a tip to help you accomplish a task.",
-      actions: [FKCalloutAction(title: "Got it", style: .primary)],
+      actions: [action],
       actionHandlers: [
-        "Got it": { [weak self] in
-          self?.log("Got it tapped")
+        action.id: { [weak self] in
+          self?.log("Got it tapped · id \(action.id)")
         },
       ],
       anchoredTo: anchor,

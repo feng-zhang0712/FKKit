@@ -8,10 +8,13 @@ public final class FKCalloutSwiftUIAnchorBox: ObservableObject {
   /// Latest anchor view from ``FKCalloutSwiftUIAnchorButton``.
   public weak var view: UIView?
 
+  /// Creates an empty anchor box; assign ``view`` from ``FKCalloutSwiftUIAnchorButton``.
   public init() {}
 }
 
 /// Surfaces a UIKit button anchor to SwiftUI for ``FKTooltip`` / ``FKPopover`` presentation.
+///
+/// Uses indigo filled styling for FKKitExamples visibility; override by wrapping your own `UIViewRepresentable` in app code.
 public struct FKCalloutSwiftUIAnchorButton: UIViewRepresentable {
   private let title: String
   private let anchorBox: FKCalloutSwiftUIAnchorBox

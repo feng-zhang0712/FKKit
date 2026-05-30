@@ -22,7 +22,7 @@ public enum FKCalloutContent: @unchecked Sendable {
 
 /// Bundles anchor, content, configuration, lifecycle hooks, and interaction handlers.
 public struct FKCalloutBuilder: @unchecked Sendable {
-  /// Weakly held at presentation time on the main actor.
+  /// Anchor view; held strongly on the builder until ``FKCallout/show(builder:)`` runs (the presenter stores a weak reference).
   @MainActor public var anchorView: UIView?
   /// Optional rect in `anchorView` coordinates; `nil` uses `anchorView.bounds`.
   public var sourceRect: CGRect?
@@ -42,6 +42,9 @@ public struct FKCalloutBuilder: @unchecked Sendable {
   public var customBeakViewProvider: (@MainActor () -> UIView)?
 
   /// Creates a builder. Set ``anchorView`` on the main actor before calling ``FKCallout/show(builder:)``.
+  ///
+  /// Prefer ``FKCalloutConfiguration/tooltipDefault(placement:)`` or ``popoverDefault(placement:)`` for
+  /// ``configuration`` instead of the bare ``FKCalloutConfiguration/init()`` unless you need fully custom defaults.
   @MainActor
   public init(
     anchorView: UIView? = nil,
@@ -67,7 +70,9 @@ public struct FKCalloutBuilder: @unchecked Sendable {
 }
 
 /// Lifecycle callbacks for one callout request.
-public struct FKCalloutLifecycleHooks: Sendable {
+///
+/// - Note: Marked `@unchecked Sendable` because closure properties are not `Sendable`; configure and use on the main actor.
+public struct FKCalloutLifecycleHooks: @unchecked Sendable {
   /// Called immediately before the enter animation starts.
   public var willShow: (@MainActor (UUID) -> Void)?
   /// Called when the enter animation completes.

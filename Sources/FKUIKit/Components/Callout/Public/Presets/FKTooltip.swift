@@ -26,9 +26,12 @@ public enum FKTooltip {
     configuration: FKCalloutConfiguration? = nil,
     hooks: FKCalloutLifecycleHooks = .init()
   ) -> FKCalloutHandle? {
-    var resolved = configuration ?? defaultConfiguration
-    if configuration == nil { resolved.placement = placement }
-    resolved.kind = .tooltip
+    let resolved = FKCalloutConfiguration.resolvingPreset(
+      configuration,
+      default: defaultConfiguration,
+      placement: placement,
+      kind: .tooltip
+    )
     return FKCallout.show(
       content: .message(message),
       anchoredTo: anchor,
@@ -50,9 +53,12 @@ public enum FKTooltip {
     configuration: FKCalloutConfiguration? = nil,
     hooks: FKCalloutLifecycleHooks = .init()
   ) -> FKCalloutHandle? {
-    var resolved = configuration ?? defaultConfiguration
-    if configuration == nil { resolved.placement = placement }
-    resolved.kind = .tooltip
+    let resolved = FKCalloutConfiguration.resolvingPreset(
+      configuration,
+      default: defaultConfiguration,
+      placement: placement,
+      kind: .tooltip
+    )
     return FKCallout.show(
       content: .iconMessage(icon: icon, message: message),
       anchoredTo: anchor,
@@ -62,7 +68,7 @@ public enum FKTooltip {
     )
   }
 
-  /// Dismisses the active tooltip or popover.
+  /// Dismisses every active callout session (including concurrent presentations).
   @MainActor
   public static func dismissActive(reason: FKCalloutDismissReason = .manual, animated: Bool = true) {
     FKCallout.dismissActive(reason: reason, animated: animated)

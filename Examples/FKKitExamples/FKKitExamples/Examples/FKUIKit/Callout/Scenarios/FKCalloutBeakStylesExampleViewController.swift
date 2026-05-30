@@ -46,7 +46,7 @@ final class FKCalloutBeakStylesExampleViewController: FKCalloutExampleBaseViewCo
     styles.addArrangedSubview(FKCalloutExampleUI.button("Custom UIView beak") { [weak self] in
       self?.presentCustomBeak()
     })
-    styles.addArrangedSubview(FKCalloutExampleUI.button("Dismiss") { FKCallout.dismissActive() })
+    styles.addArrangedSubview(FKCalloutExampleUI.button("Dismiss") { FKTooltip.dismissActive() })
 
     contentStack.addArrangedSubview(
       FKCalloutExampleUI.section(

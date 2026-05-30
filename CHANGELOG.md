@@ -4,6 +4,12 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Added (FKUIKit — Callout)
+
+- **`FKCallout`**, **`FKTooltip`**, **`FKPopover`**: anchored speech-bubble overlays with shared layout engine, twelve placements, beak styles (including compound corner attachments), menus, coach marks, backdrop spotlight, keyboard avoidance, and SwiftUI anchor bridge (`FKCalloutSwiftUIAnchorBox`, `FKCalloutSwiftUIAnchorButton`).
+- **Presets**: `FKTooltip` / `FKPopover` facade APIs with global configuration stores; `FKCallout` advanced presenter (`show`, `showOrUpdate`, `update`, `dismiss`).
+- **Examples**: FKKitExamples **FKUIKit → Callout** hub covering tooltips, popover content, menus, layout/chrome, and advanced engine scenarios.
+
 ### Planned
 
 - Optional: Example app under `Examples/` (depending on this package locally)

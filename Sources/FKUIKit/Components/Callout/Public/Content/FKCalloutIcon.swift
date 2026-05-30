@@ -1,7 +1,9 @@
 import UIKit
 
-/// Icon descriptor for ``FKCalloutContent/iconMessage(icon:symbolName:message:)``.
-public struct FKCalloutIcon: Sendable, Equatable {
+/// Icon descriptor for ``FKCalloutContent/iconMessage(icon:message:)``.
+///
+/// - Note: Marked `@unchecked Sendable` because `UIImage` and `UIColor` are not `Sendable`; treat instances as main-thread snapshots.
+public struct FKCalloutIcon: @unchecked Sendable, Equatable {
   /// Template image icon.
   public var image: UIImage?
   /// SF Symbol name used when ``image`` is `nil`.

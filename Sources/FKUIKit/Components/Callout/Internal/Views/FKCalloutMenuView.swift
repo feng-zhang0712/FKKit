@@ -4,9 +4,10 @@ import UIKit
 final class FKCalloutMenuView: UIView {
   var onSelectItem: ((FKCalloutMenuItem) -> Void)?
 
-  private static let rowHorizontalInset: CGFloat = 16
-  private static let accessoryColumnWidth: CGFloat = 28
-  private static let columnSpacing: CGFloat = 12
+  private static let rowHorizontalInset: CGFloat = 8
+  private static let iconColumnWidth: CGFloat = 20
+  private static let checkmarkColumnWidth: CGFloat = 28
+  private static let columnSpacing: CGFloat = 10
 
   private let stack = UIStackView()
   private var rowWidthConstraints: [NSLayoutConstraint] = []
@@ -57,7 +58,6 @@ final class FKCalloutMenuView: UIView {
     let selectedBodyFont = Self.bodyFont(selected: true)
     let captionFont = UIFont.preferredFont(forTextStyle: .caption1)
     let headerFont = UIFont.preferredFont(forTextStyle: .caption2)
-    let fixedRowChrome = rowHorizontalInset * 2 + accessoryColumnWidth * 2 + columnSpacing * 2
     var contentWidth: CGFloat = 0
 
     if let header = menu.header {
@@ -77,7 +77,7 @@ final class FKCalloutMenuView: UIView {
             ceil((subtitle as NSString).size(withAttributes: [.font: captionFont]).width)
           )
         }
-        contentWidth = max(contentWidth, fixedRowChrome + textWidth)
+        contentWidth = max(contentWidth, rowChromeWidth(for: item) + textWidth)
       }
     }
 
@@ -135,7 +135,7 @@ final class FKCalloutMenuView: UIView {
     label.text = text
     label.numberOfLines = 1
     let container = UIView()
-    container.layoutMargins = UIEdgeInsets(top: 12, left: 16, bottom: 6, right: 16)
+    container.layoutMargins = UIEdgeInsets(top: 12, left: 12, bottom: 6, right: 12)
     label.translatesAutoresizingMaskIntoConstraints = false
     container.addSubview(label)
     NSLayoutConstraint.activate([
@@ -198,7 +198,7 @@ final class FKCalloutMenuView: UIView {
     row.isUserInteractionEnabled = false
     row.translatesAutoresizingMaskIntoConstraints = false
 
-    let leadingSlot = makeAccessorySlot(width: Self.accessoryColumnWidth)
+    let leadingSlot = makeAccessorySlot(width: Self.iconColumnWidth)
     if let image = resolvedIcon(for: item)?.withRenderingMode(.alwaysTemplate) {
       let iconView = UIImageView(image: image)
       iconView.tintColor = resolvedRowColor(for: item, configuration: configuration)
@@ -208,11 +208,11 @@ final class FKCalloutMenuView: UIView {
       NSLayoutConstraint.activate([
         iconView.centerXAnchor.constraint(equalTo: leadingSlot.centerXAnchor),
         iconView.centerYAnchor.constraint(equalTo: leadingSlot.centerYAnchor),
-        iconView.widthAnchor.constraint(equalToConstant: 20),
-        iconView.heightAnchor.constraint(equalToConstant: 20),
+        iconView.widthAnchor.constraint(equalToConstant: Self.iconColumnWidth),
+        iconView.heightAnchor.constraint(equalToConstant: Self.iconColumnWidth),
       ])
+      row.addArrangedSubview(leadingSlot)
     }
-    row.addArrangedSubview(leadingSlot)
 
     let textStack = UIStackView()
     textStack.axis = .vertical
@@ -239,8 +239,8 @@ final class FKCalloutMenuView: UIView {
     }
     row.addArrangedSubview(textStack)
 
-    let trailingSlot = makeAccessorySlot(width: Self.accessoryColumnWidth)
     if item.isSelected {
+      let trailingSlot = makeAccessorySlot(width: Self.checkmarkColumnWidth)
       let check = makeCheckmark(tintColor: item.isEnabled ? accentColor : .tertiaryLabel)
       trailingSlot.addSubview(check)
       check.translatesAutoresizingMaskIntoConstraints = false
@@ -248,8 +248,8 @@ final class FKCalloutMenuView: UIView {
         check.centerXAnchor.constraint(equalTo: trailingSlot.centerXAnchor),
         check.centerYAnchor.constraint(equalTo: trailingSlot.centerYAnchor),
       ])
+      row.addArrangedSubview(trailingSlot)
     }
-    row.addArrangedSubview(trailingSlot)
 
     button.addSubview(row)
     button.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -279,6 +279,17 @@ final class FKCalloutMenuView: UIView {
       return .quaternaryLabel
     }
     return configuration.appearance.resolvedSecondaryTextColor(traitCollection: traitCollection)
+  }
+
+  private static func rowChromeWidth(for item: FKCalloutMenuItem) -> CGFloat {
+    var width = rowHorizontalInset * 2
+    if item.icon != nil || item.symbolName != nil {
+      width += iconColumnWidth + columnSpacing
+    }
+    if item.isSelected {
+      width += checkmarkColumnWidth + columnSpacing
+    }
+    return width
   }
 
   private func makeAccessorySlot(width: CGFloat) -> UIView {

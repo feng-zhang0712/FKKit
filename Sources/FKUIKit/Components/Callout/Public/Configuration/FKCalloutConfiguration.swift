@@ -1,6 +1,10 @@
 import UIKit
 
-/// Interaction category used for default tuning (tooltip vs popover presets).
+/// Interaction category stored on the configuration.
+///
+/// Affects presentation policy defaults and, when ``autoDismissDuration`` is `nil`, supplies tooltip
+/// auto-dismiss from ``tooltipDefault(placement:)``. Width and chrome come from explicit configuration
+/// or ``tooltipDefault(placement:)`` / ``popoverDefault(placement:)`` — not from ``kind`` alone.
 public enum FKCalloutKind: Sendable, Equatable {
   /// Short, transient hint with conservative width and auto-dismiss defaults.
   case tooltip
@@ -17,7 +21,9 @@ public enum FKCalloutAnimationStyle: Sendable, Equatable {
 }
 
 /// Per-request configuration for anchored callouts.
-public struct FKCalloutConfiguration: Sendable, Equatable {
+///
+/// - Note: Marked `@unchecked Sendable` because nested types may carry `UIColor`, `UIFont`, or other UIKit values; treat instances as main-thread configuration snapshots.
+public struct FKCalloutConfiguration: @unchecked Sendable, Equatable {
   /// Tooltip vs popover defaults (width, auto-dismiss, interaction).
   public var kind: FKCalloutKind
   /// Bubble placement relative to the anchor. ``FKCalloutPlacement/automatic`` picks the best side at layout time.
@@ -176,5 +182,23 @@ public struct FKCalloutConfiguration: Sendable, Equatable {
     config.matchesAnchorWidth = true
     config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
     return config
+  }
+
+  /// Merges a per-request configuration with preset defaults and facade parameters.
+  ///
+  /// When `placement` is not ``FKCalloutPlacement/automatic``, it always overrides `resolved.placement`
+  /// (even when `configuration` is non-`nil`). ``FKCalloutKind`` is always set from `kind`.
+  static func resolvingPreset(
+    _ configuration: FKCalloutConfiguration?,
+    default defaultConfiguration: FKCalloutConfiguration,
+    placement: FKCalloutPlacement,
+    kind: FKCalloutKind
+  ) -> FKCalloutConfiguration {
+    var resolved = configuration ?? defaultConfiguration
+    if placement != .automatic {
+      resolved.placement = placement
+    }
+    resolved.kind = kind
+    return resolved
   }
 }

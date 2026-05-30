@@ -1,7 +1,7 @@
 import UIKit
 import FKUIKit
 
-/// FKCallout builder, update, hooks, anchor alignment, and custom configuration.
+/// FKCallout builder, showOrUpdate, update, hooks, anchor alignment, and custom configuration.
 final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewController {
   private let anchor = FKCalloutExampleUI.anchorButton("Core API anchor")
   private var handle: FKCalloutHandle?
@@ -14,7 +14,7 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
     contentStack.addArrangedSubview(
       FKCalloutExampleUI.section(
         title: "Anchor",
-        description: "Exercises FKCallout.show(builder:), update, dismiss, and lifecycle hooks.",
+        description: "Exercises FKCalloutBuilder, showOrUpdate, FKCallout.update, lifecycle hooks, and concurrent policy.",
         body: FKCalloutExampleUI.anchorCanvas(anchor: anchor)
       )
     )
@@ -23,12 +23,17 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
     controls.axis = .vertical
     controls.spacing = 8
     controls.addArrangedSubview(
-      FKCalloutExampleUI.button("Show with hooks") { [weak self] in
+      FKCalloutExampleUI.button("Show with hooks (builder)") { [weak self] in
         self?.showWithHooks()
       }
     )
     controls.addArrangedSubview(
-      FKCalloutExampleUI.button("Update message in place") { [weak self] in
+      FKCalloutExampleUI.button("showOrUpdate message") { [weak self] in
+        self?.showOrUpdateMessage()
+      }
+    )
+    controls.addArrangedSubview(
+      FKCalloutExampleUI.button("Update via FKCallout.update") { [weak self] in
         self?.updateMessage()
       }
     )
@@ -48,25 +53,46 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
       }
     )
     controls.addArrangedSubview(
-      FKCalloutExampleUI.button("Dismiss via handle") { [weak self] in
-        self?.handle?.dismiss()
-        self?.log("FKCalloutHandle.dismiss")
+      FKCalloutExampleUI.button("Dismiss via FKPopover.dismiss(handle)") { [weak self] in
+        guard let self, let handle = self.handle else {
+          self?.log("Show a callout first")
+          return
+        }
+        FKPopover.dismiss(handle)
+        self.log("FKPopover.dismiss(handle)")
+      }
+    )
+    controls.addArrangedSubview(
+      FKCalloutExampleUI.button("Dismiss via FKCallout.dismiss(id)") { [weak self] in
+        guard let self, let handle = self.handle else {
+          self?.log("Show a callout first")
+          return
+        }
+        FKCallout.dismiss(handle.id)
+        self.log("FKCallout.dismiss(id)")
       }
     )
 
     contentStack.addArrangedSubview(
       FKCalloutExampleUI.section(
         title: "Controls",
-        description: "Lower-level FKCallout APIs when presets are not enough.",
+        description: "Lower-level FKCallout APIs when presets are not enough. Callouts stay open while you tap controls; use Dismiss buttons to close.",
         body: controls
       )
     )
   }
 
+  /// Popover preset tuned for this playground: controls sit outside the bubble, so outside taps must not dismiss.
+  private func playgroundConfiguration(placement: FKCalloutPlacement = .top) -> FKCalloutConfiguration {
+    var config = FKCalloutConfiguration.popoverDefault(placement: placement)
+    config.autoDismissDuration = nil
+    config.tapOutsideToDismiss = false
+    return config
+  }
+
   private func showWithHooks() {
     showCount += 1
-    var config = FKCalloutConfiguration.popoverDefault(placement: .top)
-    config.autoDismissDuration = nil
+    var config = playgroundConfiguration(placement: .top)
     var hooks = FKCalloutLifecycleHooks()
     hooks.willShow = { [weak self] _ in
       self?.log("willShow")
@@ -81,13 +107,26 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
       self?.log("didDismiss · \(reason)")
       self?.handle = nil
     }
-    handle = FKCallout.show(
+    var builder = FKCalloutBuilder(
       content: .message("Callout #\(showCount)"),
-      anchoredTo: anchor,
       configuration: config,
       hooks: hooks
     )
-    log("FKCallout.show · handle \(handle?.id.uuidString.prefix(8) ?? "nil")")
+    builder.anchorView = anchor
+    handle = FKCallout.show(builder: builder)
+    log("FKCallout.show(builder:) · handle \(handle?.id.uuidString.prefix(8) ?? "nil")")
+  }
+
+  private func showOrUpdateMessage() {
+    showCount += 1
+    var config = playgroundConfiguration(placement: .top)
+    var builder = FKCalloutBuilder(
+      content: .message("showOrUpdate #\(showCount)"),
+      configuration: config
+    )
+    builder.anchorView = anchor
+    handle = FKCallout.showOrUpdate(builder: builder)
+    log("FKCallout.showOrUpdate · handle \(handle?.id.uuidString.prefix(8) ?? "nil")")
   }
 
   private func updateMessage() {
@@ -97,11 +136,11 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
     }
     showCount += 1
     let ok = FKCallout.update(handle.id, content: .message("Updated to #\(showCount)"))
-    log(ok ? "FKCallout.update succeeded" : "FKCallout.update failed")
+    log(ok ? "FKCallout.update succeeded · Updated to #\(showCount)" : "FKCallout.update failed · callout was dismissed")
   }
 
   private func showLeadingAligned() {
-    var config = FKCalloutConfiguration.popoverDefault(placement: .bottomLeading)
+    var config = playgroundConfiguration(placement: .bottomLeading)
     config.anchorAlignment = .leading
     config.minWidth = 260
     config.appearance = FKCalloutAppearance(style: .light, borderColor: .separator, borderWidth: 1)
@@ -115,10 +154,6 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
 
   private func showCustomView() {
     handle = FKPopover.show(customView: {
-      let container = UIView()
-      container.translatesAutoresizingMaskIntoConstraints = false
-      container.layoutMargins = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
-
       let label = UILabel()
       label.text = "Custom UIView content"
       label.font = .preferredFont(forTextStyle: .body)
@@ -127,16 +162,17 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
       label.numberOfLines = 0
       label.translatesAutoresizingMaskIntoConstraints = false
 
+      let container = UIView()
+      container.layoutMargins = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
       container.addSubview(label)
       NSLayoutConstraint.activate([
         label.leadingAnchor.constraint(equalTo: container.layoutMarginsGuide.leadingAnchor),
         label.trailingAnchor.constraint(equalTo: container.layoutMarginsGuide.trailingAnchor),
         label.topAnchor.constraint(equalTo: container.layoutMarginsGuide.topAnchor),
         label.bottomAnchor.constraint(equalTo: container.layoutMarginsGuide.bottomAnchor),
-        container.widthAnchor.constraint(greaterThanOrEqualToConstant: 220),
       ])
-      return container
-    }, anchoredTo: anchor, placement: .trailing)
+      return FKCalloutExampleCustomContent.wrapping(container, width: 220)
+    }, anchoredTo: anchor, placement: .trailing, configuration: playgroundConfiguration(placement: .trailing))
     log("FKPopover.show(customView:)")
   }
 

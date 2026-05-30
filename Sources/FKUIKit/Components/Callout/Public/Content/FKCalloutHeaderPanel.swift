@@ -1,7 +1,9 @@
 import UIKit
 
 /// Colored header card for split popovers (rounded header block + body layouts).
-public struct FKCalloutHeaderPanel: Sendable, Equatable {
+///
+/// - Note: Marked `@unchecked Sendable` because `UIColor` is not `Sendable`; treat instances as main-thread configuration snapshots.
+public struct FKCalloutHeaderPanel: @unchecked Sendable, Equatable {
   /// Header title text.
   public var title: String
   /// Header background override; `nil` uses ``FKCalloutAppearance/Style`` defaults.

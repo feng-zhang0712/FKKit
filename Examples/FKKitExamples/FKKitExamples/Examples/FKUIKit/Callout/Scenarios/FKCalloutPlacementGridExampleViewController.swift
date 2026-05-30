@@ -73,7 +73,7 @@ final class FKCalloutPlacementGridExampleViewController: FKCalloutExampleBaseVie
       }
     )
     extra.addArrangedSubview(
-      FKCalloutExampleUI.button("Dismiss") { FKCallout.dismissActive() }
+      FKCalloutExampleUI.button("Dismiss") { FKTooltip.dismissActive() }
     )
 
     contentStack.addArrangedSubview(

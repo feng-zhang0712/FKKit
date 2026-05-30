@@ -1,7 +1,7 @@
 import Foundation
 
 /// Stable reference to one presented callout; safe to pass across concurrency domains.
-public final class FKCalloutHandle: @unchecked Sendable {
+public final class FKCalloutHandle: Sendable {
   /// Identifier shared with ``FKCallout/dismiss(_:reason:animated:)``.
   public let id: UUID
 

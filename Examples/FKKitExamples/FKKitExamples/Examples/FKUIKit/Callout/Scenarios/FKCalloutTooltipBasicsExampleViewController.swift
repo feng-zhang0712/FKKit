@@ -82,11 +82,16 @@ final class FKCalloutTooltipBasicsExampleViewController: FKCalloutExampleBaseVie
         self?.showIcon(placement: .topLeading)
       }
     )
+    iconControls.addArrangedSubview(
+      FKCalloutExampleUI.button("Icon · template image") { [weak self] in
+        self?.showTemplateImageIcon()
+      }
+    )
 
     contentStack.addArrangedSubview(
       FKCalloutExampleUI.section(
         title: "Icon message",
-        description: "FKCalloutContent.iconMessage with FKCalloutIcon (SF Symbol).",
+        description: "FKCalloutIcon with SF Symbol or UIImage template image.",
         body: iconControls
       )
     )
@@ -114,5 +119,20 @@ final class FKCalloutTooltipBasicsExampleViewController: FKCalloutExampleBaseVie
       configuration: config
     )
     log("FKTooltip iconMessage · placement .\(placement)")
+  }
+
+  private func showTemplateImageIcon() {
+    var config = FKCalloutConfiguration.tooltipDefault(placement: .bottom)
+    config.maxWidth = 300
+    let image = UIImage(systemName: "lightbulb.fill")?
+      .withConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .medium))
+    let icon = FKCalloutIcon(image: image, tintColor: .systemYellow)
+    FKTooltip.show(
+      icon: icon,
+      message: "Template image icons use FKCalloutIcon(image:tintColor:).",
+      anchoredTo: anchor,
+      configuration: config
+    )
+    log("FKTooltip iconMessage · UIImage template")
   }
 }

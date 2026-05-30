@@ -181,6 +181,8 @@ private final class FKCalloutScrollableScrollContentView: UIView {
       label.font = .preferredFont(forTextStyle: .subheadline)
       label.text = "Scroll block \(index) — drag inside the popover."
       label.numberOfLines = 0
+      label.lineBreakMode = .byWordWrapping
+      label.setContentCompressionResistancePriority(.required, for: .vertical)
       label.translatesAutoresizingMaskIntoConstraints = false
       card.addSubview(label)
       NSLayoutConstraint.activate([
@@ -204,7 +206,7 @@ private final class FKCalloutScrollableScrollContentView: UIView {
       stack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -4),
       stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 4),
       stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -4),
-      stack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -8),
+      stack.widthAnchor.constraint(equalToConstant: Self.size.width - 8),
     ])
   }
 

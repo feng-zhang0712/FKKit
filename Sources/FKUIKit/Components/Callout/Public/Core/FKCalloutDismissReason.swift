@@ -2,7 +2,7 @@ import Foundation
 
 /// Reason reported when a callout finishes dismissal.
 public enum FKCalloutDismissReason: Sendable, Equatable {
-  /// Caller invoked ``FKCallout/dismiss(_:animated:)`` or a facade equivalent.
+  /// Caller invoked ``FKCallout/dismiss(_:reason:animated:)`` or a facade equivalent.
   case manual
   /// User tapped outside the bubble while ``FKCalloutConfiguration/tapOutsideToDismiss`` is enabled.
   case tapOutside
