@@ -38,6 +38,7 @@ let package = Package(
         "Components/TextField/README.md",
         "Components/Toast/README.md",
         "Components/ActionSheet/README.md",
+        "Components/Callout/README.md",
         "Components/RatingControl/README.md",
       ],
       resources: [

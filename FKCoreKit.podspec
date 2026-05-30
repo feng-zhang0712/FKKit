@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'FKCoreKit'
-  s.version = '0.56.0'
+  s.version = '0.57.0'
   s.summary = 'FKKit core module: pluggable protocols, networking, storage, security, and utilities.'
   s.description = <<-DESC
     Foundation layer for the FKKit family: pluggable protocol contracts (Pluggable/),

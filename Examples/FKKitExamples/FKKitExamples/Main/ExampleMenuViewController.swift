@@ -49,6 +49,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKButtonExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "Callout",
+          subtitle: "Hub: FKTooltip, FKPopover, placements, menus, coach mark, FKCallout builder",
+          make: { FKCalloutExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "CornerShadow",
           subtitle: "Any-corner radius + high-performance shadow (path based)",
           make: { FKCornerShadowExamplesHubViewController() }
