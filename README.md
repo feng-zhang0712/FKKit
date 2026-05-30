@@ -72,6 +72,7 @@ FKKit/
 │        ├─ Base/
 │        ├─ BlurView/
 │        ├─ Button/
+│        ├─ Callout/
 │        ├─ CornerShadow/
 │        ├─ Divider/
 │        ├─ EmptyState/
@@ -116,6 +117,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 - `Badge`: flexible badge display for views, bar items, and tab items, with corner/center anchoring and customizable styles/animations.
 - `BlurView`: high-performance blur component with system/custom pipelines, UIKit/SwiftUI adapters, image/view snapshot blur APIs, and IB/global-configuration support.
 - `Button`: configurable button system with style/content/loading behavior.
+- `Callout`: anchored tooltip/popover bubbles (`FKCallout`, `FKTooltip`, `FKPopover`) with beak placement and shared layout engine — see `Sources/FKUIKit/Components/Callout/README.md`.
 - `CornerShadow`: rounded-rect masks, borders, gradient fill/stroke, and explicit-path shadows (`Public` / `Internal` / `Extension`); see `Sources/FKUIKit/Components/CornerShadow/README.md`.
 - `Divider`: hairline separator (`FKDivider` / `FKDividerView`); dashed & gradient strokes; `FKDivider.defaultConfiguration`; layout under `Public/`, `Internal/`, `Extension/` (see module README).
 - `EmptyState`: loading/empty/error overlay (`Public` / `Internal` / `Extension` / `CoreLite` resolver + i18n); see `Sources/FKUIKit/Components/EmptyState/README.md`.
