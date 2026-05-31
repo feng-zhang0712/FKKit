@@ -47,7 +47,7 @@ private struct FKPagingSwiftUIDemoView: View {
         pages: pages,
         selectedIndex: $selectedIndex,
         configuration: FKPagingConfiguration(
-          tabBarHeight: 48,
+          tabBarHeightPolicy: .fixed(48),
           allowsSwipePaging: true,
           preloadRange: 0,
           retentionPolicy: .keepAll,

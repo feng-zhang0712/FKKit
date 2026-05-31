@@ -35,6 +35,7 @@ let package = Package(
         "Components/Player/AudioPlayer/README.md",
         "Components/Skeleton/README.md",
         "Components/TabBar/README.md",
+        "Components/PagingController/README.md",
         "Components/TextField/README.md",
         "Components/Toast/README.md",
         "Components/ActionSheet/README.md",

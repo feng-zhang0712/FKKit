@@ -150,14 +150,7 @@ final class FKTabBarBasicPlaygroundExampleViewController: UIViewController, FKTa
     stack.addArrangedSubview(logView)
 
     // Attach tab bar (top pinned, like other pages in this example app)
-    tabView.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tabView)
-    NSLayoutConstraint.activate([
-      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      tabView.heightAnchor.constraint(equalToConstant: 56),
-    ])
+    FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 56)
 
     appendLog("ready: layout=\(layoutMode == .fixedEqual ? "fixedEqual" : "scrollable")")
   }
@@ -179,10 +172,6 @@ final class FKTabBarBasicPlaygroundExampleViewController: UIViewController, FKTa
 
   func tabBar(_ tabBar: FKTabBar, didReselect item: FKTabBarItem, at index: Int) {
     appendLog("delegate.didReselect: \(index) (\(item.titleText ?? item.id))")
-  }
-
-  func tabBar(_ tabBar: FKTabBar, didRequestSelection item: FKTabBarItem, at index: Int) {
-    appendLog("delegate.didRequestSelection: \(index) (\(item.titleText ?? item.id))")
   }
 
   // MARK: - Helpers

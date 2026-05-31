@@ -1,7 +1,7 @@
 import UIKit
 import FKUIKit
 
-/// Demonstrates RTL behavior for `FKTabBar` in scrollable mode.
+/// Demonstrates RTL behavior and layout direction for `FKTabBar` in scrollable mode.
 ///
 /// Verification checklist:
 /// - Toggle RTL and ensure the visual order mirrors correctly.
@@ -23,14 +23,7 @@ final class FKTabBarRTLExampleViewController: UIViewController {
     title = "RTL"
     view.backgroundColor = .systemBackground
 
-    tabView.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tabView)
-    NSLayoutConstraint.activate([
-      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      tabView.heightAnchor.constraint(equalToConstant: 56),
-    ])
+    FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 56)
 
     let stack = FKTabBarExampleSupport.makeRootStack(
       in: view,
@@ -38,8 +31,8 @@ final class FKTabBarRTLExampleViewController: UIViewController {
       scrollTopSpacing: 16
     )
     view.bringSubviewToFront(tabView)
-    stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("RTL in scrollable mode"))
-    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Use the toggles below to validate RTL mirroring, selection auto-scroll, and indicator movement."))
+    stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("RTL + layout direction"))
+    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Validate rtlBehavior, semantic RTL, itemLayoutDirection (horizontal/vertical), selection auto-scroll, and indicator movement."))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("To validate system RTL: Settings → General → Language & Region (or Xcode scheme Application Language)."))
 
     semanticSwitch.selectedSegmentIndex = 0
@@ -64,6 +57,16 @@ final class FKTabBarRTLExampleViewController: UIViewController {
       self.appendStatus("layout.rtlBehavior: \(self.configuration.layout.rtlBehavior)")
     }, for: .valueChanged)
     stack.addArrangedSubview(rtlSwitch)
+
+    let layoutDirection = UISegmentedControl(items: ["Leading+Text", "Top+Bottom"])
+    layoutDirection.selectedSegmentIndex = 0
+    layoutDirection.addAction(UIAction { [weak self] _ in
+      guard let self else { return }
+      self.configuration.layout.itemLayoutDirection = layoutDirection.selectedSegmentIndex == 0 ? .horizontal : .vertical
+      self.tabView.applyConfiguration(self.configuration, animated: false)
+      self.appendStatus("itemLayoutDirection: \(self.configuration.layout.itemLayoutDirection)")
+    }, for: .valueChanged)
+    stack.addArrangedSubview(layoutDirection)
 
     let actions = UIStackView()
     actions.axis = .horizontal

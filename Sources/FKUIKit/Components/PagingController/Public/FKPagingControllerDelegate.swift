@@ -9,6 +9,13 @@ public protocol FKPagingControllerDelegate: AnyObject {
   func pagingController(_ controller: FKPagingController, didUpdateProgress progress: CGFloat, from fromIndex: Int, to toIndex: Int)
   /// Called after the container settles on a page (interactive or programmatic).
   func pagingController(_ controller: FKPagingController, didSettleAt index: Int)
+  /// Called when tab and paging phases or progress change together during a transition.
+  func pagingController(
+    _ controller: FKPagingController,
+    didUpdateCombinedTransition tabPhase: FKTabBarSwitchPhase,
+    pagingPhase: FKPagingPhase,
+    progress: CGFloat
+  )
 }
 
 @MainActor
@@ -16,4 +23,10 @@ public extension FKPagingControllerDelegate {
   func pagingController(_ controller: FKPagingController, didChangePhase phase: FKPagingPhase) {}
   func pagingController(_ controller: FKPagingController, didUpdateProgress progress: CGFloat, from fromIndex: Int, to toIndex: Int) {}
   func pagingController(_ controller: FKPagingController, didSettleAt index: Int) {}
+  func pagingController(
+    _ controller: FKPagingController,
+    didUpdateCombinedTransition tabPhase: FKTabBarSwitchPhase,
+    pagingPhase: FKPagingPhase,
+    progress: CGFloat
+  ) {}
 }

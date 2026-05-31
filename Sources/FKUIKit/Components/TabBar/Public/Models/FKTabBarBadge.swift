@@ -6,7 +6,7 @@ public enum FKTabBarBadgeContent: Equatable {
   case dot
   case count(Int)
   case text(String)
-  /// The actual view is provided by `FKTabBar.customBadgeViewProvider`.
+  /// The actual view is provided by ``FKTabBarCustomization/customBadgeView(for:)``.
   case custom(id: String)
 }
 

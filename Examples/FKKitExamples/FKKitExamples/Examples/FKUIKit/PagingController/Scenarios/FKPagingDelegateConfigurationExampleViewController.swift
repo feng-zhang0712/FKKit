@@ -1,9 +1,9 @@
 import UIKit
 import FKUIKit
 
-/// Explores swipe toggles, gesture policies, tab alignment, and delegate telemetry.
+/// Explores swipe toggles, gesture policies, tab alignment, combined transition telemetry, and tabBarDelegate forwarding.
 @MainActor
-final class FKPagingDelegateConfigurationExampleViewController: UIViewController, FKPagingControllerDelegate {
+final class FKPagingDelegateConfigurationExampleViewController: UIViewController, FKPagingControllerDelegate, FKTabBarDelegate {
   private let pagingController: FKPagingController
   private let logView = UITextView()
 
@@ -18,12 +18,15 @@ final class FKPagingDelegateConfigurationExampleViewController: UIViewController
     pagingController = FKPagingController(
       tabs: tabs,
       viewControllers: pages,
+      tabConfiguration: FKTabBarPresets.pagerHeader(),
       configuration: FKPagingConfiguration(
+        tabBarHeightPolicy: .automatic,
         tabAlignment: .alwaysCenter
       )
     )
     super.init(nibName: nil, bundle: nil)
     pagingController.delegate = self
+    pagingController.tabBarDelegate = self
   }
 
   @available(*, unavailable)
@@ -131,5 +134,18 @@ final class FKPagingDelegateConfigurationExampleViewController: UIViewController
 
   func pagingController(_ controller: FKPagingController, didSettleAt index: Int) {
     appendLog("settled @ \(index)")
+  }
+
+  func pagingController(
+    _ controller: FKPagingController,
+    didUpdateCombinedTransition tabPhase: FKTabBarSwitchPhase,
+    pagingPhase: FKPagingPhase,
+    progress: CGFloat
+  ) {
+    appendLog(String(format: "combined tab=%@ paging=%@ progress=%.2f", "\(tabPhase)", "\(pagingPhase)", progress))
+  }
+
+  func tabBar(_ tabBar: FKTabBar, didSelect item: FKTabBarItem, at index: Int, reason: FKTabBar.SelectionReason) {
+    appendLog("tabBarDelegate didSelect @\(index) reason=\(reason)")
   }
 }

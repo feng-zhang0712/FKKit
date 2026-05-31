@@ -26,16 +26,26 @@ public enum FKPagingGesturePolicy: Equatable {
 public enum FKPagingTabAlignment: Equatable {
   /// Respect ``FKTabBar``’s own layout configuration.
   case followTabBarDefault
-  /// Force centered selection scrolling after each settled transition (mutates ``FKTabBar/layoutConfiguration``).
+  /// Force centered selection scrolling after each settled transition (mutates ``FKTabBar/configuration`` layout).
   case alwaysCenter
+}
+
+/// Page switch gating policy for tab-driven navigation.
+public enum FKPagingPageSwitchGate: Equatable {
+  /// Tab taps switch pages immediately.
+  case immediate
+  /// Tab taps request a switch; host commits via ``FKPagingController/commitPageSwitch(to:animated:)``.
+  case controlled
 }
 
 /// Runtime configuration for ``FKPagingController``.
 public struct FKPagingConfiguration: Equatable {
-  /// Height of the embedded ``FKTabBar``.
-  public var tabBarHeight: CGFloat
+  /// Height policy for the embedded ``FKTabBar``.
+  public var tabBarHeightPolicy: FKPagingTabBarHeightPolicy
   /// Enables horizontal swipe paging via `UIPageViewController` scroll style.
   public var allowsSwipePaging: Bool
+  /// Tab-driven page switch gating policy.
+  public var pageSwitchGate: FKPagingPageSwitchGate
   /// Number of neighbor indices to eagerly instantiate on each side of the selection (lazy mode only).
   public var preloadRange: Int
   /// Cache eviction policy for lazy page construction.
@@ -46,15 +56,17 @@ public struct FKPagingConfiguration: Equatable {
   public var tabAlignment: FKPagingTabAlignment
 
   public init(
-    tabBarHeight: CGFloat = 48,
+    tabBarHeightPolicy: FKPagingTabBarHeightPolicy = .fixed(48),
     allowsSwipePaging: Bool = true,
+    pageSwitchGate: FKPagingPageSwitchGate = .immediate,
     preloadRange: Int = 1,
     retentionPolicy: FKPagingRetentionPolicy = .keepNear(distance: 1),
     gesturePolicy: FKPagingGesturePolicy = .preferNavigationBackGesture(edgeWidth: 24),
     tabAlignment: FKPagingTabAlignment = .followTabBarDefault
   ) {
-    self.tabBarHeight = max(36, tabBarHeight)
+    self.tabBarHeightPolicy = tabBarHeightPolicy
     self.allowsSwipePaging = allowsSwipePaging
+    self.pageSwitchGate = pageSwitchGate
     self.preloadRange = max(0, preloadRange)
     self.retentionPolicy = retentionPolicy
     self.gesturePolicy = gesturePolicy

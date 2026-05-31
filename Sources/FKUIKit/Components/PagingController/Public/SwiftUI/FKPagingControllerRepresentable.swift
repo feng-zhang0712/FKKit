@@ -13,9 +13,7 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
 
   private let tabs: [FKTabBarItem]
   private let pageSource: PageSource
-  private let tabAppearance: FKTabBarAppearance?
-  private let tabLayoutOptions: FKTabBarLayoutConfiguration?
-  private let tabAnimationOptions: FKTabBarAnimationConfiguration?
+  private let tabConfiguration: FKTabBarConfiguration
   private let configuration: FKPagingConfiguration
   @Binding private var selectedIndex: Int
 
@@ -24,42 +22,34 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
     case lazy(pageCount: Int, provider: (Int) -> UIViewController)
   }
 
-  /// Eager page construction (mirrors ``FKPagingController/init(tabs:viewControllers:selectedIndex:tabAppearance:tabLayoutOptions:tabAnimationOptions:configuration:)``).
+  /// Eager page construction.
   public init(
     tabs: [FKTabBarItem],
     pages: [UIViewController],
     selectedIndex: Binding<Int>,
-    tabAppearance: FKTabBarAppearance? = nil,
-    tabLayoutOptions: FKTabBarLayoutConfiguration? = nil,
-    tabAnimationOptions: FKTabBarAnimationConfiguration? = nil,
+    tabConfiguration: FKTabBarConfiguration = FKTabBarPresets.pagerHeader(),
     configuration: FKPagingConfiguration = FKPagingConfiguration()
   ) {
     self.tabs = tabs
     self.pageSource = .eager(pages)
     self._selectedIndex = selectedIndex
-    self.tabAppearance = tabAppearance
-    self.tabLayoutOptions = tabLayoutOptions
-    self.tabAnimationOptions = tabAnimationOptions
+    self.tabConfiguration = tabConfiguration
     self.configuration = configuration
   }
 
-  /// Lazy page construction (mirrors ``FKPagingController/init(tabs:pageCount:pageProvider:selectedIndex:tabAppearance:tabLayoutOptions:tabAnimationOptions:configuration:)``).
+  /// Lazy page construction.
   public init(
     tabs: [FKTabBarItem],
     pageCount: Int,
     pageProvider: @escaping (Int) -> UIViewController,
     selectedIndex: Binding<Int>,
-    tabAppearance: FKTabBarAppearance? = nil,
-    tabLayoutOptions: FKTabBarLayoutConfiguration? = nil,
-    tabAnimationOptions: FKTabBarAnimationConfiguration? = nil,
+    tabConfiguration: FKTabBarConfiguration = FKTabBarPresets.pagerHeader(),
     configuration: FKPagingConfiguration = FKPagingConfiguration()
   ) {
     self.tabs = tabs
     self.pageSource = .lazy(pageCount: pageCount, provider: pageProvider)
     self._selectedIndex = selectedIndex
-    self.tabAppearance = tabAppearance
-    self.tabLayoutOptions = tabLayoutOptions
-    self.tabAnimationOptions = tabAnimationOptions
+    self.tabConfiguration = tabConfiguration
     self.configuration = configuration
   }
 
@@ -71,9 +61,7 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
         tabs: tabs,
         viewControllers: pages,
         selectedIndex: selectedIndex,
-        tabAppearance: tabAppearance,
-        tabLayoutOptions: tabLayoutOptions,
-        tabAnimationOptions: tabAnimationOptions,
+        tabConfiguration: tabConfiguration,
         configuration: configuration
       )
     case .lazy(let count, let provider):
@@ -82,9 +70,7 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
         pageCount: count,
         pageProvider: provider,
         selectedIndex: selectedIndex,
-        tabAppearance: tabAppearance,
-        tabLayoutOptions: tabLayoutOptions,
-        tabAnimationOptions: tabAnimationOptions,
+        tabConfiguration: tabConfiguration,
         configuration: configuration
       )
     }
@@ -94,9 +80,17 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
   }
 
   public func updateUIViewController(_ uiViewController: FKPagingController, context: Context) {
-    uiViewController.configuration = configuration
+    if context.coordinator.lastConfiguration != configuration {
+      uiViewController.configuration = configuration
+      context.coordinator.lastConfiguration = configuration
+    }
+    if context.coordinator.lastTabConfiguration != tabConfiguration {
+      uiViewController.tabBar.applyConfiguration(tabConfiguration)
+      context.coordinator.lastTabConfiguration = tabConfiguration
+    }
+
     let coordinator = context.coordinator
-    if coordinator.shouldReload(tabs: tabs, pageSource: pageSource) {
+    if coordinator.shouldReloadStructure(tabs: tabs, pageSource: pageSource) {
       switch pageSource {
       case .eager(let pages):
         uiViewController.setContent(tabs: tabs, viewControllers: pages, selectedIndex: selectedIndex)
@@ -104,6 +98,9 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
         uiViewController.setContent(tabs: tabs, pageCount: count, pageProvider: provider, selectedIndex: selectedIndex)
       }
       coordinator.cache(from: tabs, pageSource: pageSource)
+    } else if tabs != coordinator.cachedTabs {
+      uiViewController.tabBar.reload(items: tabs, updatePolicy: .preserveSelection)
+      coordinator.cachedTabs = tabs
     }
     if uiViewController.selectedIndex != selectedIndex {
       uiViewController.setSelectedIndex(selectedIndex, animated: context.transaction.animation != nil)
@@ -117,9 +114,12 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
   @MainActor
   public final class Coordinator: NSObject, FKPagingControllerDelegate {
     private var selectedIndex: Binding<Int>
-    private var cachedTabs: [FKTabBarItem] = []
+    fileprivate var cachedTabs: [FKTabBarItem] = []
+    private var cachedVisibleTabIDs: [String] = []
     private var cachedPageObjectIDs: [ObjectIdentifier] = []
     private var cachedLazyPageCount: Int?
+    fileprivate var lastConfiguration: FKPagingConfiguration?
+    fileprivate var lastTabConfiguration: FKTabBarConfiguration?
 
     init(selectedIndex: Binding<Int>) {
       self.selectedIndex = selectedIndex
@@ -127,6 +127,7 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
 
     fileprivate func cache(from tabs: [FKTabBarItem], pageSource: PageSource) {
       cachedTabs = tabs
+      cachedVisibleTabIDs = tabs.filter { !$0.isHidden }.map(\.id)
       switch pageSource {
       case .eager(let pages):
         cachedPageObjectIDs = pages.map { ObjectIdentifier($0) }
@@ -137,8 +138,9 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
       }
     }
 
-    fileprivate func shouldReload(tabs: [FKTabBarItem], pageSource: PageSource) -> Bool {
-      guard tabs == cachedTabs else { return true }
+    fileprivate func shouldReloadStructure(tabs: [FKTabBarItem], pageSource: PageSource) -> Bool {
+      let visibleIDs = tabs.filter { !$0.isHidden }.map(\.id)
+      if visibleIDs != cachedVisibleTabIDs { return true }
       switch pageSource {
       case .eager(let pages):
         let ids = pages.map { ObjectIdentifier($0) }

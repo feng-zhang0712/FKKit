@@ -3,6 +3,7 @@ import FKUIKit
 
 final class FKTabBarScrollAndWidthStrategyExampleViewController: UIViewController {
   private var configuration = FKTabBarConfiguration(layout: .init(isScrollable: true, widthMode: .intrinsic))
+  private let widthCustomization = FKTabBarExampleWidthCustomization()
   private lazy var tabView = FKTabBar(items: FKTabBarExampleSupport.makeLongTitleItems(), selectedIndex: 0, configuration: configuration)
 
   override func viewDidLoad() {
@@ -26,7 +27,7 @@ final class FKTabBarScrollAndWidthStrategyExampleViewController: UIViewControlle
     width.selectedSegmentIndex = 0
     width.addAction(UIAction { [weak self] _ in
       guard let self else { return }
-      self.configuration.layout.customWidthProvider = nil
+      self.tabView.customization = nil
       switch width.selectedSegmentIndex {
       case 1: self.configuration.layout.widthMode = .fixed(120)
       case 2:
@@ -38,7 +39,7 @@ final class FKTabBarScrollAndWidthStrategyExampleViewController: UIViewControlle
       case 4:
         self.configuration.layout.isScrollable = true
         self.configuration.layout.widthMode = .intrinsic
-        self.configuration.layout.customWidthProvider = { index, _ in index % 2 == 0 ? 90 : 150 }
+        self.tabView.customization = self.widthCustomization
       default:
         self.configuration.layout.isScrollable = true
         self.configuration.layout.widthMode = .intrinsic
@@ -47,17 +48,6 @@ final class FKTabBarScrollAndWidthStrategyExampleViewController: UIViewControlle
     }, for: .valueChanged)
     stack.addArrangedSubview(width)
 
-    attachBottom(tabView)
-  }
-
-  private func attachBottom(_ tab: UIView) {
-    tab.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tab)
-    NSLayoutConstraint.activate([
-      tab.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tab.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      tab.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      tab.heightAnchor.constraint(equalToConstant: 56),
-    ])
+    FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 56)
   }
 }

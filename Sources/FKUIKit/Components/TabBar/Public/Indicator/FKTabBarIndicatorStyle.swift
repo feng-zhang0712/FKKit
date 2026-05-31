@@ -22,7 +22,9 @@ public enum FKTabBarIndicatorFollowMode: Equatable {
   case lockedUntilSettle
   /// Defers follow behavior selection to host-defined strategy identifier.
   ///
-  /// When no host strategy is provided, this mode falls back to `trackSelectedFrame`.
+  /// Resolve the effective mode via ``FKTabBarCustomization/indicatorFollowMode(forCustomID:)``.
+  /// When the customization returns `nil`, this mode falls back to ``trackSelectedFrame`` and
+  /// does not interpolate paging progress unless the resolved mode is ``trackContentProgress``.
   case custom(id: String)
 }
 
@@ -137,7 +139,7 @@ public struct FKTabBarCustomIndicatorConfiguration: Equatable {
 }
 
 /// Indicator style for selected tab.
-public enum FKTabBarIndicatorStyle {
+public enum FKTabBarIndicatorStyle: Equatable {
   /// No indicator.
   case none
   /// Full line indicator with precise controls.
@@ -193,7 +195,7 @@ public enum FKTabBarIndicatorStyleKind: String, CaseIterable {
 }
 
 /// Indicator animation behavior.
-public enum FKTabBarIndicatorAnimation: Equatable {
+public enum FKTabBarIndicatorAnimation: Equatable, Sendable {
   case none
   case linear(duration: TimeInterval)
   case spring(duration: TimeInterval, damping: CGFloat, velocity: CGFloat)

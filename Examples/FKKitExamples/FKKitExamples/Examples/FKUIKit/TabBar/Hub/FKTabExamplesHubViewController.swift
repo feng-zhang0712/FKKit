@@ -36,8 +36,18 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
         ),
         RowModel(
           title: "Basic — content types",
-          subtitle: "Unified FKTabBarItem.content for text/symbol/image/custom (host provides custom view).",
+          subtitle: "Text, symbol, image, and customContentIdentifier + FKTabBarCustomization.customContentView.",
           make: { FKTabBarContentTypesExampleViewController() }
+        ),
+        RowModel(
+          title: "Basic — filter strip preset",
+          subtitle: "filterStrip preset, chevron accessories, expandedItemID, controlled selection commit.",
+          make: { FKTabBarFilterStripExampleViewController() }
+        ),
+        RowModel(
+          title: "Basic — presets",
+          subtitle: "Compare pagerHeader, segmentedControl, filterStrip, and bottomDocked factories.",
+          make: { FKTabBarPresetsExampleViewController() }
         ),
       ]
     ),
@@ -110,8 +120,8 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
       title: "RTL / Dynamic Type / Accessibility",
       rows: [
         RowModel(
-          title: "RTL — scrollable mirroring checklist",
-          subtitle: "Forces semantic RTL and toggles rtlBehavior to validate mirroring, auto-scroll, and indicator movement.",
+          title: "RTL — layout direction + mirroring",
+          subtitle: "Scrollable strip, itemLayoutDirection, rtlBehavior, semantic RTL, and auto-scroll checklist.",
           make: { FKTabBarRTLExampleViewController() }
         ),
         RowModel(
@@ -125,16 +135,53 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
           make: { FKTabBarAccessibilityExampleViewController() }
         ),
         RowModel(
-          title: "Layout direction + RTL override",
-          subtitle: "itemLayoutDirection (horizontal/vertical) and rtlBehavior (automatic / forced).",
-          make: { FKTabBarLayoutRTLExampleViewController() }
-        ),
-        RowModel(
-          title: "i18n + VoiceOver",
-          subtitle: "Localized titles with RTL toggle for accessibility verification.",
+          title: "i18n titles",
+          subtitle: "Localized tab titles for string measurement and layout verification.",
           make: { FKTabBarI18nA11yExampleViewController() }
         ),
       ]
+    ),
+    SectionModel(
+      title: "Integration",
+      rows: {
+        var rows = [
+          RowModel(
+            title: "Integration — DataSource",
+            subtitle: "Dynamic item supply via FKTabBarDataSource + reloadData().",
+            make: { FKTabBarDataSourceExampleViewController() }
+          ),
+          RowModel(
+            title: "Integration — non-scrollable overflow",
+            subtitle: "Compare shrink / truncate / clip when isScrollable is false.",
+            make: { FKTabBarNonScrollableOverflowExampleViewController() }
+          ),
+          RowModel(
+            title: "Integration — empty state",
+            subtitle: "layout.emptyStateMessage placeholder when the visible strip is empty.",
+            make: { FKTabBarEmptyStateExampleViewController() }
+          ),
+          RowModel(
+            title: "Integration — selection telemetry",
+            subtitle: "selectionSnapshot, selectedItemID, and onSelectionProgress logging.",
+            make: { FKTabBarSelectionObservabilityExampleViewController() }
+          ),
+          RowModel(
+            title: "Integration — anchor button",
+            subtitle: "visibleItemButton(at:) for callout / menu anchoring.",
+            make: { FKTabBarVisibleItemButtonExampleViewController() }
+          ),
+        ]
+        #if canImport(SwiftUI)
+        rows.append(
+          RowModel(
+            title: "Integration — SwiftUI representable",
+            subtitle: "FKTabBarRepresentable with controlled mode and progress callback.",
+            make: { FKTabBarSwiftUIExampleViewController() }
+          )
+        )
+        #endif
+        return rows
+      }()
     ),
     SectionModel(
       title: "Performance",
@@ -153,6 +200,11 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
           title: "Add/remove tabs at runtime",
           subtitle: "Preserve/reset/nearestAvailable policies and hidden item handling.",
           make: { FKTabBarDynamicDataExampleViewController() }
+        ),
+        RowModel(
+          title: "applyChanges + ID diff reload",
+          subtitle: "Batch insert/delete/move/update via applyChanges; reload(items:) with preserveSelection.",
+          make: { FKTabBarApplyChangesExampleViewController() }
         ),
         RowModel(
           title: "FKUIKit reuse (blur theme)",

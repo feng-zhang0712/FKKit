@@ -87,6 +87,7 @@ extension FKButton {
     }
 
     contentAlignmentConstraints = next
+    next.forEach { $0.priority = .defaultHigh }
     NSLayoutConstraint.activate(next)
     invalidateIntrinsicContentSize()
   }

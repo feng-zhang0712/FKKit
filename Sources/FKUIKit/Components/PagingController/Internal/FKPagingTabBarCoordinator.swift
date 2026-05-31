@@ -3,16 +3,18 @@ import UIKit
 @MainActor
 protocol FKPagingTabBarCoordinatorDelegate: AnyObject {
   func pagingCoordinatorDidRequestSwitch(to index: Int, animated: Bool)
+  func pagingCoordinatorDidRequestSelection(at index: Int)
 }
 
 @MainActor
 final class FKPagingTabBarCoordinator: NSObject {
   weak var delegate: FKPagingTabBarCoordinatorDelegate?
   private weak var tabBar: FKTabBar?
-  private var suppressTabSelectionCallback = false
+  private weak var forwardedDelegate: FKTabBarDelegate?
 
-  func bind(tabBar: FKTabBar) {
+  func bind(tabBar: FKTabBar, forwardedDelegate: FKTabBarDelegate?) {
     self.tabBar = tabBar
+    self.forwardedDelegate = forwardedDelegate
     tabBar.delegate = self
   }
 
@@ -21,23 +23,48 @@ final class FKPagingTabBarCoordinator: NSObject {
   }
 
   func syncSettled(index: Int, animated: Bool) {
-    guard let tabBar else { return }
-    suppressTabSelectionCallback = true
-    tabBar.setSelectedIndex(index, animated: animated, reason: .interaction)
-    suppressTabSelectionCallback = false
+    tabBar?.setSelectedIndex(index, animated: animated, notify: false, reason: .interaction)
+  }
+
+  func applyPageSwitchGate(_ gate: FKPagingPageSwitchGate) {
+    tabBar?.selectionControlMode = gate == .controlled ? .controlled : .uncontrolled
+  }
+
+  private var isControlledGate: Bool {
+    tabBar?.selectionControlMode == .controlled
   }
 }
 
 extension FKPagingTabBarCoordinator: FKTabBarDelegate {
   func tabBar(_ tabBar: FKTabBar, shouldSelect item: FKTabBarItem, at index: Int, reason: FKTabBar.SelectionReason) -> Bool {
-    true
+    forwardedDelegate?.tabBar(tabBar, shouldSelect: item, at: index, reason: reason) ?? true
+  }
+
+  func tabBar(_ tabBar: FKTabBar, willSelect item: FKTabBarItem, at index: Int, reason: FKTabBar.SelectionReason) {
+    forwardedDelegate?.tabBar(tabBar, willSelect: item, at: index, reason: reason)
   }
 
   func tabBar(_ tabBar: FKTabBar, didSelect item: FKTabBarItem, at index: Int, reason: FKTabBar.SelectionReason) {
-    guard !suppressTabSelectionCallback else { return }
-    guard reason == .userTap else { return }
+    forwardedDelegate?.tabBar(tabBar, didSelect: item, at: index, reason: reason)
+    guard reason == .userTap, !isControlledGate else { return }
     delegate?.pagingCoordinatorDidRequestSwitch(to: index, animated: true)
   }
 
-  func tabBar(_ tabBar: FKTabBar, didReselect item: FKTabBarItem, at index: Int) {}
+  func tabBar(_ tabBar: FKTabBar, didReselect item: FKTabBarItem, at index: Int) {
+    forwardedDelegate?.tabBar(tabBar, didReselect: item, at: index)
+  }
+
+  func tabBar(_ tabBar: FKTabBar, didLongPress item: FKTabBarItem, at index: Int) {
+    forwardedDelegate?.tabBar(tabBar, didLongPress: item, at: index)
+  }
+
+  func tabBar(_ tabBar: FKTabBar, didRequestSelection item: FKTabBarItem, at index: Int) {
+    forwardedDelegate?.tabBar(tabBar, didRequestSelection: item, at: index)
+    guard isControlledGate else { return }
+    delegate?.pagingCoordinatorDidRequestSelection(at: index)
+  }
+
+  func tabBar(_ tabBar: FKTabBar, didReloadItems items: [FKTabBarItem], visibleItems: [FKTabBarItem], selectedIndex: Int) {
+    forwardedDelegate?.tabBar(tabBar, didReloadItems: items, visibleItems: visibleItems, selectedIndex: selectedIndex)
+  }
 }

@@ -4,10 +4,10 @@ import FKUIKit
 /// Demonstrates wiring `FKPagingController` with different `FKTabBar` indicator styles.
 ///
 /// Highlights:
-/// - Pass a baseline ``FKTabBarAppearance`` into ``FKPagingController/init(tabs:viewControllers:selectedIndex:tabAppearance:tabLayoutOptions:tabAnimationOptions:configuration:)``.
+/// - Pass ``FKTabBarConfiguration`` (for example ``FKTabBarPresets/pagerHeader()``) via ``FKPagingController/init(tabs:viewControllers:selectedIndex:tabConfiguration:configuration:)``.
 /// - For interactive paging, prefer ``FKTabBarLineIndicatorConfiguration/followMode`` ``FKTabBarIndicatorFollowMode/trackContentProgress`` on line indicators.
 /// - Mutate ``FKTabBar/configuration`` (or appearance subfields) to swap styles at runtime.
-/// - Custom indicators use ``FKTabBar/indicatorViewProvider``; ``FKTabBarAppearance/indicatorZOrder`` controls whether the custom view sits below or above tab content.
+/// - Custom indicators use ``FKTabBarCustomization/customIndicatorView(id:)``; ``FKTabBarAppearance/indicatorZOrder`` controls whether the custom view sits below or above tab content.
 @MainActor
 final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
   private enum IndicatorDemo: String, CaseIterable {
@@ -21,6 +21,11 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
   }
 
   private let pagingController: FKPagingController
+  private let indicatorCustomization = FKTabBarExampleIndicatorCustomization(
+    indicatorID: "paging.demo.custom",
+    fillColor: .systemOrange.withAlphaComponent(0.4),
+    cornerRadius: 10
+  )
   private var selectedDemo: IndicatorDemo = .lineProgress
 
   init() {
@@ -31,14 +36,14 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
       FKPagingDemoListViewController(headerTitle: "Inbox"),
       FKPagingDemoPageViewController(color: .systemOrange, titleText: "Profile"),
     ]
-    let tabAppearance = Self.makeAppearance(for: .lineProgress)
+    let tabConfiguration = Self.makeTabConfiguration(for: .lineProgress)
     pagingController = FKPagingController(
       tabs: tabs,
       viewControllers: pages,
       selectedIndex: 0,
-      tabAppearance: tabAppearance,
+      tabConfiguration: tabConfiguration,
       configuration: FKPagingConfiguration(
-        tabBarHeight: 52,
+        tabBarHeightPolicy: .fixed(52),
         allowsSwipePaging: true,
         preloadRange: 1,
         retentionPolicy: .keepNear(distance: 1),
@@ -63,15 +68,9 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
       menu: makeIndicatorMenu()
     )
 
-    pagingController.tabBar.indicatorViewProvider = { id in
-      guard id == "paging.demo.custom" else { return nil }
-      let view = UIView()
-      view.backgroundColor = .systemOrange.withAlphaComponent(0.4)
-      view.layer.cornerRadius = 10
-      return view
-    }
+    pagingController.tabBar.customization = indicatorCustomization
 
-    embedFullScreen(pagingController)
+    FKPagingDemoSupport.embedFullScreen(pagingController, in: self)
 
     let note = UILabel()
     note.font = .preferredFont(forTextStyle: .footnote)
@@ -111,20 +110,6 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
     ])
   }
 
-  private func embedFullScreen(_ child: UIViewController) {
-    addChild(child)
-    child.view.translatesAutoresizingMaskIntoConstraints = false
-    child.view.clipsToBounds = true
-    view.addSubview(child.view)
-    NSLayoutConstraint.activate([
-      child.view.topAnchor.constraint(equalTo: view.topAnchor),
-      child.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      child.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      child.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-    ])
-    child.didMove(toParent: self)
-  }
-
   private func makeIndicatorMenu() -> UIMenu {
     UIMenu(
       title: "Indicator",
@@ -160,6 +145,12 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
       title: "Style",
       menu: makeIndicatorMenu()
     )
+  }
+
+  private static func makeTabConfiguration(for kind: IndicatorDemo) -> FKTabBarConfiguration {
+    var configuration = FKTabBarPresets.pagerHeader()
+    configuration.appearance = makeAppearance(for: kind)
+    return configuration
   }
 
   private static func makeAppearance(for kind: IndicatorDemo) -> FKTabBarAppearance {

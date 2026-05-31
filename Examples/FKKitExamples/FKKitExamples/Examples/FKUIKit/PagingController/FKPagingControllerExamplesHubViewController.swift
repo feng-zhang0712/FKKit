@@ -1,58 +1,98 @@
 import UIKit
 
-/// Index of `FKPagingController` scenarios: UIKit, SwiftUI, delegate hooks, dynamic updates, and tab indicators.
+/// Index of `FKPagingController` scenarios grouped by integration topic.
 final class FKPagingControllerExamplesHubViewController: UITableViewController {
+  private struct SectionModel {
+    let title: String
+    let rows: [RowModel]
+  }
+
   private struct RowModel {
     let title: String
     let subtitle: String
     let make: () -> UIViewController
   }
 
-  private let rows: [RowModel] = {
-    var list: [RowModel] = [
-      RowModel(
-        title: "Basics (eager)",
-        subtitle: "Two-way tab sync, nested list, Stress x20 queue test (non-animated bursts).",
-        make: { FKPagingBasicsExampleViewController() }
+  private let sections: [SectionModel] = {
+    var list: [SectionModel] = [
+      SectionModel(
+        title: "Basics",
+        rows: [
+          RowModel(
+            title: "Basics (eager)",
+            subtitle: "Two-way tab sync, nested list, Stress x20 queue test (non-animated bursts).",
+            make: { FKPagingBasicsExampleViewController() }
+          ),
+          RowModel(
+            title: "Tab bar indicators",
+            subtitle: "tabConfiguration + FKTabBarCustomization for line, pill, and custom z-order.",
+            make: { FKPagingTabBarIndicatorExampleViewController() }
+          ),
+        ]
       ),
-      RowModel(
-        title: "Delegate & configuration",
-        subtitle: "Phase/progress logging, swipe toggle, gesture policy, alwaysCenter tab alignment.",
-        make: { FKPagingDelegateConfigurationExampleViewController() }
+      SectionModel(
+        title: "Configuration & control",
+        rows: [
+          RowModel(
+            title: "Delegate & configuration",
+            subtitle: "Combined transition callback, tabBarDelegate forwarding, automatic tab height, swipe/gesture toggles.",
+            make: { FKPagingDelegateConfigurationExampleViewController() }
+          ),
+          RowModel(
+            title: "Controlled page gate",
+            subtitle: "pageSwitchGate.controlled, pendingPageIndex, commitPageSwitch after async validation.",
+            make: { FKPagingControlledGateExampleViewController() }
+          ),
+        ]
       ),
-      RowModel(
-        title: "Dynamic setContent",
-        subtitle: "Toggle between 3 and 8 tabs to exercise reload + selection preservation.",
-        make: { FKPagingDynamicContentExampleViewController() }
+      SectionModel(
+        title: "Dynamic content",
+        rows: [
+          RowModel(
+            title: "Dynamic setContent",
+            subtitle: "Toggle between 3 and 8 tabs to exercise reload + selection preservation.",
+            make: { FKPagingDynamicContentExampleViewController() }
+          ),
+          RowModel(
+            title: "Sync visible tabs",
+            subtitle: "Runtime isHidden toggles aligned with syncPagesWithVisibleTabs(tabs:viewControllers:).",
+            make: { FKPagingSyncVisibleTabsExampleViewController() }
+          ),
+        ]
       ),
-      RowModel(
-        title: "Lazy pages (UIKit)",
-        subtitle: "Factory-driven pages, preload range, keepNear cache eviction, creation counter.",
-        make: { FKPagingLazyPagesExampleViewController() }
-      ),
-      RowModel(
-        title: "Tab bar indicators",
-        subtitle: "FKTabBar indicator styles with FKPagingController: line progress, highlights, pill, custom z-order.",
-        make: { FKPagingTabBarIndicatorExampleViewController() }
+      SectionModel(
+        title: "Lazy loading",
+        rows: [
+          RowModel(
+            title: "Lazy pages (UIKit)",
+            subtitle: "Factory-driven pages, preload range, keepNear cache eviction, creation counter.",
+            make: { FKPagingLazyPagesExampleViewController() }
+          ),
+        ]
       ),
     ]
+
     #if canImport(SwiftUI)
     list.append(
-      contentsOf: [
-        RowModel(
-          title: "SwiftUI lazy provider",
-          subtitle: "FKPagingControllerRepresentable with pageCount + factory closure binding.",
-          make: { FKPagingLazySwiftUIExampleViewController() }
-        ),
-        RowModel(
-          title: "SwiftUI representable",
-          subtitle: "Eager pages with $selectedIndex mirrored under the pager.",
-          make: { FKPagingSwiftUIBridgeExampleViewController() }
-        ),
-      ]
+      SectionModel(
+        title: "SwiftUI",
+        rows: [
+          RowModel(
+            title: "SwiftUI representable",
+            subtitle: "Eager pages with $selectedIndex mirrored under the pager.",
+            make: { FKPagingSwiftUIBridgeExampleViewController() }
+          ),
+          RowModel(
+            title: "SwiftUI lazy provider",
+            subtitle: "FKPagingControllerRepresentable with pageCount + factory closure binding.",
+            make: { FKPagingLazySwiftUIExampleViewController() }
+          ),
+        ]
+      )
     )
     #endif
-    return list.sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
+
+    return list
   }()
 
   override func viewDidLoad() {
@@ -62,15 +102,21 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
     tableView.cellLayoutMarginsFollowReadableWidth = true
   }
 
-  override func numberOfSections(in tableView: UITableView) -> Int { 1 }
+  override func numberOfSections(in tableView: UITableView) -> Int {
+    sections.count
+  }
+
+  override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    sections[section].title
+  }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    rows.count
+    sections[section].rows.count
   }
 
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-    let row = rows[indexPath.row]
+    let row = sections[indexPath.section].rows[indexPath.row]
     var config = cell.defaultContentConfiguration()
     config.text = row.title
     config.secondaryText = row.subtitle
@@ -82,6 +128,7 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
 
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
-    navigationController?.pushViewController(rows[indexPath.row].make(), animated: true)
+    let row = sections[indexPath.section].rows[indexPath.row]
+    navigationController?.pushViewController(row.make(), animated: true)
   }
 }

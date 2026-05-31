@@ -1,5 +1,24 @@
 import UIKit
 
+/// Shared demo pages and layout helpers for paging examples.
+@MainActor
+enum FKPagingDemoSupport {
+  /// Embeds a child view controller edge-to-edge in the host.
+  static func embedFullScreen(_ child: UIViewController, in host: UIViewController) {
+    host.addChild(child)
+    child.view.translatesAutoresizingMaskIntoConstraints = false
+    child.view.clipsToBounds = true
+    host.view.addSubview(child.view)
+    NSLayoutConstraint.activate([
+      child.view.topAnchor.constraint(equalTo: host.view.topAnchor),
+      child.view.leadingAnchor.constraint(equalTo: host.view.leadingAnchor),
+      child.view.trailingAnchor.constraint(equalTo: host.view.trailingAnchor),
+      child.view.bottomAnchor.constraint(equalTo: host.view.bottomAnchor),
+    ])
+    child.didMove(toParent: host)
+  }
+}
+
 /// Solid-color demo page used across paging examples.
 @MainActor
 final class FKPagingDemoPageViewController: UIViewController {
