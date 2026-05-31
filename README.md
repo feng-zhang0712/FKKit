@@ -81,7 +81,6 @@ FKKit/
 │     │  ├─ Divider/
 │     │  ├─ EmptyState/
 │     │  ├─ ExpandableText/
-│     │  ├─ MultiPicker/
 │     │  ├─ PagingController/
 │     │  ├─ Player/
 │     │  ├─ ProgressBar/
@@ -134,15 +133,14 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 | **Divider** | Hairline separator (`FKDivider` / `FKDividerView`); dashed and gradient strokes; `FKDivider.defaultConfiguration`. |
 | **EmptyState** | Loading/empty/error overlay (`Public` / `Internal` / `Extension` / `CoreLite` resolver + i18n) — see [`EmptyState/README.md`](Sources/FKUIKit/Components/EmptyState/README.md). |
 | **ExpandableText** | Long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; `FKExpandableText.defaultConfiguration` and layout cache. |
-| **MultiPicker** | Native multi-level cascading picker with built-in region data and custom data provider support. |
-| **PagingController** | **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress; includes **`FKPagingConfiguration`** and SwiftUI **`FKPagingControllerRepresentable`**. |
+| **PagingController** | **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress — see [`PagingController/README.md`](Sources/FKUIKit/Components/PagingController/README.md). |
 | **Player** | Shared media playback kernel (`FKMediaPlaybackCoordinator`) plus **`FKVideoPlayer`** and **`FKAudioPlayer`** facades (PiP, subtitles, queues, Now Playing) — see [`Player/Core/README.md`](Sources/FKUIKit/Components/Player/Core/README.md). |
 | **ProgressBar** | Determinate/indeterminate linear and ring progress control with buffer, segments, gradient, label, accessibility, and SwiftUI wrapper — see [`ProgressBar/README.md`](Sources/FKUIKit/Components/ProgressBar/README.md). |
 | **RatingControl** | Configurable read-only/interactive rating control (`FKRatingControl`) with icon presets, half-step snapping, caption, haptics, accessibility, and SwiftUI `FKRatingControlRepresentable` — see [`RatingControl/README.md`](Sources/FKUIKit/Components/RatingControl/README.md). |
 | **Refresh** | Pull-to-refresh and load-more controls for scroll views. |
 | **SheetPresentationController** | Modal/overlay presentation infrastructure (bottom/top/center sheets, anchor dropdowns, detents, keyboard/safe-area/interaction configuration) — see [`SheetPresentationController/README.md`](Sources/FKUIKit/Components/SheetPresentationController/README.md). |
 | **Skeleton** | Skeleton loading system for views/lists/containers with animation options. |
-| **TabBar** | High-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only). |
+| **TabBar** | High-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only) — see [`TabBar/README.md`](Sources/FKUIKit/Components/TabBar/README.md). |
 | **TextField** | One-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback. |
 | **Toast** | Unified Toast / HUD / Snackbar presenter with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, and SwiftUI hosting — see [`Toast/README.md`](Sources/FKUIKit/Components/Toast/README.md). |
 
@@ -165,7 +163,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.57.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.58.0")
 ],
 targets: [
   .target(
@@ -180,7 +178,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.57.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.58.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -189,8 +187,8 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.57.0'
-pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.57.0'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.58.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.58.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).
@@ -274,7 +272,7 @@ Please report security vulnerabilities through [GitHub private security advisori
   - change summary
   - test/verification notes
   - migration notes when APIs change
-- Tag stable releases with semantic versions (for example: `0.57.0`), then merge release work back into `develop`.
+- Tag stable releases with semantic versions (for example: `0.58.0`), then merge release work back into `develop`.
 
 ## License
 This repository is licensed under the MIT License.  

@@ -1,11 +1,11 @@
 import UIKit
 import FKUIKit
 
-/// Explores swipe toggles, gesture policies, tab alignment, and delegate telemetry.
+/// Explores swipe toggles, gesture policies, tab alignment, combined transition telemetry, and tabBarDelegate forwarding.
 @MainActor
-final class FKPagingDelegateConfigurationExampleViewController: UIViewController, FKPagingControllerDelegate {
+final class FKPagingDelegateConfigurationExampleViewController: UIViewController, FKPagingControllerDelegate, FKTabBarDelegate {
   private let pagingController: FKPagingController
-  private let logView = UITextView()
+  private let logView = FKPagingDemoSupport.makeLogTextView()
 
   init() {
     let tabs = FKTabBarExampleSupport.makeItems(4)
@@ -18,12 +18,15 @@ final class FKPagingDelegateConfigurationExampleViewController: UIViewController
     pagingController = FKPagingController(
       tabs: tabs,
       viewControllers: pages,
+      tabConfiguration: FKTabBarPresets.pagerHeader(),
       configuration: FKPagingConfiguration(
+        tabBarHeightPolicy: .automatic,
         tabAlignment: .alwaysCenter
       )
     )
     super.init(nibName: nil, bundle: nil)
     pagingController.delegate = self
+    pagingController.tabBarDelegate = self
   }
 
   @available(*, unavailable)
@@ -42,11 +45,6 @@ final class FKPagingDelegateConfigurationExampleViewController: UIViewController
     pagingController.didMove(toParent: self)
 
     logView.translatesAutoresizingMaskIntoConstraints = false
-    logView.isEditable = false
-    logView.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
-    logView.backgroundColor = .secondarySystemGroupedBackground
-    logView.layer.cornerRadius = 8
-    logView.textContainerInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
     view.addSubview(logView)
 
     let controls = buildControls()
@@ -69,7 +67,8 @@ final class FKPagingDelegateConfigurationExampleViewController: UIViewController
       logView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
     ])
 
-    appendLog("Ready — observe phases, progress while dragging, and settlement.")
+    appendLog("Ready — observe phases, progress, lifecycle, and pagingScrollView access.")
+    appendLog("pagingScrollView: \(pagingController.pagingScrollView != nil ? "available" : "nil")")
   }
 
   private func buildControls() -> UIView {
@@ -108,28 +107,62 @@ final class FKPagingDelegateConfigurationExampleViewController: UIViewController
       appendLog("gesturePolicy updated")
     }, for: .valueChanged)
 
+    let nestedLabel = UILabel()
+    nestedLabel.text = "Nested horizontal scroll"
+    nestedLabel.font = .preferredFont(forTextStyle: .subheadline)
+    let nestedSwitch = UISwitch()
+    nestedSwitch.addAction(UIAction { [weak self] action in
+      guard let self, let toggle = action.sender as? UISwitch else { return }
+      pagingController.configuration.nestedHorizontalScrollPolicy =
+        toggle.isOn ? .preferNestedHorizontalScroll : .pagerPreferred
+      appendLog("nestedHorizontalScrollPolicy = \(toggle.isOn ? "preferNested" : "pagerPreferred")")
+    }, for: .valueChanged)
+
+    let nestedRow = UIStackView(arrangedSubviews: [nestedLabel, UIView(), nestedSwitch])
+    nestedRow.spacing = 8
+
     stack.addArrangedSubview(swipeRow)
     stack.addArrangedSubview(gestureLabel)
     stack.addArrangedSubview(gestureControl)
+    stack.addArrangedSubview(nestedRow)
 
     return stack
   }
 
   private func appendLog(_ line: String) {
-    logView.text += line + "\n"
-    let bottom = NSRange(location: logView.text.count - 1, length: 1)
-    logView.scrollRangeToVisible(bottom)
+    FKPagingDemoSupport.appendLog(line, to: logView)
   }
 
   func pagingController(_ controller: FKPagingController, didChangePhase phase: FKPagingPhase) {
     appendLog("phase → \(phase) | transitionActive=\(controller.isTransitionActive)")
   }
 
-  func pagingController(_ controller: FKPagingController, didUpdateProgress progress: CGFloat, from fromIndex: Int, to toIndex: Int) {
-    appendLog(String(format: "progress %.2f  %d → %d", progress, fromIndex, toIndex))
-  }
-
   func pagingController(_ controller: FKPagingController, didSettleAt index: Int) {
     appendLog("settled @ \(index)")
+  }
+
+  func pagingController(_ controller: FKPagingController, willDisplayPage viewController: UIViewController, at index: Int) {
+    appendLog("willDisplay @\(index)")
+  }
+
+  func pagingController(_ controller: FKPagingController, didDisplayPage viewController: UIViewController, at index: Int) {
+    appendLog("didDisplay @\(index)")
+  }
+
+  func pagingController(_ controller: FKPagingController, didEndDisplayingPage viewController: UIViewController, at index: Int) {
+    appendLog("didEndDisplaying @\(index)")
+  }
+
+  func pagingController(
+    _ controller: FKPagingController,
+    didUpdateCombinedTransition tabPhase: FKTabBarSwitchPhase,
+    pagingPhase: FKPagingPhase,
+    progress: CGFloat
+  ) {
+    appendLog(String(format: "combined tab=%@ paging=%@ progress=%.2f", "\(tabPhase)", "\(pagingPhase)", progress))
+  }
+
+  func tabBar(_ tabBar: FKTabBar, didSelect item: FKTabBarItem, at index: Int, reason: FKTabBar.SelectionReason) {
+    appendLog("tabBarDelegate didSelect @\(index) reason=\(reason)")
   }
 }

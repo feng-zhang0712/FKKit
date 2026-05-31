@@ -8,7 +8,7 @@ import UIKit
 // MARK: - Layout
 
 /// Item content layout direction.
-public enum FKTabBarItemLayoutDirection: Equatable {
+public enum FKTabBarItemLayoutDirection: Equatable, Sendable {
   /// Horizontal content layout.
   case horizontal
   /// Vertical content layout.
@@ -16,7 +16,7 @@ public enum FKTabBarItemLayoutDirection: Equatable {
 }
 
 /// RTL handling policy for visual layout.
-public enum FKTabBarRTLBehavior: Equatable {
+public enum FKTabBarRTLBehavior: Equatable, Sendable {
   /// Follows `traitCollection.layoutDirection`.
   case automatic
   /// Forces left-to-right layout.
@@ -26,7 +26,7 @@ public enum FKTabBarRTLBehavior: Equatable {
 }
 
 /// Width strategy for tab items.
-public enum FKTabBarItemWidthMode: Equatable {
+public enum FKTabBarItemWidthMode: Equatable, Sendable {
   /// Use intrinsic size from content measurement.
   ///
   /// Best for scrollable strips and mixed text lengths.
@@ -42,7 +42,7 @@ public enum FKTabBarItemWidthMode: Equatable {
 }
 
 /// Positioning strategy when auto-scrolling selected item into view.
-public enum FKTabBarSelectionScrollPosition: Equatable {
+public enum FKTabBarSelectionScrollPosition: Equatable, Sendable {
   /// Keep selected item near center.
   ///
   /// Produces a stable focus point during repeated selection changes.
@@ -58,7 +58,7 @@ public enum FKTabBarSelectionScrollPosition: Equatable {
 }
 
 /// Title overflow strategy for tab labels.
-public enum FKTabBarTitleOverflowMode: Equatable {
+public enum FKTabBarTitleOverflowMode: Equatable, Sendable {
   /// Truncate tail when space is insufficient.
   case truncate
   /// Allow font to shrink within `minimumScaleFactor`.
@@ -74,7 +74,7 @@ public enum FKTabBarTitleOverflowMode: Equatable {
 }
 
 /// Layout behavior policy when Dynamic Type grows into accessibility categories.
-public enum FKTabBarLargeTextLayoutStrategy: Equatable {
+public enum FKTabBarLargeTextLayoutStrategy: Equatable, Sendable {
   /// Keep `titleOverflowMode` and typography defaults unchanged.
   case automatic
   /// Force single-line truncation in accessibility categories.
@@ -88,7 +88,7 @@ public enum FKTabBarLargeTextLayoutStrategy: Equatable {
 }
 
 /// Height policy for `FKTabBar` when resolving its intrinsic height.
-public enum FKTabBarSafeAreaHeightPolicy: Equatable {
+public enum FKTabBarSafeAreaHeightPolicy: Equatable, Sendable {
   /// `preferredBarHeight` is treated as visual bar height and excludes bottom safe area.
   ///
   /// This is suitable when the host already handles container-safe-area outside the tab bar.
@@ -107,7 +107,7 @@ public enum FKTabBarSafeAreaHeightPolicy: Equatable {
 ///
 /// In all other cases (for example `fillEqually`, or content wider than container), layout falls back
 /// to width/scroll rules and this alignment is ignored.
-public enum FKTabBarContentAlignment: Equatable {
+public enum FKTabBarContentAlignment: Equatable, Sendable {
   /// Pack items toward logical leading edge in the current layout direction.
   ///
   /// Under RTL this maps to the visual right edge.
@@ -126,8 +126,18 @@ public enum FKTabBarContentAlignment: Equatable {
   case spaceEvenly
 }
 
+/// Overflow handling when ``FKTabBarLayoutConfiguration/isScrollable`` is `false` and content exceeds bounds.
+public enum FKTabBarNonScrollableOverflowPolicy: Equatable, Sendable {
+  /// Shrink title text to fit available width.
+  case shrink
+  /// Truncate title tail when space is insufficient.
+  case truncate
+  /// Clip overflowing content visually without enabling scroll.
+  case clip
+}
+
 /// Layout configuration for `FKTabBar`.
-public struct FKTabBarLayoutConfiguration {
+public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
   /// Runtime spacing context for custom spacing strategies.
   public struct SpacingContext {
     /// Number of currently visible tab items.
@@ -150,11 +160,6 @@ public struct FKTabBarLayoutConfiguration {
   public var isScrollable: Bool
   /// Item spacing.
   public var itemSpacing: CGFloat
-  /// Optional custom spacing provider.
-  ///
-  /// Return `nil` to fall back to `itemSpacing`. This closure is evaluated during layout passes,
-  /// so it should be pure and allocation-light.
-  public var customSpacingProvider: ((_ context: SpacingContext) -> CGFloat?)?
   /// Content insets.
   ///
   /// Insets affect both visual padding and available width/height during item size calculation.
@@ -190,11 +195,12 @@ public struct FKTabBarLayoutConfiguration {
   public var safeAreaHeightPolicy: FKTabBarSafeAreaHeightPolicy
   /// Item width strategy.
   public var widthMode: FKTabBarItemWidthMode
-  /// Optional custom width provider.
-  ///
-  /// Return `nil` to fall back to `widthMode`. The provider is called frequently during
-  /// layout passes, so avoid expensive work inside this closure.
-  public var customWidthProvider: ((_ index: Int, _ item: FKTabBarItem) -> CGFloat?)?
+  /// Insets applied inside each tab cell around the hosted ``FKButton``.
+  public var cellLayoutMargins: NSDirectionalEdgeInsets
+  /// Content insets applied to each tab button (title/icon padding).
+  public var itemContentInsets: NSDirectionalEdgeInsets
+  /// Optional horizontal edge fade when ``isScrollable`` is `true`.
+  public var scrollEdgeFade: FKTabBarScrollEdgeFade
   /// Layout direction for each tab item's icon and title.
   ///
   /// - `.horizontal`: icon and title are laid out in one row.
@@ -211,11 +217,16 @@ public struct FKTabBarLayoutConfiguration {
   public var selectionScrollPosition: FKTabBarSelectionScrollPosition
   /// Whether selection auto-scroll uses animation.
   public var isSelectionScrollAnimationEnabled: Bool
+  /// When ``isScrollable`` is `true`, controls horizontal bounce. Default is `true`.
+  public var allowsHorizontalBounce: Bool
+  /// Applied when ``isScrollable`` is `false` and item content exceeds available width.
+  public var nonScrollableOverflowPolicy: FKTabBarNonScrollableOverflowPolicy
+  /// Optional message centered when the visible strip is empty; `nil` hides the placeholder.
+  public var emptyStateMessage: String?
 
   public init(
     isScrollable: Bool = true,
     itemSpacing: CGFloat = 8,
-    customSpacingProvider: ((_ context: SpacingContext) -> CGFloat?)? = nil,
     contentInsets: NSDirectionalEdgeInsets = .init(top: 0, leading: 8, bottom: 0, trailing: 8),
     includesBottomSafeAreaInset: Bool = false,
     contentAlignment: FKTabBarContentAlignment = .leading,
@@ -225,15 +236,19 @@ public struct FKTabBarLayoutConfiguration {
     preferredBarHeight: CGFloat? = nil,
     safeAreaHeightPolicy: FKTabBarSafeAreaHeightPolicy = .excludeBottomSafeArea,
     widthMode: FKTabBarItemWidthMode = .intrinsic,
-    customWidthProvider: ((_ index: Int, _ item: FKTabBarItem) -> CGFloat?)? = nil,
+    cellLayoutMargins: NSDirectionalEdgeInsets = .init(top: 6, leading: 10, bottom: 6, trailing: 10),
+    itemContentInsets: NSDirectionalEdgeInsets = .init(top: 6, leading: 8, bottom: 6, trailing: 8),
+    scrollEdgeFade: FKTabBarScrollEdgeFade = .init(),
     itemLayoutDirection: FKTabBarItemLayoutDirection = .horizontal,
     rtlBehavior: FKTabBarRTLBehavior = .automatic,
     selectionScrollPosition: FKTabBarSelectionScrollPosition = .center,
-    isSelectionScrollAnimationEnabled: Bool = true
+    isSelectionScrollAnimationEnabled: Bool = true,
+    allowsHorizontalBounce: Bool = true,
+    nonScrollableOverflowPolicy: FKTabBarNonScrollableOverflowPolicy = .shrink,
+    emptyStateMessage: String? = nil
   ) {
     self.isScrollable = isScrollable
     self.itemSpacing = itemSpacing
-    self.customSpacingProvider = customSpacingProvider
     self.contentInsets = contentInsets
     self.includesBottomSafeAreaInset = includesBottomSafeAreaInset
     self.contentAlignment = contentAlignment
@@ -243,11 +258,16 @@ public struct FKTabBarLayoutConfiguration {
     self.preferredBarHeight = preferredBarHeight
     self.safeAreaHeightPolicy = safeAreaHeightPolicy
     self.widthMode = widthMode
-    self.customWidthProvider = customWidthProvider
+    self.cellLayoutMargins = cellLayoutMargins
+    self.itemContentInsets = itemContentInsets
+    self.scrollEdgeFade = scrollEdgeFade
     self.itemLayoutDirection = itemLayoutDirection
     self.rtlBehavior = rtlBehavior
     self.selectionScrollPosition = selectionScrollPosition
     self.isSelectionScrollAnimationEnabled = isSelectionScrollAnimationEnabled
+    self.allowsHorizontalBounce = allowsHorizontalBounce
+    self.nonScrollableOverflowPolicy = nonScrollableOverflowPolicy
+    self.emptyStateMessage = emptyStateMessage
   }
 }
 
@@ -398,7 +418,7 @@ public struct FKTabBarAppearance {
 // MARK: - Animation
 
 /// Animation configuration for tab transitions.
-public struct FKTabBarAnimationConfiguration: Equatable {
+public struct FKTabBarAnimationConfiguration: Equatable, @unchecked Sendable {
   /// Indicator animation configuration.
   public var indicatorAnimation: FKTabBarIndicatorAnimation
   /// Whether text/icon color interpolation should follow gesture progress.
@@ -427,7 +447,7 @@ public struct FKTabBarAnimationConfiguration: Equatable {
 /// 1. item-level configuration (`FKTabBarItem`)
 /// 2. `FKTabBarConfiguration` values
 /// 3. internal defaults
-public struct FKTabBarConfiguration {
+public struct FKTabBarConfiguration: Equatable {
   /// Layout behavior.
   public var layout: FKTabBarLayoutConfiguration
   /// Appearance tokens.
@@ -451,5 +471,21 @@ public struct FKTabBarConfiguration {
 public enum FKTabBarDefaults {
   /// Default root configuration used by `FKTabBar`.
   public static var defaultConfiguration = FKTabBarConfiguration()
+}
+
+// MARK: - Equatable (appearance)
+
+extension FKTabBarAppearance: Equatable {
+  public static func == (lhs: FKTabBarAppearance, rhs: FKTabBarAppearance) -> Bool {
+    lhs.backgroundStyle == rhs.backgroundStyle
+      && lhs.typography == rhs.typography
+      && lhs.colors == rhs.colors
+      && lhs.subtitleConfiguration == rhs.subtitleConfiguration
+      && lhs.indicatorStyle == rhs.indicatorStyle
+      && lhs.indicatorZOrder == rhs.indicatorZOrder
+      && lhs.showsDivider == rhs.showsDivider
+      && lhs.dividerPosition == rhs.dividerPosition
+      && lhs.shadow == rhs.shadow
+  }
 }
 

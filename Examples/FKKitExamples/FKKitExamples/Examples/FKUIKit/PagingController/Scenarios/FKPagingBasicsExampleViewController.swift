@@ -10,19 +10,6 @@ final class FKPagingBasicsExampleViewController: UIViewController {
   init() {
     var tabs = FKTabBarExampleSupport.makeItems(5)
     tabs[2].badge.state.normal = .count(6)
-    let tabAppearance = FKTabBarAppearance(
-      indicatorStyle: .line(
-        FKTabBarLineIndicatorConfiguration(
-          position: .bottom,
-          thickness: 3,
-          fill: .solid(.systemBlue),
-          leadingInset: 10,
-          trailingInset: 10,
-          cornerRadius: 1.5,
-          followMode: .trackContentProgress
-        )
-      )
-    )
     let pages: [UIViewController] = [
       FKPagingDemoPageViewController(color: .systemBlue, titleText: "Home"),
       FKPagingDemoPageViewController(color: .systemGreen, titleText: "Explore"),
@@ -34,9 +21,9 @@ final class FKPagingBasicsExampleViewController: UIViewController {
       tabs: tabs,
       viewControllers: pages,
       selectedIndex: 0,
-      tabAppearance: tabAppearance,
+      tabConfiguration: FKTabBarPresets.pagerHeader(),
       configuration: FKPagingConfiguration(
-        tabBarHeight: 52,
+        tabBarHeightPolicy: .fixed(52),
         allowsSwipePaging: true,
         preloadRange: 1,
         retentionPolicy: .keepNear(distance: 1),
@@ -55,7 +42,7 @@ final class FKPagingBasicsExampleViewController: UIViewController {
     super.viewDidLoad()
     title = "Basics"
     view.backgroundColor = .systemBackground
-    embedFullScreen(pagingController)
+    FKPagingDemoSupport.embedFullScreen(pagingController, in: self)
 
     let note = UILabel()
     note.font = .preferredFont(forTextStyle: .footnote)
@@ -73,20 +60,6 @@ final class FKPagingBasicsExampleViewController: UIViewController {
       note.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
       note.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -62),
     ])
-  }
-
-  private func embedFullScreen(_ child: UIViewController) {
-    addChild(child)
-    child.view.translatesAutoresizingMaskIntoConstraints = false
-    child.view.clipsToBounds = true
-    view.addSubview(child.view)
-    NSLayoutConstraint.activate([
-      child.view.topAnchor.constraint(equalTo: view.topAnchor),
-      child.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      child.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      child.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-    ])
-    child.didMove(toParent: self)
   }
 
   private func installToolbarActions() {

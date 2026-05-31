@@ -99,35 +99,11 @@ public final class FKTabBar: UIView {
   public var configuration: FKTabBarConfiguration = FKTabBarDefaults.defaultConfiguration {
     didSet {
       invalidateIntrinsicContentSize()
-      applyAppearance()
-      invalidateLayoutAndRelayout(animatedScroll: false)
+      let domains = FKTabBarConfigurationApplier.domains(from: oldValue, to: configuration)
+      applyConfigurationDomains(domains, animated: configurationApplyAnimated)
+      configurationApplyAnimated = false
+      lastAppliedConfiguration = configuration
     }
-  }
-
-  // MARK: - Compatibility shortcuts
-
-  /// Appearance subtree shortcut.
-  ///
-  /// - Important: Prefer configuring through `configuration`.
-  public var appearance: FKTabBarAppearance? {
-    get { configuration.appearance }
-    set { if let newValue { configuration.appearance = newValue } }
-  }
-
-  /// Layout subtree shortcut.
-  ///
-  /// - Important: Prefer configuring through `configuration`.
-  public var layoutConfiguration: FKTabBarLayoutConfiguration? {
-    get { configuration.layout }
-    set { if let newValue { configuration.layout = newValue } }
-  }
-
-  /// Animation subtree shortcut.
-  ///
-  /// - Important: Prefer configuring through `configuration`.
-  public var animationConfiguration: FKTabBarAnimationConfiguration? {
-    get { configuration.animation }
-    set { if let newValue { configuration.animation = newValue } }
   }
 
   /// Full input items list before visibility filtering.
@@ -143,6 +119,24 @@ public final class FKTabBar: UIView {
 
   /// Current selection phase.
   public private(set) var switchPhase: FKTabBarSwitchPhase = .idle
+
+  /// Read-only selection snapshot for host coordination (paging, analytics).
+  public var selectionSnapshot: FKTabBarSelectionSnapshot {
+    FKTabBarSelectionSnapshot(
+      selectedIndex: snapshot.selectedIndex,
+      previousIndex: snapshot.previousIndex,
+      phase: snapshot.phase,
+      selectedItemID: visibleItems[safe: snapshot.selectedIndex]?.id
+    )
+  }
+
+  /// Stable identifier of the currently selected visible tab; `nil` when the strip is empty.
+  public var selectedItemID: String? {
+    visibleItems[safe: selectedIndex]?.id
+  }
+
+  /// Fired during interactive progress updates from ``setSelectionProgress(from:to:progress:)``.
+  public var onSelectionProgress: ((_ fromIndex: Int, _ toIndex: Int, _ progress: CGFloat) -> Void)?
 
   /// Minimum press duration for long-press recognition on a tab item.
   ///
@@ -199,10 +193,22 @@ public final class FKTabBar: UIView {
     didSet { refreshVisibleCellsForCurrentState() }
   }
 
-  /// Provides custom badge view for items using `.custom`.
-  ///
-  /// Return a lightweight reusable view; the tab cell hosts it near the top trailing corner.
-  public var customBadgeViewProvider: ((_ item: FKTabBarItem) -> UIView?)?
+  /// Optional host customization for layout, rendering, and indicator hooks.
+  public var customization: FKTabBarCustomization? {
+    didSet {
+      syncCustomizationHooks()
+      refreshVisibleCellsForCurrentState()
+    }
+  }
+
+  /// Visual expanded state for accessory chevrons (for example filter panels). Does not affect selection.
+  public var expandedItemID: String? {
+    didSet {
+      guard oldValue != expandedItemID else { return }
+      refreshVisibleCellsForCurrentState()
+    }
+  }
+
   /// Optional shared `FKBadge` visual configuration for tab badges.
   ///
   /// Set this to customize count overflow (for example `99+`) and badge styling without replacing badge logic.
@@ -213,48 +219,30 @@ public final class FKTabBar: UIView {
   ///
   /// - Important: This animation is applied on visible cells only.
   public var badgeAnimation: FKBadgeAnimation = .none
-  /// Provides custom content view for items using `.custom`.
-  ///
-  /// - Important: The returned view is hosted inside an internal `FKButton` so tap handling,
-  ///   selection state, and accessibility remain unified.
-  public var itemViewProvider: ((_ item: FKTabBarItem) -> UIView?)?
-  /// Optional post-configurator for each internal `FKButton` used by tab items.
-  ///
-  /// This hook is called on every render pass after default visual state is applied.
-  /// Keep the work lightweight to avoid scroll or progress hitches.
-  public var itemButtonConfigurator: ((_ button: FKButton, _ item: FKTabBarItem, _ isSelected: Bool) -> Void)?
-  /// Optional hook for custom button-level interaction animations/effects.
-  ///
-  /// This hook receives the actual internal `FKButton` that handled interaction and runs before
-  /// tab bar state transitions are applied.
-  public var itemInteractionAnimator: ((_ button: FKButton, _ phase: ItemInteractionPhase, _ item: FKTabBarItem) -> Void)?
-  /// Optional custom indicator frame resolver for non-standard indicator geometry.
-  public var customIndicatorFrameResolver: ((_ itemFrame: CGRect, _ containerBounds: CGRect) -> CGRect)?
-  /// Optional style hook for custom indicator rendering.
-  public var customIndicatorStyler: ((_ indicatorView: UIView) -> Void)?
-  /// Optional custom indicator view provider keyed by ``FKTabBarIndicatorStyle/custom``.
-  ///
-  /// To fully replace indicator rendering, set `appearance.indicatorStyle` to
-  /// ``FKTabBarIndicatorStyle/custom(id:followMode:)`` (or ``FKTabBarIndicatorStyle/custom(_:)``)
-  /// and provide a view here.
-  public var indicatorViewProvider: ((_ id: String) -> UIView?)? {
-    didSet { indicator.customViewProvider = indicatorViewProvider }
-  }
-  /// Optional custom indicator renderer keyed by ``FKTabBarIndicatorStyle/custom``.
-  ///
-  /// This callback runs from layout time. Avoid expensive drawing and side effects.
-  public var indicatorRenderer: ((_ id: String, _ bounds: CGRect, _ indicatorView: UIView) -> Void)? {
-    didSet { indicator.customRenderer = indicatorRenderer }
-  }
 
   // MARK: - Selection & State (Internal Storage)
 
-  private var snapshot = FKTabBarSelectionSnapshot(selectedIndex: 0)
+  private var snapshot = FKTabBarSelectionReducerSnapshot(selectedIndex: 0)
+  private var lastAppliedConfiguration: FKTabBarConfiguration?
+  private var configurationApplyAnimated = false
+
+  private struct PendingVisibleItemsTransition {
+    let allItems: [FKTabBarItem]
+    let newVisible: [FKTabBarItem]
+    let updatePolicy: ItemsUpdatePolicy
+    let animated: Bool
+    let completion: (() -> Void)?
+  }
+
+  private var isPerformingVisibleItemsBatchUpdate = false
+  private var pendingVisibleItemsTransition: PendingVisibleItemsTransition?
 
   private let backgroundHost = UIView()
   private let divider = UIView()
   private let indicator = FKTabBarIndicatorView()
+  private let scrollEdgeFadeOverlay = FKTabBarScrollEdgeFadeOverlay()
   private let collectionView: UICollectionView
+  private let emptyStateLabel = UILabel()
 
   private var lastLayoutSize: CGSize = .zero
   private var progressFromIndex: Int?
@@ -289,23 +277,6 @@ public final class FKTabBar: UIView {
     self.configuration = configuration
     reload(items: items, updatePolicy: .preserveSelection)
     setSelectedIndex(selectedIndex, animated: false, reason: .programmatic)
-  }
-
-  /// Creates a tab view with explicit appearance/layout/animation sub-configurations.
-  ///
-  /// - Important: Prefer `init(items:selectedIndex:configuration:)` for a single configuration entry point.
-  public convenience init(
-    items: [FKTabBarItem],
-    selectedIndex: Int = 0,
-    appearance: FKTabBarAppearance? = nil,
-    layoutConfiguration: FKTabBarLayoutConfiguration? = nil,
-    animationConfiguration: FKTabBarAnimationConfiguration? = nil
-  ) {
-    var config = FKTabBarDefaults.defaultConfiguration
-    if let appearance { config.appearance = appearance }
-    if let layoutConfiguration { config.layout = layoutConfiguration }
-    if let animationConfiguration { config.animation = animationConfiguration }
-    self.init(items: items, selectedIndex: selectedIndex, configuration: config)
   }
 
   @available(*, unavailable)
@@ -389,6 +360,13 @@ public final class FKTabBar: UIView {
 
   // MARK: - Public API
 
+  /// Applies a configuration and performs the minimum necessary visual refresh.
+  public func applyConfiguration(_ configuration: FKTabBarConfiguration, animated: Bool = false) {
+    assertMainThreadInDebug()
+    configurationApplyAnimated = animated
+    self.configuration = configuration
+  }
+
   /// Returns the underlying `FKButton` for the given visible index if its cell is currently visible.
   ///
   /// Composite components (for example, a filter bar that presents an anchored panel) may use this
@@ -402,14 +380,54 @@ public final class FKTabBar: UIView {
     return cell.interactiveButtonForIntegration()
   }
 
-  /// Reloads the tab bar with a new item list.
+  /// Reloads the tab bar with a new item list using ID-based diff when possible.
+  ///
+  /// When the visible ID sequence is unchanged, only affected cells are refreshed.
+  /// Structural changes use batch insert/delete; a full reload is used only as a fallback.
   ///
   /// - Parameters:
   ///   - items: New item list.
   ///   - updatePolicy: Selection retention behavior.
   public func reload(items: [FKTabBarItem], updatePolicy: ItemsUpdatePolicy = .preserveSelection) {
     manualItems = items
-    applyReload(items: items, updatePolicy: updatePolicy)
+    applyReload(items: items, updatePolicy: updatePolicy, animated: false, completion: nil)
+  }
+
+  /// Applies batched visible-strip mutations with minimal collection view work.
+  public func applyChanges(
+    _ changes: [FKTabBarItemChange],
+    updatePolicy: ItemsUpdatePolicy = .preserveSelection,
+    animated: Bool = false,
+    completion: (() -> Void)? = nil
+  ) {
+    assertMainThreadInDebug()
+    guard !changes.isEmpty else {
+      completion?()
+      return
+    }
+
+    let oldVisible = visibleItems
+    var nextVisible = visibleItems
+    var nextItems = items
+
+    for change in changes {
+      do {
+        try FKTabBarItemListMutator.apply(change, visibleItems: &nextVisible, items: &nextItems)
+      } catch {
+        completion?()
+        return
+      }
+    }
+
+    manualItems = nextItems
+    applyVisibleItemsTransition(
+      from: oldVisible,
+      to: nextVisible,
+      allItems: nextItems,
+      updatePolicy: updatePolicy,
+      animated: animated,
+      completion: completion
+    )
   }
 
   /// Reloads tab items from `dataSource` when available.
@@ -423,34 +441,133 @@ public final class FKTabBar: UIView {
     } else {
       sourceItems = manualItems
     }
-    applyReload(items: sourceItems, updatePolicy: updatePolicy)
+    applyReload(items: sourceItems, updatePolicy: updatePolicy, animated: false, completion: nil)
   }
 
-  private func applyReload(items: [FKTabBarItem], updatePolicy: ItemsUpdatePolicy) {
+  private func applyReload(
+    items: [FKTabBarItem],
+    updatePolicy: ItemsUpdatePolicy,
+    animated: Bool,
+    completion: (() -> Void)?
+  ) {
+    let oldVisible = visibleItems
+    let newVisible = items.filter { !$0.isHidden }
+    manualItems = items
+    applyVisibleItemsTransition(
+      from: oldVisible,
+      to: newVisible,
+      allItems: items,
+      updatePolicy: updatePolicy,
+      animated: animated,
+      completion: completion
+    )
+  }
+
+  private func applyVisibleItemsTransition(
+    from oldVisible: [FKTabBarItem],
+    to newVisible: [FKTabBarItem],
+    allItems: [FKTabBarItem],
+    updatePolicy: ItemsUpdatePolicy,
+    animated: Bool,
+    completion: (() -> Void)?
+  ) {
     assertMainThreadInDebug()
+    if isPerformingVisibleItemsBatchUpdate {
+      pendingVisibleItemsTransition = PendingVisibleItemsTransition(
+        allItems: allItems,
+        newVisible: newVisible,
+        updatePolicy: updatePolicy,
+        animated: animated,
+        completion: completion
+      )
+      return
+    }
+
     let previousID = visibleItems[safe: selectedIndex]?.id
-    self.items = items
-    self.visibleItems = items.filter { !$0.isHidden }
+    items = allItems
+
     let targetIndex = FKTabBarIndexSynchronizer.resolveTargetIndex(
       previousVisibleID: previousID,
       previousSelectedIndex: selectedIndex,
-      visibleItems: visibleItems,
+      visibleItems: newVisible,
       policy: updatePolicy
     )
 
-    let out = FKTabBarSelectionReducer.reduce(snapshot: snapshot, event: .itemsChanged(count: visibleItems.count), count: visibleItems.count)
+    let out = FKTabBarSelectionReducer.reduce(
+      snapshot: snapshot,
+      event: .itemsChanged(count: newVisible.count),
+      count: newVisible.count
+    )
     snapshot = out.snapshot
     snapshot.selectedIndex = targetIndex
     selectedIndex = targetIndex
     switchPhase = snapshot.phase
     clearProgressSnapshot()
 
-    collectionView.reloadData()
+    let plan = FKTabBarItemDiffEngine.plan(oldVisible: oldVisible, newVisible: newVisible)
+    switch plan {
+    case .contentUpdates(let indices):
+      visibleItems = newVisible
+      for index in indices {
+        refreshCellIfVisible(at: index)
+      }
+      if !indices.isEmpty {
+        collectionView.collectionViewLayout.invalidateLayout()
+      }
+      finalizeItemsTransition(animated: animated, completion: completion)
+
+    case .fullReload:
+      visibleItems = newVisible
+      collectionView.reloadData()
+      finalizeItemsTransition(animated: animated, completion: completion)
+
+    case .structural(let removals, let insertions):
+      isPerformingVisibleItemsBatchUpdate = true
+      visibleItems = oldVisible
+      collectionView.performBatchUpdates { [weak self] in
+        guard let self else { return }
+        for offset in removals.sorted(by: >) {
+          guard self.visibleItems.indices.contains(offset) else { continue }
+          self.visibleItems.remove(at: offset)
+          self.collectionView.deleteItems(at: [IndexPath(item: offset, section: 0)])
+        }
+        for offset in insertions.sorted(by: <) {
+          guard newVisible.indices.contains(offset) else { continue }
+          self.visibleItems.insert(newVisible[offset], at: offset)
+          self.collectionView.insertItems(at: [IndexPath(item: offset, section: 0)])
+        }
+      } completion: { [weak self] _ in
+        guard let self else { return }
+        self.isPerformingVisibleItemsBatchUpdate = false
+        self.visibleItems = newVisible
+        self.finalizeItemsTransition(animated: animated, completion: completion)
+        self.drainPendingVisibleItemsTransition()
+      }
+    }
+  }
+
+  private func drainPendingVisibleItemsTransition() {
+    guard let pending = pendingVisibleItemsTransition else { return }
+    pendingVisibleItemsTransition = nil
+    let oldVisible = visibleItems
+    applyVisibleItemsTransition(
+      from: oldVisible,
+      to: pending.newVisible,
+      allItems: pending.allItems,
+      updatePolicy: pending.updatePolicy,
+      animated: pending.animated,
+      completion: pending.completion
+    )
+  }
+
+  private func finalizeItemsTransition(animated: Bool, completion: (() -> Void)?) {
     let layout = resolvedLayoutForCurrentEnvironment()
-    let animatedScroll = layout.isScrollable && layout.isSelectionScrollAnimationEnabled
+    let animatedScroll = animated && layout.isScrollable && layout.isSelectionScrollAnimationEnabled
+    updateEmptyStatePresentation()
     invalidateLayoutAndRelayout(animatedScroll: animatedScroll)
-    updateIndicatorFrame(animated: false)
-    delegate?.tabBar(self, didReloadItems: self.items, visibleItems: visibleItems, selectedIndex: selectedIndex)
+    updateIndicatorFrame(animated: animated)
+    delegate?.tabBar(self, didReloadItems: items, visibleItems: visibleItems, selectedIndex: selectedIndex)
+    completion?()
   }
 
   /// Programmatically selects a tab.
@@ -602,17 +719,16 @@ public final class FKTabBar: UIView {
     progressFromIndex = fromIndex
     progressToIndex = toIndex
     progressValue = max(0, min(1, progress))
+    onSelectionProgress?(fromIndex, toIndex, progressValue)
     updateIndicatorFrame(animated: false)
     // Update only currently visible cells to keep interaction smooth for long tab lists.
     collectionView.visibleCells.forEach { cell in
       guard let indexPath = collectionView.indexPath(for: cell), let tabCell = cell as? FKTabBarItemCell else { return }
       tabCell.apply(
         modelForCell(at: indexPath.item, selectionProgress: progressForCell(indexPath.item)),
-        customBadgeProvider: customBadgeViewProvider,
-        customContentViewProvider: itemViewProvider,
+        customization: customization,
         badgeConfiguration: badgeConfiguration,
-        badgeAnimation: badgeAnimation,
-        buttonConfigurator: itemButtonConfigurator
+        badgeAnimation: badgeAnimation
       )
     }
   }
@@ -665,11 +781,70 @@ public final class FKTabBar: UIView {
     setBadge(badge, at: visibleIndex, animated: animated, accessibilityValue: accessibilityValue)
   }
 
+  // MARK: - Public API: Item updates
+
+  /// Updates a single visible item in place without full `reloadData()` when possible.
+  @discardableResult
+  public func updateItem(at index: Int, animated: Bool = false) -> Bool {
+    assertMainThreadInDebug()
+    guard visibleItems.indices.contains(index) else { return false }
+    refreshCellIfVisible(at: index)
+    updateIndicatorFrame(animated: animated)
+    return true
+  }
+
+  /// Updates a single item by stable identifier.
+  @discardableResult
+  public func updateItem(forItemID itemID: String, animated: Bool = false) -> Bool {
+    assertMainThreadInDebug()
+    guard let index = visibleItems.firstIndex(where: { $0.id == itemID }) else { return false }
+    return updateItem(at: index, animated: animated)
+  }
+
+  /// Applies a new item model at the visible index, syncing both ``items`` and ``visibleItems``.
+  @discardableResult
+  public func setItem(_ item: FKTabBarItem, at index: Int, animated: Bool = false) -> Bool {
+    assertMainThreadInDebug()
+    guard visibleItems.indices.contains(index) else { return false }
+    guard visibleItems[index].id == item.id else { return false }
+    guard let fullIndex = items.firstIndex(where: { $0.id == item.id }) else { return false }
+
+    replaceStoredItem(item, atFullIndex: fullIndex)
+    if item.isHidden {
+      applyChanges(
+        [FKTabBarItemChange(kind: .delete(visibleIndex: index))],
+        updatePolicy: .preserveSelection,
+        animated: animated
+      )
+      return true
+    }
+    visibleItems[index] = item
+    refreshCellIfVisible(at: index)
+    updateIndicatorFrame(animated: animated)
+    return true
+  }
+
+  /// Same as ``setItem(_:at:animated:)`` keyed by stable id (visible strip only).
+  @discardableResult
+  public func setItem(_ item: FKTabBarItem, forItemID itemID: String, animated: Bool = false) -> Bool {
+    assertMainThreadInDebug()
+    guard let index = visibleItems.firstIndex(where: { $0.id == itemID }) else { return false }
+    return setItem(item, at: index, animated: animated)
+  }
+
+  private func replaceStoredItem(_ item: FKTabBarItem, atFullIndex: Int) {
+    var next = items
+    next[atFullIndex] = item
+    items = next
+    manualItems = next
+  }
+
   // MARK: - Configuration / Appearance
 
   private func commonInit() {
     addSubview(backgroundHost)
     backgroundHost.addSubview(collectionView)
+    backgroundHost.addSubview(scrollEdgeFadeOverlay)
     backgroundHost.insertSubview(indicator, belowSubview: collectionView)
     addSubview(divider)
 
@@ -679,11 +854,52 @@ public final class FKTabBar: UIView {
     collectionView.dataSource = self
     collectionView.delegate = self
     collectionView.register(FKTabBarItemCell.self, forCellWithReuseIdentifier: "FKTabBarItemCell")
-    indicator.customViewProvider = indicatorViewProvider
-    indicator.customRenderer = indicatorRenderer
 
-    applyAppearance()
+    emptyStateLabel.font = .preferredFont(forTextStyle: .footnote)
+    emptyStateLabel.textColor = .secondaryLabel
+    emptyStateLabel.textAlignment = .center
+    emptyStateLabel.numberOfLines = 0
+    emptyStateLabel.isHidden = true
+    emptyStateLabel.isAccessibilityElement = true
+    emptyStateLabel.accessibilityTraits = .staticText
+    emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
+    backgroundHost.addSubview(emptyStateLabel)
+    let emptyStateLeading = emptyStateLabel.leadingAnchor.constraint(
+      greaterThanOrEqualTo: backgroundHost.leadingAnchor,
+      constant: 16
+    )
+    let emptyStateTrailing = emptyStateLabel.trailingAnchor.constraint(
+      lessThanOrEqualTo: backgroundHost.trailingAnchor,
+      constant: -16
+    )
+    let emptyStateMaxWidth = emptyStateLabel.widthAnchor.constraint(
+      lessThanOrEqualTo: backgroundHost.widthAnchor,
+      constant: -32
+    )
+    emptyStateLeading.priority = .defaultHigh
+    emptyStateTrailing.priority = .defaultHigh
+    emptyStateMaxWidth.priority = .defaultHigh
+    NSLayoutConstraint.activate([
+      emptyStateLabel.centerXAnchor.constraint(equalTo: backgroundHost.centerXAnchor),
+      emptyStateLabel.centerYAnchor.constraint(equalTo: backgroundHost.centerYAnchor),
+      emptyStateLeading,
+      emptyStateTrailing,
+      emptyStateMaxWidth,
+    ])
+
+    syncCustomizationHooks()
+
+    applyConfigurationDomains(
+      [
+        .appearanceBackground,
+        .appearanceIndicator,
+        .layout,
+        .scrollBehavior,
+      ],
+      animated: false
+    )
     applySemanticDirection()
+    lastAppliedConfiguration = configuration
   }
 
   private func resolvedAppearance() -> FKTabBarAppearance { configuration.appearance }
@@ -700,7 +916,16 @@ public final class FKTabBar: UIView {
     return layout
   }
 
-  private func applyAppearance() {
+  private func syncCustomizationHooks() {
+    indicator.customViewProvider = { [weak customization] id in
+      customization?.customIndicatorView(id: id)
+    }
+    indicator.customRenderer = { [weak customization] id, bounds, container in
+      customization?.renderCustomIndicator(id: id, bounds: bounds, container: container)
+    }
+  }
+
+  private func applyBackgroundAppearance() {
     let ap = resolvedAppearance()
     switch ap.backgroundStyle {
     case .solid(let color):
@@ -719,11 +944,117 @@ public final class FKTabBar: UIView {
     backgroundHost.layer.masksToBounds = false
     let shadowPath = UIBezierPath(rect: backgroundHost.bounds).cgPath
     backgroundHost.layer.fk_applyShadow(ap.shadow, path: shadowPath)
+    updateScrollEdgeFadeAppearance()
+    setNeedsLayout()
+  }
+
+  private func applyIndicatorAppearance() {
+    let ap = resolvedAppearance()
     indicator.style = ap.indicatorStyle
     indicator.color = ap.colors.indicator
-    customIndicatorStyler?(indicator)
-    collectionView.reloadData()
-    setNeedsLayout()
+    updateIndicatorZOrder(for: ap.indicatorStyle)
+    updateIndicatorFrame(animated: false)
+  }
+
+  private func updateScrollEdgeFadeAppearance() {
+    let layout = resolvedLayout()
+    let fade = layout.scrollEdgeFade
+    guard layout.isScrollable, fade.isEnabled else {
+      scrollEdgeFadeOverlay.isHidden = true
+      return
+    }
+    scrollEdgeFadeOverlay.isHidden = false
+    let fadeColor: UIColor
+    switch resolvedAppearance().backgroundStyle {
+    case .solid(let color):
+      fadeColor = color
+    case .systemBlur:
+      fadeColor = backgroundHost.backgroundColor ?? .systemBackground
+    }
+    scrollEdgeFadeOverlay.configure(fadeColor: fadeColor, fadeWidth: fade.width)
+    scrollEdgeFadeOverlay.frame = backgroundHost.bounds
+    scrollEdgeFadeOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    backgroundHost.bringSubviewToFront(scrollEdgeFadeOverlay)
+    backgroundHost.bringSubviewToFront(collectionView)
+    updateScrollEdgeFadeOpacity()
+  }
+
+  private func updateScrollEdgeFadeOpacity() {
+    let layout = resolvedLayout()
+    guard layout.isScrollable, layout.scrollEdgeFade.isEnabled else { return }
+    let offsetX = collectionView.contentOffset.x
+    let minOffset = -collectionView.contentInset.left
+    let maxOffset = max(
+      minOffset,
+      collectionView.contentSize.width - collectionView.bounds.width + collectionView.contentInset.right
+    )
+    let fadeWidth = max(1, layout.scrollEdgeFade.width)
+    let leading = min(1, max(0, (offsetX - minOffset) / fadeWidth))
+    let trailing = min(1, max(0, (maxOffset - offsetX) / fadeWidth))
+    scrollEdgeFadeOverlay.update(leadingOpacity: leading, trailingOpacity: trailing)
+  }
+
+  private func applyLayoutScrollBehavior() {
+    let layout = resolvedLayout()
+    collectionView.isScrollEnabled = layout.isScrollable
+    let allowsBounce = layout.isScrollable && layout.allowsHorizontalBounce
+    collectionView.alwaysBounceHorizontal = allowsBounce
+    collectionView.bounces = allowsBounce
+    collectionView.clipsToBounds = !layout.isScrollable && layout.nonScrollableOverflowPolicy == .clip
+    updateScrollEdgeFadeAppearance()
+  }
+
+  private func updateEmptyStatePresentation() {
+    let message = resolvedLayout().emptyStateMessage?.trimmingCharacters(in: .whitespacesAndNewlines)
+    let showsPlaceholder = visibleItems.isEmpty && !(message?.isEmpty ?? true)
+    emptyStateLabel.text = message
+    emptyStateLabel.isHidden = !showsPlaceholder
+    collectionView.isHidden = visibleItems.isEmpty
+    indicator.isHidden = visibleItems.isEmpty
+    if visibleItems.isEmpty {
+      scrollEdgeFadeOverlay.isHidden = true
+    } else {
+      updateScrollEdgeFadeAppearance()
+    }
+    if showsPlaceholder {
+      backgroundHost.bringSubviewToFront(emptyStateLabel)
+    }
+  }
+
+  private func applyConfigurationDomains(
+    _ domains: FKTabBarConfigurationApplier.ChangeDomains,
+    animated: Bool
+  ) {
+    if domains.contains(.appearanceBackground) {
+      applyBackgroundAppearance()
+    }
+    if domains.contains(.appearanceIndicator) {
+      applyIndicatorAppearance()
+    }
+    if domains.contains(.appearanceColors) || domains.contains(.appearanceTypography) {
+      refreshVisibleCellsForCurrentState()
+      if domains.contains(.appearanceTypography) {
+        invalidateIntrinsicContentSize()
+      }
+      if !domains.contains(.appearanceIndicator) {
+        updateIndicatorFrame(animated: animated)
+      }
+    }
+    if domains.contains(.scrollBehavior) {
+      applyLayoutScrollBehavior()
+    }
+    if domains.contains(.layout) {
+      applySemanticDirection()
+      applyLayoutScrollBehavior()
+      updateEmptyStatePresentation()
+      invalidateLayoutAndRelayout(animatedScroll: animated && resolvedLayout().isSelectionScrollAnimationEnabled)
+      refreshVisibleCellsForCurrentState()
+      updateIndicatorFrame(animated: animated)
+      updateScrollEdgeFadeAppearance()
+    }
+    if domains.contains(.animation) {
+      refreshVisibleCellsForCurrentState()
+    }
   }
 
   private func scrollSelectedIntoView(animated: Bool) {
@@ -742,18 +1073,24 @@ public final class FKTabBar: UIView {
   }
 
   private func modelForCell(at index: Int, selectionProgress: CGFloat) -> FKTabBarItemCell.Model {
-    let titlePresentation = resolvedTitlePresentation(layout: resolvedLayout())
+    let layout = resolvedLayout()
+    let titlePresentation = resolvedTitlePresentation(layout: layout)
+    let item = visibleItems[index]
     return FKTabBarItemCell.Model(
-      item: visibleItems[index],
+      item: item,
       isSelected: index == selectedIndex,
       appearance: resolvedAppearance(),
+      animation: resolvedAnimation(),
       overflowMode: titlePresentation.overflowMode,
       selectionProgress: resolvedAnimation().allowsProgressiveColorTransition ? selectionProgress : (index == selectedIndex ? 1 : 0),
-      layoutDirection: resolvedLayout().itemLayoutDirection,
-      rtlBehavior: resolvedLayout().rtlBehavior,
+      layoutDirection: layout.itemLayoutDirection,
+      rtlBehavior: layout.rtlBehavior,
       longPressMinimumDuration: longPressMinimumDuration,
       isLongPressEnabled: isLongPressEnabled,
-      maximumTitleLines: titlePresentation.maximumTitleLines
+      maximumTitleLines: titlePresentation.maximumTitleLines,
+      cellLayoutMargins: layout.cellLayoutMargins,
+      itemContentInsets: layout.itemContentInsets,
+      isAccessoryExpanded: expandedItemID == item.id
     )
   }
 
@@ -774,12 +1111,29 @@ public final class FKTabBar: UIView {
       guard let cell = collectionView.cellForItem(at: IndexPath(item: referenceIndex, section: 0)) as? FKTabBarItemCell else { return frame }
       return cell.contentFrame(in: backgroundHost)
     }()
+    let customResolver: ((_ itemFrame: CGRect, _ containerBounds: CGRect) -> CGRect)?
+    if let customization {
+      customResolver = { itemFrame, containerBounds in
+        if let custom = customization.customIndicatorFrame(itemFrame: itemFrame, containerBounds: containerBounds) {
+          return custom
+        }
+        return FKTabBarIndicatorFrameCalculator.frame(
+          style: style,
+          itemFrame: itemFrame,
+          contentFrame: contentFrame,
+          containerBounds: containerBounds,
+          customResolver: nil
+        )
+      }
+    } else {
+      customResolver = nil
+    }
     return FKTabBarIndicatorFrameCalculator.frame(
       style: style,
       itemFrame: frame,
       contentFrame: contentFrame,
       containerBounds: backgroundHost.bounds,
-      customResolver: customIndicatorFrameResolver
+      customResolver: customResolver
     )
   }
 
@@ -839,11 +1193,9 @@ public final class FKTabBar: UIView {
             visibleItems.indices.contains(indexPath.item) else { return }
       tabCell.apply(
         modelForCell(at: indexPath.item, selectionProgress: progressForCell(indexPath.item)),
-        customBadgeProvider: customBadgeViewProvider,
-        customContentViewProvider: itemViewProvider,
+        customization: customization,
         badgeConfiguration: badgeConfiguration,
-        badgeAnimation: badgeAnimation,
-        buttonConfigurator: itemButtonConfigurator
+        badgeAnimation: badgeAnimation
       )
     }
   }
@@ -854,11 +1206,9 @@ public final class FKTabBar: UIView {
           visibleItems.indices.contains(index) else { return }
     cell.apply(
       modelForCell(at: index, selectionProgress: progressForCell(index)),
-      customBadgeProvider: customBadgeViewProvider,
-      customContentViewProvider: itemViewProvider,
+      customization: customization,
       badgeConfiguration: badgeConfiguration,
-      badgeAnimation: badgeAnimation,
-      buttonConfigurator: itemButtonConfigurator
+      badgeAnimation: badgeAnimation
     )
   }
 
@@ -911,14 +1261,15 @@ public final class FKTabBar: UIView {
   private func resolvedTitlePresentation(
     layout: FKTabBarLayoutConfiguration
   ) -> (overflowMode: FKTabBarTitleOverflowMode, maximumTitleLines: Int, shouldIncreaseHeightForLargeText: Bool) {
+    let baseOverflow = resolvedOverflowMode(for: layout)
     guard traitCollection.preferredContentSizeCategory.isAccessibilityCategory else {
       let defaultLines = resolvedAppearance().typography.allowsTwoLineTitle ? 2 : 1
-      return (layout.titleOverflowMode, defaultLines, false)
+      return (baseOverflow, defaultLines, false)
     }
     switch layout.largeTextLayoutStrategy {
     case .automatic:
       let defaultLines = resolvedAppearance().typography.allowsTwoLineTitle ? 2 : 1
-      return (layout.titleOverflowMode, defaultLines, false)
+      return (baseOverflow, defaultLines, false)
     case .truncate:
       return (.truncate, 1, false)
     case .shrink(let factor):
@@ -927,6 +1278,19 @@ public final class FKTabBar: UIView {
       return (.wrap, max(1, maxLines), false)
     case .wrapAndIncreaseHeight(let maxLines):
       return (.wrap, max(1, maxLines), true)
+    }
+  }
+
+  private func resolvedOverflowMode(for layout: FKTabBarLayoutConfiguration) -> FKTabBarTitleOverflowMode {
+    guard !layout.isScrollable else { return layout.titleOverflowMode }
+    switch layout.nonScrollableOverflowPolicy {
+    case .shrink:
+      if case .shrink = layout.titleOverflowMode { return layout.titleOverflowMode }
+      if case .wrap = layout.titleOverflowMode { return layout.titleOverflowMode }
+      return .shrink(minimumScaleFactor: 0.8)
+    case .truncate, .clip:
+      if case .wrap = layout.titleOverflowMode { return layout.titleOverflowMode }
+      return .truncate
     }
   }
 
@@ -1005,18 +1369,16 @@ extension FKTabBar: UICollectionViewDataSource {
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "FKTabBarItemCell", for: indexPath) as! FKTabBarItemCell
     cell.apply(
       modelForCell(at: indexPath.item, selectionProgress: progressForCell(indexPath.item)),
-      customBadgeProvider: customBadgeViewProvider,
-      customContentViewProvider: itemViewProvider,
+      customization: customization,
       badgeConfiguration: badgeConfiguration,
-      badgeAnimation: badgeAnimation,
-      buttonConfigurator: itemButtonConfigurator
+      badgeAnimation: badgeAnimation
     )
     cell.onTap = { [weak self, weak cell] button in
       guard let self else { return }
       // Ignore taps if the cell is no longer visible/reused.
       guard let cell, let actualIndexPath = collectionView.indexPath(for: cell) else { return }
       guard let item = self.visibleItems[safe: actualIndexPath.item] else { return }
-      self.itemInteractionAnimator?(button, .tap, item)
+      self.customization?.animateInteraction(on: button, phase: .tap, item: item)
       self.setSelectedIndex(actualIndexPath.item, animated: true, reason: .userTap)
     }
     cell.onLongPress = { [weak self, weak cell] button in
@@ -1026,7 +1388,7 @@ extension FKTabBar: UICollectionViewDataSource {
       let index = actualIndexPath.item
       guard let item = self.visibleItems[safe: index] else { return }
       guard item.isEnabled else { return }
-      self.itemInteractionAnimator?(button, .longPress, item)
+      self.customization?.animateInteraction(on: button, phase: .longPress, item: item)
       self.onLongPress?(item, index)
       self.delegate?.tabBar(self, didLongPress: item, at: index)
     }
@@ -1052,6 +1414,7 @@ extension FKTabBar: UIScrollViewDelegate {
     guard scrollView === collectionView else { return }
     // Keep indicator anchored while user manually scrolls the strip without changing selection.
     updateIndicatorFrame(animated: false)
+    updateScrollEdgeFadeOpacity()
   }
 
 }
@@ -1066,8 +1429,12 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
   ) -> CGSize {
     let layout = resolvedLayoutForCurrentEnvironment()
     let titlePresentation = resolvedTitlePresentation(layout: layout)
+    guard let item = visibleItems[safe: indexPath.item] else {
+      let height = max(44, layout.minimumItemHeight)
+      return CGSize(width: 44, height: height)
+    }
     return FKTabBarItemWidthStrategy.sizeForItem(
-      item: visibleItems[indexPath.item],
+      item: item,
       index: indexPath.item,
       visibleItemsCount: visibleItems.count,
       collectionBounds: collectionView.bounds,
@@ -1075,8 +1442,28 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
       appearance: resolvedAppearance(),
       effectiveOverflowMode: titlePresentation.overflowMode,
       maximumTitleLines: titlePresentation.maximumTitleLines,
-      shouldIncreaseHeightForLargeText: titlePresentation.shouldIncreaseHeightForLargeText
+      shouldIncreaseHeightForLargeText: titlePresentation.shouldIncreaseHeightForLargeText,
+      customization: customization,
+      tabBar: self
     )
+  }
+
+  private func resolvedCustomSpacing(for layout: FKTabBarLayoutConfiguration) -> CGFloat? {
+    guard let customization else { return nil }
+    let context = FKTabBarLayoutConfiguration.SpacingContext(
+      visibleItemsCount: visibleItems.count,
+      isScrollable: layout.isScrollable,
+      defaultSpacing: layout.itemSpacing
+    )
+    var values: [CGFloat] = []
+    let gapCount = max(0, visibleItems.count - 1)
+    if gapCount == 0 { return nil }
+    for index in 0..<gapCount {
+      if let spacing = customization.customSpacing(after: index, context: context) {
+        values.append(max(0, spacing))
+      }
+    }
+    return values.max()
   }
 
   public func collectionView(
@@ -1089,14 +1476,8 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
     if let distribution = contentDistribution(for: layout, in: collectionView.bounds.width), distribution.dynamicSpacing != nil {
       return distribution.dynamicSpacing ?? layout.itemSpacing
     }
-    if let customSpacing = layout.customSpacingProvider?(
-      .init(
-        visibleItemsCount: visibleItems.count,
-        isScrollable: layout.isScrollable,
-        defaultSpacing: layout.itemSpacing
-      )
-    ) {
-      return max(0, customSpacing)
+    if let customSpacing = resolvedCustomSpacing(for: layout) {
+      return customSpacing
     }
     return layout.itemSpacing
   }
@@ -1137,6 +1518,10 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
 
   private func invalidateLayoutAndRelayout(animatedScroll: Bool) {
     guard !visibleItems.isEmpty else {
+      return
+    }
+    // Defer until the strip has a real size so collection cells are not laid out at zero width/height.
+    guard bounds.width > 0, bounds.height > 0 else {
       return
     }
     // All geometry-sensitive relayouts go through one path so indicator, scrolling, and cell frames
@@ -1235,6 +1620,10 @@ extension FKTabBar: UICollectionViewDelegateFlowLayout {
     case .backdrop(let config):
       return config.followMode
     case .custom(let config):
+      if case .custom(let id) = config.followMode,
+         let resolved = customization?.indicatorFollowMode(forCustomID: id) {
+        return resolved
+      }
       return config.followMode
     case .none:
       return .trackSelectedFrame

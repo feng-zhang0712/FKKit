@@ -5,7 +5,7 @@ import Foundation
 /// Runtime phase of tab switching.
 ///
 /// `switching` is explicit so callers can debounce expensive side effects while transition is in progress.
-public enum FKTabBarSwitchPhase: Equatable {
+public enum FKTabBarSwitchPhase: Equatable, Sendable {
   /// No in-flight transition.
   case idle
   /// Transition started but not committed.
@@ -14,16 +14,13 @@ public enum FKTabBarSwitchPhase: Equatable {
   case settled
 }
 
-/// Immutable selection snapshot used by the tab state machine.
-internal struct FKTabBarSelectionSnapshot: Equatable {
-  /// Currently selected index.
-  public var selectedIndex: Int
-  /// Previously selected index.
-  public var previousIndex: Int?
-  /// Current switching phase.
-  public var phase: FKTabBarSwitchPhase
+/// Immutable selection snapshot used by the tab state machine reducer.
+struct FKTabBarSelectionReducerSnapshot: Equatable {
+  var selectedIndex: Int
+  var previousIndex: Int?
+  var phase: FKTabBarSwitchPhase
 
-  public init(selectedIndex: Int, previousIndex: Int? = nil, phase: FKTabBarSwitchPhase = .idle) {
+  init(selectedIndex: Int, previousIndex: Int? = nil, phase: FKTabBarSwitchPhase = .idle) {
     self.selectedIndex = selectedIndex
     self.previousIndex = previousIndex
     self.phase = phase
@@ -55,10 +52,10 @@ internal enum FKTabBarSelectionReducer {
       case progress(from: Int, to: Int, progress: CGFloat)
     }
 
-    internal var snapshot: FKTabBarSelectionSnapshot
+    internal var snapshot: FKTabBarSelectionReducerSnapshot
     internal var change: Change
 
-    internal init(snapshot: FKTabBarSelectionSnapshot, change: Change) {
+    internal init(snapshot: FKTabBarSelectionReducerSnapshot, change: Change) {
       self.snapshot = snapshot
       self.change = change
     }
@@ -72,7 +69,7 @@ internal enum FKTabBarSelectionReducer {
   ///   - count: Current tab count.
   /// - Returns: New snapshot and semantic change.
   internal static func reduce(
-    snapshot: FKTabBarSelectionSnapshot,
+    snapshot: FKTabBarSelectionReducerSnapshot,
     event: FKTabBarSelectionEvent,
     count: Int
   ) -> Output {

@@ -46,7 +46,7 @@ final class FKTabBarBadgeAnchorAndLandscapeExampleViewController: UIViewControll
       self?.tabView.setSelectedIndex(4, animated: true, reason: .programmatic)
     })
     stack.addArrangedSubview(actions)
-    attachBottom(tabView)
+    FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 56)
   }
 
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -54,16 +54,5 @@ final class FKTabBarBadgeAnchorAndLandscapeExampleViewController: UIViewControll
     coordinator.animate(alongsideTransition: { _ in
       self.tabView.realignSelection(animated: false)
     })
-  }
-
-  private func attachBottom(_ tab: UIView) {
-    tab.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tab)
-    NSLayoutConstraint.activate([
-      tab.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tab.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      tab.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      tab.heightAnchor.constraint(equalToConstant: 56),
-    ])
   }
 }

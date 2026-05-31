@@ -85,7 +85,7 @@ public enum FKTabBarImageSource: Equatable {
   case image(UIImage)
   case systemSymbol(name: String)
   case asset(name: String, in: Bundle? = nil)
-  /// Remote URL for host-side loading. `FKTabBar` does not fetch network data; resolve in `itemViewProvider` or map to `.image`.
+  /// Remote URL for host-side loading. `FKTabBar` does not fetch network data; resolve in ``FKTabBarCustomization/customContentView(for:)`` or map to `.image`.
   case remote(urlString: String, placeholder: UIImage? = nil)
 }
 

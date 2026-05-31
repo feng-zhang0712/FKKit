@@ -4,7 +4,7 @@
 
 Typical uses:
 
-- **Pager header**: drive `setSelectionProgress(from:to:progress:)` from an external scroll view, then commit with `setSelectedIndex(_:reason:)`.
+- **Pager header**: drive `setSelectionProgress(from:to:progress:)` from an external scroll view, then commit with `setSelectedIndex(_:reason:)`. For full `UIPageViewController` integration use [`FKPagingController`](../PagingController/README.md).
 - **Bottom bar surface**: pin the view like `UITabBar` using layout + `FKTabBarAppearance` (still no `UITabBarController` wrapper).
 
 ---
@@ -15,15 +15,16 @@ Files are grouped for readability; **all types remain `import FKUIKit`** regardl
 
 | Area | Path | Responsibility |
 |------|------|----------------|
-| Public API | `Public/FKTabBar.swift` | Main `UIView` subclass |
-| | `Public/Configuration/` | `FKTabBarConfiguration`, layout/appearance/animation enums |
-| | `Public/Models/` | `FKTabBarItem`, text/image models, badge models |
+| Public API | `Public/FKTabBar.swift` | Main `UIView` subclass and item update APIs |
+| | `Public/Configuration/` | `FKTabBarConfiguration`, `FKTabBarPresets`, `FKTabBarCustomization`, layout/appearance/animation enums |
+| | `Public/Models/` | `FKTabBarItem`, text/image models, badge, accessory, scroll edge fade, selection snapshot/progress, item changes |
 | | `Public/Protocols/` | `FKTabBarDelegate`, `FKTabBarDataSource` |
 | | `Public/Indicator/` | Indicator style configuration |
 | | `Public/SwiftUI/` | `FKTabBarRepresentable` |
-| Internal | `Internal/Selection/` | Selection reducer + `FKTabBarSwitchPhase` |
-| | `Internal/Layout/` | Width, scroll alignment, indicator frame math, index sync |
-| | `Internal/Views/` | `FKTabBarItemCell`, `FKTabBarIndicatorView` |
+| Internal | `Internal/Configuration/` | Configuration diff domains and apply routing |
+| | `Internal/Selection/` | Selection reducer, item diff engine, index sync |
+| | `Internal/Layout/` | Width, scroll alignment, indicator frame math |
+| | `Internal/Views/` | `FKTabBarItemCell`, `FKTabBarIndicatorView`, scroll edge fade overlay |
 | | `Internal/Badge/` | Badge anchor resolution |
 
 ---
@@ -73,17 +74,19 @@ Use a stable `FKTabBarItem.id` across reloads. Selection preservation, badge upd
 
 ### Configuration entry point
 
-Prefer a single `FKTabBarConfiguration`:
+Use ``FKTabBarConfiguration`` via ``FKTabBar/configuration`` or a preset from ``FKTabBarPresets``:
 
 ```swift
-var config = FKTabBarDefaults.defaultConfiguration
-config.layout.isScrollable = true
-config.layout.widthMode = .intrinsic
-config.appearance.indicatorStyle = .line(.init())
-let tabBar = FKTabBar(items: items, selectedIndex: 0, configuration: config)
+let tabBar = FKTabBar(
+  items: items,
+  selectedIndex: 0,
+  configuration: FKTabBarPresets.pagerHeader()
+)
 ```
 
-Shortcuts `appearance`, `layoutConfiguration`, and `animationConfiguration` on `FKTabBar` mirror subtrees but exist for compatibility; new code should set `configuration` directly.
+Scene presets: ``FKTabBarPresets/pagerHeader()``, ``bottomDocked(showsIndicator:)``, ``segmentedControl(itemSpacing:)``, ``filterStrip()``.
+
+Partial item updates: ``updateItem(at:animated:)`` (refresh visible cell for an existing model), ``setItem(_:at:animated:)`` (replace model). Structural batches: ``applyChanges(_:)``. Full reload with ID diff: ``reload(items:)``. Configuration refresh: ``applyConfiguration(_:animated:)``.
 
 ---
 
@@ -93,16 +96,36 @@ Shortcuts `appearance`, `layoutConfiguration`, and `animationConfiguration` on `
 |-----|---------|
 | `setSelectedIndex(_:animated:notify:reason:)` | Programmatic selection; `notify: false` skips callbacks and VoiceOver announcement |
 | `setSelectedIndex(forItemID:animated:notify:reason:)` | Select by stable `id` (returns `false` if ID not visible) |
+| `selectedItemID` | Stable ID of the selected visible tab |
+| `selectionSnapshot` | Read-only phase/index snapshot for coordination |
 | `selectionControlMode = .controlled` | Tap emits `onSelectionRequest` / delegate; host commits when ready |
 | `setSelectionProgress(from:to:progress:)` | Interactive pager interpolation |
+| `onSelectionProgress` | Observe fractional progress during paging-style transitions |
 
 Callback order for a committed change: `shouldSelect` → delegate `shouldSelect` → `willSelect` → visual update → `onSelectionChanged` → delegate `didSelect`.
 
 ---
 
+## Custom indicators
+
+For ``FKTabBarIndicatorStyle/custom(id:)``, supply the view via ``FKTabBarCustomization/customIndicatorView(id:)``. When follow mode is ``FKTabBarIndicatorFollowMode/custom(id:)``, resolve the effective behavior through ``FKTabBarCustomization/indicatorFollowMode(forCustomID:)`` — return ``trackContentProgress`` to participate in paging interpolation.
+
+---
+
+## Layout notes
+
+- ``FKTabBarLayoutConfiguration/nonScrollableOverflowPolicy`` — shrink / truncate / clip when ``isScrollable`` is `false`.
+- ``FKTabBarLayoutConfiguration/emptyStateMessage`` — optional centered placeholder when the visible strip is empty.
+- ``FKTabBarLayoutConfiguration/scrollEdgeFade`` — horizontal edge fade when scrollable (enabled in ``FKTabBarPresets/filterStrip()``).
+- ``FKTabBar/expandedItemID`` — visual accessory emphasis (chevrons) without changing selection.
+- ``FKTabBar/visibleItemButton(at:)`` — returns the internal ``FKButton`` for popover/menu anchoring.
+- Item width measurement uses each item's ``FKTabBarImageStyle/fixedSize`` (not a hard-coded icon size).
+
+---
+
 ## SwiftUI
 
-`FKTabBarRepresentable(items:selectedIndex:configuration:)` keeps UIKit rendering with a `Binding<Int>`. See doc comments in `Public/SwiftUI/FKTabBarRepresentable.swift` for binding sync rules when the item list changes.
+`FKTabBarRepresentable` supports `Binding<Int>`, controlled mode, customization, and `onSelectionProgress`. See `Public/SwiftUI/FKTabBarRepresentable.swift` for binding sync rules when the item list changes.
 
 ---
 
@@ -124,29 +147,36 @@ Under `Examples/.../FKUIKit/TabBar/`:
 
 - `Hub/` — navigation hub
 - `Shared/` — `FKTabBarExampleSupport` factories
-- `Scenarios/<Topic>/` — grouped demos (Basics, Scrollable, Indicator, Badge, Accessibility, Dynamic, Performance, …)
+- `Scenarios/Basics`, `Scrollable`, `Indicator`, `Badge`, `Dynamic`, `Integration`, `Accessibility`, `ReplaceUITabBar`, `Performance`, …
+
+Integration scenarios cover DataSource, overflow policy, empty state, selection telemetry, anchor button, and SwiftUI representable.
 
 ---
 
 ## API checklist (public types)
 
 - `FKTabBar`
-- `FKTabBarItem`, `FKTabBarTextConfiguration`, `FKTabBarImageConfiguration`, …
-- `FKTabBarBadgeConfiguration`, `FKTabBarBadgeContent`
+- `FKTabBarItem`, `FKTabBarItemChange`, `FKTabBarTextConfiguration`, `FKTabBarImageConfiguration`, …
+- `FKTabBarBadgeConfiguration`, `FKTabBarBadgeContent`, `FKTabBarAccessoryConfiguration`
+- `FKTabBarScrollEdgeFade`
 - `FKTabBarConfiguration`, `FKTabBarLayoutConfiguration`, `FKTabBarAppearance`, `FKTabBarAnimationConfiguration`
+- `FKTabBarCustomization`, `FKTabBarDefaultCustomization`
 - `FKTabBarIndicatorStyle` (+ related indicator configs)
 - `FKTabBarDelegate`, `FKTabBarDataSource`
 - `FKTabBarRepresentable` (SwiftUI)
-- `FKTabBarDefaults`, `FKTabBarSwitchPhase`
+- `FKTabBarDefaults`, `FKTabBarSwitchPhase`, `FKTabBarSelectionSnapshot`, `FKTabBarSelectionProgress`
+- `FKTabBarPresets`
 
 ---
 
 ## Best practices
 
 1. Keep item IDs stable.
-2. Integrate paging with progress APIs, then commit selection explicitly.
-3. Use `notify: false` when mirroring external state to prevent loops.
-4. Keep `itemViewProvider`, indicator providers, and `itemButtonConfigurator` lightweight on the main thread.
+2. Prefer `applyChanges(_:)` or `reload(items:)` (ID diff) over ad-hoc full reloads when updating dynamic tabs.
+3. Integrate paging with progress APIs, then commit selection explicitly.
+4. Use `notify: false` when mirroring external state to prevent loops.
+5. Subclass ``FKTabBarDefaultCustomization`` for custom width, badge, indicator, and button hooks — keep overrides lightweight on the main thread.
+6. For bottom-docked vertical layouts, size the bar from ``intrinsicContentSize`` or set ``preferredBarHeight`` — do not assume a single-line header height.
 
 ---
 

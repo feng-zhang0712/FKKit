@@ -11,8 +11,11 @@ public struct FKTabBarItem: Equatable {
   public var title: FKTabBarTextConfiguration
   public var subtitle: FKTabBarTextConfiguration?
   public var image: FKTabBarImageConfiguration?
-  /// When non-`nil`, content is supplied by `FKTabBar.itemViewProvider`.
+  /// When non-`nil`, content is supplied by ``FKTabBarCustomization/customContentView(for:)``.
   public var customContentIdentifier: String?
+
+  /// Trailing accessory (chevron or custom id).
+  public var accessory: FKTabBarAccessoryConfiguration
 
   public var isEnabled: Bool
   /// Hidden items are omitted from the visible strip (`FKTabBar.visibleItems`).
@@ -29,6 +32,7 @@ public struct FKTabBarItem: Equatable {
     subtitle: FKTabBarTextConfiguration? = nil,
     image: FKTabBarImageConfiguration? = nil,
     customContentIdentifier: String? = nil,
+    accessory: FKTabBarAccessoryConfiguration = .init(),
     isEnabled: Bool = true,
     isHidden: Bool = false,
     badge: FKTabBarBadgeConfiguration = .init(),
@@ -40,6 +44,7 @@ public struct FKTabBarItem: Equatable {
     self.subtitle = subtitle
     self.image = image
     self.customContentIdentifier = customContentIdentifier
+    self.accessory = accessory
     self.isEnabled = isEnabled
     self.isHidden = isHidden
     self.badge = badge

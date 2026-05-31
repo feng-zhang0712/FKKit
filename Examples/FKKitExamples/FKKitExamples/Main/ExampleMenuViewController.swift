@@ -74,11 +74,6 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKExpandableTextExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          title: "MultiPicker",
-          subtitle: "Cascading picker: Public/Internal layout, sample address tree, Support/ demo data",
-          make: { FKMultiPickerExampleViewController() }
-        ),
-        ExampleMenuItem(
           title: "VideoPlayer",
           subtitle: "Hub: VOD/HLS/live, playlist, subtitles, feed pool, offline, ads, QoE, SwiftUI",
           make: { FKVideoPlayerExamplesHubViewController() }

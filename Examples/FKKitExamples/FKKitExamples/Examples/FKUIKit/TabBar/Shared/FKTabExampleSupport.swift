@@ -151,5 +151,89 @@ enum FKTabBarExampleSupport {
     button.addAction(UIAction { _ in onTap() }, for: .touchUpInside)
     return button
   }
+
+  /// Pins a tab strip below the host safe-area top edge.
+  ///
+  /// - Returns: The height constraint so callers can adjust bar height at runtime (for example ``FKTabBarPresets/bottomDocked(showsIndicator:)``).
+  @discardableResult
+  static func attachPinnedTabBar(
+    _ tabBar: UIView,
+    to hostView: UIView,
+    height: CGFloat = 52
+  ) -> NSLayoutConstraint {
+    tabBar.translatesAutoresizingMaskIntoConstraints = false
+    hostView.addSubview(tabBar)
+    let heightConstraint = tabBar.heightAnchor.constraint(equalToConstant: height)
+    NSLayoutConstraint.activate([
+      tabBar.leadingAnchor.constraint(equalTo: hostView.leadingAnchor),
+      tabBar.trailingAnchor.constraint(equalTo: hostView.trailingAnchor),
+      tabBar.topAnchor.constraint(equalTo: hostView.safeAreaLayoutGuide.topAnchor),
+      heightConstraint,
+    ])
+    return heightConstraint
+  }
+}
+
+// MARK: - Example customizations
+
+/// Supplies the pill custom content used by ``FKTabBarExampleSupport/makeMixedContentItems()``.
+@MainActor
+final class FKTabBarExampleContentCustomization: FKTabBarDefaultCustomization {
+  override func customContentView(for item: FKTabBarItem) -> UIView? {
+    guard item.customContentIdentifier == "pill" else { return nil }
+    let container = UIView()
+    container.backgroundColor = .systemPurple
+    container.layer.cornerRadius = 10
+    container.clipsToBounds = true
+
+    let label = UILabel()
+    label.translatesAutoresizingMaskIntoConstraints = false
+    label.text = "Custom"
+    label.font = .systemFont(ofSize: 12, weight: .semibold)
+    label.textAlignment = .center
+    label.textColor = .white
+
+    container.addSubview(label)
+    NSLayoutConstraint.activate([
+      label.topAnchor.constraint(equalTo: container.topAnchor, constant: 6),
+      label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 10),
+      label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -10),
+      label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -6),
+    ])
+
+    container.setContentHuggingPriority(.required, for: .horizontal)
+    container.setContentCompressionResistancePriority(.required, for: .horizontal)
+    return container
+  }
+}
+
+/// Alternating per-index widths for scrollable width demos.
+@MainActor
+final class FKTabBarExampleWidthCustomization: FKTabBarDefaultCustomization {
+  override func customWidth(for index: Int, item: FKTabBarItem, in tabBar: FKTabBar) -> CGFloat? {
+    index % 2 == 0 ? 90 : 150
+  }
+}
+
+/// Host-provided indicator surface for ``FKTabBarIndicatorStyle/custom`` demos.
+@MainActor
+final class FKTabBarExampleIndicatorCustomization: FKTabBarDefaultCustomization {
+  var indicatorID: String
+  var fillColor: UIColor
+  var cornerRadius: CGFloat
+
+  init(indicatorID: String, fillColor: UIColor, cornerRadius: CGFloat = 8) {
+    self.indicatorID = indicatorID
+    self.fillColor = fillColor
+    self.cornerRadius = cornerRadius
+  }
+
+  override func customIndicatorView(id: String) -> UIView? {
+    guard id == indicatorID else { return nil }
+    let view = UIView()
+    view.backgroundColor = fillColor
+    view.layer.cornerRadius = cornerRadius
+    return view
+  }
 }
 

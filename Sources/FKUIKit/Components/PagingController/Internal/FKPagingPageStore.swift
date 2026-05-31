@@ -9,12 +9,12 @@ final class FKPagingPageStore {
 
   private(set) var pageCount: Int
 
+  var isEagerMode: Bool { !eagerControllers.isEmpty }
+
   init(viewControllers: [UIViewController]) {
     eagerControllers = viewControllers
     pageCount = viewControllers.count
-    for (index, controller) in viewControllers.enumerated() {
-      identifierToIndex[ObjectIdentifier(controller)] = index
-    }
+    rebuildIdentifierMapForEager()
   }
 
   init(pageCount: Int, provider: @escaping (Int) -> UIViewController) {
@@ -41,6 +41,14 @@ final class FKPagingPageStore {
     return controller
   }
 
+  func cachedController(at index: Int) -> UIViewController? {
+    guard index >= 0, index < pageCount else { return nil }
+    if !eagerControllers.isEmpty {
+      return eagerControllers[index]
+    }
+    return cache[index]
+  }
+
   func index(of controller: UIViewController) -> Int? {
     if let mapped = identifierToIndex[ObjectIdentifier(controller)] { return mapped }
     if !eagerControllers.isEmpty { return eagerControllers.firstIndex(of: controller) }
@@ -57,7 +65,11 @@ final class FKPagingPageStore {
     }
   }
 
-  func compactCache(selectedIndex: Int, retention: FKPagingRetentionPolicy) {
+  func compactCache(
+    selectedIndex: Int,
+    retention: FKPagingRetentionPolicy,
+    onEvict: ((Int, UIViewController) -> Void)? = nil
+  ) {
     guard eagerControllers.isEmpty else { return }
     switch retention {
     case .keepAll:
@@ -66,29 +78,106 @@ final class FKPagingPageStore {
       let safeDistance = max(0, distance)
       let lower = max(0, selectedIndex - safeDistance)
       let upper = min(pageCount - 1, selectedIndex + safeDistance)
+      let evicted = cache.filter { index, _ in
+        index < lower || index > upper
+      }
+      for (index, controller) in evicted {
+        onEvict?(index, controller)
+        FKPagingScrollUtilities.detachFromParentIfNeeded(controller)
+        identifierToIndex.removeValue(forKey: ObjectIdentifier(controller))
+      }
       cache = cache.filter { index, _ in
         index >= lower && index <= upper
       }
-      identifierToIndex = identifierToIndex.filter { _, index in
-        index >= lower && index <= upper
+    }
+  }
+
+  @discardableResult
+  func invalidatePage(at index: Int) -> UIViewController? {
+    if !eagerControllers.isEmpty {
+      guard index >= 0, index < eagerControllers.count else { return nil }
+      let removed = eagerControllers[index]
+      identifierToIndex.removeValue(forKey: ObjectIdentifier(removed))
+      return removed
+    }
+    guard let removed = cache.removeValue(forKey: index) else { return nil }
+    FKPagingScrollUtilities.detachFromParentIfNeeded(removed)
+    identifierToIndex.removeValue(forKey: ObjectIdentifier(removed))
+    return removed
+  }
+
+  @discardableResult
+  func replaceEagerController(at index: Int, with controller: UIViewController) -> UIViewController? {
+    guard !eagerControllers.isEmpty, index >= 0, index < eagerControllers.count else { return nil }
+    let old = eagerControllers[index]
+    eagerControllers[index] = controller
+    identifierToIndex.removeValue(forKey: ObjectIdentifier(old))
+    identifierToIndex[ObjectIdentifier(controller)] = index
+    return old
+  }
+
+  func syncPageCount(_ count: Int, onEvict: ((Int, UIViewController) -> Void)? = nil) {
+    let newCount = max(0, count)
+    if !eagerControllers.isEmpty {
+      if newCount < eagerControllers.count {
+        for index in newCount..<eagerControllers.count {
+          let controller = eagerControllers[index]
+          onEvict?(index, controller)
+          FKPagingScrollUtilities.detachFromParentIfNeeded(controller)
+          identifierToIndex.removeValue(forKey: ObjectIdentifier(controller))
+        }
+        eagerControllers = Array(eagerControllers.prefix(newCount))
       }
+      pageCount = eagerControllers.count
+      return
+    }
+    if newCount < pageCount {
+      for (index, controller) in cache where index >= newCount {
+        onEvict?(index, controller)
+        FKPagingScrollUtilities.detachFromParentIfNeeded(controller)
+        identifierToIndex.removeValue(forKey: ObjectIdentifier(controller))
+      }
+      cache = cache.filter { $0.key < newCount }
+    }
+    pageCount = newCount
+  }
+
+  func forEachCachedPage(_ body: (Int, UIViewController) -> Void) {
+    if !eagerControllers.isEmpty {
+      for (index, controller) in eagerControllers.enumerated() {
+        body(index, controller)
+      }
+      return
+    }
+    for (index, controller) in cache {
+      body(index, controller)
     }
   }
 
   func reset(
     pageCount: Int,
     provider: ((Int) -> UIViewController)?,
-    controllers: [UIViewController]
+    controllers: [UIViewController],
+    onEvict: ((Int, UIViewController) -> Void)? = nil
   ) {
+    forEachCachedPage { index, controller in
+      onEvict?(index, controller)
+      FKPagingScrollUtilities.detachFromParentIfNeeded(controller)
+    }
     eagerControllers = controllers
     lazyProvider = provider
     cache.removeAll()
     identifierToIndex.removeAll()
     self.pageCount = max(0, pageCount)
     if !controllers.isEmpty {
-      for (index, controller) in controllers.enumerated() {
-        identifierToIndex[ObjectIdentifier(controller)] = index
-      }
+      rebuildIdentifierMapForEager()
+    }
+  }
+
+  private func rebuildIdentifierMapForEager() {
+    identifierToIndex.removeAll()
+    for (index, controller) in eagerControllers.enumerated() {
+      identifierToIndex[ObjectIdentifier(controller)] = index
     }
   }
 }

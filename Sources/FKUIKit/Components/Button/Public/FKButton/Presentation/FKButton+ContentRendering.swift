@@ -307,8 +307,12 @@ extension FKButton {
     imageView.translatesAutoresizingMaskIntoConstraints = false
 
     if let fixedSize = element.fixedSize {
-      constraints.append(imageView.widthAnchor.constraint(equalToConstant: fixedSize.width))
-      constraints.append(imageView.heightAnchor.constraint(equalToConstant: fixedSize.height))
+      let width = imageView.widthAnchor.constraint(equalToConstant: fixedSize.width)
+      let height = imageView.heightAnchor.constraint(equalToConstant: fixedSize.height)
+      width.priority = .defaultHigh
+      height.priority = .defaultHigh
+      constraints.append(width)
+      constraints.append(height)
     } else {
       if let minimum = element.minimumSize {
         constraints.append(imageView.widthAnchor.constraint(greaterThanOrEqualToConstant: minimum.width))

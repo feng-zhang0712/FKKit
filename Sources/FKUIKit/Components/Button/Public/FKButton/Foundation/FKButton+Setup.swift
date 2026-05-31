@@ -24,6 +24,12 @@ extension FKButton {
     leadingConstraint?.isActive = true
     trailingConstraint?.isActive = true
     bottomConstraint?.isActive = true
+    // Allow inset constraints to compress when hosted in a transient zero-size container
+    // (for example UICollectionViewCell before flow layout assigns a non-zero frame).
+    topConstraint?.priority = .defaultHigh
+    leadingConstraint?.priority = .defaultHigh
+    trailingConstraint?.priority = .defaultHigh
+    bottomConstraint?.priority = .defaultHigh
 
     layer.insertSublayer(backgroundGradientLayer, at: 0)
     backgroundGradientLayer.zPosition = -1

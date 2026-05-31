@@ -12,6 +12,11 @@ final class FKTabBarIndicatorAnimationExampleViewController: UIViewController {
   private let lineFixedWidthSliderMaximum: CGFloat = 80
   private var backgroundInsets = NSDirectionalEdgeInsets(top: 6, leading: 6, bottom: 6, trailing: 6)
   private var backgroundCornerRadius: CGFloat = 999
+  private let indicatorCustomization = FKTabBarExampleIndicatorCustomization(
+    indicatorID: "demo.custom",
+    fillColor: .systemYellow.withAlphaComponent(0.5),
+    cornerRadius: 8
+  )
   private var stressWorkItem: DispatchWorkItem?
 
   init() {
@@ -156,13 +161,7 @@ final class FKTabBarIndicatorAnimationExampleViewController: UIViewController {
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Try manually dragging the tab strip left/right while keeping the same selected tab."))
 
     tabView.translatesAutoresizingMaskIntoConstraints = false
-    tabView.indicatorViewProvider = { id in
-      guard id == "demo.custom" else { return nil }
-      let view = UIView()
-      view.backgroundColor = .systemYellow.withAlphaComponent(0.5)
-      view.layer.cornerRadius = 8
-      return view
-    }
+    tabView.customization = indicatorCustomization
     view.addSubview(tabView)
     NSLayoutConstraint.activate([
       tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),

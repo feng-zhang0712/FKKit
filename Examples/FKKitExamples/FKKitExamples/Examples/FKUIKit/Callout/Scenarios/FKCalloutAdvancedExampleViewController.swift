@@ -92,7 +92,7 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
 
   private func showWithHooks() {
     showCount += 1
-    var config = playgroundConfiguration(placement: .top)
+    let config = playgroundConfiguration(placement: .top)
     var hooks = FKCalloutLifecycleHooks()
     hooks.willShow = { [weak self] _ in
       self?.log("willShow")
@@ -119,7 +119,7 @@ final class FKCalloutAdvancedExampleViewController: FKCalloutExampleBaseViewCont
 
   private func showOrUpdateMessage() {
     showCount += 1
-    var config = playgroundConfiguration(placement: .top)
+    let config = playgroundConfiguration(placement: .top)
     var builder = FKCalloutBuilder(
       content: .message("showOrUpdate #\(showCount)"),
       configuration: config
