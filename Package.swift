@@ -26,7 +26,6 @@ let package = Package(
         "Components/Divider/README.md",
         "Components/EmptyState/README.md",
         "Components/ExpandableText/README.md",
-        "Components/MultiPicker/README.md",
         "Components/SheetPresentationController/README.md",
         "Components/ProgressBar/README.md",
         "Components/Refresh/README.md",

@@ -81,7 +81,6 @@ FKKit/
 │     │  ├─ Divider/
 │     │  ├─ EmptyState/
 │     │  ├─ ExpandableText/
-│     │  ├─ MultiPicker/
 │     │  ├─ PagingController/
 │     │  ├─ Player/
 │     │  ├─ ProgressBar/
@@ -134,7 +133,6 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 | **Divider** | Hairline separator (`FKDivider` / `FKDividerView`); dashed and gradient strokes; `FKDivider.defaultConfiguration`. |
 | **EmptyState** | Loading/empty/error overlay (`Public` / `Internal` / `Extension` / `CoreLite` resolver + i18n) — see [`EmptyState/README.md`](Sources/FKUIKit/Components/EmptyState/README.md). |
 | **ExpandableText** | Long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; `FKExpandableText.defaultConfiguration` and layout cache. |
-| **MultiPicker** | Native multi-level cascading picker with built-in region data and custom data provider support. |
 | **PagingController** | **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress — see [`PagingController/README.md`](Sources/FKUIKit/Components/PagingController/README.md). |
 | **Player** | Shared media playback kernel (`FKMediaPlaybackCoordinator`) plus **`FKVideoPlayer`** and **`FKAudioPlayer`** facades (PiP, subtitles, queues, Now Playing) — see [`Player/Core/README.md`](Sources/FKUIKit/Components/Player/Core/README.md). |
 | **ProgressBar** | Determinate/indeterminate linear and ring progress control with buffer, segments, gradient, label, accessibility, and SwiftUI wrapper — see [`ProgressBar/README.md`](Sources/FKUIKit/Components/ProgressBar/README.md). |
