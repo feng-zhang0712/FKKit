@@ -2,6 +2,59 @@
 
 import PackageDescription
 
+// MARK: - Module documentation excludes
+
+/// Builds SwiftPM `exclude` entries for component README files under a target root.
+///
+/// SwiftPM treats every file under a target path as input; markdown docs must be excluded explicitly
+/// (globs such as `**/README.md` are not supported). When adding a component README under
+/// `Sources/FKCoreKit/<Module>/` or `Sources/FKUIKit/Components/…/`, append its directory here.
+private func readmeExcludes(moduleDirectories: [String]) -> [String] {
+  moduleDirectories.sorted().map { "\($0)/README.md" }
+}
+
+/// Top-level FKCoreKit module docs (`Sources/FKCoreKit/<name>/README.md`).
+private let fkCoreKitModuleDocDirectories: [String] = [
+  "Async",
+  "BusinessKit",
+  "FileManager",
+  "Logger",
+  "Network",
+  "Permissions",
+  "Pluggable",
+  "Security",
+  "Storage",
+  "Utils",
+]
+
+/// FKUIKit component docs (`Sources/FKUIKit/Components/…/README.md`), including nested Player modules.
+private let fkUIKitComponentDocDirectories: [String] = [
+  "Components/ActionSheet",
+  "Components/Badge",
+  "Components/Base",
+  "Components/BlurView",
+  "Components/Button",
+  "Components/Callout",
+  "Components/CornerShadow",
+  "Components/Divider",
+  "Components/EmptyState",
+  "Components/ExpandableText",
+  "Components/PagingController",
+  "Components/Player/AudioPlayer",
+  "Components/Player/Core",
+  "Components/Player/VideoPlayer",
+  "Components/ProgressBar",
+  "Components/RatingControl",
+  "Components/Refresh",
+  "Components/SheetPresentationController",
+  "Components/Skeleton",
+  "Components/TabBar",
+  "Components/TextField",
+  "Components/Toast",
+]
+
+// MARK: - Package
+
 let package = Package(
   name: "FKKit",
   platforms: [
@@ -16,31 +69,7 @@ let package = Package(
       name: "FKUIKit",
       dependencies: ["FKCoreKit"],
       path: "Sources/FKUIKit",
-      exclude: [
-        // Module docs only — avoids SwiftPM “unhandled file” warnings for README.md
-        "Components/Badge/README.md",
-        "Components/Base/README.md",
-        "Components/BlurView/README.md",
-        "Components/Button/README.md",
-        "Components/CornerShadow/README.md",
-        "Components/Divider/README.md",
-        "Components/EmptyState/README.md",
-        "Components/ExpandableText/README.md",
-        "Components/SheetPresentationController/README.md",
-        "Components/ProgressBar/README.md",
-        "Components/Refresh/README.md",
-        "Components/Player/Core/README.md",
-        "Components/Player/VideoPlayer/README.md",
-        "Components/Player/AudioPlayer/README.md",
-        "Components/Skeleton/README.md",
-        "Components/TabBar/README.md",
-        "Components/PagingController/README.md",
-        "Components/TextField/README.md",
-        "Components/Toast/README.md",
-        "Components/ActionSheet/README.md",
-        "Components/Callout/README.md",
-        "Components/RatingControl/README.md",
-      ],
+      exclude: readmeExcludes(moduleDirectories: fkUIKitComponentDocDirectories),
       resources: [
         .process("Resources"),
       ]
@@ -48,18 +77,7 @@ let package = Package(
     .target(
       name: "FKCoreKit",
       path: "Sources/FKCoreKit",
-      exclude: [
-        "Async/README.md",
-        "BusinessKit/README.md",
-        "FileManager/README.md",
-        "Logger/README.md",
-        "Network/README.md",
-        "Permissions/README.md",
-        "Security/README.md",
-        "Storage/README.md",
-        "Utils/README.md",
-        "Pluggable/README.md",
-      ]
+      exclude: readmeExcludes(moduleDirectories: fkCoreKitModuleDocDirectories)
     ),
     .testTarget(
       name: "FKCoreKitTests",

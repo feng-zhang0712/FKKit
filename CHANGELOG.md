@@ -8,6 +8,32 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - None
 
+## [0.58.0] - 2026-06-01
+
+### Added (FKUIKit — TabBar)
+
+- Expanded tab strip APIs: accessory expansion, `applyChanges`, selection progress/snapshot models, scroll-edge fade, layout/content alignment and width policies, customization hooks, and additional presets.
+- **Examples**: reorganized TabBar hub (integration, presets, filter strip, layout/RTL) and expanded scenario coverage.
+
+### Added (FKUIKit — PagingController)
+
+- **`FKPagingController`** release polish: controlled gate scope, lazy/eager content updates, page lifecycle callbacks, nested horizontal scroll handling, empty state, directional swipe control, and **`FKPagingDataSource`** / **`applyContentChanges`**.
+- **SwiftUI**: **`FKPagingControllerRepresentable`** index and stable ID bindings with lifecycle callbacks.
+- **Examples**: full PagingController hub (basics, layout, gate, dynamic content, lazy lifecycle, SwiftUI, tab bar layout integration).
+
+### Removed **Breaking**
+
+- **`FKMultiPicker`** component, examples, and menu entry removed from **`FKUIKit`**.
+
+### Changed
+
+- **`Package.swift`**: centralize module README `exclude` lists for FKCoreKit and FKUIKit targets.
+- **Documentation**: root **`README.md`** module index updated; PagingController component README rewritten.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.58.0** (Git tag **`0.58.0`**).
+
 ## [0.57.0] - 2026-05-31
 
 ### Added (FKUIKit — Callout)
@@ -2301,7 +2327,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.57.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.58.0...HEAD
+[0.58.0]: https://github.com/feng-zhang0712/FKKit/compare/0.57.0...0.58.0
 [0.57.0]: https://github.com/feng-zhang0712/FKKit/compare/0.56.0...0.57.0
 [0.56.0]: https://github.com/feng-zhang0712/FKKit/compare/0.55.0...0.56.0
 [0.55.0]: https://github.com/feng-zhang0712/FKKit/compare/0.54.0...0.55.0
