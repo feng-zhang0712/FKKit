@@ -1,7 +1,7 @@
 import UIKit
 import FKUIKit
 
-/// Aligns page storage after runtime tab visibility changes via ``FKPagingController/syncPagesWithVisibleTabs(tabs:viewControllers:selectedIndex:)``.
+/// Aligns page storage after runtime tab visibility changes via ``FKPagingController/setContent(tabs:viewControllers:selectedIndex:)``.
 @MainActor
 final class FKPagingSyncVisibleTabsExampleViewController: UIViewController {
   private let pagingController: FKPagingController
@@ -43,7 +43,7 @@ final class FKPagingSyncVisibleTabsExampleViewController: UIViewController {
     caption.font = .preferredFont(forTextStyle: .footnote)
     caption.textColor = .secondaryLabel
     caption.text =
-      "Toggles isHidden on tab 2, then calls syncPagesWithVisibleTabs so pageCount matches visibleItems.count."
+      "Toggles isHidden on tab 2, then calls setContent with visible tabs/pages so pageCount matches visibleItems.count."
     caption.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(caption)
 
@@ -78,7 +78,7 @@ final class FKPagingSyncVisibleTabsExampleViewController: UIViewController {
       tabs[idx].isHidden ? nil : page
     }
 
-    pagingController.syncPagesWithVisibleTabs(
+    pagingController.setContent(
       tabs: tabs,
       viewControllers: visiblePages,
       selectedIndex: min(pagingController.selectedIndex, max(0, visibleTabs.count - 1))

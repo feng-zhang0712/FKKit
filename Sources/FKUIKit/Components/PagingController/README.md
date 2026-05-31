@@ -1,17 +1,27 @@
 # FKPagingController
 
-`FKPagingController` is a UIKit container that embeds **`FKTabBar`** above a `UIPageViewController`-powered pager. It keeps tab selection, swipe paging, and indicator progress synchronized.
+`FKPagingController` is a UIKit container that embeds **`FKTabBar`** and a `UIPageViewController`-powered pager. It keeps tab selection, swipe paging, and indicator progress synchronized.
 
 ## Responsibility boundaries
 
 | Component | Owns |
 |-----------|------|
 | **`FKTabBar`** | Tab strip rendering, indicator animation, selection APIs (UI-only). |
-| **`FKPagingController`** | Child view controllers, page caching, swipe transitions, tab↔page sync. |
+| **`FKPagingController`** | Child view controllers, page caching, swipe transitions, tab↔page sync, page visibility lifecycle. |
 
-`FKPagingController` does **not** replace `UITabBarController` or navigation stacks. It does **not** support `FKTabBarDataSource` — supply tabs through `setContent` or `tabBar.reload(items:)`.
+`FKPagingController` does **not** replace `UITabBarController` or navigation stacks.
 
 For tab-only demos (progress slider, indicator styles), see [`TabBar/README.md`](../TabBar/README.md).
+
+### Intentionally out of scope
+
+| Capability | Guidance |
+|------------|----------|
+| Custom non-scroll page transitions | Requires replacing `UIPageViewController`; not supported. |
+| Infinite / circular paging | Not supported; use fixed page sets. |
+| Vertical paging | Not supported; pairs with horizontal `FKTabBar` headers. |
+| Async / throwing page providers | Use lazy mode + host-side loading UI inside each page. |
+| `UITabBarController` replacement | Use UIKit tab controller for app-level root tabs. |
 
 ---
 
@@ -19,15 +29,18 @@ For tab-only demos (progress slider, indicator styles), see [`TabBar/README.md`]
 
 | Area | Path | Responsibility |
 |------|------|----------------|
-| Public API | `Public/FKPagingController.swift` | Container VC, content updates, programmatic selection |
-| | `Public/FKPagingConfiguration.swift` | Swipe, caching, gesture, tab alignment, page switch gate |
-| | `Public/FKPagingTabBarHeightPolicy.swift` | Tab bar height policy + `FKPagingPageSwitchGate` |
-| | `Public/FKPagingState.swift` | `FKPagingPhase`, `FKPagingStateSnapshot` |
-| | `Public/FKPagingControllerDelegate.swift` | Transition/progress callbacks |
-| | `Public/SwiftUI/FKPagingControllerRepresentable.swift` | SwiftUI bridge with structural diff |
-| Internal | `Internal/FKPagingTabBarCoordinator.swift` | Forwards `FKTabBarDelegate`, maps gate → `selectionControlMode` |
-| | `Internal/FKPagingPageStore.swift` | Eager/lazy VC cache, preload, retention |
-| | `Internal/FKPagingStateMachine.swift` | Drag/settle/programmatic phase tracking |
+| Public API | `Public/FKPagingController.swift` | Container VC, selection, content updates, layout, gestures |
+| | `Public/FKPagingConfiguration.swift` | Swipe, caching, gate scope, layout, empty state |
+| | `Public/FKPagingLayout.swift` | Tab position, navigation direction, nested scroll, tab height, empty state config |
+| | `Public/FKPagingContentChange.swift` | Incremental tab/page mutations |
+| | `Public/FKPagingDataSource.swift` | Dynamic tab (+ optional eager page) data source |
+| | `Public/FKPagingSwitchReason.swift` | Switch reason, gate scope, reselect behavior |
+| | `Public/FKPagingControllerDelegate.swift` | Transition, lifecycle, pending-switch callbacks; SwiftUI callback struct |
+| | `Public/SwiftUI/FKPagingControllerRepresentable.swift` | SwiftUI bridge (index or ID binding + callbacks) |
+| Internal | `Internal/FKPagingPageStore.swift` | Eager/lazy cache, sync, invalidation, parent detach |
+| | `Internal/FKPagingScrollUtilities.swift` | Scroll-to-top, nested horizontal scroll discovery |
+| | `Internal/FKPagingTabBarCoordinator.swift` | Tab delegate forwarding, gate mapping |
+| | `Internal/FKPagingStateMachine.swift` | Phase tracking |
 
 ---
 
@@ -41,9 +54,6 @@ For tab-only demos (progress slider, indicator styles), see [`TabBar/README.md`]
 ## Quick start
 
 ```swift
-let tabs: [FKTabBarItem] = /* your items */
-let pages: [UIViewController] = [home, explore, profile]
-
 let pager = FKPagingController(
   tabs: tabs,
   viewControllers: pages,
@@ -51,19 +61,18 @@ let pager = FKPagingController(
   tabConfiguration: FKTabBarPresets.pagerHeader(),
   configuration: FKPagingConfiguration()
 )
-addChild(pager)
-// layout pager.view …
-pager.didMove(toParent: self)
 ```
 
-Lazy pages (large tab sets):
+Bottom-docked tab strip:
 
 ```swift
+var config = FKPagingConfiguration()
+config.tabBarPosition = .bottom
 let pager = FKPagingController(
   tabs: tabs,
-  pageCount: tabs.count,
-  pageProvider: { index in DemoPage(index: index) },
-  tabConfiguration: FKTabBarPresets.pagerHeader()
+  viewControllers: pages,
+  tabConfiguration: FKTabBarPresets.bottomDocked(),
+  configuration: config
 )
 ```
 
@@ -73,31 +82,66 @@ let pager = FKPagingController(
 
 | Field | Role |
 |-------|------|
+| `tabBarPosition` | `.top` (default) or `.bottom` |
 | `allowsSwipePaging` | Enables horizontal swipe via `UIPageViewController` |
-| `pageSwitchGate` | `.immediate` (default) or `.controlled` (commit via `commitPageSwitch`) |
-| `tabBarHeightPolicy` | `.fixed(_:)` or `.automatic` from `tabBar.intrinsicContentSize` |
-| `preloadRange` / `retentionPolicy` | Lazy page warm-up and cache eviction |
-| `gesturePolicy` | Navigation pop vs pager pan arbitration |
-| `tabAlignment` | Optional override to center selected tab after settle |
+| `allowsSwipePagingFrom` | Per settled index — master swipe enable/disable |
+| `allowsSwipePagingTo` | Per index **and** ``FKPagingNavigationDirection`` — directional swipe control |
+| `nestedHorizontalScrollPolicy` | `.pagerPreferred` or `.preferNestedHorizontalScroll` (see note below) |
+| `pageSwitchGate` / `pageSwitchGateScope` | Controlled commit via `commitPageSwitch` |
+| `interPageSpacing` | Horizontal gap between pages **during swipe**; **rebuilds** the internal page host when changed at runtime |
+| `emptyStateConfiguration` | Placeholder when `pageCount == 0` |
+| `evictPagesOnMemoryWarning` | Compact lazy cache on memory warning (default `true`) |
+| `gesturePolicy` | Nav pop vs pager pan via `require(toFail:)` |
+| `reselectBehavior` | `.scrollPageToTop` uses table/collection/scroll heuristics |
 
-### Gate naming (TabBar ↔ Paging)
+**Nested horizontal scroll:** `.preferNestedHorizontalScroll` walks the settled page subtree and installs `pagingPan.require(toFail: nestedPan)` on each horizontally scrollable view. It does not use hit-testing at touch-down time.
 
-| Paging | TabBar |
-|--------|--------|
-| `FKPagingConfiguration.pageSwitchGate = .controlled` | `tabBar.selectionControlMode = .controlled` |
-| `commitPageSwitch(to:animated:)` | Host commits after `didRequestSelection` |
+**Inter-page spacing:** The gap appears only while pages are mid-transition (interactive swipe or animated tab switch). A settled page fills the host; compare `0` vs `24` pt while dragging slowly between tabs.
 
-The internal coordinator maps these automatically; hosts using `tabBarDelegate` still receive forwarded tab events.
+**Controlled gate:** `commitPageSwitch(to:animated:)` does **not** consult `shouldSwitchTo` — call it only after host-side validation.
 
 ---
 
 ## Content updates
 
-Use `setContent(tabs:viewControllers:selectedIndex:)` or the lazy overload when tabs or pages change at runtime.
+| API | Use |
+|-----|-----|
+| `setContent(...)` | Full replace (eager or lazy) |
+| `applyContentChanges(_:)` | Incremental tab diffs + lazy `invalidatePage` |
+| `reloadFromDataSource()` | Refresh from ``FKPagingEagerDataSource`` (tabs + pages) or lazy tab count |
+| `invalidatePage(at:replacingWith:)` | Lazy eviction; eager requires `replacingWith` |
 
-`syncPagesWithVisibleTabs(...)` is a **semantic alias** for `setContent` after toggling `FKTabBarItem.isHidden` — pass the full tab array; visible page count is derived automatically.
+After toggling `FKTabBarItem.isHidden`, call `setContent(...)` with visible tabs and matching pages.
 
-Runtime tab appearance: mutate `pager.tabBar.configuration` or call `tabBar.applyConfiguration(_:animated:)`.
+---
+
+## Dynamic data source
+
+```swift
+final class TabsDataSource: FKPagingEagerDataSource {
+  func numberOfPages(in pagingController: FKPagingController) -> Int { items.count }
+  func pagingController(_ pagingController: FKPagingController, tabItemAt index: Int) -> FKTabBarItem { items[index] }
+  func pagingController(_ pagingController: FKPagingController, viewControllerAt index: Int) -> UIViewController { pages[index] }
+}
+
+pager.dataSource = dataSource
+pager.reloadFromDataSource()
+```
+
+Lazy hosts keep the `pageProvider` from init; ``FKPagingDataSource`` supplies tabs only via `reloadFromDataSource()`.
+
+---
+
+## TabBar integration surface
+
+| TabBar API | Paging access |
+|------------|---------------|
+| `tabBar` | Direct access for configuration, badges, `reload(items:)` |
+| `tabBar.configuration.layout` | `widthMode`, `selectionScrollPosition`, `contentAlignment`, scrollability — see PagingController **Tab bar layout** example |
+| `expandedTabItemID` | Forwarded property on ``FKPagingController`` |
+| `visibleTabButton(at:)` | Convenience wrapper for popover/menu anchoring |
+| `tabBarDelegate` | Forwarded tab callbacks |
+| `applyChanges(_:)` | Prefer ``applyContentChanges(_:)`` for coordinated tab/page updates |
 
 ---
 
@@ -105,35 +149,52 @@ Runtime tab appearance: mutate `pager.tabBar.configuration` or call `tabBar.appl
 
 | Callback | When |
 |----------|------|
-| `didChangePhase` | Paging phase changes (`idle`, `dragging`, `settling`, …) |
-| `didUpdateCombinedTransition` | Tab `switchPhase` + paging phase + normalized progress (preferred for coordinated UI) |
-| `didUpdateProgress` | Fractional swipe progress only (legacy-friendly) |
+| `didUpdateCombinedTransition` | Preferred during drag (tab phase + paging phase + progress) |
+| `willDisplayPage` / `didDisplayPage` / `didEndDisplayingPage` | Visible page lifecycle (`didEndDisplaying` only after `didDisplay`) |
+| `shouldSwitchTo` | Veto tab, swipe, or programmatic switches (not `commitPageSwitch`) |
+| `didRequestPageSwitchTo` | Controlled gate recorded a deferred index |
+| `pagingControllerDidCancelPendingPageSwitch` | Pending switch cleared without commit |
 | `didSettleAt` | Page index committed |
 
-During drag, prefer **`didUpdateCombinedTransition`** — it already includes progress and both phase domains.
+Public control APIs: ``commitPageSwitch(to:animated:)``, ``cancelPendingPageSwitch()``.
 
 ---
 
 ## SwiftUI
 
-`FKPagingControllerRepresentable` wraps the UIKit container with binding-driven tab/page updates. See `Public/SwiftUI/FKPagingControllerRepresentable.swift`.
+`FKPagingControllerRepresentable` supports:
+
+- `Binding<Int>` or `Binding<String?>` (stable tab ID) selection
+- ``FKPagingControllerRepresentableCallbacks`` for pending index, progress, phase, and lifecycle hooks
+
+Callbacks and binding updates are dispatched asynchronously to avoid publishing during view updates.
 
 ---
 
 ## Example app
 
-`Examples/.../FKUIKit/PagingController/`:
+`Examples/.../FKUIKit/PagingController/` — hub sections:
 
-- `FKPagingControllerExamplesHubViewController.swift` — hub (Basics, indicators, delegate/config, controlled gate, dynamic content, lazy, SwiftUI)
-- `Support/FKPagingDemoPages.swift` — shared demo pages + `embedFullScreen` helper
+| Section | Scenarios |
+|---------|-----------|
+| Basics | Eager sync, tab bar indicators, tab bar layout (width / scroll / alignment) |
+| Layout & lifecycle | Bottom tabs + spacing, empty state, reselect scroll-to-top |
+| Configuration & control | Delegate/config, controlled gate (all scopes), ID selection, directional swipe |
+| Dynamic content | setContent, sync visible tabs, applyContentChanges, data source |
+| Gestures | Nested horizontal scroll |
+| Lazy loading | UIKit lazy factory, lifecycle log, invalidatePage |
+| SwiftUI | Index binding, lazy provider, ID binding + callbacks |
 
 ---
 
 ## API checklist
 
 - `FKPagingController`
-- `FKPagingConfiguration`, `FKPagingRetentionPolicy`, `FKPagingGesturePolicy`, `FKPagingTabAlignment`, `FKPagingPageSwitchGate`, `FKPagingTabBarHeightPolicy`
-- `FKPagingControllerDelegate`
+- `FKPagingConfiguration`, `FKPagingRetentionPolicy`, `FKPagingGesturePolicy`, `FKPagingTabAlignment`, `FKPagingPageSwitchGate`, `FKPagingPageSwitchGateScope`, `FKPagingTabBarHeightPolicy`, `FKPagingReselectBehavior`, `FKPagingTabBarPosition`, `FKPagingNavigationDirection`, `FKPagingNestedHorizontalScrollPolicy`, `FKPagingEmptyStateConfiguration`
+- `FKPagingContentChange`
+- `FKPagingDataSource`, `FKPagingEagerDataSource`
+- `FKPagingSwitchReason`
+- `FKPagingControllerDelegate`, `FKPagingControllerRepresentableCallbacks`
 - `FKPagingPhase`, `FKPagingStateSnapshot`
 - `FKPagingControllerRepresentable` (SwiftUI)
 

@@ -28,6 +28,31 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
             subtitle: "tabConfiguration + FKTabBarCustomization for line, pill, and custom z-order.",
             make: { FKPagingTabBarIndicatorExampleViewController() }
           ),
+          RowModel(
+            title: "Tab bar layout",
+            subtitle: "widthMode, selectionScrollPosition, contentAlignment via pagingController.tabBar.",
+            make: { FKPagingTabBarLayoutExampleViewController() }
+          ),
+        ]
+      ),
+      SectionModel(
+        title: "Layout & lifecycle",
+        rows: [
+          RowModel(
+            title: "Layout & spacing",
+            subtitle: "Bottom-docked tab strip; interPageSpacing visible only while swiping (menu toggles gap).",
+            make: { FKPagingLayoutSpacingExampleViewController() }
+          ),
+          RowModel(
+            title: "Empty state",
+            subtitle: "emptyStateConfiguration when pageCount is zero; populate via setContent.",
+            make: { FKPagingEmptyStateExampleViewController() }
+          ),
+          RowModel(
+            title: "Reselect scroll to top",
+            subtitle: "reselectBehavior .scrollPageToTop when re-tapping the active tab.",
+            make: { FKPagingReselectScrollToTopExampleViewController() }
+          ),
         ]
       ),
       SectionModel(
@@ -35,13 +60,23 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         rows: [
           RowModel(
             title: "Delegate & configuration",
-            subtitle: "Combined transition callback, tabBarDelegate forwarding, automatic tab height, swipe/gesture toggles.",
+            subtitle: "Phases, progress, combined transition, gesture policy, nested scroll toggle.",
             make: { FKPagingDelegateConfigurationExampleViewController() }
           ),
           RowModel(
-            title: "Controlled page gate",
-            subtitle: "pageSwitchGate.controlled, pendingPageIndex, commitPageSwitch after async validation.",
-            make: { FKPagingControlledGateExampleViewController() }
+            title: "Controlled gate",
+            subtitle: "pageSwitchGateScope tab / swipe / all, shouldSwitchTo veto, commit / cancel.",
+            make: { FKPagingGateExampleViewController() }
+          ),
+          RowModel(
+            title: "ID selection",
+            subtitle: "setSelectedIndex(forItemID:), selectedItemID after tab reorder.",
+            make: { FKPagingIDSelectionExampleViewController() }
+          ),
+          RowModel(
+            title: "Directional swipe",
+            subtitle: "allowsSwipePagingTo blocks forward swipe from a specific page.",
+            make: { FKPagingSwipeDirectionExampleViewController() }
           ),
         ]
       ),
@@ -55,8 +90,28 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
           ),
           RowModel(
             title: "Sync visible tabs",
-            subtitle: "Runtime isHidden toggles aligned with syncPagesWithVisibleTabs(tabs:viewControllers:).",
+            subtitle: "Runtime isHidden toggles realigned with setContent(tabs:viewControllers:).",
             make: { FKPagingSyncVisibleTabsExampleViewController() }
+          ),
+          RowModel(
+            title: "applyContentChanges",
+            subtitle: "Lazy incremental tab updates and invalidatePage without full setContent.",
+            make: { FKPagingIncrementalChangesExampleViewController() }
+          ),
+          RowModel(
+            title: "Data source",
+            subtitle: "FKPagingEagerDataSource with reloadFromDataSource() add/remove pages.",
+            make: { FKPagingDataSourceExampleViewController() }
+          ),
+        ]
+      ),
+      SectionModel(
+        title: "Gestures",
+        rows: [
+          RowModel(
+            title: "Nested horizontal scroll",
+            subtitle: "preferNestedHorizontalScroll installs require(toFail:) on in-page carousels.",
+            make: { FKPagingNestedHorizontalScrollExampleViewController() }
           ),
         ]
       ),
@@ -65,7 +120,7 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         rows: [
           RowModel(
             title: "Lazy pages (UIKit)",
-            subtitle: "Factory-driven pages, preload range, keepNear cache eviction, creation counter.",
+            subtitle: "Factory-driven pages, preload/retention, lifecycle log, invalidatePage(at:).",
             make: { FKPagingLazyPagesExampleViewController() }
           ),
         ]
@@ -86,6 +141,11 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
             title: "SwiftUI lazy provider",
             subtitle: "FKPagingControllerRepresentable with pageCount + factory closure binding.",
             make: { FKPagingLazySwiftUIExampleViewController() }
+          ),
+          RowModel(
+            title: "SwiftUI advanced",
+            subtitle: "$selectedItemID binding plus FKPagingControllerRepresentableCallbacks telemetry.",
+            make: { FKPagingSwiftUIAdvancedExampleViewController() }
           ),
         ]
       )

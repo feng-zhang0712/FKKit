@@ -3,10 +3,6 @@ import SwiftUI
 import UIKit
 
 /// SwiftUI integration for ``FKPagingController``.
-///
-/// Supports both eager view-controller arrays and lazy construction. Host updates call
-/// ``FKPagingController/setContent(tabs:viewControllers:selectedIndex:)`` or the lazy variant when
-/// diffing detects meaningful changes.
 @MainActor
 public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
   public typealias UIViewControllerType = FKPagingController
@@ -16,51 +12,102 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
   private let tabConfiguration: FKTabBarConfiguration
   private let configuration: FKPagingConfiguration
   @Binding private var selectedIndex: Int
+  private var selectedItemID: Binding<String?>?
+  private let callbacks: FKPagingControllerRepresentableCallbacks
 
   fileprivate enum PageSource {
     case eager([UIViewController])
     case lazy(pageCount: Int, provider: (Int) -> UIViewController)
   }
 
-  /// Eager page construction.
+  /// Eager page construction with index binding.
   public init(
     tabs: [FKTabBarItem],
     pages: [UIViewController],
     selectedIndex: Binding<Int>,
     tabConfiguration: FKTabBarConfiguration = FKTabBarPresets.pagerHeader(),
-    configuration: FKPagingConfiguration = FKPagingConfiguration()
+    configuration: FKPagingConfiguration = FKPagingConfiguration(),
+    callbacks: FKPagingControllerRepresentableCallbacks = FKPagingControllerRepresentableCallbacks()
   ) {
     self.tabs = tabs
     self.pageSource = .eager(pages)
     self._selectedIndex = selectedIndex
+    self.selectedItemID = nil
     self.tabConfiguration = tabConfiguration
     self.configuration = configuration
+    self.callbacks = callbacks
   }
 
-  /// Lazy page construction.
+  /// Lazy page construction with index binding.
   public init(
     tabs: [FKTabBarItem],
     pageCount: Int,
     pageProvider: @escaping (Int) -> UIViewController,
     selectedIndex: Binding<Int>,
     tabConfiguration: FKTabBarConfiguration = FKTabBarPresets.pagerHeader(),
-    configuration: FKPagingConfiguration = FKPagingConfiguration()
+    configuration: FKPagingConfiguration = FKPagingConfiguration(),
+    callbacks: FKPagingControllerRepresentableCallbacks = FKPagingControllerRepresentableCallbacks()
   ) {
     self.tabs = tabs
     self.pageSource = .lazy(pageCount: pageCount, provider: pageProvider)
     self._selectedIndex = selectedIndex
+    self.selectedItemID = nil
     self.tabConfiguration = tabConfiguration
     self.configuration = configuration
+    self.callbacks = callbacks
+  }
+
+  /// Eager page construction with stable tab ID binding.
+  public init(
+    tabs: [FKTabBarItem],
+    pages: [UIViewController],
+    selectedItemID: Binding<String?>,
+    tabConfiguration: FKTabBarConfiguration = FKTabBarPresets.pagerHeader(),
+    configuration: FKPagingConfiguration = FKPagingConfiguration(),
+    callbacks: FKPagingControllerRepresentableCallbacks = FKPagingControllerRepresentableCallbacks()
+  ) {
+    self.tabs = tabs
+    self.pageSource = .eager(pages)
+    self._selectedIndex = .constant(0)
+    self.selectedItemID = selectedItemID
+    self.tabConfiguration = tabConfiguration
+    self.configuration = configuration
+    self.callbacks = callbacks
+  }
+
+  /// Lazy page construction with stable tab ID binding.
+  public init(
+    tabs: [FKTabBarItem],
+    pageCount: Int,
+    pageProvider: @escaping (Int) -> UIViewController,
+    selectedItemID: Binding<String?>,
+    tabConfiguration: FKTabBarConfiguration = FKTabBarPresets.pagerHeader(),
+    configuration: FKPagingConfiguration = FKPagingConfiguration(),
+    callbacks: FKPagingControllerRepresentableCallbacks = FKPagingControllerRepresentableCallbacks()
+  ) {
+    self.tabs = tabs
+    self.pageSource = .lazy(pageCount: pageCount, provider: pageProvider)
+    self._selectedIndex = .constant(0)
+    self.selectedItemID = selectedItemID
+    self.tabConfiguration = tabConfiguration
+    self.configuration = configuration
+    self.callbacks = callbacks
   }
 
   public func makeUIViewController(context: Context) -> FKPagingController {
+    let initialIndex: Int
+    if let selectedItemID {
+      initialIndex = tabs.firstIndex(where: { $0.id == selectedItemID.wrappedValue && !$0.isHidden }) ?? 0
+    } else {
+      initialIndex = selectedIndex
+    }
     let controller: FKPagingController
     switch pageSource {
     case .eager(let pages):
       controller = FKPagingController(
         tabs: tabs,
         viewControllers: pages,
-        selectedIndex: selectedIndex,
+        selectedIndex: initialIndex,
         tabConfiguration: tabConfiguration,
         configuration: configuration
       )
@@ -69,13 +116,14 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
         tabs: tabs,
         pageCount: count,
         pageProvider: provider,
-        selectedIndex: selectedIndex,
+        selectedIndex: initialIndex,
         tabConfiguration: tabConfiguration,
         configuration: configuration
       )
     }
     controller.delegate = context.coordinator
     context.coordinator.cache(from: tabs, pageSource: pageSource)
+    context.coordinator.scheduleSelectionBindingSync(from: controller)
     return controller
   }
 
@@ -90,30 +138,49 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
     }
 
     let coordinator = context.coordinator
+    let structureSelectedIndex = resolvedStructureSelectedIndex(context: context)
     if coordinator.shouldReloadStructure(tabs: tabs, pageSource: pageSource) {
       switch pageSource {
       case .eager(let pages):
-        uiViewController.setContent(tabs: tabs, viewControllers: pages, selectedIndex: selectedIndex)
+        uiViewController.setContent(tabs: tabs, viewControllers: pages, selectedIndex: structureSelectedIndex)
       case .lazy(let count, let provider):
-        uiViewController.setContent(tabs: tabs, pageCount: count, pageProvider: provider, selectedIndex: selectedIndex)
+        uiViewController.setContent(tabs: tabs, pageCount: count, pageProvider: provider, selectedIndex: structureSelectedIndex)
       }
       coordinator.cache(from: tabs, pageSource: pageSource)
     } else if tabs != coordinator.cachedTabs {
       uiViewController.tabBar.reload(items: tabs, updatePolicy: .preserveSelection)
       coordinator.cachedTabs = tabs
     }
-    if uiViewController.selectedIndex != selectedIndex {
+
+    if let selectedItemID {
+      if uiViewController.selectedItemID != selectedItemID.wrappedValue,
+         let id = selectedItemID.wrappedValue {
+        uiViewController.setSelectedIndex(forItemID: id, animated: context.transaction.animation != nil)
+      }
+    } else if uiViewController.selectedIndex != selectedIndex {
       uiViewController.setSelectedIndex(selectedIndex, animated: context.transaction.animation != nil)
     }
+    coordinator.scheduleSelectionBindingSync(from: uiViewController)
   }
 
   public func makeCoordinator() -> Coordinator {
-    Coordinator(selectedIndex: $selectedIndex)
+    Coordinator(selectedIndex: $selectedIndex, selectedItemID: selectedItemID, callbacks: callbacks)
+  }
+
+  private func resolvedStructureSelectedIndex(context: Context) -> Int {
+    if let selectedItemID,
+       let id = selectedItemID.wrappedValue,
+       let index = tabs.firstIndex(where: { $0.id == id && !$0.isHidden }) {
+      return index
+    }
+    return selectedIndex
   }
 
   @MainActor
   public final class Coordinator: NSObject, FKPagingControllerDelegate {
     private var selectedIndex: Binding<Int>
+    private var selectedItemID: Binding<String?>?
+    private let callbacks: FKPagingControllerRepresentableCallbacks
     fileprivate var cachedTabs: [FKTabBarItem] = []
     private var cachedVisibleTabIDs: [String] = []
     private var cachedPageObjectIDs: [ObjectIdentifier] = []
@@ -121,8 +188,14 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
     fileprivate var lastConfiguration: FKPagingConfiguration?
     fileprivate var lastTabConfiguration: FKTabBarConfiguration?
 
-    init(selectedIndex: Binding<Int>) {
+    init(
+      selectedIndex: Binding<Int>,
+      selectedItemID: Binding<String?>?,
+      callbacks: FKPagingControllerRepresentableCallbacks
+    ) {
       self.selectedIndex = selectedIndex
+      self.selectedItemID = selectedItemID
+      self.callbacks = callbacks
     }
 
     fileprivate func cache(from tabs: [FKTabBarItem], pageSource: PageSource) {
@@ -143,15 +216,74 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
       if visibleIDs != cachedVisibleTabIDs { return true }
       switch pageSource {
       case .eager(let pages):
-        let ids = pages.map { ObjectIdentifier($0) }
-        return ids != cachedPageObjectIDs
+        return pages.map { ObjectIdentifier($0) } != cachedPageObjectIDs
       case .lazy(let count, _):
         return count != cachedLazyPageCount
       }
     }
 
+    fileprivate func scheduleSelectionBindingSync(from controller: FKPagingController) {
+      let indexBinding = selectedIndex
+      let itemIDBinding = selectedItemID
+      let index = controller.selectedIndex
+      let itemID = controller.selectedItemID
+      DispatchQueue.main.async {
+        if itemIDBinding != nil {
+          guard itemIDBinding?.wrappedValue != itemID else { return }
+          itemIDBinding?.wrappedValue = itemID
+        } else {
+          guard indexBinding.wrappedValue != index else { return }
+          indexBinding.wrappedValue = index
+        }
+      }
+    }
+
+    private func emitCallback(_ action: @escaping () -> Void) {
+      DispatchQueue.main.async(execute: action)
+    }
+
     public func pagingController(_ controller: FKPagingController, didSettleAt index: Int) {
-      selectedIndex.wrappedValue = index
+      scheduleSelectionBindingSync(from: controller)
+    }
+
+    public func pagingController(
+      _ controller: FKPagingController,
+      didRequestPageSwitchTo index: Int,
+      reason: FKPagingSwitchReason
+    ) {
+      emitCallback { self.callbacks.onPendingPageIndexChanged?(index) }
+    }
+
+    public func pagingControllerDidCancelPendingPageSwitch(_ controller: FKPagingController) {
+      emitCallback { self.callbacks.onPendingPageIndexChanged?(nil) }
+    }
+
+    public func pagingController(
+      _ controller: FKPagingController,
+      didUpdateCombinedTransition tabPhase: FKTabBarSwitchPhase,
+      pagingPhase: FKPagingPhase,
+      progress: CGFloat
+    ) {
+      let snapshot = controller.stateSnapshot
+      if let from = snapshot.fromIndex, let to = snapshot.toIndex {
+        emitCallback { self.callbacks.onProgressUpdate?(progress, from, to) }
+      }
+    }
+
+    public func pagingController(_ controller: FKPagingController, didChangePhase phase: FKPagingPhase) {
+      emitCallback { self.callbacks.onPhaseChanged?(phase) }
+    }
+
+    public func pagingController(_ controller: FKPagingController, willDisplayPage viewController: UIViewController, at index: Int) {
+      emitCallback { self.callbacks.onWillDisplayPage?(index) }
+    }
+
+    public func pagingController(_ controller: FKPagingController, didDisplayPage viewController: UIViewController, at index: Int) {
+      emitCallback { self.callbacks.onDidDisplayPage?(index) }
+    }
+
+    public func pagingController(_ controller: FKPagingController, didEndDisplayingPage viewController: UIViewController, at index: Int) {
+      emitCallback { self.callbacks.onDidEndDisplayingPage?(index) }
     }
   }
 }

@@ -4,6 +4,7 @@ import UIKit
 protocol FKPagingTabBarCoordinatorDelegate: AnyObject {
   func pagingCoordinatorDidRequestSwitch(to index: Int, animated: Bool)
   func pagingCoordinatorDidRequestSelection(at index: Int)
+  func pagingCoordinatorDidReselect(at index: Int)
 }
 
 @MainActor
@@ -26,8 +27,9 @@ final class FKPagingTabBarCoordinator: NSObject {
     tabBar?.setSelectedIndex(index, animated: animated, notify: false, reason: .interaction)
   }
 
-  func applyPageSwitchGate(_ gate: FKPagingPageSwitchGate) {
-    tabBar?.selectionControlMode = gate == .controlled ? .controlled : .uncontrolled
+  func applyPageSwitchGate(_ gate: FKPagingPageSwitchGate, scope: FKPagingPageSwitchGateScope) {
+    let tabControlled = gate == .controlled && (scope == .tabSelectionOnly || scope == .all)
+    tabBar?.selectionControlMode = tabControlled ? .controlled : .uncontrolled
   }
 
   private var isControlledGate: Bool {
@@ -52,6 +54,7 @@ extension FKPagingTabBarCoordinator: FKTabBarDelegate {
 
   func tabBar(_ tabBar: FKTabBar, didReselect item: FKTabBarItem, at index: Int) {
     forwardedDelegate?.tabBar(tabBar, didReselect: item, at: index)
+    delegate?.pagingCoordinatorDidReselect(at: index)
   }
 
   func tabBar(_ tabBar: FKTabBar, didLongPress item: FKTabBarItem, at index: Int) {
