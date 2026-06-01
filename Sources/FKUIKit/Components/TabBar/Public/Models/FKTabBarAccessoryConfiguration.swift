@@ -1,40 +1,34 @@
 import UIKit
 
-/// Trailing accessory rendered beside tab item content (for example filter chevrons).
+/// Trailing accessory rendered beside tab item content via ``FKButton/setTrailingImage(_:for:)``.
 public struct FKTabBarAccessoryConfiguration: Equatable {
-  /// Accessory kind.
+  /// Accessory variant.
   public enum Kind: Equatable, Sendable {
     case none
-    /// Built-in chevron; host code owns expansion visuals (see ``FKTabBar/visibleItemChevronView(at:)``).
-    case chevron(FKTabBarChevronAccessoryConfiguration)
-    /// Host supplies the view via ``FKTabBarCustomization/customAccessoryView(for:isSelected:isExpanded:)``.
-    case custom(id: String)
+    /// Trailing icon configured by the host (for example ``chevron.down``, ``heart.fill``).
+    case icon(FKTabBarAccessoryIconConfiguration)
   }
 
   /// Accessory variant.
   public var kind: Kind
-  /// Spacing between tab content and a ``Kind/custom`` accessory view.
-  public var spacing: CGFloat
 
   /// Creates an accessory configuration.
-  public init(kind: Kind = .none, spacing: CGFloat = 4) {
+  public init(kind: Kind = .none) {
     self.kind = kind
-    self.spacing = max(0, spacing)
   }
 
-  /// Creates a chevron accessory with the given chevron configuration.
-  public init(chevron: FKTabBarChevronAccessoryConfiguration) {
-    self.kind = .chevron(chevron)
-    self.spacing = 4
+  /// Creates a trailing icon accessory.
+  public init(icon: FKTabBarAccessoryIconConfiguration) {
+    self.kind = .icon(icon)
   }
 }
 
 extension FKTabBarAccessoryConfiguration: @unchecked Sendable {}
 
 public extension FKTabBarAccessoryConfiguration {
-  /// Resolved chevron configuration when ``kind`` is ``Kind/chevron(_:)``.
-  var chevronConfiguration: FKTabBarChevronAccessoryConfiguration? {
-    if case .chevron(let configuration) = kind { return configuration }
+  /// Resolved icon configuration when ``kind`` is ``Kind/icon(_:)``.
+  var iconConfiguration: FKTabBarAccessoryIconConfiguration? {
+    if case .icon(let configuration) = kind { return configuration }
     return nil
   }
 }

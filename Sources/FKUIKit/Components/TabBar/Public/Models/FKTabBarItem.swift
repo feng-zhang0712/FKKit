@@ -14,7 +14,7 @@ public struct FKTabBarItem: Equatable {
   /// When non-`nil`, content is supplied by ``FKTabBarCustomization/customContentView(for:)``.
   public var customContentIdentifier: String?
 
-  /// Trailing accessory (chevron or custom id).
+  /// Trailing accessory icon configured on ``FKTabBarAccessoryConfiguration``.
   public var accessory: FKTabBarAccessoryConfiguration
 
   public var isEnabled: Bool

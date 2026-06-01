@@ -38,7 +38,6 @@ enum FKTabBarItemWidthStrategy {
     if width <= 0 {
       width = legacyEstimatedWidth(for: item, layout: layout, appearance: appearance)
     }
-    width += FKTabBarItemButtonConfigurator.customAccessoryReserve(for: item)
     width = max(44, width)
 
     if case .fixedWidth(let fixedWidth) = effectiveOverflowMode {

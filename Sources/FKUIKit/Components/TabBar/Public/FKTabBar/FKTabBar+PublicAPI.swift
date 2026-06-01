@@ -56,28 +56,22 @@ extension FKTabBar {
     return cell.interactiveButtonForIntegration()
   }
 
-  /// Returns the built-in chevron ``UIImageView`` for the visible item at `index` when the item uses ``FKTabBarAccessoryConfiguration/Kind/chevron(_:)``.
+  /// Returns the trailing accessory ``UIImageView`` for the visible item at `index` when the item uses ``FKTabBarAccessoryConfiguration/Kind/icon(_:)``.
   ///
-  /// Use this view to apply host-owned expansion animations (for example rotation when ``expandedItemID`` changes).
-  /// Returns `nil` when the index is out of range, the cell is off-screen, or the item does not use a built-in chevron.
+  /// Use this view to apply host-owned animations (for example chevron rotation or icon scale).
+  /// Returns `nil` when the index is out of range, the cell is off-screen, or the item has no trailing icon accessory.
   ///
   /// - Parameter index: Index in the visible items list.
-  public func visibleItemChevronView(at index: Int) -> UIImageView? {
+  public func visibleItemAccessoryView(at index: Int) -> UIImageView? {
     guard visibleItems.indices.contains(index),
-          visibleItems[index].accessory.chevronConfiguration != nil else { return nil }
+          visibleItems[index].accessory.iconConfiguration != nil else { return nil }
     return visibleItemButton(at: index)?.trailingImageView
   }
 
-  /// Returns the trailing accessory view for the visible item at `index`.
-  ///
-  /// For built-in chevrons this is the same view as ``visibleItemChevronView(at:)``. For ``FKTabBarAccessoryConfiguration/Kind/custom(id:)``
-  /// items this is the view supplied by ``FKTabBarCustomization/customAccessoryView(for:isSelected:isExpanded:)``.
-  ///
-  /// - Parameter index: Index in the visible items list.
-  public func visibleItemAccessoryView(at index: Int) -> UIView? {
-    guard visibleItems.indices.contains(index) else { return nil }
-    guard let cell = collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FKTabBarItemCell else { return nil }
-    return cell.accessoryViewForIntegration()
+  /// Backward-compatible alias for ``visibleItemAccessoryView(at:)``.
+  @available(*, deprecated, renamed: "visibleItemAccessoryView(at:)")
+  public func visibleItemChevronView(at index: Int) -> UIImageView? {
+    visibleItemAccessoryView(at: index)
   }
 
   /// Reloads the tab bar with a new item list using ID-based diff when possible.

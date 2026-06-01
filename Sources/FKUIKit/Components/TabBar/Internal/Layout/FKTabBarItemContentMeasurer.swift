@@ -111,15 +111,11 @@ enum FKTabBarItemContentMeasurer {
   }
 
   private static func applyAccessoryIfNeeded(for item: FKTabBarItem, textColor: UIColor) {
-    switch item.accessory.kind {
-    case .none, .custom:
-      return
-    case .chevron(let chevron):
-      FKTabBarItemButtonConfigurator.applyChevronAccessory(
-        to: prototype,
-        chevron: chevron,
-        textColor: textColor
-      )
-    }
+    guard case .icon(let icon) = item.accessory.kind else { return }
+    FKTabBarItemButtonConfigurator.applyIconAccessory(
+      to: prototype,
+      icon: icon,
+      textColor: textColor
+    )
   }
 }

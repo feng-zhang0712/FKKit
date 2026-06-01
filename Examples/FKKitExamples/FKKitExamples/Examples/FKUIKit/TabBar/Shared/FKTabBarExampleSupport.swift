@@ -281,18 +281,9 @@ final class FKTabBarExampleAdvancedIndicatorCustomization: FKTabBarDefaultCustom
   }
 }
 
-/// Interaction, accessory, and tap-scale hooks.
+/// Interaction and tap-scale hooks.
 @MainActor
 final class FKTabBarExampleHooksCustomization: FKTabBarDefaultCustomization {
-  override func customAccessoryView(for item: FKTabBarItem, isSelected: Bool, isExpanded: Bool) -> UIView? {
-    guard case .custom(let id) = item.accessory.kind, id == "star" else { return nil }
-    let label = UILabel()
-    label.text = isExpanded ? "★" : "☆"
-    label.font = .systemFont(ofSize: 14, weight: .bold)
-    label.textColor = isSelected ? .systemOrange : .secondaryLabel
-    return label
-  }
-
   override func animateInteraction(on button: FKButton, phase: FKTabBar.ItemInteractionPhase, item: FKTabBarItem) {
     let scale: CGFloat = phase == .tap ? 0.94 : 0.9
     UIView.animate(withDuration: 0.12, animations: {

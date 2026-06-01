@@ -21,13 +21,11 @@ final class FKTabBarItemCell: UICollectionViewCell {
     var isLongPressEnabled: Bool
     var maximumTitleLines: Int
     var itemInsets: NSDirectionalEdgeInsets
-    var isAccessoryExpanded: Bool
   }
 
   private let tabButton = FKButton()
   private var tabButtonTrailingConstraint: NSLayoutConstraint?
   private var customBadgeView: UIView?
-  private var customAccessoryView: UIView?
   var onTap: ((FKButton) -> Void)?
   var onLongPress: ((FKButton) -> Void)?
 
@@ -37,9 +35,9 @@ final class FKTabBarItemCell: UICollectionViewCell {
   /// to preserve reuse invariants and avoid external replacement of the button instance.
   func interactiveButtonForIntegration() -> FKButton { tabButton }
 
-  /// Returns the trailing accessory view (built-in chevron image view or host custom accessory).
+  /// Returns the trailing accessory ``UIImageView`` hosted by the internal ``FKButton``, if any.
   func accessoryViewForIntegration() -> UIView? {
-    customAccessoryView ?? tabButton.trailingImageView
+    tabButton.trailingImageView
   }
 
   // MARK: - Lifecycle
@@ -61,8 +59,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
     clearBadges()
     customBadgeView?.removeFromSuperview()
     customBadgeView = nil
-    customAccessoryView?.removeFromSuperview()
-    customAccessoryView = nil
     tabButton.trailingImageView?.transform = .identity
     pinTabButtonTrailingToContentView()
     tabButton.setCustomContent(nil, for: .normal)
@@ -222,11 +218,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
     tabButton.tintColor = iconColor
     applyAccessory(
       item: item,
-      itemInsets: model.itemInsets,
-      textColor: textColor,
-      isSelected: selected,
-      isExpanded: model.isAccessoryExpanded,
-      customization: customization
+      textColor: textColor
     )
     customization?.configure(button: tabButton, item: item, isSelected: selected)
     // Re-apply after customization so strip padding stays on ``FKTabBarLayoutConfiguration/itemInsets``.
@@ -299,15 +291,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
     tabButtonTrailingConstraint?.isActive = true
   }
 
-  private func pinTabButtonTrailingBeforeAccessory(_ accessory: UIView, spacing: CGFloat) {
-    tabButtonTrailingConstraint?.isActive = false
-    tabButtonTrailingConstraint = tabButton.trailingAnchor.constraint(
-      equalTo: accessory.leadingAnchor,
-      constant: -max(0, spacing)
-    )
-    tabButtonTrailingConstraint?.isActive = true
-  }
-
   @objc private func handleTap() {
     onTap?(tabButton)
   }
@@ -369,49 +352,20 @@ final class FKTabBarItemCell: UICollectionViewCell {
 
   private func applyAccessory(
     item: FKTabBarItem,
-    itemInsets: NSDirectionalEdgeInsets,
-    textColor: UIColor,
-    isSelected: Bool,
-    isExpanded: Bool,
-    customization: FKTabBarCustomization?
+    textColor: UIColor
   ) {
     switch item.accessory.kind {
     case .none:
-      customAccessoryView?.removeFromSuperview()
-      customAccessoryView = nil
       [.normal, .selected, .disabled].forEach { tabButton.setTrailingImage(nil, for: $0) }
-      pinTabButtonTrailingToContentView()
       return
-    case .chevron(let chevron):
-      customAccessoryView?.removeFromSuperview()
-      customAccessoryView = nil
-      pinTabButtonTrailingToContentView()
+    case .icon(let icon):
       // Do not clear the trailing image slot before re-applying — host code may be animating
-      // ``FKButton/trailingImageView`` (for example chevron rotation via ``FKTabBar/visibleItemChevronView(at:)``).
-      FKTabBarItemButtonConfigurator.applyChevronAccessory(
+      // ``FKButton/trailingImageView`` (for example via ``FKTabBar/visibleItemAccessoryView(at:)``).
+      FKTabBarItemButtonConfigurator.applyIconAccessory(
         to: tabButton,
-        chevron: chevron,
+        icon: icon,
         textColor: textColor
       )
-    case .custom:
-      [.normal, .selected, .disabled].forEach { tabButton.setTrailingImage(nil, for: $0) }
-      customAccessoryView?.removeFromSuperview()
-      customAccessoryView = nil
-      guard let custom = customization?.customAccessoryView(for: item, isSelected: isSelected, isExpanded: isExpanded) else {
-        pinTabButtonTrailingToContentView()
-        return
-      }
-      custom.translatesAutoresizingMaskIntoConstraints = false
-      contentView.addSubview(custom)
-      NSLayoutConstraint.activate([
-        custom.centerYAnchor.constraint(equalTo: tabButton.centerYAnchor),
-        custom.trailingAnchor.constraint(
-          equalTo: contentView.trailingAnchor,
-          constant: -max(0, itemInsets.trailing)
-        ),
-      ])
-      pinTabButtonTrailingBeforeAccessory(custom, spacing: item.accessory.spacing)
-      customAccessoryView = custom
     }
   }
 

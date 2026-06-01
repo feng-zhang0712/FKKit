@@ -212,8 +212,7 @@ public final class FKTabBar: UIView {
 
   /// Host-owned expansion marker for accessory visuals (for example filter panels). Does not affect selection or layout.
   ///
-  /// ``FKTabBar`` does not animate accessories when this changes. Use ``visibleItemChevronView(at:)`` or
-  /// ``visibleItemAccessoryView(at:)`` to drive expansion visuals in host code.
+  /// ``FKTabBar`` does not animate accessories when this changes. Use ``visibleItemAccessoryView(at:)`` in host code.
   public var expandedItemID: String?
 
   /// Optional shared `FKBadge` visual configuration for tab badges.

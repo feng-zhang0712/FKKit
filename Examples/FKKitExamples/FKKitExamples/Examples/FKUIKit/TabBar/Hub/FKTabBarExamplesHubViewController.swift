@@ -36,7 +36,7 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
         ),
         RowModel(
           title: "Basic — filter strip preset",
-          subtitle: "filterStrip preset, per-tab chevron/custom accessory animations, expandedItemID, pending selection.",
+          subtitle: "filterStrip preset, per-tab trailing icon animations, expandedItemID, pending selection.",
           make: { FKTabBarFilterStripExampleViewController() }
         ),
         RowModel(
@@ -177,7 +177,7 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
         var rows = [
           RowModel(
             title: "Integration — customization hooks",
-            subtitle: "animateInteraction, customAccessoryView, shouldSelect closure, badgeConfiguration, badgeAnimation.",
+            subtitle: "animateInteraction, trailing icon accessory, shouldSelect closure, badgeConfiguration, badgeAnimation.",
             make: { FKTabBarCustomizationHooksExampleViewController() }
           ),
           RowModel(

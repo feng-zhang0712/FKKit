@@ -206,8 +206,7 @@ extension FKTabBar {
       longPressMinimumDuration: longPressMinimumDuration,
       isLongPressEnabled: isLongPressEnabled,
       maximumTitleLines: titlePresentation.maximumTitleLines,
-      itemInsets: layout.itemInsets,
-      isAccessoryExpanded: expandedItemID == item.id
+      itemInsets: layout.itemInsets
     )
   }
 

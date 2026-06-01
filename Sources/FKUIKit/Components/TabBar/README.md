@@ -137,9 +137,8 @@ Line/backdrop fills come from the style configuration's `fill`. ``FKTabBarAppear
 - ``FKTabBarLayoutConfiguration/contentAlignment`` — leading / center / trailing group alignment when the strip is non-scrollable and total item width is smaller than the container. Use ``widthMode = .fillEqually`` for equal-width tabs.
 - ``FKTabBarLayoutConfiguration/emptyStateMessage`` — optional centered placeholder when the visible strip is empty.
 - ``FKTabBarLayoutConfiguration/scrollEdgeFade`` — horizontal edge fade when scrollable (enabled in ``FKTabBarPresets/filterStrip()``).
-- ``FKTabBar/expandedItemID`` — host-owned expansion marker (does not change selection or layout). Built-in chevrons render ``chevron.down`` only; drive rotation or other expansion visuals in host code (see ``FKTabBar/visibleItemChevronView(at:)``).
-- ``FKTabBar/visibleItemChevronView(at:)`` — built-in chevron ``UIImageView`` for host-owned expansion animations.
-- ``FKTabBar/visibleItemAccessoryView(at:)`` — built-in chevron or custom accessory view from ``FKTabBarCustomization``.
+- ``FKTabBar/expandedItemID`` — host-owned expansion marker (does not change selection or layout). Configure trailing icons on ``FKTabBarItem/accessory``; drive rotation or other visuals in host code via ``FKTabBar/visibleItemAccessoryView(at:)``.
+- ``FKTabBar/visibleItemAccessoryView(at:)`` — trailing icon ``UIImageView`` on the item's ``FKButton`` for host-owned animations.
 - ``FKTabBar/visibleItemButton(at:)`` — returns the internal ``FKButton`` for popover/menu anchoring.
 - Item width measurement uses each item's ``FKTabBarImageStyle/fixedSize`` (not a hard-coded icon size).
 
@@ -224,7 +223,7 @@ Integration scenarios cover DataSource, overflow policy (+ resolved layout hints
 
 - `FKTabBar`
 - `FKTabBarItem`, `FKTabBarItemChange`, `FKTabBarTextConfiguration`, `FKTabBarImageConfiguration`, …
-- `FKTabBarBadgeConfiguration`, `FKTabBarBadgeContent`, `FKTabBarAccessoryConfiguration`, `FKTabBarChevronAccessoryConfiguration`
+- `FKTabBarBadgeConfiguration`, `FKTabBarBadgeContent`, `FKTabBarAccessoryConfiguration`, `FKTabBarAccessoryIconConfiguration`
 - `FKTabBarScrollEdgeFade`
 - `FKTabBarConfiguration`, `FKTabBarLayoutConfiguration`, `FKTabBarAppearance`, `FKTabBarAnimationConfiguration`, `FKTabBarIntrinsicWidthMeasurement`
 - `FKTabBarCustomization`, `FKTabBarDefaultCustomization`

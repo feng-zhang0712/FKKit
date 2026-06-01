@@ -1,32 +1,24 @@
 import UIKit
 import FKUIKit
 
-/// Filter-strip preset demonstrating host-owned accessory animations via ``FKTabBar/visibleItemChevronView(at:)`` and ``FKTabBar/visibleItemAccessoryView(at:)``.
+/// Filter-strip preset demonstrating host-owned accessory animations via ``FKTabBar/visibleItemAccessoryView(at:)``.
 final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBarDelegate {
   private enum AccessoryAnimationStyle: String {
     case chevronFlipUp
     case chevronRotateClockwise90
     case chevronRotateCounter90
     case chevronSpringFlipUp
-    case customHeartbeat
-    case customBounce
+    case iconHeartbeat
+    case iconBounce
   }
 
   private var items: [FKTabBarItem] = [
-    FKTabBarItem(id: "all", title: .init(normal: .init(text: "All")), accessory: .init(chevron: .init())),
-    FKTabBarItem(id: "price", title: .init(normal: .init(text: "Price")), accessory: .init(chevron: .init())),
-    FKTabBarItem(id: "brand", title: .init(normal: .init(text: "Brand")), accessory: .init(chevron: .init())),
-    FKTabBarItem(id: "rating", title: .init(normal: .init(text: "Rating")), accessory: .init(chevron: .init())),
-    FKTabBarItem(
-      id: "favorites",
-      title: .init(normal: .init(text: "Favorites")),
-      accessory: .init(kind: .custom(id: "heart"), spacing: 4)
-    ),
-    FKTabBarItem(
-      id: "saved",
-      title: .init(normal: .init(text: "Saved")),
-      accessory: .init(kind: .custom(id: "sparkle"), spacing: 4)
-    ),
+    FKTabBarItem(id: "all", title: .init(normal: .init(text: "All")), accessory: chevronDownAccessory()),
+    FKTabBarItem(id: "price", title: .init(normal: .init(text: "Price")), accessory: chevronDownAccessory()),
+    FKTabBarItem(id: "brand", title: .init(normal: .init(text: "Brand")), accessory: chevronDownAccessory()),
+    FKTabBarItem(id: "rating", title: .init(normal: .init(text: "Rating")), accessory: chevronDownAccessory()),
+    FKTabBarItem(id: "favorites", title: .init(normal: .init(text: "Favorites")), accessory: heartAccessory()),
+    FKTabBarItem(id: "saved", title: .init(normal: .init(text: "Saved")), accessory: sparklesAccessory()),
   ]
 
   private let animationStyleByItemID: [String: AccessoryAnimationStyle] = [
@@ -34,30 +26,27 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
     "price": .chevronRotateClockwise90,
     "brand": .chevronRotateCounter90,
     "rating": .chevronSpringFlipUp,
-    "favorites": .customHeartbeat,
-    "saved": .customBounce,
+    "favorites": .iconHeartbeat,
+    "saved": .iconBounce,
   ]
 
   private var accessoryAnimates = true
-  private var usesCompactChevron = false
+  private var usesCompactIcon = false
   private var usesSecondaryTint = false
-  private var chevronWeight: FKTabBarChevronSymbolWeight = .semibold
+  private var iconWeight: FKTabBarAccessorySymbolWeight = .semibold
   private var usesPendingSelection = false
 
   private let pendingSelectionSwitch = UISwitch()
   private let animateSwitch = UISwitch()
-  private let compactChevronSwitch = UISwitch()
+  private let compactIconSwitch = UISwitch()
   private let secondaryTintSwitch = UISwitch()
   private let weightControl = UISegmentedControl(items: ["Regular", "Semi", "Bold"])
   private lazy var commitButton = FKTabBarExampleSupport.actionButton("Commit pending selection") { [weak self] in
     self?.commitPendingSelection()
   }
 
-  private let accessoryCustomization = FilterStripExampleAccessoryCustomization()
-
   private lazy var tabView: FKTabBar = {
     let tab = FKTabBar(items: items, selectedIndex: 0, configuration: FKTabBarPresets.filterStrip())
-    tab.customization = accessoryCustomization
     tab.delegate = self
     tab.onSelectionRequest = { [weak self] item, index in
       guard let self, self.usesPendingSelection else { return }
@@ -78,7 +67,7 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
     title = "Filter strip"
     view.backgroundColor = .systemBackground
 
-    syncChevronAccessoryConfiguration(reload: false)
+    syncIconAccessoryConfiguration(reload: false)
     applyPendingSelectionMode()
 
     let stack = FKTabBarExampleSupport.makeRootStack(in: view)
@@ -86,8 +75,8 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
     stack.addArrangedSubview(
       FKTabBarExampleSupport.captionLabel(
         """
-        Each tab uses a different host animation after didSelect. Chevrons: flip 180°, ±90°, spring flip. \
-        Custom: heart heartbeat, sparkles bounce. FKTabBar exposes views only — no built-in accessory animation.
+        Each tab configures a trailing icon on the item model. Host code animates \
+        ``FKTabBar/visibleItemAccessoryView(at:)`` after didSelect (rotation, heartbeat, bounce).
         """
       )
     )
@@ -101,13 +90,13 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
     stack.addArrangedSubview(commitButton)
     stack.addArrangedSubview(
       switchRow(
-        title: "Apply selection accessory effects (animated when on, skipped when off)",
+        title: "Animate on selection",
         switchControl: animateSwitch
       )
     )
-    stack.addArrangedSubview(switchRow(title: "Compact chevron (10pt)", switchControl: compactChevronSwitch))
+    stack.addArrangedSubview(switchRow(title: "Compact icon (10pt)", switchControl: compactIconSwitch))
     stack.addArrangedSubview(switchRow(title: "Secondary tint color", switchControl: secondaryTintSwitch))
-    stack.addArrangedSubview(labeledControl("Chevron weight", weightControl))
+    stack.addArrangedSubview(labeledControl("Icon weight", weightControl))
 
     stack.addArrangedSubview(FKTabBarExampleSupport.actionButton("Toggle expand selected") { [weak self] in
       self?.toggleExpanded()
@@ -135,7 +124,7 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
   private func wireControls() {
     pendingSelectionSwitch.isOn = usesPendingSelection
     animateSwitch.isOn = accessoryAnimates
-    compactChevronSwitch.isOn = usesCompactChevron
+    compactIconSwitch.isOn = usesCompactIcon
     secondaryTintSwitch.isOn = usesSecondaryTint
     weightControl.selectedSegmentIndex = 1
     updateCommitButtonState()
@@ -158,29 +147,29 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
       self.appendLog("selection accessory effects = \(control.isOn)")
     }, for: .valueChanged)
 
-    compactChevronSwitch.addAction(UIAction { [weak self] action in
+    compactIconSwitch.addAction(UIAction { [weak self] action in
       guard let self, let control = action.sender as? UISwitch else { return }
-      self.usesCompactChevron = control.isOn
-      self.syncChevronAccessoryConfiguration()
+      self.usesCompactIcon = control.isOn
+      self.syncIconAccessoryConfiguration()
       self.appendLog("pointSize = \(control.isOn ? 10 : 14)")
     }, for: .valueChanged)
 
     secondaryTintSwitch.addAction(UIAction { [weak self] action in
       guard let self, let control = action.sender as? UISwitch else { return }
       self.usesSecondaryTint = control.isOn
-      self.syncChevronAccessoryConfiguration()
+      self.syncIconAccessoryConfiguration()
       self.appendLog("tintColor = \(control.isOn ? "secondaryLabel" : "title")")
     }, for: .valueChanged)
 
     weightControl.addAction(UIAction { [weak self] action in
       guard let self, let control = action.sender as? UISegmentedControl else { return }
       switch control.selectedSegmentIndex {
-      case 0: self.chevronWeight = .regular
-      case 2: self.chevronWeight = .bold
-      default: self.chevronWeight = .semibold
+      case 0: self.iconWeight = .regular
+      case 2: self.iconWeight = .bold
+      default: self.iconWeight = .semibold
       }
-      self.syncChevronAccessoryConfiguration()
-      self.appendLog("weight = \(self.chevronWeight)")
+      self.syncIconAccessoryConfiguration()
+      self.appendLog("weight = \(self.iconWeight)")
     }, for: .valueChanged)
   }
 
@@ -203,12 +192,14 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
     label.font = .preferredFont(forTextStyle: .subheadline)
     label.text = title
     label.numberOfLines = 0
+    label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    switchControl.setContentHuggingPriority(.required, for: .horizontal)
+    switchControl.setContentCompressionResistancePriority(.required, for: .horizontal)
     let row = UIStackView(arrangedSubviews: [label, switchControl])
     row.axis = .horizontal
     row.alignment = .center
     row.spacing = 12
-    label.setContentHuggingPriority(.defaultLow, for: .horizontal)
-    switchControl.setContentHuggingPriority(.required, for: .horizontal)
     return row
   }
 
@@ -222,21 +213,34 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
     return row
   }
 
-  private func syncChevronAccessoryConfiguration(reload: Bool = true) {
-    let chevron = FKTabBarChevronAccessoryConfiguration(
-      pointSize: usesCompactChevron ? 10 : 14,
-      weight: chevronWeight,
-      tintColor: usesSecondaryTint ? .secondaryLabel : nil
+  private func sharedIconStyle(tintColor: UIColor? = nil) -> FKTabBarAccessoryIconStyle {
+    FKTabBarAccessoryIconStyle(
+      pointSize: usesCompactIcon ? 10 : 14,
+      weight: iconWeight,
+      tintColor: tintColor ?? (usesSecondaryTint ? .secondaryLabel : nil)
     )
+  }
+
+  private func syncIconAccessoryConfiguration(reload: Bool = true) {
     items = items.map { item in
-      guard item.accessory.chevronConfiguration != nil else { return item }
       var copy = item
-      copy.accessory = FKTabBarAccessoryConfiguration(chevron: chevron)
+      switch item.id {
+      case "all", "price", "brand", "rating":
+        copy.accessory = chevronDownAccessory(style: sharedIconStyle())
+      case "favorites":
+        copy.accessory = heartAccessory(style: sharedIconStyle())
+      case "saved":
+        copy.accessory = sparklesAccessory(style: sharedIconStyle())
+      default:
+        break
+      }
       return copy
     }
     guard reload else { return }
     tabView.reload(items: items, updatePolicy: .preserveSelection)
-    syncAccessoryAnimationsForSelection(selectedIndex: tabView.selectedIndex)
+    if accessoryAnimates {
+      syncAccessoryAnimationsForSelection(selectedIndex: tabView.selectedIndex)
+    }
   }
 
   private func commitPendingSelection() {
@@ -266,18 +270,10 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
 
   private func resetAccessoryEffect(at index: Int) {
     guard tabView.visibleItems.indices.contains(index),
-          let style = animationStyle(for: tabView.visibleItems[index].id) else { return }
-
-    switch style {
-    case .chevronFlipUp, .chevronRotateClockwise90, .chevronRotateCounter90, .chevronSpringFlipUp:
-      guard let chevronView = tabView.visibleItemChevronView(at: index) else { return }
-      chevronView.layer.removeAllAnimations()
-      chevronView.transform = .identity
-    case .customHeartbeat, .customBounce:
-      guard let accessoryView = tabView.visibleItemAccessoryView(at: index) else { return }
-      accessoryView.layer.removeAllAnimations()
-      accessoryView.transform = .identity
-    }
+          animationStyle(for: tabView.visibleItems[index].id) != nil else { return }
+    guard let iconView = tabView.visibleItemAccessoryView(at: index) else { return }
+    iconView.layer.removeAllAnimations()
+    iconView.transform = .identity
   }
 
   private func resetAllVisibleAccessoryEffects() {
@@ -300,27 +296,27 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
 
     switch style {
     case .chevronFlipUp:
-      applyChevronTransform(at: index, angle: .pi, style: style)
+      applyIconTransform(at: index, angle: .pi, style: style)
     case .chevronRotateClockwise90:
-      applyChevronTransform(at: index, angle: -.pi / 2, style: style)
+      applyIconTransform(at: index, angle: -.pi / 2, style: style)
     case .chevronRotateCounter90:
-      applyChevronTransform(at: index, angle: .pi / 2, style: style)
+      applyIconTransform(at: index, angle: .pi / 2, style: style)
     case .chevronSpringFlipUp:
-      applyChevronTransform(at: index, angle: .pi, style: style, usesSpring: true)
-    case .customHeartbeat:
+      applyIconTransform(at: index, angle: .pi, style: style, usesSpring: true)
+    case .iconHeartbeat:
       applyHeartbeat(to: tabView.visibleItemAccessoryView(at: index), style: style)
-    case .customBounce:
+    case .iconBounce:
       applyBounce(to: tabView.visibleItemAccessoryView(at: index), style: style)
     }
   }
 
-  private func applyChevronTransform(
+  private func applyIconTransform(
     at index: Int,
     angle: CGFloat,
     style: AccessoryAnimationStyle,
     usesSpring: Bool = false
   ) {
-    guard let chevronView = tabView.visibleItemChevronView(at: index) else { return }
+    guard let iconView = tabView.visibleItemAccessoryView(at: index) else { return }
     let targetTransform = CGAffineTransform(rotationAngle: angle)
 
     if usesSpring {
@@ -331,7 +327,7 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
         initialSpringVelocity: 0.9,
         options: [.beginFromCurrentState, .allowUserInteraction]
       ) {
-        chevronView.transform = targetTransform
+        iconView.transform = targetTransform
       }
     } else {
       UIView.animate(
@@ -339,13 +335,13 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
         delay: 0,
         options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]
       ) {
-        chevronView.transform = targetTransform
+        iconView.transform = targetTransform
       }
     }
     appendLog("accessory \(style.rawValue) @\(index)")
   }
 
-  private func applyHeartbeat(to view: UIView?, style: AccessoryAnimationStyle) {
+  private func applyHeartbeat(to view: UIImageView?, style: AccessoryAnimationStyle) {
     guard let view else { return }
     view.layer.removeAllAnimations()
     view.transform = .identity
@@ -354,7 +350,7 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
     runTransformSteps(on: view, steps: steps, style: style)
   }
 
-  private func applyBounce(to view: UIView?, style: AccessoryAnimationStyle) {
+  private func applyBounce(to view: UIImageView?, style: AccessoryAnimationStyle) {
     guard let view else { return }
     view.layer.removeAllAnimations()
     view.transform = .identity
@@ -379,7 +375,6 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
     runStep(0)
   }
 
-  /// Runs after ``FKTabBar`` finishes its selection refresh so accessory views exist and transforms can be applied safely.
   private func syncAccessoryAnimationsForSelection(selectedIndex: Int) {
     guard accessoryAnimates else { return }
 
@@ -410,33 +405,68 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
   }
 }
 
-// MARK: - Custom accessory rendering
+// MARK: - Accessory factories
 
-@MainActor
-private final class FilterStripExampleAccessoryCustomization: FKTabBarDefaultCustomization {
-  override func customAccessoryView(for item: FKTabBarItem, isSelected: Bool, isExpanded: Bool) -> UIView? {
-    guard case .custom(let id) = item.accessory.kind else { return nil }
+private func chevronDownAccessory(
+  style: FKTabBarAccessoryIconStyle = FKTabBarAccessoryIconStyle()
+) -> FKTabBarAccessoryConfiguration {
+  .init(icon: .systemSymbol("chevron.down", style: style))
+}
 
-    let imageView = UIImageView()
-    imageView.translatesAutoresizingMaskIntoConstraints = false
-    imageView.contentMode = .scaleAspectFit
-    imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
+private func heartAccessory(
+  style: FKTabBarAccessoryIconStyle = FKTabBarAccessoryIconStyle()
+) -> FKTabBarAccessoryConfiguration {
+  .init(
+    icon: .init(
+      normal: .init(
+        source: .systemSymbol(name: "heart.fill"),
+        style: FKTabBarAccessoryIconStyle(
+          pointSize: style.pointSize,
+          weight: style.weight,
+          tintColor: .secondaryLabel,
+          fixedSize: style.fixedSize,
+          spacingToTitle: style.spacingToTitle
+        )
+      ),
+      selected: .init(
+        source: .systemSymbol(name: "heart.fill"),
+        style: FKTabBarAccessoryIconStyle(
+          pointSize: style.pointSize,
+          weight: style.weight,
+          tintColor: .systemPink,
+          fixedSize: style.fixedSize,
+          spacingToTitle: style.spacingToTitle
+        )
+      )
+    )
+  )
+}
 
-    switch id {
-    case "heart":
-      imageView.image = UIImage(systemName: "heart.fill")
-      imageView.tintColor = isSelected ? .systemPink : .secondaryLabel
-    case "sparkle":
-      imageView.image = UIImage(systemName: "sparkles")
-      imageView.tintColor = isSelected ? .systemYellow : .secondaryLabel
-    default:
-      return nil
-    }
-
-    NSLayoutConstraint.activate([
-      imageView.widthAnchor.constraint(equalToConstant: 16),
-      imageView.heightAnchor.constraint(equalToConstant: 16),
-    ])
-    return imageView
-  }
+private func sparklesAccessory(
+  style: FKTabBarAccessoryIconStyle = FKTabBarAccessoryIconStyle()
+) -> FKTabBarAccessoryConfiguration {
+  .init(
+    icon: .init(
+      normal: .init(
+        source: .systemSymbol(name: "sparkles"),
+        style: FKTabBarAccessoryIconStyle(
+          pointSize: style.pointSize,
+          weight: style.weight,
+          tintColor: .secondaryLabel,
+          fixedSize: style.fixedSize,
+          spacingToTitle: style.spacingToTitle
+        )
+      ),
+      selected: .init(
+        source: .systemSymbol(name: "sparkles"),
+        style: FKTabBarAccessoryIconStyle(
+          pointSize: style.pointSize,
+          weight: style.weight,
+          tintColor: .systemYellow,
+          fixedSize: style.fixedSize,
+          spacingToTitle: style.spacingToTitle
+        )
+      )
+    )
+  )
 }

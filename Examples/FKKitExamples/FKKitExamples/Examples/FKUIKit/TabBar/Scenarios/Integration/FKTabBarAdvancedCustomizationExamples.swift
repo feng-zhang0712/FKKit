@@ -78,7 +78,12 @@ final class FKTabBarCustomizationHooksExampleViewController: UIViewController {
   private let customization = FKTabBarExampleHooksCustomization()
   private lazy var tabView: FKTabBar = {
     var items = FKTabBarExampleSupport.makeItems(4)
-    items[0].accessory = FKTabBarAccessoryConfiguration(kind: .custom(id: "star"))
+    items[0].accessory = .init(
+      icon: .init(
+        normal: .init(source: .systemSymbol(name: "star"), style: .init(tintColor: .secondaryLabel)),
+        selected: .init(source: .systemSymbol(name: "star.fill"), style: .init(tintColor: .systemOrange))
+      )
+    )
     var config = FKTabBarPresets.segmentedControl(itemSpacing: 12)
     let bar = FKTabBar(items: items, selectedIndex: 0, configuration: config)
     bar.customization = customization
@@ -98,8 +103,8 @@ final class FKTabBarCustomizationHooksExampleViewController: UIViewController {
     view.backgroundColor = .systemBackground
 
     let stack = FKTabBarExampleSupport.makeRootStack(in: view)
-    stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("animateInteraction, customAccessory, shouldSelect, badge config"))
-    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Tab index 2 is blocked by shouldSelect closure. Long-press any tab. Tap chevron accessory on tab-0."))
+    stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("animateInteraction, accessory icon, shouldSelect, badge config"))
+    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Tab index 2 is blocked by shouldSelect closure. Long-press any tab. Tab-0 uses a trailing star icon."))
 
     tabView.isLongPressEnabled = true
     tabView.onLongPress = { [weak self] item, index in
@@ -108,8 +113,23 @@ final class FKTabBarCustomizationHooksExampleViewController: UIViewController {
 
     stack.addArrangedSubview(FKTabBarExampleSupport.actionButton("Toggle expandedItemID tab-0") { [weak self] in
       guard let self else { return }
-      self.tabView.expandedItemID = self.tabView.expandedItemID == "tab-0" ? nil : "tab-0"
-      self.log("expandedItemID = \(self.tabView.expandedItemID ?? "nil")")
+      let willExpand = self.tabView.expandedItemID != "tab-0"
+      self.tabView.expandedItemID = willExpand ? "tab-0" : nil
+      var item = self.tabView.visibleItems[0]
+      item.accessory = .init(
+        icon: .init(
+          normal: .init(
+            source: .systemSymbol(name: willExpand ? "star.fill" : "star"),
+            style: .init(tintColor: .secondaryLabel)
+          ),
+          selected: .init(
+            source: .systemSymbol(name: "star.fill"),
+            style: .init(tintColor: .systemOrange)
+          )
+        )
+      )
+      _ = self.tabView.setItem(item, at: 0, animated: false)
+      self.log("expandedItemID = \(willExpand ? "tab-0" : "nil")")
     })
 
     logLabel.font = .preferredFont(forTextStyle: .footnote)

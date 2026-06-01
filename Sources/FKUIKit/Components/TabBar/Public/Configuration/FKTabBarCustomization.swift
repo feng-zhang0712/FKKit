@@ -12,8 +12,6 @@ public protocol FKTabBarCustomization: AnyObject {
   ///
   /// Per-index values are honored by ``FKTabBarFlowLayout``; gaps that return `nil` fall back to ``FKTabBarLayoutConfiguration/itemSpacing``.
   func customSpacing(after index: Int, context: FKTabBarLayoutConfiguration.SpacingContext) -> CGFloat?
-  /// Supplies a trailing accessory view; return `nil` to use built-in chevron rendering when applicable.
-  func customAccessoryView(for item: FKTabBarItem, isSelected: Bool, isExpanded: Bool) -> UIView?
   /// Supplies a custom badge view for items using ``FKTabBarBadgeContent/custom``.
   func customBadgeView(for item: FKTabBarItem) -> UIView?
   /// Supplies custom tab content for items using ``FKTabBarItem/customContentIdentifier``.
@@ -42,7 +40,6 @@ open class FKTabBarDefaultCustomization: FKTabBarCustomization {
 
   open func customWidth(for index: Int, item: FKTabBarItem, in tabBar: FKTabBar) -> CGFloat? { nil }
   open func customSpacing(after index: Int, context: FKTabBarLayoutConfiguration.SpacingContext) -> CGFloat? { nil }
-  open func customAccessoryView(for item: FKTabBarItem, isSelected: Bool, isExpanded: Bool) -> UIView? { nil }
   open func customBadgeView(for item: FKTabBarItem) -> UIView? { nil }
   open func customContentView(for item: FKTabBarItem) -> UIView? { nil }
   open func configure(button: FKButton, item: FKTabBarItem, isSelected: Bool) {}

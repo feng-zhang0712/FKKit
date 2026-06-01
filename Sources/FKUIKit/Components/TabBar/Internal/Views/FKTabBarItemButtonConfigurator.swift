@@ -146,7 +146,7 @@ enum FKTabBarItemButtonConfigurator {
     item: FKTabBarItem,
     customization: FKTabBarCustomization?
   ) {
-    resetButtonContent(button, preservingTrailingSlot: item.accessory.chevronConfiguration != nil)
+    resetButtonContent(button, preservingTrailingSlot: item.accessory.iconConfiguration != nil)
 
     switch kind {
     case .textOnly:
@@ -244,38 +244,59 @@ enum FKTabBarItemButtonConfigurator {
     )
   }
 
-  static func applyChevronAccessory(
+  static func applyIconAccessory(
     to button: FKButton,
-    chevron: FKTabBarChevronAccessoryConfiguration,
+    icon: FKTabBarAccessoryIconConfiguration,
     textColor: UIColor
   ) {
-    let symbolName = "chevron.down"
-    let symbolConfiguration = UIImage.SymbolConfiguration(
-      pointSize: chevron.pointSize,
-      weight: chevron.weight.uiImageWeight
-    )
-    let tint = chevron.tintColor ?? textColor
-    let fixedSize = chevron.fixedSize
-      ?? CGSize(width: chevron.pointSize, height: chevron.pointSize)
-    let attrs = FKButton.ImageAttributes(
-      systemName: symbolName,
-      renderingMode: .alwaysTemplate,
-      symbolConfiguration: symbolConfiguration,
-      tintColor: tint,
-      fixedSize: fixedSize,
-      spacingToTitle: chevron.spacing
-    )
-    button.setTrailingImage(attrs, for: .normal)
-    button.setTrailingImage(attrs, for: .selected)
-    button.setTrailingImage(attrs, for: .disabled)
-  }
+    func imageAttributes(for state: FKTabBarAccessoryIconConfiguration.State) -> FKButton.ImageAttributes? {
+      guard let source = state.source else { return nil }
+      let style = state.style
+      let symbolConfiguration = UIImage.SymbolConfiguration(
+        pointSize: style.pointSize,
+        weight: style.weight.uiImageWeight
+      )
+      let tint = style.tintColor ?? textColor
+      let fixedSize = style.fixedSize
+        ?? CGSize(width: style.pointSize, height: style.pointSize)
 
-  static func customAccessoryReserve(for item: FKTabBarItem) -> CGFloat {
-    switch item.accessory.kind {
-    case .none, .chevron:
-      return 0
-    case .custom:
-      return max(12, item.accessory.spacing + 12)
+      switch source {
+      case .systemSymbol(let name):
+        return FKButton.ImageAttributes(
+          systemName: name,
+          renderingMode: .alwaysTemplate,
+          symbolConfiguration: symbolConfiguration,
+          tintColor: tint,
+          fixedSize: fixedSize,
+          spacingToTitle: style.spacingToTitle
+        )
+      case .image(let image):
+        return FKButton.ImageAttributes(
+          image: image,
+          renderingMode: .alwaysTemplate,
+          tintColor: tint,
+          fixedSize: fixedSize,
+          spacingToTitle: style.spacingToTitle
+        )
+      case .asset, .remote:
+        guard let image = resolveImage(source) else { return nil }
+        return FKButton.ImageAttributes(
+          image: image,
+          renderingMode: .alwaysTemplate,
+          tintColor: tint,
+          fixedSize: fixedSize,
+          spacingToTitle: style.spacingToTitle
+        )
+      }
+    }
+
+    let states: [(FKTabBarAccessoryIconConfiguration.State, UIControl.State)] = [
+      (icon.normal, .normal),
+      (icon.selected ?? icon.normal, .selected),
+      (icon.disabled ?? icon.normal, .disabled),
+    ]
+    for (iconState, controlState) in states {
+      button.setTrailingImage(imageAttributes(for: iconState), for: controlState)
     }
   }
 }

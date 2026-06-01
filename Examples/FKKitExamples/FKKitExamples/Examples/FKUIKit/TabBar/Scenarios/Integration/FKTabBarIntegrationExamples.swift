@@ -242,8 +242,8 @@ final class FKTabBarVisibleItemButtonExampleViewController: UIViewController {
   private lazy var tabView = FKTabBar(
     items: [
       FKTabBarItem(id: "all", title: .init(normal: .init(text: "All"))),
-      FKTabBarItem(id: "price", title: .init(normal: .init(text: "Price")), accessory: .init(chevron: .init())),
-      FKTabBarItem(id: "brand", title: .init(normal: .init(text: "Brand")), accessory: .init(chevron: .init())),
+      FKTabBarItem(id: "price", title: .init(normal: .init(text: "Price")), accessory: .init(icon: .systemSymbol("chevron.down"))),
+      FKTabBarItem(id: "brand", title: .init(normal: .init(text: "Brand")), accessory: .init(icon: .systemSymbol("chevron.down"))),
     ],
     selectedIndex: 0,
     configuration: FKTabBarPresets.filterStrip()
