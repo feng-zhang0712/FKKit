@@ -195,10 +195,14 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
   public var safeAreaHeightPolicy: FKTabBarSafeAreaHeightPolicy
   /// Item width strategy.
   public var widthMode: FKTabBarItemWidthMode
-  /// Insets applied inside each tab cell around the hosted ``FKButton``.
-  public var cellLayoutMargins: NSDirectionalEdgeInsets
-  /// Content insets applied to each tab button (title/icon padding).
-  public var itemContentInsets: NSDirectionalEdgeInsets
+  /// Padding between each tab cell edge and its title/icon content.
+  ///
+  /// This is the single knob for per-tab content inset. It is applied to the hosted ``FKButton``
+  /// `contentInsets` so width measurement and on-screen layout stay aligned.
+  ///
+  /// - Note: Do not rely on ``FKTabBarCustomization/configure(button:item:isSelected:)`` to set
+  ///   `FKButton` appearance `contentInsets` for strip padding — use this property instead.
+  public var itemInsets: NSDirectionalEdgeInsets
   /// Optional horizontal edge fade when ``isScrollable`` is `true`.
   public var scrollEdgeFade: FKTabBarScrollEdgeFade
   /// Layout direction for each tab item's icon and title.
@@ -236,8 +240,7 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
     preferredBarHeight: CGFloat? = nil,
     safeAreaHeightPolicy: FKTabBarSafeAreaHeightPolicy = .excludeBottomSafeArea,
     widthMode: FKTabBarItemWidthMode = .intrinsic,
-    cellLayoutMargins: NSDirectionalEdgeInsets = .init(top: 6, leading: 10, bottom: 6, trailing: 10),
-    itemContentInsets: NSDirectionalEdgeInsets = .init(top: 6, leading: 8, bottom: 6, trailing: 8),
+    itemInsets: NSDirectionalEdgeInsets = .init(top: 6, leading: 8, bottom: 6, trailing: 8),
     scrollEdgeFade: FKTabBarScrollEdgeFade = .init(),
     itemLayoutDirection: FKTabBarItemLayoutDirection = .horizontal,
     rtlBehavior: FKTabBarRTLBehavior = .automatic,
@@ -258,8 +261,7 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
     self.preferredBarHeight = preferredBarHeight
     self.safeAreaHeightPolicy = safeAreaHeightPolicy
     self.widthMode = widthMode
-    self.cellLayoutMargins = cellLayoutMargins
-    self.itemContentInsets = itemContentInsets
+    self.itemInsets = itemInsets
     self.scrollEdgeFade = scrollEdgeFade
     self.itemLayoutDirection = itemLayoutDirection
     self.rtlBehavior = rtlBehavior

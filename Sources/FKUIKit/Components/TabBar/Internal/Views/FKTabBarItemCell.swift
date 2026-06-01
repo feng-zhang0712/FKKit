@@ -20,8 +20,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
     var longPressMinimumDuration: TimeInterval
     var isLongPressEnabled: Bool
     var maximumTitleLines: Int
-    var cellLayoutMargins: NSDirectionalEdgeInsets
-    var itemContentInsets: NSDirectionalEdgeInsets
+    var itemInsets: NSDirectionalEdgeInsets
     var isAccessoryExpanded: Bool
   }
 
@@ -86,13 +85,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
     let item = model.item
     let selected = model.isSelected
     let progress = max(0, min(1, model.selectionProgress))
-
-    contentView.layoutMargins = UIEdgeInsets(
-      top: model.cellLayoutMargins.top,
-      left: model.cellLayoutMargins.leading,
-      bottom: model.cellLayoutMargins.bottom,
-      right: model.cellLayoutMargins.trailing
-    )
 
     let contentKind = resolvedContentKind(for: item)
     applyContent(contentKind, selected: selected, item: item, customization: customization)
@@ -164,18 +156,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
 
     tabButton.isEnabled = item.isEnabled
     tabButton.isSelected = selected
-    let sharedAppearance = FKButton.Appearance(
-      backgroundColor: .clear,
-      contentInsets: .init(
-        top: model.itemContentInsets.top,
-        leading: model.itemContentInsets.leading,
-        bottom: model.itemContentInsets.bottom,
-        trailing: model.itemContentInsets.trailing
-      )
-    )
-    tabButton.setAppearance(sharedAppearance, for: .normal)
-    tabButton.setAppearance(sharedAppearance, for: .selected)
-    tabButton.setAppearance(sharedAppearance, for: .disabled)
+    applyItemInsets(model.itemInsets, to: tabButton)
     let label = FKButton.LabelAttributes(
       text: titleText,
       font: baseFont,
@@ -241,12 +222,15 @@ final class FKTabBarItemCell: UICollectionViewCell {
     tabButton.tintColor = iconColor
     applyAccessory(
       item: item,
+      itemInsets: model.itemInsets,
       textColor: textColor,
       isSelected: selected,
       isExpanded: model.isAccessoryExpanded,
       customization: customization
     )
     customization?.configure(button: tabButton, item: item, isSelected: selected)
+    // Re-apply after customization so strip padding stays on ``FKTabBarLayoutConfiguration/itemInsets``.
+    applyItemInsets(model.itemInsets, to: tabButton)
 
     // Accessibility is hosted by `FKButton` so VoiceOver focus matches the tappable element.
     tabButton.isAccessibilityElement = true
@@ -280,6 +264,21 @@ final class FKTabBarItemCell: UICollectionViewCell {
     }
   }
 
+  private func applyItemInsets(_ insets: NSDirectionalEdgeInsets, to button: FKButton) {
+    let appearance = FKButton.Appearance(
+      backgroundColor: .clear,
+      contentInsets: .init(
+        top: insets.top,
+        leading: insets.leading,
+        bottom: insets.bottom,
+        trailing: insets.trailing
+      )
+    )
+    button.setAppearance(appearance, for: .normal)
+    button.setAppearance(appearance, for: .selected)
+    button.setAppearance(appearance, for: .disabled)
+  }
+
   // MARK: - View Setup
 
   private func setup() {
@@ -287,7 +286,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
     // effective layout margins, which would unintentionally shrink the button's available width
     // and can trigger constraint conflicts inside FKButton's internal stack layout.
     contentView.preservesSuperviewLayoutMargins = false
-    contentView.layoutMargins = .init(top: 6, left: 10, bottom: 6, right: 10)
+    contentView.layoutMargins = .zero
     tabButton.translatesAutoresizingMaskIntoConstraints = false
     tabButton.isUserInteractionEnabled = true
     tabButton.contentHorizontalAlignment = .center
@@ -360,12 +359,16 @@ final class FKTabBarItemCell: UICollectionViewCell {
   }
 
   func contentFrame(in targetView: UIView) -> CGRect {
-    // Used by indicator follow modes that want to track content rather than full item frame.
-    return targetView.convert(tabButton.frame, from: contentView)
+    // Used by indicator follow modes that want to track rendered title/icon bounds rather than the full cell.
+    tabButton.layoutIfNeeded()
+    let source = tabButton.stackView
+    guard !source.bounds.isEmpty else { return .zero }
+    return targetView.convert(source.bounds, from: source)
   }
 
   private func applyAccessory(
     item: FKTabBarItem,
+    itemInsets: NSDirectionalEdgeInsets,
     textColor: UIColor,
     isSelected: Bool,
     isExpanded: Bool,
@@ -397,7 +400,10 @@ final class FKTabBarItemCell: UICollectionViewCell {
       contentView.addSubview(custom)
       NSLayoutConstraint.activate([
         custom.centerYAnchor.constraint(equalTo: tabButton.centerYAnchor),
-        custom.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+        custom.trailingAnchor.constraint(
+          equalTo: contentView.trailingAnchor,
+          constant: -max(0, itemInsets.trailing)
+        ),
         custom.leadingAnchor.constraint(greaterThanOrEqualTo: tabButton.trailingAnchor, constant: item.accessory.spacing),
       ])
       customAccessoryView = custom

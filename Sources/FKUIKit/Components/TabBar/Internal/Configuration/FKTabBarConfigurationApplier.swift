@@ -55,8 +55,7 @@ enum FKTabBarConfigurationApplier {
       || old.preferredBarHeight != new.preferredBarHeight
       || old.safeAreaHeightPolicy != new.safeAreaHeightPolicy
       || old.widthMode != new.widthMode
-      || old.cellLayoutMargins != new.cellLayoutMargins
-      || old.itemContentInsets != new.itemContentInsets
+      || old.itemInsets != new.itemInsets
       || old.scrollEdgeFade != new.scrollEdgeFade
       || old.itemLayoutDirection != new.itemLayoutDirection
       || old.rtlBehavior != new.rtlBehavior

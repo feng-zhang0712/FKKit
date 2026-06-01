@@ -17,6 +17,9 @@ public protocol FKTabBarCustomization: AnyObject {
   /// Supplies custom tab content for items using ``FKTabBarItem/customContentIdentifier``.
   func customContentView(for item: FKTabBarItem) -> UIView?
   /// Post-configures each internal ``FKButton`` after default styling is applied.
+  ///
+  /// Per-tab strip padding is owned by ``FKTabBarLayoutConfiguration/itemInsets``; any `contentInsets`
+  /// set here are overwritten when the cell finishes applying the model.
   func configure(button: FKButton, item: FKTabBarItem, isSelected: Bool)
   /// Runs custom interaction animations on the tab button before selection commits.
   func animateInteraction(on button: FKButton, phase: FKTabBar.ItemInteractionPhase, item: FKTabBarItem)

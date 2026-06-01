@@ -114,6 +114,10 @@ For ``FKTabBarIndicatorStyle/custom(id:)``, supply the view via ``FKTabBarCustom
 
 ## Layout notes
 
+- ``FKTabBarLayoutConfiguration/contentInsets`` — section insets around the whole tab strip (collection layout), not per-tab title/icon padding.
+- ``FKTabBarLayoutConfiguration/itemInsets`` — single knob for per-tab padding from the cell edge to title/icon. Applied only as the hosted ``FKButton`` appearance `contentInsets`; the cell does not add a second margin layer. Prefer this over tuning `FKButton` insets in ``FKTabBarCustomization/configure(button:item:isSelected:)``.
+- Item width in ``FKTabBarItemWidthMode/intrinsic`` is measured with the same ``FKButton`` layout path as ``FKTabBarItemCell`` (see ``FKTabBarItemContentMeasurer``) so center alignment does not leave extra slack inside ``FKButton/contentContainerView``.
+- Indicator ``trackContentFrame`` modes use the laid-out ``FKButton`` stack bounds so line/backdrop width matches visible content when `itemInsets` changes.
 - ``FKTabBarLayoutConfiguration/nonScrollableOverflowPolicy`` — shrink / truncate / clip when ``isScrollable`` is `false`.
 - ``FKTabBarLayoutConfiguration/emptyStateMessage`` — optional centered placeholder when the visible strip is empty.
 - ``FKTabBarLayoutConfiguration/scrollEdgeFade`` — horizontal edge fade when scrollable (enabled in ``FKTabBarPresets/filterStrip()``).

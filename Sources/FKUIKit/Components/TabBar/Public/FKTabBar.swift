@@ -1088,8 +1088,7 @@ public final class FKTabBar: UIView {
       longPressMinimumDuration: longPressMinimumDuration,
       isLongPressEnabled: isLongPressEnabled,
       maximumTitleLines: titlePresentation.maximumTitleLines,
-      cellLayoutMargins: layout.cellLayoutMargins,
-      itemContentInsets: layout.itemContentInsets,
+      itemInsets: layout.itemInsets,
       isAccessoryExpanded: expandedItemID == item.id
     )
   }

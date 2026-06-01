@@ -98,20 +98,14 @@ extension FKButton {
   ) {
     switch axis {
     case .horizontal:
-      switch h {
-      case .center:
-        stackView.distribution = .equalCentering
-      default:
-        stackView.distribution = .fill
-      }
+      // Centering is handled by `centerX` / `greaterThanOrEqual` constraints in
+      // `applyContentAlignmentLayout()`. `.equalCentering` would also distribute slack at the
+      // stack edges, which stacks on top of `Appearance.contentInsets` and reads as a second
+      // padding layer (for example in `FKTabBar` item cells).
+      stackView.distribution = .fill
       stackView.alignment = stackCrossAxisAlignmentForHorizontalStack(vertical: v)
     case .vertical:
-      switch v {
-      case .center:
-        stackView.distribution = .equalCentering
-      default:
-        stackView.distribution = .fill
-      }
+      stackView.distribution = .fill
       stackView.alignment = stackCrossAxisAlignmentForVerticalStack(horizontal: h)
     }
   }
