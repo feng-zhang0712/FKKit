@@ -4,6 +4,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.59.0] - 2026-06-02
+
 ### Added (FKUIKit — TabBar)
 
 - **`FKTabBarIntrinsicWidthMeasurement`** — ``normalStateOnly`` (default) vs ``adjustsOnSelection`` for intrinsic/constrained width tabs; selection relayout when adjusting on selection.
@@ -11,13 +13,20 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - **`FKTabBarItemButtonConfigurator`** — shared FKButton assembly for cells and width measurement.
 - **`FKTabBarFlowLayout`** — honors per-index **`customSpacing(after:context:)`** gaps; mirrors layout in RTL.
 - **`FKTabBarCollectionCoordinator`** — internal collection delegate bridge (keeps UICollectionView callbacks off the public **`FKTabBar`** type).
+- **`FKTabBarItem/accessoryIcon`** and **`visibleItemAccessoryView(at:)`** — configurable trailing icon with host-owned animation anchor.
 - **Examples**: Layout & insets hub section; Integration scenarios (stable ID, long press, custom badge, customization hooks, performBatchUpdates, non-scrollable overflow + resolved hints); SwiftUI progress **`Binding`** demo; Example filenames unified to **`FKTabBar*`** prefix; Content types demonstrates **`intrinsicWidthMeasurement`** toggle.
+
+### Added (FKUIKit — Button)
+
+- Production APIs: **`minimumTouchTargetSize`**, batch state registration (`setTitles`, `registerAppearances`, slot image helpers), **`FKButtonLoadingIndicatorConfiguration`**, SF Symbol effects (iOS 17+), **`showTransientResult`**, and **`configureBadge`**.
+- **Examples**: **Production patterns** hub scenario covering touch targets, batch setup, loading polish, badges, symbol effects, and transient feedback.
 
 ### Changed (FKUIKit — TabBar)
 
 - **Breaking:** merged **`cellLayoutMargins`** + **`itemContentInsets`** into single **`layout.itemInsets`** (applied as hosted `FKButton` `contentInsets` only).
 - **Breaking:** merged ``includesBottomSafeAreaInset`` + ``safeAreaHeightPolicy`` into ``layout.bottomSafeAreaBehavior`` (``ignore`` / ``padContent`` / ``extendBarHeight`` / ``bottomDocked``).
 - **Breaking:** removed distribute-style **`FKTabBarContentAlignment`** cases (`spaceBetween`, `spaceAround`, `spaceEvenly`); use **`widthMode = .fillEqually`** for equal-width tabs and leading/center/trailing for group alignment when content fits.
+- **Breaking:** flattened accessory configuration into **`FKTabBarAccessoryIconConfiguration`** (replaces expansion-specific accessory APIs).
 - **`FKTabBarResolvedLayoutHints`** and **`resolvedLayoutHintsForCurrentEnvironment()`** — bundled effective layout snapshot.
 - **`README.md`** — documents intrinsic width measurement, badge update contract, DataSource auto-reload, clip vs truncate, batch helpers, and indicator appearance sync.
 - Indicator **`trackContentFrame`** follows **`FKButton.stackView`** bounds instead of full cell/button frame.
@@ -36,12 +45,24 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 - **`FKButton`** `.center` content alignment: restore **`.equalCentering`** stack distribution (fixes stack wider than `contentContainerView` in fixed-width hosts such as `FKTabBar` fillEqually cells); add **`width/height <= contentContainerView`** caps to resolve ambiguous layout warnings.
 - Label rendering avoids double Dynamic Type scaling when **`adjustsFontForContentSizeCategory`** is enabled (unscaled font in attributed text; scaling delegated to **`UILabel`**).
+- Consolidated loading/transient implementation, unified highlight animation via **`applyHighlightVisuals`**, and folded spinner tint into **`loadingIndicatorConfiguration`** (removed standalone **`loadingActivityIndicatorColor`**).
+
+### Fixed (FKUIKit — TabBar)
+
+- Item cells handle selection through **`primaryActionTriggered`** only (prevents duplicate selection callbacks).
+- Badge and item mutations route through **`mutateStoredItem`** to keep **`items`** / **`visibleItems`** in sync.
+- Content-only reloads refresh all visible cells when models change.
 
 ### Removed
 
 - Unused internal **`lastAppliedConfiguration`** storage on **`FKTabBar`**.
 - Orphan Example **`FKTabBarBasicsIconTextExampleViewController`** (superseded by Basic playground / content types scenarios).
 - Redundant Example **`FKTabBarResolvedLayoutHintsExampleViewController`** (merged into non-scrollable overflow scenario).
+- **`FKButton+InterfaceBuilderHooks.swift`** (merged into setup); redundant **`badgeController`** alias on **`FKButton`**.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.59.0** (Git tag **`0.59.0`**).
 
 ## [0.58.0] - 2026-06-01
 
@@ -2362,7 +2383,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.58.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.59.0...HEAD
+[0.59.0]: https://github.com/feng-zhang0712/FKKit/compare/0.58.0...0.59.0
 [0.58.0]: https://github.com/feng-zhang0712/FKKit/compare/0.57.0...0.58.0
 [0.57.0]: https://github.com/feng-zhang0712/FKKit/compare/0.56.0...0.57.0
 [0.56.0]: https://github.com/feng-zhang0712/FKKit/compare/0.55.0...0.56.0
