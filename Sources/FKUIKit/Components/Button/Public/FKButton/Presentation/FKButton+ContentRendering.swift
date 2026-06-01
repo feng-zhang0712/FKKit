@@ -71,8 +71,18 @@ extension FKButton {
         stackView.spacing = max(leading?.spacingToTitle ?? 0, trailing?.spacingToTitle ?? 0)
       }
     case .textOnly:
-      releaseAllImageSlots()
-      stackView.spacing = 0
+      clearImageSlot(.center)
+      if hasRenderableImage(for: .leading) {
+        applyImage(resolveImageElement(for: .leading), to: imageViewIfNeeded(for: .leading))
+      } else {
+        clearImageSlot(.leading)
+      }
+      if hasRenderableImage(for: .trailing) {
+        applyImage(resolveImageElement(for: .trailing), to: imageViewIfNeeded(for: .trailing))
+      } else {
+        clearImageSlot(.trailing)
+      }
+      stackView.spacing = textOnlyAccessorySpacing()
     case .custom:
       releaseAllImageSlots()
       stackView.spacing = 0
@@ -162,6 +172,24 @@ extension FKButton {
     return resolveFromStateMap(map)
   }
 
+  /// Whether the resolved image for a slot has drawable content for the current control state.
+  func hasRenderableImage(for slot: ImageSlot) -> Bool {
+    guard let element = resolveImageElement(for: slot) else { return false }
+    return element.image != nil || element.systemName != nil
+  }
+
+  /// Stack spacing between title and optional leading/trailing accessory images in ``ContentKind/textOnly`` mode.
+  func textOnlyAccessorySpacing() -> CGFloat {
+    let leading = hasRenderableImage(for: .leading) ? (resolveImageElement(for: .leading)?.spacingToTitle ?? 0) : 0
+    let trailing = hasRenderableImage(for: .trailing) ? (resolveImageElement(for: .trailing)?.spacingToTitle ?? 0) : 0
+    return max(leading, trailing)
+  }
+
+  func shouldRebuildContentLayoutForAccessorySlot(_ slot: ImageSlot) -> Bool {
+    guard case .textOnly = content.kind else { return false }
+    return slot == .leading || slot == .trailing
+  }
+
   func storeImage(_ image: ImageAttributes?, slot: ImageSlot, for state: UIControl.State) {
     let key = Self.makeStateKey(state)
     if var map = imagesBySlotAndState[slot] {
@@ -209,7 +237,7 @@ extension FKButton {
     }
 
     let attributes: [NSAttributedString.Key: Any] = [
-      .font: scaledFont(for: title),
+      .font: labelFont(for: title),
       .foregroundColor: title.color,
       .kern: title.kerning,
       .paragraphStyle: paragraph,
@@ -248,7 +276,7 @@ extension FKButton {
     }
 
     let attributes: [NSAttributedString.Key: Any] = [
-      .font: scaledFont(for: subtitle),
+      .font: labelFont(for: subtitle),
       .foregroundColor: subtitle.color,
       .kern: subtitle.kerning,
       .paragraphStyle: paragraph,
@@ -262,6 +290,11 @@ extension FKButton {
       return UIFontMetrics(forTextStyle: style).scaledFont(for: configuration.font, compatibleWith: traitCollection)
     }
     return UIFontMetrics.default.scaledFont(for: configuration.font, compatibleWith: traitCollection)
+  }
+
+  /// Uses the unscaled font when Dynamic Type scaling is delegated to `UILabel.adjustsFontForContentSizeCategory`.
+  func labelFont(for configuration: LabelAttributes) -> UIFont {
+    configuration.adjustsFontForContentSizeCategory ? configuration.font : scaledFont(for: configuration)
   }
 
   // MARK: - UIImageView application
@@ -326,6 +359,14 @@ extension FKButton {
 
     NSLayoutConstraint.activate(constraints)
     imageConstraints[ObjectIdentifier(imageView)] = constraints
+
+    if allowsSymbolEffectAnimations,
+       let symbolEffect = element.symbolEffect,
+       symbolEffect.trigger == .onStateChange {
+      if #available(iOS 17.0, *) {
+        applySymbolEffect(symbolEffect.effect, to: imageView)
+      }
+    }
   }
 
   func deactivateImageConstraints(for imageView: UIImageView) {
@@ -394,5 +435,39 @@ extension FKButton {
       bottom: max(0, insets.bottom),
       right: max(0, isRTL ? insets.leading : insets.trailing)
     )
+  }
+
+  // MARK: - Symbol effects (iOS 17+)
+
+  func playSymbolEffects(for trigger: FKButtonSymbolEffectConfiguration.Trigger) {
+    guard #available(iOS 17.0, *) else { return }
+    for slot in [ImageSlot.center, .leading, .trailing] {
+      guard let imageView = imageView(for: slot),
+            let element = resolveImageElement(for: slot),
+            let config = element.symbolEffect,
+            config.trigger == trigger
+      else { continue }
+      applySymbolEffect(config.effect, to: imageView)
+    }
+  }
+
+  func imageView(for slot: ImageSlot) -> UIImageView? {
+    switch slot {
+    case .center: return imageView
+    case .leading: return leadingImageView
+    case .trailing: return trailingImageView
+    }
+  }
+
+  @available(iOS 17.0, *)
+  func applySymbolEffect(_ effect: FKButtonSymbolEffectConfiguration.Effect, to imageView: UIImageView) {
+    switch effect {
+    case .bounce:
+      imageView.addSymbolEffect(.bounce.byLayer, options: .nonRepeating)
+    case .pulse:
+      imageView.addSymbolEffect(.pulse.byLayer, options: .nonRepeating)
+    case .scale:
+      imageView.addSymbolEffect(.scale.up.byLayer, options: .nonRepeating)
+    }
   }
 }

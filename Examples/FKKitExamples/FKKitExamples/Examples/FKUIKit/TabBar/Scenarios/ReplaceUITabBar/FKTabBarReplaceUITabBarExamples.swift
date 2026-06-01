@@ -5,32 +5,54 @@ import FKUIKit
 ///
 /// Key points:
 /// - This is a UIView-level replacement demo only (no TabBarController is provided).
-/// - Safe-area inclusion in height is controlled by layout configuration (see `safeAreaHeightPolicy`).
+/// - Bottom safe-area behavior is controlled by ``FKTabBarLayoutConfiguration/bottomSafeAreaBehavior``.
 /// - Background, divider position, and shadow are configured via `FKTabBarAppearance`.
 final class FKTabBarReplaceUITabBarExampleViewController: UIViewController {
-  private var configuration = FKTabBarConfiguration()
+  private var configuration = FKTabBarPresets.bottomDocked(showsIndicator: false)
   private var items = FKTabBarExampleSupport.makeItems(5)
 
   private lazy var tabView: FKTabBar = {
-    FKTabBar(items: items, selectedIndex: 0, configuration: configuration)
+    configuration.layout.preferredBarHeight = 49
+    configuration.layout.bottomSafeAreaBehavior = .ignore
+    configuration.layout.itemSpacing = 0
+    configuration.layout.contentInsets = .zero
+    configuration.appearance.backgroundStyle = .solid(.secondarySystemBackground)
+    return FKTabBar(items: items, selectedIndex: 0, configuration: configuration)
   }()
-
-  private var bottomConstraint: NSLayoutConstraint?
 
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Replace UITabBar"
     view.backgroundColor = .systemBackground
 
-    let stack = FKTabBarExampleSupport.makeRootStack(in: view, topInset: 16)
-    stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("Bottom-docked FKTabBar (UIView only)"))
-    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("This page demonstrates pinning FKTabBar to the bottom and toggling safe-area height policy and background styling. FKTabBar does not provide a TabBarController."))
+    tabView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(tabView)
 
-    let safeArea = UISegmentedControl(items: ["Exclude Safe Area", "Include Safe Area"])
+    NSLayoutConstraint.activate([
+      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      tabView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+    ])
+
+    let stack = FKTabBarExampleSupport.makeRootStack(
+      in: view,
+      topInset: 16,
+      scrollBottomAbove: tabView.topAnchor
+    )
+    stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("Bottom-docked FKTabBar (UIView only)"))
+    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Pin FKTabBar to the bottom and toggle bottomSafeAreaBehavior plus background styling. FKTabBar does not provide a TabBarController."))
+    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Non-scrollable fillEqually mode evenly distributes tabs across the bar width. A `_UIScrollViewScrollIndicator` in View Debugger usually means the collection view content is wider than its bounds (often from stale scroll state) — it should not appear once layout is correct."))
+
+    let safeArea = UISegmentedControl(items: ["Ignore", "Pad", "Extend", "Docked"])
     safeArea.selectedSegmentIndex = 0
     safeArea.addAction(UIAction { [weak self] _ in
       guard let self else { return }
-      self.configuration.layout.safeAreaHeightPolicy = safeArea.selectedSegmentIndex == 0 ? .excludeBottomSafeArea : .includeBottomSafeArea
+      switch safeArea.selectedSegmentIndex {
+      case 1: self.configuration.layout.bottomSafeAreaBehavior = .padContent
+      case 2: self.configuration.layout.bottomSafeAreaBehavior = .extendBarHeight
+      case 3: self.configuration.layout.bottomSafeAreaBehavior = .bottomDocked
+      default: self.configuration.layout.bottomSafeAreaBehavior = .ignore
+      }
       self.tabView.configuration = self.configuration
       self.tabView.invalidateIntrinsicContentSize()
       self.view.setNeedsLayout()
@@ -38,7 +60,7 @@ final class FKTabBarReplaceUITabBarExampleViewController: UIViewController {
     stack.addArrangedSubview(safeArea)
 
     let itemDirection = UISegmentedControl(items: ["Horizontal", "Vertical"])
-    itemDirection.selectedSegmentIndex = 0
+    itemDirection.selectedSegmentIndex = 1
     itemDirection.addAction(UIAction { [weak self] _ in
       guard let self else { return }
       self.configuration.layout.itemLayoutDirection = itemDirection.selectedSegmentIndex == 0 ? .horizontal : .vertical
@@ -95,30 +117,7 @@ final class FKTabBarReplaceUITabBarExampleViewController: UIViewController {
     hint.font = .preferredFont(forTextStyle: .footnote)
     hint.textColor = .secondaryLabel
     hint.numberOfLines = 0
-    hint.text = "Tip: run on a device/simulator with Home Indicator to see the safe-area height difference."
+    hint.text = "Tip: run on a device/simulator with Home Indicator to compare ignore vs pad vs extend vs bottomDocked."
     stack.addArrangedSubview(hint)
-
-    tabView.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(tabView)
-
-    // Default configuration to mimic a system bar-ish look in fixedEqual mode.
-    configuration.layout.isScrollable = false
-    configuration.layout.widthMode = .fillEqually
-    configuration.layout.preferredBarHeight = 49
-    configuration.layout.safeAreaHeightPolicy = .excludeBottomSafeArea
-    configuration.appearance.backgroundStyle = .solid(.secondarySystemBackground)
-    configuration.appearance.showsDivider = true
-    configuration.appearance.dividerPosition = .top
-    configuration.appearance.shadow = .custom(color: .black, opacity: 0.12, radius: 10, offset: CGSize(width: 0, height: -2))
-    tabView.configuration = configuration
-
-    bottomConstraint = tabView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-    bottomConstraint?.isActive = true
-
-    NSLayoutConstraint.activate([
-      tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-    ])
   }
 }
-

@@ -19,7 +19,8 @@ final class FKTabBarDynamicTypeExampleViewController: UIViewController {
       titleOverflowMode: .wrap,
       largeTextLayoutStrategy: .automatic,
       minimumItemHeight: 44,
-      preferredBarHeight: nil
+      preferredBarHeight: nil,
+      widthMode: .constrained(min: 72, max: 112)
     )
   )
 
@@ -47,7 +48,7 @@ final class FKTabBarDynamicTypeExampleViewController: UIViewController {
     )
     view.bringSubviewToFront(tabView)
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("Dynamic Type strategies"))
-    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Change Larger Text in Settings and switch strategies below to compare truncation, shrinking, wrapping, and height growth."))
+    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Narrow tab widths below preview truncate/shrink/wrap at the default text size. `Wrap+Height` additionally grows bar height only when the system text size is in an accessibility category (Settings → Larger Text)."))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("FKTabBar is a UIView component. It reacts to trait changes but does not provide a controller/pager wrapper."))
 
     strategyControl.selectedSegmentIndex = 0
@@ -59,10 +60,16 @@ final class FKTabBarDynamicTypeExampleViewController: UIViewController {
     infoLabel.font = .preferredFont(forTextStyle: .footnote)
     infoLabel.textColor = .secondaryLabel
     infoLabel.numberOfLines = 0
-    infoLabel.text = "Strategy: automatic"
     stack.addArrangedSubview(infoLabel)
 
     applyStrategy()
+  }
+
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    if traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory {
+      applyStrategy()
+    }
   }
 
   private func applyStrategy() {
@@ -90,7 +97,10 @@ final class FKTabBarDynamicTypeExampleViewController: UIViewController {
     tabView.invalidateIntrinsicContentSize()
     view.setNeedsLayout()
 
-    infoLabel.text = "Strategy: \(configuration.layout.largeTextLayoutStrategy)"
+    let category = traitCollection.preferredContentSizeCategory
+    let accessibilityNote = category.isAccessibilityCategory
+      ? "accessibility text size active"
+      : "default text size — Wrap+Height matches Wrap until Larger Text is increased"
+    infoLabel.text = "Strategy: \(configuration.layout.largeTextLayoutStrategy)\nText size: \(category.rawValue) (\(accessibilityNote))"
   }
 }
-

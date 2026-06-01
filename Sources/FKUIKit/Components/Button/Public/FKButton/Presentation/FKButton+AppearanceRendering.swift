@@ -6,17 +6,6 @@ extension FKButton {
   func applyAppearanceForCurrentState() {
     let appearance = resolveAppearance()
 
-    if isLoading {
-      alpha = 1
-      transform = .identity
-    } else {
-      let feedback = appearance.interaction.isHighlightFeedbackEnabled
-      alpha = resolvedAlpha(for: appearance) * disabledVisualMultiplier()
-      transform = (isHighlighted && feedback)
-        ? CGAffineTransform(scaleX: appearance.interaction.pressedScale, y: appearance.interaction.pressedScale)
-        : .identity
-    }
-
     if let gradient = appearance.backgroundGradient {
       backgroundGradientLayer.isHidden = false
       backgroundGradientLayer.colors = gradient.colors.map(\.cgColor)
@@ -55,7 +44,29 @@ extension FKButton {
     
     invalidateIntrinsicContentSize()
   }
-  
+
+  /// Applies pressed/disabled/loading alpha and scale. Call with `animated: true` from `isHighlighted` changes.
+  func applyHighlightVisuals(animated: Bool) {
+    let appearance = resolveAppearance()
+    let apply = {
+      if self.isLoading {
+        self.alpha = 1
+        self.transform = .identity
+        return
+      }
+      let feedback = appearance.interaction.isHighlightFeedbackEnabled
+      self.alpha = self.resolvedAlpha(for: appearance) * self.disabledVisualMultiplier()
+      self.transform = (self.isHighlighted && feedback)
+        ? CGAffineTransform(scaleX: appearance.interaction.pressedScale, y: appearance.interaction.pressedScale)
+        : .identity
+    }
+    guard animated, appearance.interaction.isHighlightFeedbackEnabled else {
+      apply()
+      return
+    }
+    UIView.animate(withDuration: 0.12, animations: apply)
+  }
+
   func applyCornerMetrics(using appearance: Appearance) {
     switch appearance.cornerStyle.corner {
     case .none:

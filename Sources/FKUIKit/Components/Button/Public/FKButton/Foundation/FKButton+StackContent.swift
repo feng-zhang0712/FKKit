@@ -6,7 +6,11 @@ extension FKButton {
   func applyContentLayout() {
     switch content.kind {
     case .textOnly, .imageOnly, .custom:
-      stackView.spacing = 0
+      if case .textOnly = content.kind {
+        stackView.spacing = textOnlyAccessorySpacing()
+      } else {
+        stackView.spacing = 0
+      }
     case .textAndImage:
       break
     }
@@ -39,7 +43,14 @@ extension FKButton {
   func desiredArrangedSubviewsForCurrentContent() -> [UIView] {
     switch content.kind {
     case .textOnly:
-      return [titleContainerViewIfNeeded()]
+      var views: [UIView] = [titleContainerViewIfNeeded()]
+      if hasRenderableImage(for: .leading) {
+        views.insert(imageViewIfNeeded(for: .leading), at: 0)
+      }
+      if hasRenderableImage(for: .trailing) {
+        views.append(imageViewIfNeeded(for: .trailing))
+      }
+      return views
     case .imageOnly:
       return [imageViewIfNeeded(for: .center)]
     case .textAndImage(let alignment):

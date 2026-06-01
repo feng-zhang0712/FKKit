@@ -30,24 +30,49 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
           make: { FKTabBarBasicPlaygroundExampleViewController() }
         ),
         RowModel(
-          title: "Basic — icon + text",
-          subtitle: "Validates FKButton rendering for icon+text with selected/disabled styling.",
-          make: { FKTabBarBasicsIconTextExampleViewController() }
-        ),
-        RowModel(
           title: "Basic — content types",
-          subtitle: "Text, symbol, image, and customContentIdentifier + FKTabBarCustomization.customContentView.",
+          subtitle: "Text/symbol/image/custom content + intrinsicWidthMeasurement toggle (normalStateOnly vs adjustsOnSelection).",
           make: { FKTabBarContentTypesExampleViewController() }
         ),
         RowModel(
           title: "Basic — filter strip preset",
-          subtitle: "filterStrip preset, chevron accessories, expandedItemID, controlled selection commit.",
+          subtitle: "filterStrip preset, per-tab trailing icon animations, expandedItemID, pending selection.",
           make: { FKTabBarFilterStripExampleViewController() }
         ),
         RowModel(
           title: "Basic — presets",
           subtitle: "Compare pagerHeader, segmentedControl, filterStrip, and bottomDocked factories.",
           make: { FKTabBarPresetsExampleViewController() }
+        ),
+      ]
+    ),
+    SectionModel(
+      title: "Layout & insets",
+      rows: [
+        RowModel(
+          title: "Layout — itemInsets",
+          subtitle: "Single per-tab padding knob; pairs with indicator trackContentFrame.",
+          make: { FKTabBarItemInsetsExampleViewController() }
+        ),
+        RowModel(
+          title: "Layout — content alignment",
+          subtitle: "Non-scrollable strip: leading, center, trailing when items fit without scrolling.",
+          make: { FKTabBarContentAlignmentExampleViewController() }
+        ),
+        RowModel(
+          title: "Layout — scroll edge fade",
+          subtitle: "Toggle scrollEdgeFade width and enabled state on a scrollable strip.",
+          make: { FKTabBarScrollEdgeFadeExampleViewController() }
+        ),
+        RowModel(
+          title: "Layout — custom spacing",
+          subtitle: "customSpacing(after:) with per-index gaps via internal flow layout.",
+          make: { FKTabBarCustomSpacingExampleViewController() }
+        ),
+        RowModel(
+          title: "Layout — global subtitle",
+          subtitle: "appearance.subtitleConfiguration fallback when item.subtitle is nil.",
+          make: { FKTabBarGlobalSubtitleExampleViewController() }
         ),
       ]
     ),
@@ -78,6 +103,11 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
           title: "Indicator — styles & animation",
           subtitle: "Switch indicator styles and animation strategies; stress-tap to verify stability.",
           make: { FKTabBarIndicatorAnimationExampleViewController() }
+        ),
+        RowModel(
+          title: "Indicator — advanced customization",
+          subtitle: "indicatorZOrder, indicatorFollowMode, renderCustomIndicator, customIndicatorFrame.",
+          make: { FKTabBarIndicatorAdvancedExampleViewController() }
         ),
         RowModel(
           title: "Indicator — paging progress (slider)",
@@ -146,13 +176,38 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
       rows: {
         var rows = [
           RowModel(
+            title: "Integration — customization hooks",
+            subtitle: "animateInteraction, trailing icon accessory, shouldSelect closure, badgeConfiguration, badgeAnimation.",
+            make: { FKTabBarCustomizationHooksExampleViewController() }
+          ),
+          RowModel(
+            title: "Integration — performBatchUpdates",
+            subtitle: "Single layout pass for configuration + badge changes.",
+            make: { FKTabBarBatchUpdatesExampleViewController() }
+          ),
+          RowModel(
+            title: "Integration — stable ID APIs",
+            subtitle: "setSelectedIndex(forItemID:), setBadge(forItemID:), setItem(forItemID:), reapplyVisibleItemConfigurations().",
+            make: { FKTabBarStableIDExampleViewController() }
+          ),
+          RowModel(
+            title: "Integration — long press",
+            subtitle: "isLongPressEnabled, onLongPress, resolvedTitlePresentationForCurrentEnvironment().",
+            make: { FKTabBarLongPressExampleViewController() }
+          ),
+          RowModel(
+            title: "Integration — custom badge",
+            subtitle: "FKTabBarBadgeContent.custom + customBadgeView(for:).",
+            make: { FKTabBarCustomBadgeExampleViewController() }
+          ),
+          RowModel(
             title: "Integration — DataSource",
             subtitle: "Dynamic item supply via FKTabBarDataSource + reloadData().",
             make: { FKTabBarDataSourceExampleViewController() }
           ),
           RowModel(
             title: "Integration — non-scrollable overflow",
-            subtitle: "Compare shrink / truncate / clip when isScrollable is false.",
+            subtitle: "Shrink / truncate / clip + resolvedLayoutHintsForCurrentEnvironment() snapshot.",
             make: { FKTabBarNonScrollableOverflowExampleViewController() }
           ),
           RowModel(
@@ -175,7 +230,7 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
         rows.append(
           RowModel(
             title: "Integration — SwiftUI representable",
-            subtitle: "FKTabBarRepresentable with controlled mode and progress callback.",
+            subtitle: "FKTabBarRepresentable — controlled mode, progress callback, and progress Binding.",
             make: { FKTabBarSwiftUIExampleViewController() }
           )
         )

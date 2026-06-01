@@ -39,7 +39,7 @@ final class FKTabBarAccessibilityExampleViewController: UIViewController {
       tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       tabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      tabView.heightAnchor.constraint(equalToConstant: 56),
+      tabView.heightAnchor.constraint(greaterThanOrEqualToConstant: 52),
     ])
 
     let stack = FKTabBarExampleSupport.makeRootStack(

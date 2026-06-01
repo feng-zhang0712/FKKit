@@ -41,4 +41,3 @@ enum FKTabBarBadgeAnchorResolver {
     button.leadingImageView ?? button.imageView ?? button.trailingImageView
   }
 }
-

@@ -49,6 +49,7 @@ extension FKButton {
         stackView.centerXAnchor.constraint(equalTo: c.centerXAnchor),
         stackView.leadingAnchor.constraint(greaterThanOrEqualTo: c.leadingAnchor),
         stackView.trailingAnchor.constraint(lessThanOrEqualTo: c.trailingAnchor),
+        stackView.widthAnchor.constraint(lessThanOrEqualTo: c.widthAnchor),
       ]
     @unknown default:
       next += [
@@ -78,6 +79,7 @@ extension FKButton {
         stackView.centerYAnchor.constraint(equalTo: c.centerYAnchor),
         stackView.topAnchor.constraint(greaterThanOrEqualTo: c.topAnchor),
         stackView.bottomAnchor.constraint(lessThanOrEqualTo: c.bottomAnchor),
+        stackView.heightAnchor.constraint(lessThanOrEqualTo: c.heightAnchor),
       ]
     @unknown default:
       next += [
@@ -98,20 +100,13 @@ extension FKButton {
   ) {
     switch axis {
     case .horizontal:
-      switch h {
-      case .center:
-        stackView.distribution = .equalCentering
-      default:
-        stackView.distribution = .fill
-      }
+      // `.equalCentering` keeps the stack at its intrinsic width and centers the group inside
+      // `contentContainerView`. `.fill` distribution without a defined stack width is ambiguous and
+      // can grow wider than the container (for example `FKTabBar` fillEqually cells).
+      stackView.distribution = h == .fill ? .fill : .equalCentering
       stackView.alignment = stackCrossAxisAlignmentForHorizontalStack(vertical: v)
     case .vertical:
-      switch v {
-      case .center:
-        stackView.distribution = .equalCentering
-      default:
-        stackView.distribution = .fill
-      }
+      stackView.distribution = v == .fill ? .fill : .equalCentering
       stackView.alignment = stackCrossAxisAlignmentForVerticalStack(horizontal: h)
     }
   }
@@ -166,6 +161,7 @@ extension FKButton {
     applyImagesForCurrentState()
     applyCustomContentForCurrentState()
     applyAppearanceForCurrentState()
+    applyHighlightVisuals(animated: false)
     applyAccessibilityForCurrentState()
   }
   

@@ -23,7 +23,7 @@ final class FKButtonExampleLoadingViewController: FKButtonExampleScrollViewContr
     overlayBtn.setLeadingImage(.init(systemName: "arrow.down.circle.fill", tintColor: .white, spacingToTitle: 10), for: .normal)
     overlayBtn.setAppearances(.init(normal: .filled(backgroundColor: .systemBlue, cornerStyle: .init(corner: .fixed(12)))))
     overlayBtn.loadingPresentationStyle = .overlay(dimmedContentAlpha: 0.35)
-    overlayBtn.loadingActivityIndicatorColor = .white
+    overlayBtn.loadingIndicatorConfiguration = .init(color: .white)
     overlayBtn.heightAnchor.constraint(equalToConstant: 48).isActive = true
     overlayBtn.widthAnchor.constraint(equalToConstant: 260).isActive = true
     overlayBtn.addAction(UIAction { [weak overlayBtn] _ in
@@ -40,7 +40,7 @@ final class FKButtonExampleLoadingViewController: FKButtonExampleScrollViewContr
     replaceBtn.setTitle(.init(text: "Hide + status text", font: .systemFont(ofSize: 15, weight: .semibold), color: .white), for: .normal)
     replaceBtn.setLeadingImage(.init(systemName: "icloud.and.arrow.down", tintColor: .white, spacingToTitle: 10), for: .normal)
     replaceBtn.setAppearances(.init(normal: .filled(backgroundColor: .systemIndigo, cornerStyle: .init(corner: .fixed(12)))))
-    replaceBtn.loadingActivityIndicatorColor = .white
+    replaceBtn.loadingIndicatorConfiguration = .init(color: .white)
     replaceBtn.heightAnchor.constraint(equalToConstant: 48).isActive = true
     replaceBtn.widthAnchor.constraint(equalToConstant: 260).isActive = true
     replaceBtn.addAction(UIAction { [weak replaceBtn] _ in

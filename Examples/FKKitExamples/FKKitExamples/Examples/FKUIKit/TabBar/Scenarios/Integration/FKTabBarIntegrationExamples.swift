@@ -72,7 +72,7 @@ final class FKTabBarDataSourceExampleViewController: UIViewController, FKTabBarD
 
 // MARK: - Non-scrollable overflow
 
-/// Compares ``FKTabBarNonScrollableOverflowPolicy`` when tabs do not scroll.
+/// Compares ``FKTabBarNonScrollableOverflowPolicy`` when tabs do not scroll and prints ``resolvedLayoutHintsForCurrentEnvironment()``.
 final class FKTabBarNonScrollableOverflowExampleViewController: UIViewController {
   private var configuration = FKTabBarConfiguration(
     layout: .init(
@@ -86,6 +86,7 @@ final class FKTabBarNonScrollableOverflowExampleViewController: UIViewController
     selectedIndex: 0,
     configuration: configuration
   )
+  private let hintsLabel = UILabel()
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -96,7 +97,7 @@ final class FKTabBarNonScrollableOverflowExampleViewController: UIViewController
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("nonScrollableOverflowPolicy"))
     stack.addArrangedSubview(
       FKTabBarExampleSupport.captionLabel(
-        "When isScrollable is false, shrink / truncate / clip controls how long titles behave inside equal-width slots."
+        "When isScrollable is false, shrink / truncate / clip controls long titles in equal-width slots. Clip and truncate share the same title layout; clip also sets collectionView.clipsToBounds."
       )
     )
 
@@ -110,10 +111,27 @@ final class FKTabBarNonScrollableOverflowExampleViewController: UIViewController
       default: self.configuration.layout.nonScrollableOverflowPolicy = .shrink
       }
       self.tabView.applyConfiguration(self.configuration, animated: false)
+      self.refreshHints()
     }, for: .valueChanged)
     stack.addArrangedSubview(control)
 
+    hintsLabel.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
+    hintsLabel.textColor = .secondaryLabel
+    hintsLabel.numberOfLines = 0
+    stack.addArrangedSubview(hintsLabel)
+
     FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view)
+    refreshHints()
+  }
+
+  private func refreshHints() {
+    let hints = tabView.resolvedLayoutHintsForCurrentEnvironment()
+    hintsLabel.text = """
+    resolved overflow=\(hints.titlePresentation.overflowMode)
+    lines=\(hints.titlePresentation.maximumTitleLines)
+    growHeight=\(hints.titlePresentation.shouldIncreaseBarHeight)
+    contentAlignmentActive=\(hints.isContentAlignmentActive)
+    """
   }
 }
 
@@ -224,8 +242,8 @@ final class FKTabBarVisibleItemButtonExampleViewController: UIViewController {
   private lazy var tabView = FKTabBar(
     items: [
       FKTabBarItem(id: "all", title: .init(normal: .init(text: "All"))),
-      FKTabBarItem(id: "price", title: .init(normal: .init(text: "Price")), accessory: .init(kind: .chevron)),
-      FKTabBarItem(id: "brand", title: .init(normal: .init(text: "Brand")), accessory: .init(kind: .chevron)),
+      FKTabBarItem(id: "price", title: .init(normal: .init(text: "Price")), accessoryIcon: .systemSymbol("chevron.down")),
+      FKTabBarItem(id: "brand", title: .init(normal: .init(text: "Brand")), accessoryIcon: .systemSymbol("chevron.down")),
     ],
     selectedIndex: 0,
     configuration: FKTabBarPresets.filterStrip()
@@ -280,14 +298,14 @@ final class FKTabBarVisibleItemButtonExampleViewController: UIViewController {
 #if canImport(SwiftUI)
 import SwiftUI
 
-/// Hosts ``FKTabBarRepresentable`` with controlled selection and progress binding.
+/// Hosts ``FKTabBarRepresentable`` with controlled selection, progress callback, and progress binding modes.
 final class FKTabBarSwiftUIExampleViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "SwiftUI bridge"
     view.backgroundColor = .systemBackground
 
-    let host = UIHostingController(rootView: FKTabBarSwiftUIDemoView())
+    let host = UIHostingController(rootView: FKTabBarSwiftUIHubView())
     addChild(host)
     host.view.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(host.view)
@@ -302,7 +320,45 @@ final class FKTabBarSwiftUIExampleViewController: UIViewController {
   }
 }
 
-private struct FKTabBarSwiftUIDemoView: View {
+private enum FKTabBarSwiftUIDemoMode: String, CaseIterable, Identifiable {
+  case controlledSelection
+  case progressBinding
+
+  var id: String { rawValue }
+
+  var title: String {
+    switch self {
+    case .controlledSelection: return "Controlled selection"
+    case .progressBinding: return "Progress binding"
+    }
+  }
+}
+
+private struct FKTabBarSwiftUIHubView: View {
+  @State private var mode = FKTabBarSwiftUIDemoMode.controlledSelection
+
+  var body: some View {
+    VStack(spacing: 12) {
+      Picker("Demo", selection: $mode) {
+        ForEach(FKTabBarSwiftUIDemoMode.allCases) { item in
+          Text(item.title).tag(item)
+        }
+      }
+      .pickerStyle(.segmented)
+      .padding(.horizontal)
+
+      switch mode {
+      case .controlledSelection:
+        FKTabBarSwiftUIControlledDemoView()
+      case .progressBinding:
+        FKTabBarSwiftUIProgressBindingDemoView()
+      }
+    }
+    .padding(.top, 8)
+  }
+}
+
+private struct FKTabBarSwiftUIControlledDemoView: View {
   @State private var selectedIndex = 1
   @State private var log = "Ready — controlled mode: tap a tab to request selection."
 
@@ -333,7 +389,51 @@ private struct FKTabBarSwiftUIDemoView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal)
     }
-    .padding(.top, 8)
+  }
+}
+
+private struct FKTabBarSwiftUIProgressBindingDemoView: View {
+  @State private var selectedIndex = 0
+  @State private var selectionProgress: FKTabBarSelectionProgress?
+  @State private var log = "Drag the slider to drive selectionProgress binding."
+
+  private let items = FKTabBarExampleSupport.makeItems(5)
+
+  var body: some View {
+    VStack(spacing: 12) {
+      FKTabBarRepresentable(
+        items: items,
+        selectedIndex: $selectedIndex,
+        selectionProgress: $selectionProgress,
+        configuration: FKTabBarPresets.pagerHeader(),
+        onSelectionProgress: { from, to, progress in
+          log = String(format: "callback %.2f  %d → %d", progress, from, to)
+        }
+      )
+      .frame(height: 52)
+
+      Slider(value: Binding(
+        get: { Double(selectionProgress?.progress ?? 0) },
+        set: { newValue in
+          let from = selectedIndex
+          let to = min(items.count - 1, from + 1)
+          selectionProgress = FKTabBarSelectionProgress(fromIndex: from, toIndex: to, progress: CGFloat(newValue))
+        }
+      ))
+
+      Text("selectedIndex = \(selectedIndex)")
+        .font(.footnote.monospacedDigit())
+      if let selectionProgress {
+        Text(String(format: "binding progress %.2f  %d → %d", selectionProgress.progress, selectionProgress.fromIndex, selectionProgress.toIndex))
+          .font(.footnote.monospacedDigit())
+      }
+      Text(log)
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal)
+    }
+    .padding(.horizontal)
   }
 }
 #endif

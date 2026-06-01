@@ -7,13 +7,13 @@ final class FKTabBarIndicatorView: UIView {
   /// `FKTabBar` updates this whenever appearance changes. This view intentionally does not
   /// try to interpret selection state; it only renders the given style and moves as requested.
   var style: FKTabBarIndicatorStyle = .none {
-    didSet { applyStyle() }
+    didSet { reapplyStyle() }
   }
   /// Fallback tint used by styles that do not provide their own fill colors.
   ///
   /// For line and ``FKTabBarIndicatorStyle/backdrop`` styles, the configuration's `fill` has priority.
   var color: UIColor = .label {
-    didSet { applyStyle() }
+    didSet { reapplyStyle() }
   }
   /// Optional custom view factory for ``FKTabBarIndicatorStyle/custom`` styles.
   ///
@@ -98,7 +98,17 @@ final class FKTabBarIndicatorView: UIView {
     }
   }
 
-  private func applyStyle() {
+  /// Applies indicator style and tint from the resolved appearance snapshot.
+  ///
+  /// Always re-renders even when ``FKTabBarIndicatorStyle`` / ``UIColor`` compare equal so hosts
+  /// cannot get stuck on ``FKTabBarDefaults`` styling after configuration updates.
+  func applyAppearance(style: FKTabBarIndicatorStyle, color: UIColor) {
+    self.style = style
+    self.color = color
+    reapplyStyle()
+  }
+
+  private func reapplyStyle() {
     // Reset everything to a known baseline before applying a new style. This avoids visual
     // artifacts caused by layer reuse (e.g. leftover borders/shadows/gradient layers).
     hostedCustomView?.removeFromSuperview()

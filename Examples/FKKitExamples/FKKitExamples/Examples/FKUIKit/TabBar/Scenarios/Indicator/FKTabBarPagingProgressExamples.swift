@@ -75,6 +75,14 @@ final class FKTabBarPagingProgressExampleViewController: UIViewController {
     }, for: .valueChanged)
     stack.addArrangedSubview(slider)
 
+    stack.addArrangedSubview(FKTabBarExampleSupport.actionButton("Commit toIndex (.interaction)") { [weak self] in
+      guard let self else { return }
+      self.tabView.setSelectedIndex(self.toIndex, animated: true, reason: .interaction)
+      self.fromIndex = self.toIndex
+      self.toIndex = min(7, self.fromIndex + 1)
+      self.syncSteppersAndLabel(resetProgress: true)
+    })
+
     tabView.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(tabView)
     NSLayoutConstraint.activate([

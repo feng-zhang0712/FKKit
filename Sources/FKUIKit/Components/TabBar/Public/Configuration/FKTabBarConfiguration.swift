@@ -41,6 +41,19 @@ public enum FKTabBarItemWidthMode: Equatable, Sendable {
   case constrained(min: CGFloat, max: CGFloat)
 }
 
+/// How intrinsic-width tab items are measured when ``FKTabBarItemWidthMode/intrinsic`` (or ``constrained``) is active.
+public enum FKTabBarIntrinsicWidthMeasurement: Equatable, Sendable {
+  /// Measure only the normal control state for every item.
+  ///
+  /// This keeps strip widths stable and matches legacy behavior before selection-aware sizing.
+  case normalStateOnly
+  /// Re-measure the selected item using selected-state content (title, image, typography).
+  ///
+  /// Unselected items keep normal-state widths. Selection changes trigger a layout refresh when
+  /// ``FKTabBarItemWidthMode`` is not ``fillEqually``.
+  case adjustsOnSelection
+}
+
 /// Positioning strategy when auto-scrolling selected item into view.
 public enum FKTabBarSelectionScrollPosition: Equatable, Sendable {
   /// Keep selected item near center.
@@ -87,16 +100,18 @@ public enum FKTabBarLargeTextLayoutStrategy: Equatable, Sendable {
   case wrapAndIncreaseHeight(maxLines: Int)
 }
 
-/// Height policy for `FKTabBar` when resolving its intrinsic height.
-public enum FKTabBarSafeAreaHeightPolicy: Equatable, Sendable {
-  /// `preferredBarHeight` is treated as visual bar height and excludes bottom safe area.
-  ///
-  /// This is suitable when the host already handles container-safe-area outside the tab bar.
-  case excludeBottomSafeArea
-  /// Adds `safeAreaInsets.bottom` on top of `preferredBarHeight`.
-  ///
-  /// This is suitable for bottom-docked tab bars that should naturally clear the home indicator.
-  case includeBottomSafeArea
+/// Bottom safe-area handling for bottom-docked and header tab strips.
+///
+/// Replaces the former split between ``includesBottomSafeAreaInset`` and ``safeAreaHeightPolicy``.
+public enum FKTabBarBottomSafeAreaBehavior: Equatable, Sendable {
+  /// Header / pager strips: no automatic bottom safe-area adjustment.
+  case ignore
+  /// Adds `safeAreaInsets.bottom` to ``FKTabBarLayoutConfiguration/contentInsets`` at layout time.
+  case padContent
+  /// Adds `safeAreaInsets.bottom` to ``FKTabBar/intrinsicContentSize`` height.
+  case extendBarHeight
+  /// Bottom-docked bars: pad content **and** extend intrinsic bar height.
+  case bottomDocked
 }
 
 /// Content alignment behavior for intrinsic-width tab items when there is extra horizontal space.
@@ -118,12 +133,6 @@ public enum FKTabBarContentAlignment: Equatable, Sendable {
   case trailing
   /// Pack items as a group and center the group.
   case center
-  /// Distribute remaining space between adjacent items.
-  case spaceBetween
-  /// Distribute remaining space around each item (half-space at both ends).
-  case spaceAround
-  /// Distribute remaining space evenly, including both ends.
-  case spaceEvenly
 }
 
 /// Overflow handling when ``FKTabBarLayoutConfiguration/isScrollable`` is `false` and content exceeds bounds.
@@ -165,15 +174,10 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
   /// Insets affect both visual padding and available width/height during item size calculation.
   public var contentInsets: NSDirectionalEdgeInsets
 
-  /// Whether to include the view's bottom safe-area inset in `contentInsets.bottom`.
+  /// Bottom safe-area behavior for layout measurement and intrinsic height.
   ///
-  /// This is useful when `FKTabBar` is used as a `UITabBar` replacement anchored to the bottom:
-  /// you typically want content to sit above the home indicator area without requiring hosts to
-  /// manually add `safeAreaInsets.bottom` into `contentInsets`.
-  ///
-  /// - Important: This option affects layout measurement and scroll alignment, but does not
-  ///   change `FKTabBar`'s own `bounds` or introduce any controller-level behavior.
-  public var includesBottomSafeAreaInset: Bool
+  /// Use ``bottomDocked`` for ``FKTabBarPresets/bottomDocked(showsIndicator:)``-style bars.
+  public var bottomSafeAreaBehavior: FKTabBarBottomSafeAreaBehavior
   /// Content alignment for non-fill, content-fitting layouts.
   ///
   /// Priority:
@@ -191,14 +195,18 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
   ///
   /// When `nil`, the component falls back to `minimumItemHeight`.
   public var preferredBarHeight: CGFloat?
-  /// Determines whether intrinsic height should add bottom safe area.
-  public var safeAreaHeightPolicy: FKTabBarSafeAreaHeightPolicy
   /// Item width strategy.
   public var widthMode: FKTabBarItemWidthMode
-  /// Insets applied inside each tab cell around the hosted ``FKButton``.
-  public var cellLayoutMargins: NSDirectionalEdgeInsets
-  /// Content insets applied to each tab button (title/icon padding).
-  public var itemContentInsets: NSDirectionalEdgeInsets
+  /// Intrinsic width measurement policy when ``widthMode`` is not ``FKTabBarItemWidthMode/fillEqually``.
+  public var intrinsicWidthMeasurement: FKTabBarIntrinsicWidthMeasurement
+  /// Padding between each tab cell edge and its title/icon content.
+  ///
+  /// This is the single knob for per-tab content inset. It is applied to the hosted ``FKButton``
+  /// `contentInsets` so width measurement and on-screen layout stay aligned.
+  ///
+  /// - Note: Do not rely on ``FKTabBarCustomization/configure(button:item:isSelected:)`` to set
+  ///   `FKButton` appearance `contentInsets` for strip padding — use this property instead.
+  public var itemInsets: NSDirectionalEdgeInsets
   /// Optional horizontal edge fade when ``isScrollable`` is `true`.
   public var scrollEdgeFade: FKTabBarScrollEdgeFade
   /// Layout direction for each tab item's icon and title.
@@ -228,16 +236,15 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
     isScrollable: Bool = true,
     itemSpacing: CGFloat = 8,
     contentInsets: NSDirectionalEdgeInsets = .init(top: 0, leading: 8, bottom: 0, trailing: 8),
-    includesBottomSafeAreaInset: Bool = false,
+    bottomSafeAreaBehavior: FKTabBarBottomSafeAreaBehavior = .ignore,
     contentAlignment: FKTabBarContentAlignment = .leading,
     titleOverflowMode: FKTabBarTitleOverflowMode = .automaticWidth,
     largeTextLayoutStrategy: FKTabBarLargeTextLayoutStrategy = .automatic,
     minimumItemHeight: CGFloat = 44,
     preferredBarHeight: CGFloat? = nil,
-    safeAreaHeightPolicy: FKTabBarSafeAreaHeightPolicy = .excludeBottomSafeArea,
     widthMode: FKTabBarItemWidthMode = .intrinsic,
-    cellLayoutMargins: NSDirectionalEdgeInsets = .init(top: 6, leading: 10, bottom: 6, trailing: 10),
-    itemContentInsets: NSDirectionalEdgeInsets = .init(top: 6, leading: 8, bottom: 6, trailing: 8),
+    intrinsicWidthMeasurement: FKTabBarIntrinsicWidthMeasurement = .normalStateOnly,
+    itemInsets: NSDirectionalEdgeInsets = .init(top: 6, leading: 8, bottom: 6, trailing: 8),
     scrollEdgeFade: FKTabBarScrollEdgeFade = .init(),
     itemLayoutDirection: FKTabBarItemLayoutDirection = .horizontal,
     rtlBehavior: FKTabBarRTLBehavior = .automatic,
@@ -250,16 +257,15 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
     self.isScrollable = isScrollable
     self.itemSpacing = itemSpacing
     self.contentInsets = contentInsets
-    self.includesBottomSafeAreaInset = includesBottomSafeAreaInset
+    self.bottomSafeAreaBehavior = bottomSafeAreaBehavior
     self.contentAlignment = contentAlignment
     self.titleOverflowMode = titleOverflowMode
     self.largeTextLayoutStrategy = largeTextLayoutStrategy
     self.minimumItemHeight = minimumItemHeight
     self.preferredBarHeight = preferredBarHeight
-    self.safeAreaHeightPolicy = safeAreaHeightPolicy
     self.widthMode = widthMode
-    self.cellLayoutMargins = cellLayoutMargins
-    self.itemContentInsets = itemContentInsets
+    self.intrinsicWidthMeasurement = intrinsicWidthMeasurement
+    self.itemInsets = itemInsets
     self.scrollEdgeFade = scrollEdgeFade
     self.itemLayoutDirection = itemLayoutDirection
     self.rtlBehavior = rtlBehavior

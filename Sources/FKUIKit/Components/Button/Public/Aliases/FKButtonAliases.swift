@@ -20,7 +20,11 @@ public extension FKButton {
   typealias ShadowPathStrategy = FKButtonShadowPathStrategy
   typealias Corner = FKButtonCorner
   typealias LoadingPresentationStyle = FKButtonLoadingPresentation
+  typealias LoadingIndicatorConfiguration = FKButtonLoadingIndicatorConfiguration
   typealias ReplacedContentLoadingOptions = FKButtonLoadingReplacementOptions
+  typealias SymbolEffectConfiguration = FKButtonSymbolEffectConfiguration
+  typealias TransientResult = FKButtonTransientResult
+  typealias TransientResultOptions = FKButtonTransientResultOptions
   typealias SoundFeedback = FKButtonSoundFeedbackConfiguration
   typealias GlobalStyle = FKButtonGlobalStyle
 }

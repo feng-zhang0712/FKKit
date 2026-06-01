@@ -31,8 +31,7 @@ public enum FKTabBarPresets {
     config.layout.itemLayoutDirection = .vertical
     config.layout.minimumItemHeight = 48
     config.layout.preferredBarHeight = 56
-    config.layout.safeAreaHeightPolicy = .includeBottomSafeArea
-    config.layout.includesBottomSafeAreaInset = true
+    config.layout.bottomSafeAreaBehavior = .bottomDocked
     config.appearance.backgroundStyle = .systemBlur(.systemMaterial)
     config.appearance.showsDivider = true
     config.appearance.dividerPosition = .top

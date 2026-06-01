@@ -13,6 +13,7 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
   private enum IndicatorDemo: String, CaseIterable {
     case none
     case lineProgress
+    case lineThemeOverride
     case background
     case gradient
     case pill
@@ -77,7 +78,7 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
     note.textColor = .secondaryLabel
     note.numberOfLines = 0
     note.text =
-      "Open the Style menu to swap indicators. Non-line styles use followMode .trackContentProgress so highlights track swipe like the line. Custom (behind) uses indicatorZOrder .automatic; Custom (overlay) uses .aboveTabItems."
+      "Open the Style menu to swap indicators. Line · theme fill applies pagerHeader then overrides fill and colors.indicator to systemOrange (indicator must match configuration). Non-line styles use followMode .trackContentProgress so highlights track swipe like the line."
     note.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(note)
 
@@ -128,6 +129,7 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
     switch kind {
     case .none: return "None"
     case .lineProgress: return "Line · trackContentProgress"
+    case .lineThemeOverride: return "Line · theme fill"
     case .background: return "Background"
     case .gradient: return "Gradient"
     case .pill: return "Pill"
@@ -159,18 +161,17 @@ final class FKPagingTabBarIndicatorExampleViewController: UIViewController {
     case .none:
       return FKTabBarAppearance(indicatorStyle: .none)
     case .lineProgress:
-      return FKTabBarAppearance(
-        indicatorStyle: .line(
-          FKTabBarLineIndicatorConfiguration(
-            position: .bottom,
-            thickness: 3,
-            fill: .solid(.systemBlue),
-            leadingInset: 10,
-            trailingInset: 10,
-            followMode: .trackContentProgress
-          )
-        )
-      )
+      // Match pagerHeader defaults: black line tracks swipe progress, aligned with selected tab text.
+      return FKTabBarPresets.pagerHeader().appearance
+    case .lineThemeOverride:
+      var appearance = FKTabBarPresets.pagerHeader().appearance
+      appearance.colors.selectedText = .systemOrange
+      appearance.colors.indicator = .systemOrange
+      if case .line(var line) = appearance.indicatorStyle {
+        line.fill = .solid(.systemOrange)
+        appearance.indicatorStyle = .line(line)
+      }
+      return appearance
     case .background:
       return FKTabBarAppearance(
         indicatorStyle: FKTabBarIndicatorStyle.background(

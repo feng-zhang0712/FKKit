@@ -18,7 +18,13 @@ final class FKTabBarPresetsExampleViewController: UIViewController {
     title = "Presets"
     view.backgroundColor = .systemBackground
 
-    let stack = FKTabBarExampleSupport.makeRootStack(in: view)
+    tabHeightConstraint = FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: defaultBarHeight)
+
+    let stack = FKTabBarExampleSupport.makeRootStack(
+      in: view,
+      scrollTopBelow: tabView.bottomAnchor,
+      scrollTopSpacing: 16
+    )
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("FKTabBarPresets factories"))
     stack.addArrangedSubview(
       FKTabBarExampleSupport.captionLabel(
@@ -27,14 +33,11 @@ final class FKTabBarPresetsExampleViewController: UIViewController {
     )
 
     presetControl.selectedSegmentIndex = 0
-    presetControl.addAction(UIAction { [weak self] _ in self?.applyPreset() }, for: .valueChanged)
+    presetControl.addAction(UIAction { [weak self] _ in self?.applyPreset(animated: true) }, for: .valueChanged)
     stack.addArrangedSubview(presetControl)
-
-    tabHeightConstraint = FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: defaultBarHeight)
-    applyPreset()
   }
 
-  private func applyPreset() {
+  private func applyPreset(animated: Bool) {
     let isBottomDocked = presetControl.selectedSegmentIndex == 3
     switch presetControl.selectedSegmentIndex {
     case 1:
@@ -46,8 +49,8 @@ final class FKTabBarPresetsExampleViewController: UIViewController {
     default:
       configuration = FKTabBarPresets.pagerHeader()
     }
-    tabView.applyConfiguration(configuration, animated: true)
-    updateTabBarHeight(isBottomDocked: isBottomDocked, animated: true)
+    tabView.applyConfiguration(configuration, animated: animated)
+    updateTabBarHeight(isBottomDocked: isBottomDocked, animated: animated)
   }
 
   private func updateTabBarHeight(isBottomDocked: Bool, animated: Bool) {

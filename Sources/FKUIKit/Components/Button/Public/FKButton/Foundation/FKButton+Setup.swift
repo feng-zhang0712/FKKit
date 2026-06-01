@@ -49,6 +49,7 @@ extension FKButton {
     applyImagesForCurrentState()
     applyCustomContentForCurrentState()
     applyAppearanceForCurrentState()
+    applyHighlightVisuals(animated: false)
     applyAccessibilityForCurrentState()
 
     if let appearances = FKButton.GlobalStyle.defaultAppearances {
@@ -60,6 +61,12 @@ extension FKButton {
     super.contentVerticalAlignment = .center
     applyContentAlignmentLayout()
     syncPointerInteractionIfNeeded()
+    allowsSymbolEffectAnimations = true
+  }
+
+  open override func prepareForInterfaceBuilder() {
+    super.prepareForInterfaceBuilder()
+    flushPendingRefresh()
   }
 
   // MARK: - Global defaults

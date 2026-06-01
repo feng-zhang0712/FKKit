@@ -57,7 +57,7 @@ final class FKTabBarBasicPlaygroundExampleViewController: UIViewController, FKTa
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("FKTabBar basic integration (no controller)"))
     stack.addArrangedSubview(
       FKTabBarExampleSupport.captionLabel(
-        "This page shows the minimal setup and the two most common layout modes. FKTabBar is a UIView component and does not provide a TabBarController or paging controller wrapper."
+        "This page shows the minimal setup and the two most common layout modes. FKTabBar is UI-only (no TabBarController). FixedEqual uses fillEqually + nonScrollable shrink (titles may render slightly smaller than scrollable intrinsic mode)."
       )
     )
 
@@ -151,6 +151,14 @@ final class FKTabBarBasicPlaygroundExampleViewController: UIViewController, FKTa
 
     // Attach tab bar (top pinned, like other pages in this example app)
     FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 56)
+
+    tabView.onSelectionChanged = { [weak self] _, index, reason in
+      self?.appendLog("onSelectionChanged: \(index) reason=\(reason)")
+    }
+    tabView.shouldSelect = { [weak self] item, index, reason in
+      self?.appendLog("shouldSelect closure: \(item.id) @\(index) reason=\(reason)")
+      return true
+    }
 
     appendLog("ready: layout=\(layoutMode == .fixedEqual ? "fixedEqual" : "scrollable")")
   }

@@ -25,7 +25,22 @@ extension FKButton {
       bottom: -sum.bottom + hitTestEdgeInsets.bottom,
       right: -sum.right + hitTestEdgeInsets.right
     )
-    return bounds.inset(by: inset)
+    var rect = bounds.inset(by: inset)
+    if let minimumTouchTargetSize,
+       minimumTouchTargetSize.width > 0,
+       minimumTouchTargetSize.height > 0 {
+      let target = CGSize(
+        width: max(rect.width, minimumTouchTargetSize.width),
+        height: max(rect.height, minimumTouchTargetSize.height)
+      )
+      rect = CGRect(
+        x: rect.midX - target.width * 0.5,
+        y: rect.midY - target.height * 0.5,
+        width: target.width,
+        height: target.height
+      )
+    }
+    return rect
   }
 
   func disabledVisualMultiplier() -> CGFloat {
