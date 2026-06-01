@@ -59,9 +59,12 @@ enum FKTabBarExampleSupport {
       ),
       FKTabBarItem(
         id: "image",
-        title: .init(normal: .init(text: "Image")),
+        title: .init(
+          normal: .init(text: "Image"),
+          selected: .init(text: "Image tab with long text")
+        ),
         image: .init(
-          normal: .init(source: .asset(name: "tab_profile_placeholder")),
+          normal: .init(source: .systemSymbol(name: "person.crop.circle")),
           selected: .init(source: .systemSymbol(name: "photo"))
         )
       ),
@@ -80,11 +83,15 @@ enum FKTabBarExampleSupport {
   ///   - topInset: Used when `scrollTopBelow` is `nil`; pins the scroll view top to `safeAreaLayoutGuide` plus this inset.
   ///   - scrollTopBelow: When non-`nil`, pins the scroll view top to this anchor (for example the bottom of a pinned `FKTabBar`) so scroll content is not covered by overlay tab bars.
   ///   - scrollTopSpacing: Extra vertical space between `scrollTopBelow` and the scroll view top.
+  ///   - scrollBottomAbove: When non-`nil`, pins the scroll view bottom to this anchor (for example the top of a bottom-docked `FKTabBar`).
+  ///   - scrollBottomSpacing: Extra vertical space between the scroll view bottom and `scrollBottomAbove`.
   static func makeRootStack(
     in view: UIView,
     topInset: CGFloat = 66,
     scrollTopBelow referenceAnchor: NSLayoutYAxisAnchor? = nil,
-    scrollTopSpacing: CGFloat = 16
+    scrollTopSpacing: CGFloat = 16,
+    scrollBottomAbove bottomReferenceAnchor: NSLayoutYAxisAnchor? = nil,
+    scrollBottomSpacing: CGFloat = 0
   ) -> UIStackView {
     let scrollView = UIScrollView()
     scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -104,12 +111,18 @@ enum FKTabBarExampleSupport {
       }
       return scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: topInset)
     }()
+    let scrollBottomConstraint: NSLayoutConstraint = {
+      if let bottomReferenceAnchor {
+        return scrollView.bottomAnchor.constraint(equalTo: bottomReferenceAnchor, constant: -scrollBottomSpacing)
+      }
+      return scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+    }()
 
     NSLayoutConstraint.activate([
       scrollTopConstraint,
       scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      scrollBottomConstraint,
 
       stack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
       stack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
@@ -234,6 +247,61 @@ final class FKTabBarExampleIndicatorCustomization: FKTabBarDefaultCustomization 
     view.backgroundColor = fillColor
     view.layer.cornerRadius = cornerRadius
     return view
+  }
+}
+
+/// Advanced indicator hooks: follow mode resolution, custom frame, and render pass.
+@MainActor
+final class FKTabBarExampleAdvancedIndicatorCustomization: FKTabBarDefaultCustomization {
+  let followID = "advanced.indicator"
+  var usesProgressFollow = false
+
+  override func customIndicatorView(id: String) -> UIView? {
+    guard id == followID else { return nil }
+    let view = UIView()
+    view.backgroundColor = .systemOrange.withAlphaComponent(0.25)
+    view.layer.cornerRadius = 10
+    view.layer.borderWidth = 2
+    view.layer.borderColor = UIColor.systemOrange.cgColor
+    return view
+  }
+
+  override func renderCustomIndicator(id: String, bounds: CGRect, container: UIView) {
+    guard id == followID else { return }
+    container.subviews.forEach { $0.frame = bounds.insetBy(dx: 4, dy: 4) }
+  }
+
+  override func customIndicatorFrame(itemFrame: CGRect, containerBounds: CGRect) -> CGRect? {
+    itemFrame.insetBy(dx: -6, dy: -4)
+  }
+
+  override func indicatorFollowMode(forCustomID id: String) -> FKTabBarIndicatorFollowMode? {
+    guard id == followID else { return nil }
+    return usesProgressFollow ? .trackContentProgress : .trackSelectedFrame
+  }
+}
+
+/// Interaction, accessory, and tap-scale hooks.
+@MainActor
+final class FKTabBarExampleHooksCustomization: FKTabBarDefaultCustomization {
+  override func customAccessoryView(for item: FKTabBarItem, isSelected: Bool, isExpanded: Bool) -> UIView? {
+    guard case .custom(let id) = item.accessory.kind, id == "star" else { return nil }
+    let label = UILabel()
+    label.text = isExpanded ? "★" : "☆"
+    label.font = .systemFont(ofSize: 14, weight: .bold)
+    label.textColor = isSelected ? .systemOrange : .secondaryLabel
+    return label
+  }
+
+  override func animateInteraction(on button: FKButton, phase: FKTabBar.ItemInteractionPhase, item: FKTabBarItem) {
+    let scale: CGFloat = phase == .tap ? 0.94 : 0.9
+    UIView.animate(withDuration: 0.12, animations: {
+      button.transform = CGAffineTransform(scaleX: scale, y: scale)
+    }, completion: { _ in
+      UIView.animate(withDuration: 0.12) {
+        button.transform = .identity
+      }
+    })
   }
 }
 

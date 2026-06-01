@@ -27,9 +27,6 @@ final class FKPagingTabBarLayoutExampleViewController: UIViewController {
     case leading
     case center
     case trailing
-    case spaceBetween
-    case spaceAround
-    case spaceEvenly
   }
 
   private let pagingController: FKPagingController
@@ -37,7 +34,7 @@ final class FKPagingTabBarLayoutExampleViewController: UIViewController {
   private let stripDatasetControl = UISegmentedControl(items: ["Long strip", "Compact strip"])
   private let widthControl = UISegmentedControl(items: ["Intrinsic", "Fixed", "Fill", "Range"])
   private let scrollControl = UISegmentedControl(items: ["Minimal", "Center", "Lead", "Trail"])
-  private let alignmentControl = UISegmentedControl(items: ["Lead", "Center", "Trail", "Between", "Around", "Evenly"])
+  private let alignmentControl = UISegmentedControl(items: ["Lead", "Center", "Trail"])
 
   private var stripDataset: StripDataset = .scrollableLong
   private var widthDemo: WidthDemo = .intrinsic
@@ -231,14 +228,18 @@ final class FKPagingTabBarLayoutExampleViewController: UIViewController {
     switch widthDemo {
     case .intrinsic:
       layout.widthMode = .intrinsic
+      layout.itemSpacing = 8
     case .fixed:
       layout.widthMode = .fixed(88)
+      layout.itemSpacing = 8
     case .fillEqually:
       layout.isScrollable = false
       layout.widthMode = .fillEqually
+      layout.itemSpacing = 0
     case .constrained:
       layout.isScrollable = stripDataset == .scrollableLong
       layout.widthMode = .constrained(min: 72, max: 140)
+      layout.itemSpacing = 8
     }
 
     layout.selectionScrollPosition = Self.scrollPosition(for: scrollDemo)
@@ -247,9 +248,19 @@ final class FKPagingTabBarLayoutExampleViewController: UIViewController {
     pagingController.tabBar.configuration = configuration
 
     let alignmentActive = widthDemo != .fillEqually && !layout.isScrollable
+      && pagingController.tabBar.resolvedLayoutHintsForCurrentEnvironment().isContentAlignmentActive
+    let widthModeLabel: String = {
+      switch layout.widthMode {
+      case .intrinsic: return "intrinsic"
+      case .fixed: return "fixed"
+      case .fillEqually: return "fillEqually"
+      case .constrained: return "constrained"
+      }
+    }()
     statusLabel.text = """
-      Selected @\(pagingController.selectedIndex) · scrollable=\(layout.isScrollable) · \
-      contentAlignment \(alignmentActive ? "active" : "ignored (overflow or fillEqually)")
+      Selected @\(pagingController.selectedIndex) · scrollable=\(layout.isScrollable) · widthMode=\(widthModeLabel) · \
+      contentAlignment \(alignmentActive ? "active" : "ignored (overflow or fillEqually)")\
+      \(widthDemo == .fillEqually && stripDataset == .scrollableLong ? " · tip: Compact strip shows Fill more clearly" : "")
       """
   }
 
@@ -290,9 +301,6 @@ final class FKPagingTabBarLayoutExampleViewController: UIViewController {
     case .leading: return .leading
     case .center: return .center
     case .trailing: return .trailing
-    case .spaceBetween: return .spaceBetween
-    case .spaceAround: return .spaceAround
-    case .spaceEvenly: return .spaceEvenly
     }
   }
 }

@@ -13,17 +13,18 @@ enum FKTabBarConfigurationApplier {
     static let animation = ChangeDomains(rawValue: 1 << 5)
     static let scrollBehavior = ChangeDomains(rawValue: 1 << 6)
 
-    static let appearanceTokens: ChangeDomains = [
+    static let appearanceContentRefresh: ChangeDomains = [
       .appearanceColors,
       .appearanceTypography,
-      .appearanceIndicator,
-      .appearanceBackground,
     ]
   }
 
   static func domains(from old: FKTabBarConfiguration, to new: FKTabBarConfiguration) -> ChangeDomains {
     var domains: ChangeDomains = []
-    if old.appearance.colors != new.appearance.colors { domains.insert(.appearanceColors) }
+    if old.appearance.colors != new.appearance.colors {
+      domains.insert(.appearanceColors)
+      domains.insert(.appearanceIndicator)
+    }
     if old.appearance.typography != new.appearance.typography { domains.insert(.appearanceTypography) }
     if old.appearance.subtitleConfiguration != new.appearance.subtitleConfiguration { domains.insert(.appearanceTypography) }
     if old.appearance.indicatorStyle != new.appearance.indicatorStyle {
@@ -47,14 +48,14 @@ enum FKTabBarConfigurationApplier {
     old.isScrollable != new.isScrollable
       || old.itemSpacing != new.itemSpacing
       || old.contentInsets != new.contentInsets
-      || old.includesBottomSafeAreaInset != new.includesBottomSafeAreaInset
+      || old.bottomSafeAreaBehavior != new.bottomSafeAreaBehavior
       || old.contentAlignment != new.contentAlignment
       || old.titleOverflowMode != new.titleOverflowMode
       || old.largeTextLayoutStrategy != new.largeTextLayoutStrategy
       || old.minimumItemHeight != new.minimumItemHeight
       || old.preferredBarHeight != new.preferredBarHeight
-      || old.safeAreaHeightPolicy != new.safeAreaHeightPolicy
       || old.widthMode != new.widthMode
+      || old.intrinsicWidthMeasurement != new.intrinsicWidthMeasurement
       || old.itemInsets != new.itemInsets
       || old.scrollEdgeFade != new.scrollEdgeFade
       || old.itemLayoutDirection != new.itemLayoutDirection

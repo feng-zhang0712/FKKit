@@ -186,4 +186,3 @@ final class FKTabBarBadgeUpdatesExampleViewController: UIViewController {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem)
   }
 }
-

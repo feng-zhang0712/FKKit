@@ -4,9 +4,44 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
-### Planned
+### Added (FKUIKit — TabBar)
 
-- None
+- **`FKTabBarIntrinsicWidthMeasurement`** — ``normalStateOnly`` (default) vs ``adjustsOnSelection`` for intrinsic/constrained width tabs; selection relayout when adjusting on selection.
+- **`FKTabBarResolvedTitlePresentation`** and **`resolvedTitlePresentationForCurrentEnvironment()`** for debugging effective overflow/line-count policy.
+- **`FKTabBarItemButtonConfigurator`** — shared FKButton assembly for cells and width measurement.
+- **`FKTabBarFlowLayout`** — honors per-index **`customSpacing(after:context:)`** gaps; mirrors layout in RTL.
+- **`FKTabBarCollectionCoordinator`** — internal collection delegate bridge (keeps UICollectionView callbacks off the public **`FKTabBar`** type).
+- **Examples**: Layout & insets hub section; Integration scenarios (stable ID, long press, custom badge, customization hooks, performBatchUpdates, non-scrollable overflow + resolved hints); SwiftUI progress **`Binding`** demo; Example filenames unified to **`FKTabBar*`** prefix; Content types demonstrates **`intrinsicWidthMeasurement`** toggle.
+
+### Changed (FKUIKit — TabBar)
+
+- **Breaking:** merged **`cellLayoutMargins`** + **`itemContentInsets`** into single **`layout.itemInsets`** (applied as hosted `FKButton` `contentInsets` only).
+- **Breaking:** merged ``includesBottomSafeAreaInset`` + ``safeAreaHeightPolicy`` into ``layout.bottomSafeAreaBehavior`` (``ignore`` / ``padContent`` / ``extendBarHeight`` / ``bottomDocked``).
+- **Breaking:** removed distribute-style **`FKTabBarContentAlignment`** cases (`spaceBetween`, `spaceAround`, `spaceEvenly`); use **`widthMode = .fillEqually`** for equal-width tabs and leading/center/trailing for group alignment when content fits.
+- **`FKTabBarResolvedLayoutHints`** and **`resolvedLayoutHintsForCurrentEnvironment()`** — bundled effective layout snapshot.
+- **`README.md`** — documents intrinsic width measurement, badge update contract, DataSource auto-reload, clip vs truncate, batch helpers, and indicator appearance sync.
+- Indicator **`trackContentFrame`** follows **`FKButton.stackView`** bounds instead of full cell/button frame.
+- Intrinsic item width uses **`FKTabBarItemContentMeasurer`** (same path as on-screen cells).
+- **`appearance.subtitleConfiguration`** is now wired as global subtitle fallback.
+- **`customSpacing(after:)`** applies per gap (no longer collapsed to `max()`).
+- Item size cache avoids recursive sizing during content alignment layout.
+- Split **`FKTabBar`** into topic files under **`Public/FKTabBar/`**.
+- **`applyChanges(_:)`** returns **`Bool`** (`false` when any change is invalid).
+- **`FKTabBarRepresentable`** reloads items only when the `[FKTabBarItem]` payload changes; applies external **`selectionProgress`** binding updates.
+- **`updateItem(at:)`** / **`updateItem(forItemID:)`** documentation clarifies re-render-only semantics.
+- Removed unused **`ContentDistribution.dynamicSpacing`** dead path in layout engine.
+- **`FKTabBarIndicatorView`** always re-applies indicator fill when appearance colors or indicator style change (fixes stale default-black line after host theme overrides).
+
+### Changed (FKUIKit — Button)
+
+- **`FKButton`** `.center` content alignment: restore **`.equalCentering`** stack distribution (fixes stack wider than `contentContainerView` in fixed-width hosts such as `FKTabBar` fillEqually cells); add **`width/height <= contentContainerView`** caps to resolve ambiguous layout warnings.
+- Label rendering avoids double Dynamic Type scaling when **`adjustsFontForContentSizeCategory`** is enabled (unscaled font in attributed text; scaling delegated to **`UILabel`**).
+
+### Removed
+
+- Unused internal **`lastAppliedConfiguration`** storage on **`FKTabBar`**.
+- Orphan Example **`FKTabBarBasicsIconTextExampleViewController`** (superseded by Basic playground / content types scenarios).
+- Redundant Example **`FKTabBarResolvedLayoutHintsExampleViewController`** (merged into non-scrollable overflow scenario).
 
 ## [0.58.0] - 2026-06-01
 

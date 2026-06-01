@@ -68,20 +68,18 @@ public struct FKTabBarRepresentable: UIViewRepresentable {
     let view = FKTabBar(items: items, selectedIndex: selectedIndex, configuration: configuration)
     configure(view, context: context)
     context.coordinator.lastVisibleItemIDs = items.filter { !$0.isHidden }.map(\.id)
+    context.coordinator.lastItems = items
     return view
   }
 
   public func updateUIView(_ uiView: FKTabBar, context: Context) {
     configure(uiView, context: context)
 
-    let visibleIDs = items.filter { !$0.isHidden }.map(\.id)
-    let structureChanged =
-      !context.coordinator.lastVisibleItemIDs.isEmpty && visibleIDs != context.coordinator.lastVisibleItemIDs
-
-    uiView.reload(items: items, updatePolicy: .preserveSelection)
-    context.coordinator.lastVisibleItemIDs = visibleIDs
-
-    if structureChanged {
+    let itemsChanged = items != context.coordinator.lastItems
+    if itemsChanged {
+      uiView.reload(items: items, updatePolicy: .preserveSelection)
+      context.coordinator.lastItems = items
+      context.coordinator.lastVisibleItemIDs = items.filter { !$0.isHidden }.map(\.id)
       if context.coordinator.selectedIndex.wrappedValue != uiView.selectedIndex {
         context.coordinator.selectedIndex.wrappedValue = uiView.selectedIndex
       }
@@ -90,6 +88,16 @@ public struct FKTabBarRepresentable: UIViewRepresentable {
 
     if uiView.selectedIndex != selectedIndex {
       uiView.setSelectedIndex(selectedIndex, animated: true, notify: false, reason: .programmatic)
+    }
+
+    if let selectionProgress {
+      let value = selectionProgress.wrappedValue
+      if value != context.coordinator.lastSelectionProgress {
+        context.coordinator.lastSelectionProgress = value
+        if let value {
+          uiView.setSelectionProgress(from: value.fromIndex, to: value.toIndex, progress: value.progress)
+        }
+      }
     }
   }
 
@@ -110,11 +118,9 @@ public struct FKTabBarRepresentable: UIViewRepresentable {
     view.onSelectionRequest = onSelectionRequest
     view.onSelectionProgress = { from, to, progress in
       onSelectionProgress?(from, to, progress)
-      context.coordinator.selectionProgress?.wrappedValue = FKTabBarSelectionProgress(
-        fromIndex: from,
-        toIndex: to,
-        progress: progress
-      )
+      let snapshot = FKTabBarSelectionProgress(fromIndex: from, toIndex: to, progress: progress)
+      context.coordinator.selectionProgress?.wrappedValue = snapshot
+      context.coordinator.lastSelectionProgress = snapshot
     }
   }
 
@@ -124,6 +130,8 @@ public struct FKTabBarRepresentable: UIViewRepresentable {
     fileprivate var selectionProgress: Binding<FKTabBarSelectionProgress?>?
     /// Used to detect visible-strip structural changes so selection can sync tab bar → SwiftUI without fighting valid binding updates.
     fileprivate var lastVisibleItemIDs: [String] = []
+    fileprivate var lastItems: [FKTabBarItem] = []
+    fileprivate var lastSelectionProgress: FKTabBarSelectionProgress?
     fileprivate var lastConfiguration: FKTabBarConfiguration?
 
     init(selectedIndex: Binding<Int>, selectionProgress: Binding<FKTabBarSelectionProgress?>?) {

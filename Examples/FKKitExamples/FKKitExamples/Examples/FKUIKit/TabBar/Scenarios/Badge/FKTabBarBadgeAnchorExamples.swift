@@ -46,7 +46,7 @@ final class FKTabBarBadgeAnchorAndLandscapeExampleViewController: UIViewControll
       self?.tabView.setSelectedIndex(4, animated: true, reason: .programmatic)
     })
     stack.addArrangedSubview(actions)
-    FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 56)
+    FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 60)
   }
 
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

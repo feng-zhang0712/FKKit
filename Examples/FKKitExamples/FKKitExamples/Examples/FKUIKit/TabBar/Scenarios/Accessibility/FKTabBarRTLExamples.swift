@@ -13,6 +13,7 @@ import FKUIKit
 final class FKTabBarRTLExampleViewController: UIViewController {
   private var configuration = FKTabBarConfiguration(layout: .init(isScrollable: true, widthMode: .intrinsic))
   private lazy var tabView = FKTabBar(items: FKTabBarExampleSupport.makeItems(11), selectedIndex: 0, configuration: configuration)
+  private var barHeightConstraint: NSLayoutConstraint?
 
   private let rtlSwitch = UISegmentedControl(items: ["System", "Force LTR", "Force RTL"])
   private let semanticSwitch = UISegmentedControl(items: ["Semantic: Default", "Semantic: RTL"])
@@ -23,7 +24,7 @@ final class FKTabBarRTLExampleViewController: UIViewController {
     title = "RTL"
     view.backgroundColor = .systemBackground
 
-    FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 56)
+    barHeightConstraint = FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view, height: 56)
 
     let stack = FKTabBarExampleSupport.makeRootStack(
       in: view,
@@ -34,6 +35,7 @@ final class FKTabBarRTLExampleViewController: UIViewController {
     stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("RTL + layout direction"))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Validate rtlBehavior, semantic RTL, itemLayoutDirection (horizontal/vertical), selection auto-scroll, and indicator movement."))
     stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("To validate system RTL: Settings → General → Language & Region (or Xcode scheme Application Language)."))
+    stack.addArrangedSubview(FKTabBarExampleSupport.captionLabel("Top+Bottom uses a taller bar so icon and title are not clipped."))
 
     semanticSwitch.selectedSegmentIndex = 0
     semanticSwitch.addAction(UIAction { [weak self] _ in
@@ -62,8 +64,13 @@ final class FKTabBarRTLExampleViewController: UIViewController {
     layoutDirection.selectedSegmentIndex = 0
     layoutDirection.addAction(UIAction { [weak self] _ in
       guard let self else { return }
-      self.configuration.layout.itemLayoutDirection = layoutDirection.selectedSegmentIndex == 0 ? .horizontal : .vertical
+      let isVertical = layoutDirection.selectedSegmentIndex == 1
+      self.configuration.layout.itemLayoutDirection = isVertical ? .vertical : .horizontal
+      self.configuration.layout.preferredBarHeight = isVertical ? 72 : nil
+      self.configuration.layout.minimumItemHeight = isVertical ? 56 : 44
+      self.barHeightConstraint?.constant = isVertical ? 72 : 56
       self.tabView.applyConfiguration(self.configuration, animated: false)
+      self.tabView.invalidateIntrinsicContentSize()
       self.appendStatus("itemLayoutDirection: \(self.configuration.layout.itemLayoutDirection)")
     }, for: .valueChanged)
     stack.addArrangedSubview(layoutDirection)
@@ -95,4 +102,3 @@ final class FKTabBarRTLExampleViewController: UIViewController {
     statusLabel.text = line
   }
 }
-

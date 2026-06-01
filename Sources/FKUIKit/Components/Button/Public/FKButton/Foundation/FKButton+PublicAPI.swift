@@ -88,7 +88,7 @@ extension FKButton {
   /// for readability; use this method when slot is selected dynamically.
   public func setImage(_ image: ImageAttributes?, slot: ImageSlot, for state: UIControl.State) {
     storeImage(image, slot: slot, for: state)
-    requestVisualRefresh()
+    requestVisualRefresh(rebuildContentLayout: shouldRebuildContentLayoutForAccessorySlot(slot))
   }
 
   /// Reads the registered image configuration for an exact state key and slot.

@@ -49,6 +49,7 @@ extension FKButton {
         stackView.centerXAnchor.constraint(equalTo: c.centerXAnchor),
         stackView.leadingAnchor.constraint(greaterThanOrEqualTo: c.leadingAnchor),
         stackView.trailingAnchor.constraint(lessThanOrEqualTo: c.trailingAnchor),
+        stackView.widthAnchor.constraint(lessThanOrEqualTo: c.widthAnchor),
       ]
     @unknown default:
       next += [
@@ -78,6 +79,7 @@ extension FKButton {
         stackView.centerYAnchor.constraint(equalTo: c.centerYAnchor),
         stackView.topAnchor.constraint(greaterThanOrEqualTo: c.topAnchor),
         stackView.bottomAnchor.constraint(lessThanOrEqualTo: c.bottomAnchor),
+        stackView.heightAnchor.constraint(lessThanOrEqualTo: c.heightAnchor),
       ]
     @unknown default:
       next += [
@@ -98,14 +100,13 @@ extension FKButton {
   ) {
     switch axis {
     case .horizontal:
-      // Centering is handled by `centerX` / `greaterThanOrEqual` constraints in
-      // `applyContentAlignmentLayout()`. `.equalCentering` would also distribute slack at the
-      // stack edges, which stacks on top of `Appearance.contentInsets` and reads as a second
-      // padding layer (for example in `FKTabBar` item cells).
-      stackView.distribution = .fill
+      // `.equalCentering` keeps the stack at its intrinsic width and centers the group inside
+      // `contentContainerView`. `.fill` distribution without a defined stack width is ambiguous and
+      // can grow wider than the container (for example `FKTabBar` fillEqually cells).
+      stackView.distribution = h == .fill ? .fill : .equalCentering
       stackView.alignment = stackCrossAxisAlignmentForHorizontalStack(vertical: v)
     case .vertical:
-      stackView.distribution = .fill
+      stackView.distribution = v == .fill ? .fill : .equalCentering
       stackView.alignment = stackCrossAxisAlignmentForVerticalStack(horizontal: h)
     }
   }

@@ -5,25 +5,36 @@ public struct FKTabBarAccessoryConfiguration: Equatable {
   /// Accessory kind.
   public enum Kind: Equatable, Sendable {
     case none
-    /// System chevron; expanded visual state follows ``FKTabBar/expandedItemID``.
-    case chevron
+    /// Built-in chevron; expanded visual state follows ``FKTabBar/expandedItemID``.
+    case chevron(FKTabBarChevronAccessoryConfiguration)
     /// Host supplies the view via ``FKTabBarCustomization/customAccessoryView(for:isSelected:isExpanded:)``.
     case custom(id: String)
   }
 
   /// Accessory variant.
   public var kind: Kind
-  /// Spacing between primary content and the accessory.
+  /// Spacing between tab content and a ``Kind/custom`` accessory view.
   public var spacing: CGFloat
-  /// Template chevron tint; `nil` uses the resolved label color.
-  public var tintColor: UIColor?
 
   /// Creates an accessory configuration.
-  public init(kind: Kind = .none, spacing: CGFloat = 4, tintColor: UIColor? = nil) {
+  public init(kind: Kind = .none, spacing: CGFloat = 4) {
     self.kind = kind
     self.spacing = max(0, spacing)
-    self.tintColor = tintColor
+  }
+
+  /// Creates a chevron accessory with the given chevron configuration.
+  public init(chevron: FKTabBarChevronAccessoryConfiguration) {
+    self.kind = .chevron(chevron)
+    self.spacing = 4
   }
 }
 
 extension FKTabBarAccessoryConfiguration: @unchecked Sendable {}
+
+public extension FKTabBarAccessoryConfiguration {
+  /// Resolved chevron configuration when ``kind`` is ``Kind/chevron(_:)``.
+  var chevronConfiguration: FKTabBarChevronAccessoryConfiguration? {
+    if case .chevron(let configuration) = kind { return configuration }
+    return nil
+  }
+}

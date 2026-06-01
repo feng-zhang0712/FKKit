@@ -9,6 +9,8 @@ public protocol FKTabBarCustomization: AnyObject {
   /// Overrides width for a visible item index; return `nil` to use ``FKTabBarLayoutConfiguration/widthMode``.
   func customWidth(for index: Int, item: FKTabBarItem, in tabBar: FKTabBar) -> CGFloat?
   /// Overrides spacing after a visible index; return `nil` to use ``FKTabBarLayoutConfiguration/itemSpacing``.
+  ///
+  /// Per-index values are honored by ``FKTabBarFlowLayout``; gaps that return `nil` fall back to ``FKTabBarLayoutConfiguration/itemSpacing``.
   func customSpacing(after index: Int, context: FKTabBarLayoutConfiguration.SpacingContext) -> CGFloat?
   /// Supplies a trailing accessory view; return `nil` to use built-in chevron rendering when applicable.
   func customAccessoryView(for item: FKTabBarItem, isSelected: Bool, isExpanded: Bool) -> UIView?

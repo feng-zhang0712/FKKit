@@ -24,14 +24,8 @@ final class FKTabBarItemCell: UICollectionViewCell {
     var isAccessoryExpanded: Bool
   }
 
-  private enum ContentKind {
-    case textOnly
-    case imageOnly
-    case textAndImage
-    case custom
-  }
-
   private let tabButton = FKButton()
+  private var tabButtonTrailingConstraint: NSLayoutConstraint?
   private var customBadgeView: UIView?
   private var customAccessoryView: UIView?
   var onTap: ((FKButton) -> Void)?
@@ -64,6 +58,8 @@ final class FKTabBarItemCell: UICollectionViewCell {
     customBadgeView = nil
     customAccessoryView?.removeFromSuperview()
     customAccessoryView = nil
+    tabButton.trailingImageView?.transform = .identity
+    pinTabButtonTrailingToContentView()
     tabButton.setCustomContent(nil, for: .normal)
     tabButton.setCustomContent(nil, for: .selected)
     tabButton.setCustomContent(nil, for: .disabled)
@@ -86,10 +82,10 @@ final class FKTabBarItemCell: UICollectionViewCell {
     let selected = model.isSelected
     let progress = max(0, min(1, model.selectionProgress))
 
-    let contentKind = resolvedContentKind(for: item)
+    let contentKind = FKTabBarItemButtonConfigurator.resolvedContentKind(for: item)
     applyContent(contentKind, selected: selected, item: item, customization: customization)
-    applyLayoutDirection(model.layoutDirection)
-    applyRTLBehavior(model.rtlBehavior)
+    FKTabBarItemButtonConfigurator.applyLayoutDirection(model.layoutDirection, to: tabButton)
+    FKTabBarItemButtonConfigurator.applyRTLBehavior(model.rtlBehavior, to: tabButton)
     tabButton.longPressMinimumDuration = model.longPressMinimumDuration
 
     // Progressive font transition is approximated to avoid synthesizing fonts per frame.
@@ -138,25 +134,18 @@ final class FKTabBarItemCell: UICollectionViewCell {
       adjustsFontSizeToFitWidth = false
       minimumScaleFactor = 1
     } else {
-      switch model.overflowMode {
-      case .truncate, .automaticWidth, .fixedWidth:
-        lineBreakMode = .byTruncatingTail
-        adjustsFontSizeToFitWidth = false
-        minimumScaleFactor = 1
-      case .shrink(let factor):
-        lineBreakMode = .byClipping
-        adjustsFontSizeToFitWidth = true
-        minimumScaleFactor = max(0.5, min(1.0, factor))
-      case .wrap:
-        lineBreakMode = .byWordWrapping
-        adjustsFontSizeToFitWidth = false
-        minimumScaleFactor = 1
-      }
+      let layout = FKTabBarItemButtonConfigurator.resolvedTitleLayout(
+        titleText: titleText,
+        overflowMode: model.overflowMode
+      )
+      lineBreakMode = layout.0
+      adjustsFontSizeToFitWidth = layout.1
+      minimumScaleFactor = layout.2
     }
 
     tabButton.isEnabled = item.isEnabled
     tabButton.isSelected = selected
-    applyItemInsets(model.itemInsets, to: tabButton)
+    FKTabBarItemButtonConfigurator.applyItemInsets(model.itemInsets, to: tabButton)
     let label = FKButton.LabelAttributes(
       text: titleText,
       font: baseFont,
@@ -173,21 +162,27 @@ final class FKTabBarItemCell: UICollectionViewCell {
     tabButton.setTitle(label, for: .selected)
     tabButton.setTitle(label, for: .disabled)
 
-    // Subtitle configuration priority:
-    // item override > global appearance.
-    if let subtitleConfiguration = item.subtitle {
+    // Subtitle configuration priority: item override > global appearance.
+    if let subtitleConfiguration = FKTabBarItemButtonConfigurator.resolvedSubtitleConfiguration(
+      for: item,
+      appearance: appearance
+    ) {
       let subtitleState = subtitleConfiguration.resolved(isSelected: selected, isEnabled: item.isEnabled)
       if let subtitle = subtitleState.text, !subtitle.isEmpty {
         let subtitleColor: UIColor
         if !item.isEnabled {
           subtitleColor = subtitleState.style.color
+        } else if subtitleConfiguration.selected == nil, selected || progress > 0 {
+          // Match title color when no per-state subtitle override is configured.
+          subtitleColor = textColor
         } else if selected || progress > 0 {
-          let normalColor = item.subtitle?.normal.style.color ?? subtitleState.style.color
-          let selectedColor = item.subtitle?.selected?.style.color ?? normalColor
+          let normalColor = subtitleConfiguration.normal.style.color
+          let selectedColor = subtitleConfiguration.selected?.style.color ?? appearance.colors.selectedText
           subtitleColor = interpolate(from: normalColor, to: selectedColor, progress: progress)
         } else {
           subtitleColor = subtitleState.style.color
         }
+        let spacingToTitle = item.subtitle?.spacingToNextText ?? subtitleConfiguration.spacingToNextText
         let attrs = FKButton.LabelAttributes(
           text: subtitle,
           font: subtitleState.style.font,
@@ -200,7 +195,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
           adjustsFontSizeToFitWidth: subtitleState.style.adjustsFontSizeToFitWidth,
           minimumScaleFactor: subtitleState.style.minimumScaleFactor,
           contentInsets: .init(
-            top: item.subtitle?.spacingToNextText ?? 0,
+            top: spacingToTitle,
             leading: subtitleState.style.contentInsets.leading,
             bottom: subtitleState.style.contentInsets.bottom,
             trailing: subtitleState.style.contentInsets.trailing
@@ -230,7 +225,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
     )
     customization?.configure(button: tabButton, item: item, isSelected: selected)
     // Re-apply after customization so strip padding stays on ``FKTabBarLayoutConfiguration/itemInsets``.
-    applyItemInsets(model.itemInsets, to: tabButton)
+    FKTabBarItemButtonConfigurator.applyItemInsets(model.itemInsets, to: tabButton)
 
     // Accessibility is hosted by `FKButton` so VoiceOver focus matches the tappable element.
     tabButton.isAccessibilityElement = true
@@ -264,21 +259,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
     }
   }
 
-  private func applyItemInsets(_ insets: NSDirectionalEdgeInsets, to button: FKButton) {
-    let appearance = FKButton.Appearance(
-      backgroundColor: .clear,
-      contentInsets: .init(
-        top: insets.top,
-        leading: insets.leading,
-        bottom: insets.bottom,
-        trailing: insets.trailing
-      )
-    )
-    button.setAppearance(appearance, for: .normal)
-    button.setAppearance(appearance, for: .selected)
-    button.setAppearance(appearance, for: .disabled)
-  }
-
   // MARK: - View Setup
 
   private func setup() {
@@ -299,12 +279,28 @@ final class FKTabBarItemCell: UICollectionViewCell {
     tabButton.addTarget(self, action: #selector(handleTap), for: .touchUpInside)
     tabButton.addTarget(self, action: #selector(handleTap), for: .primaryActionTriggered)
 
+    tabButtonTrailingConstraint = tabButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     NSLayoutConstraint.activate([
       tabButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      tabButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
       tabButton.topAnchor.constraint(equalTo: contentView.topAnchor),
       tabButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+      tabButtonTrailingConstraint!,
     ])
+  }
+
+  private func pinTabButtonTrailingToContentView() {
+    tabButtonTrailingConstraint?.isActive = false
+    tabButtonTrailingConstraint = tabButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+    tabButtonTrailingConstraint?.isActive = true
+  }
+
+  private func pinTabButtonTrailingBeforeAccessory(_ accessory: UIView, spacing: CGFloat) {
+    tabButtonTrailingConstraint?.isActive = false
+    tabButtonTrailingConstraint = tabButton.trailingAnchor.constraint(
+      equalTo: accessory.leadingAnchor,
+      constant: -max(0, spacing)
+    )
+    tabButtonTrailingConstraint?.isActive = true
   }
 
   @objc private func handleTap() {
@@ -376,26 +372,24 @@ final class FKTabBarItemCell: UICollectionViewCell {
   ) {
     customAccessoryView?.removeFromSuperview()
     customAccessoryView = nil
-    let states: [UIControl.State] = [.normal, .selected, .disabled]
-    states.forEach { tabButton.setTrailingImage(nil, for: $0) }
+    [.normal, .selected, .disabled].forEach { tabButton.setTrailingImage(nil, for: $0) }
 
     switch item.accessory.kind {
     case .none:
+      pinTabButtonTrailingToContentView()
       return
-    case .chevron:
-      let symbolName = isExpanded ? "chevron.up" : "chevron.down"
-      let image = UIImage(systemName: symbolName)?.withRenderingMode(.alwaysTemplate)
-      let tint = item.accessory.tintColor ?? textColor
-      let attrs = FKButton.ImageAttributes(
-        image: image,
-        tintColor: tint,
-        spacingToTitle: item.accessory.spacing
+    case .chevron(let chevron):
+      pinTabButtonTrailingToContentView()
+      FKTabBarItemButtonConfigurator.applyChevronAccessory(
+        to: tabButton,
+        chevron: chevron,
+        textColor: textColor
       )
-      tabButton.setTrailingImage(attrs, for: .normal)
-      tabButton.setTrailingImage(attrs, for: .selected)
-      tabButton.setTrailingImage(attrs, for: .disabled)
     case .custom:
-      guard let custom = customization?.customAccessoryView(for: item, isSelected: isSelected, isExpanded: isExpanded) else { return }
+      guard let custom = customization?.customAccessoryView(for: item, isSelected: isSelected, isExpanded: isExpanded) else {
+        pinTabButtonTrailingToContentView()
+        return
+      }
       custom.translatesAutoresizingMaskIntoConstraints = false
       contentView.addSubview(custom)
       NSLayoutConstraint.activate([
@@ -404,8 +398,8 @@ final class FKTabBarItemCell: UICollectionViewCell {
           equalTo: contentView.trailingAnchor,
           constant: -max(0, itemInsets.trailing)
         ),
-        custom.leadingAnchor.constraint(greaterThanOrEqualTo: tabButton.trailingAnchor, constant: item.accessory.spacing),
       ])
+      pinTabButtonTrailingBeforeAccessory(custom, spacing: item.accessory.spacing)
       customAccessoryView = custom
     }
   }
@@ -413,60 +407,12 @@ final class FKTabBarItemCell: UICollectionViewCell {
   // MARK: - Content
 
   private func applyContent(
-    _ content: ContentKind,
+    _ content: FKTabBarItemButtonConfigurator.ContentKind,
     selected: Bool,
     item: FKTabBarItem,
     customization: FKTabBarCustomization?
   ) {
-    // Always clear previous state before applying new content; FKButton stores per-state values.
-    let states: [UIControl.State] = [.normal, .selected, .disabled]
-    states.forEach {
-      tabButton.setCenterImage(nil, for: $0)
-      tabButton.setLeadingImage(nil, for: $0)
-      tabButton.setTrailingImage(nil, for: $0)
-      tabButton.setCustomContent(nil, for: $0)
-    }
-
-    switch content {
-    case .textOnly:
-      tabButton.content = .textOnly
-    case .imageOnly:
-      tabButton.content = .imageOnly
-      applyImageConfiguration(item.image, item: item)
-    case .textAndImage:
-      let slot = resolvedImageSlot(for: item.image)
-      tabButton.content = .textAndImage(slot == .trailing ? .trailing : .leading)
-      applyImageConfiguration(item.image, item: item, slot: slot)
-    case .custom:
-      tabButton.content = .custom
-      let normalContent = FKButton.CustomContent(
-        view: customization?.customContentView(for: item),
-        spacingToAdjacentContent: 0
-      )
-      tabButton.setCustomContent(normalContent, for: .normal)
-      tabButton.setCustomContent(normalContent, for: .selected)
-      tabButton.setCustomContent(normalContent, for: .disabled)
-    }
-  }
-
-  private func applyLayoutDirection(_ direction: FKTabBarItemLayoutDirection) {
-    switch direction {
-    case .horizontal:
-      tabButton.axis = .horizontal
-    case .vertical:
-      tabButton.axis = .vertical
-    }
-  }
-
-  private func applyRTLBehavior(_ behavior: FKTabBarRTLBehavior) {
-    switch behavior {
-    case .automatic:
-      tabButton.semanticContentAttribute = .unspecified
-    case .forceLeftToRight:
-      tabButton.semanticContentAttribute = .forceLeftToRight
-    case .forceRightToLeft:
-      tabButton.semanticContentAttribute = .forceRightToLeft
-    }
+    FKTabBarItemButtonConfigurator.applyContentKind(content, to: tabButton, item: item, customization: customization)
   }
 
   private func resolvedTitle(for item: FKTabBarItem, isSelected: Bool) -> String {
@@ -480,21 +426,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
     clipsToBounds = true
     [tabButton, tabButton.imageView, tabButton.leadingImageView, tabButton.trailingImageView].forEach { view in
       view?.fk_badge.clear(animated: false)
-    }
-  }
-
-  private func resolveImage(_ source: FKTabBarImageSource?) -> UIImage? {
-    guard let source else { return nil }
-    switch source {
-    case .image(let image):
-      return image
-    case .systemSymbol(let name):
-      return UIImage(systemName: name)
-    case .asset(let name, let bundle):
-      let resolved = UIImage(named: name, in: bundle, compatibleWith: nil)
-      return resolved
-    case .remote(_, let placeholder):
-      return placeholder
     }
   }
 
@@ -530,66 +461,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
       return badge
     case (nil, nil):
       return nil
-    }
-  }
-
-  // MARK: - Private Helpers
-
-  private func resolvedContentKind(for item: FKTabBarItem) -> ContentKind {
-    if item.customContentIdentifier != nil { return .custom }
-    let hasText = !(item.title.normal.text ?? "").isEmpty
-    let hasImage = item.image?.normal.source != nil
-    if hasText && hasImage { return .textAndImage }
-    if hasImage { return .imageOnly }
-    return .textOnly
-  }
-
-  private func resolvedImageSlot(for configuration: FKTabBarImageConfiguration?) -> FKButton.ImageSlot {
-    let position = configuration?.normal.style.position ?? .leading
-    switch position {
-    case .leading:
-      return .leading
-    case .trailing:
-      return .trailing
-    }
-  }
-
-  private func applyImageConfiguration(_ configuration: FKTabBarImageConfiguration?, item: FKTabBarItem, slot: FKButton.ImageSlot = .center) {
-    guard let configuration else { return }
-    let normalState = configuration.normal
-    let selectedState = configuration.selected ?? normalState
-    let disabledState = configuration.disabled ?? normalState
-    let normalImage = FKButton.ImageAttributes(
-      image: resolveImage(normalState.source),
-      tintColor: normalState.style.tintColor,
-      fixedSize: normalState.style.fixedSize,
-      spacingToTitle: normalState.style.spacingToTitle
-    )
-    let selectedImage = FKButton.ImageAttributes(
-      image: resolveImage(selectedState.source),
-      tintColor: selectedState.style.tintColor,
-      fixedSize: selectedState.style.fixedSize,
-      spacingToTitle: selectedState.style.spacingToTitle
-    )
-    let disabledImage = FKButton.ImageAttributes(
-      image: resolveImage(disabledState.source),
-      tintColor: disabledState.style.tintColor,
-      fixedSize: disabledState.style.fixedSize,
-      spacingToTitle: disabledState.style.spacingToTitle
-    )
-    switch slot {
-    case .center:
-      tabButton.setCenterImage(normalImage, for: .normal)
-      tabButton.setCenterImage(selectedImage, for: .selected)
-      tabButton.setCenterImage(disabledImage, for: .disabled)
-    case .leading:
-      tabButton.setLeadingImage(normalImage, for: .normal)
-      tabButton.setLeadingImage(selectedImage, for: .selected)
-      tabButton.setLeadingImage(disabledImage, for: .disabled)
-    case .trailing:
-      tabButton.setTrailingImage(normalImage, for: .normal)
-      tabButton.setTrailingImage(selectedImage, for: .selected)
-      tabButton.setTrailingImage(disabledImage, for: .disabled)
     }
   }
 
