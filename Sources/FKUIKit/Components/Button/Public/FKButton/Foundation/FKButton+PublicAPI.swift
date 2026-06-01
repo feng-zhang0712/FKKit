@@ -191,4 +191,68 @@ extension FKButton {
   public func customContent(for state: UIControl.State) -> CustomContent? {
     customContentByState[Self.makeStateKey(state)]
   }
+
+  // MARK: - Public API — Batch state registration
+
+  /// Registers title attributes for multiple exact state keys in one refresh pass.
+  public func setTitles(_ entries: [(UIControl.State, LabelAttributes)]) {
+    performBatchUpdates {
+      for (state, title) in entries {
+        setTitle(title, for: state)
+      }
+    }
+  }
+
+  /// Registers subtitle attributes for multiple exact state keys in one refresh pass.
+  public func setSubtitles(_ entries: [(UIControl.State, LabelAttributes)]) {
+    performBatchUpdates {
+      for (state, subtitle) in entries {
+        setSubtitle(subtitle, for: state)
+      }
+    }
+  }
+
+  /// Registers appearances for multiple exact state keys in one refresh pass.
+  ///
+  /// Use ``setAppearances(_:)`` with ``FKButtonStateAppearances`` when configuring the standard normal/selected/highlighted/disabled bundle.
+  public func registerAppearances(_ entries: [(UIControl.State, Appearance)]) {
+    performBatchUpdates {
+      for (state, appearance) in entries {
+        setAppearance(appearance, for: state)
+      }
+    }
+  }
+
+  /// Registers image attributes for one slot across multiple exact state keys in one refresh pass.
+  public func setImages(_ entries: [(UIControl.State, ImageAttributes)], slot: ImageSlot) {
+    performBatchUpdates {
+      for (state, image) in entries {
+        setImage(image, slot: slot, for: state)
+      }
+    }
+  }
+
+  /// Registers leading-slot images for multiple exact state keys in one refresh pass.
+  public func setLeadingImages(_ entries: [(UIControl.State, ImageAttributes)]) {
+    setImages(entries, slot: .leading)
+  }
+
+  /// Registers trailing-slot images for multiple exact state keys in one refresh pass.
+  public func setTrailingImages(_ entries: [(UIControl.State, ImageAttributes)]) {
+    setImages(entries, slot: .trailing)
+  }
+
+  /// Registers center-slot images for multiple exact state keys in one refresh pass.
+  public func setCenterImages(_ entries: [(UIControl.State, ImageAttributes)]) {
+    setImages(entries, slot: .center)
+  }
+
+  /// Registers custom content for multiple exact state keys in one refresh pass.
+  public func setCustomContents(_ entries: [(UIControl.State, CustomContent)]) {
+    performBatchUpdates {
+      for (state, content) in entries {
+        setCustomContent(content, for: state)
+      }
+    }
+  }
 }

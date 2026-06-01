@@ -267,7 +267,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
     isAccessibilityElement = false
     contentView.isAccessibilityElement = false
 
-    tabButton.addTarget(self, action: #selector(handleTap), for: .touchUpInside)
     tabButton.addTarget(self, action: #selector(handleTap), for: .primaryActionTriggered)
 
     NSLayoutConstraint.activate([

@@ -18,7 +18,7 @@ Same layering as **`Badge`**: **`Public`** (types you configure from app code), 
 | `Configuration/` | Content/element/state models and accessibility configuration |
 | `Appearance/` | `FKButtonAppearance`, `FKButtonGlobalStyle` |
 | `Feedback/` | Haptics, sound, pointer configuration structs |
-| `Loading/` | `FKButtonLoadingPresentation` + replacement options |
+| `Loading/` | `FKButtonLoadingPresentation`, indicator + transient result types |
 | `Aliases/` | `FKButton.Content`, `FKButton.Appearance`, … short typealiases |
 | `FKButton/` | `FKButton` control implementation (see subfolders below) |
 
@@ -49,6 +49,8 @@ Same layering as **`Badge`**: **`Public`** (types you configure from app code), 
 | File | Role |
 |------|------|
 | `FKButtonLoadingPresentation.swift` | `FKButtonLoadingPresentation` + replacement options |
+| `FKButtonLoadingIndicatorConfiguration.swift` | Built-in spinner style, scale, and tint |
+| `FKButtonTransientResult.swift` | Brief success/failure/custom feedback types |
 
 #### `Public/Aliases/`
 
@@ -61,7 +63,7 @@ Same layering as **`Badge`**: **`Public`** (types you configure from app code), 
 | File | Role |
 |------|------|
 | `FKButton.swift` | Nested types, stored properties, inits, `deinit`, `isEnabled` / `isSelected` / `isHighlighted` |
-| `FKButton+Setup.swift` | `commonInit()`, `applyFactoryDefaultsFromGlobalStyle()` |
+| `FKButton+Setup.swift` | `commonInit()`, `prepareForInterfaceBuilder()`, global defaults |
 | `FKButton+PublicAPI.swift` | `setModel`, labels, images, appearance, batch updates |
 | `FKButton+Layout.swift` | Content alignment overrides, `intrinsicContentSize`, `layoutSubviews`, hit testing hook |
 | `FKButton+LayoutEngine.swift` | Stack alignment, refresh pipeline, title/image/custom host lifecycle |
@@ -71,8 +73,8 @@ Same layering as **`Badge`**: **`Public`** (types you configure from app code), 
 
 | File | Role |
 |------|------|
-| `FKButton+ContentRendering.swift` | Text/image resolution, `UILabel` / `UIImageView` application, padded symbols |
-| `FKButton+AppearanceRendering.swift` | Background, border, shadow, corner metrics, `activeImageElements` |
+| `FKButton+ContentRendering.swift` | Text/image resolution, symbol effects (iOS 17+), padded symbols |
+| `FKButton+AppearanceRendering.swift` | Background, border, shadow, pressed visuals, `activeImageElements` |
 | `FKButton+Accessibility.swift` | VoiceOver traits and default label/value/hint |
 
 #### `Public/FKButton/Interaction/`
@@ -83,8 +85,7 @@ Same layering as **`Badge`**: **`Public`** (types you configure from app code), 
 | `FKButton+InteractionGestures.swift` | Hit bounds helpers, long-press handler |
 | `FKButton+Feedback.swift` | Haptics/sound dispatch, pointer hover sync |
 | `FKButton+PointerInteraction.swift` | `UIPointerInteractionDelegate` |
-| `FKButton+Loading.swift` | `setLoading`, `performWhileLoading`, loading overlay views |
-| `FKButton+InterfaceBuilderHooks.swift` | `prepareForInterfaceBuilder()` |
+| `FKButton+Loading.swift` | `setLoading`, `performWhileLoading`, `showTransientResult`, overlay views |
 
 ### `Internal/`
 
@@ -98,6 +99,7 @@ Same layering as **`Badge`**: **`Public`** (types you configure from app code), 
 |------|------|
 | `FKButton+Builder.swift` | `withMinimumTapInterval`, `withContent`, … fluent API |
 | `FKButton+InterfaceBuilder.swift` | `fk_*` `@IBInspectable` properties |
+| `FKButton+Badge.swift` | `configureBadge` convenience over `UIView.fk_badge` |
 
 ## Naming convention
 
@@ -136,7 +138,11 @@ Use `setLeadingImage` / `setTrailingImage` / `setCenterImage` convenience APIs i
 ## Interaction notes
 
 - **Throttling** applies only to primary actions (UIKit may call `sendAction` directly; `FKButton` intercepts that path).
-- **Loading** forces interaction off and suppresses primary actions until cleared.
+- **Loading** forces interaction off and suppresses primary actions until cleared. Use `loadingIndicatorConfiguration`, `loadingPreservesIntrinsicWidth`, and `showTransientResult` for submit flows.
+- **`minimumTouchTargetSize`** expands hit testing without changing layout (HIG 44×44); combine with `hitTestEdgeInsets` when needed.
+- **Batch APIs** — `setTitles`, `setSubtitles`, `registerAppearances`, `setImages`, and slot conveniences register multiple states in one refresh. Use `setAppearances(StateAppearances)` for the standard four-state bundle.
+- **Badges** — `configureBadge(anchor:offset:)` returns `FKBadgeController` (same storage as `UIView.fk_badge`).
+- **Symbol effects** — set `symbolEffect` on `ImageAttributes` (iOS 17+).
 - **Long press** uses a gesture recognizer with `cancelsTouchesInView = false` so normal taps still work.
 - **Pointer** interaction is attached only on iPad / Mac idiom when enabled; call sites should not rely on hover where pointer APIs are unavailable.
 
@@ -159,7 +165,7 @@ Under `Examples/FKKitExamples/.../Examples/FKUIKit/Button/`:
 | Location | Contents |
 |----------|----------|
 | Root | `FKButtonExamplesHubViewController.swift`, `FKButtonExampleSupport.swift` (layout helpers + shared scroll shell) |
-| `Scenarios/` | One view controller per topic (basics, layout, interaction, appearance, loading, advanced) |
+| `Scenarios/` | One view controller per topic (basics, layout, interaction, appearance, loading, production patterns, advanced) |
 
 ## License
 

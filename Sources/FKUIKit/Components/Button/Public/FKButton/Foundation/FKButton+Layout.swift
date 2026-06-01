@@ -47,8 +47,12 @@ extension FKButton {
       withHorizontalFittingPriority: .defaultLow,
       verticalFittingPriority: .fittingSizeLevel
     )
+    var width = size.width + insets.leading + insets.trailing
+    if isLoading, loadingPreservesIntrinsicWidth, let pinned = intrinsicWidthPinnedForLoading {
+      width = max(width, pinned)
+    }
     return CGSize(
-      width: size.width + insets.leading + insets.trailing,
+      width: width,
       height: size.height + insets.top + insets.bottom
     )
   }

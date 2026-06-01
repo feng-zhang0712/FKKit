@@ -359,6 +359,14 @@ extension FKButton {
 
     NSLayoutConstraint.activate(constraints)
     imageConstraints[ObjectIdentifier(imageView)] = constraints
+
+    if allowsSymbolEffectAnimations,
+       let symbolEffect = element.symbolEffect,
+       symbolEffect.trigger == .onStateChange {
+      if #available(iOS 17.0, *) {
+        applySymbolEffect(symbolEffect.effect, to: imageView)
+      }
+    }
   }
 
   func deactivateImageConstraints(for imageView: UIImageView) {
@@ -427,5 +435,39 @@ extension FKButton {
       bottom: max(0, insets.bottom),
       right: max(0, isRTL ? insets.leading : insets.trailing)
     )
+  }
+
+  // MARK: - Symbol effects (iOS 17+)
+
+  func playSymbolEffects(for trigger: FKButtonSymbolEffectConfiguration.Trigger) {
+    guard #available(iOS 17.0, *) else { return }
+    for slot in [ImageSlot.center, .leading, .trailing] {
+      guard let imageView = imageView(for: slot),
+            let element = resolveImageElement(for: slot),
+            let config = element.symbolEffect,
+            config.trigger == trigger
+      else { continue }
+      applySymbolEffect(config.effect, to: imageView)
+    }
+  }
+
+  func imageView(for slot: ImageSlot) -> UIImageView? {
+    switch slot {
+    case .center: return imageView
+    case .leading: return leadingImageView
+    case .trailing: return trailingImageView
+    }
+  }
+
+  @available(iOS 17.0, *)
+  func applySymbolEffect(_ effect: FKButtonSymbolEffectConfiguration.Effect, to imageView: UIImageView) {
+    switch effect {
+    case .bounce:
+      imageView.addSymbolEffect(.bounce.byLayer, options: .nonRepeating)
+    case .pulse:
+      imageView.addSymbolEffect(.pulse.byLayer, options: .nonRepeating)
+    case .scale:
+      imageView.addSymbolEffect(.scale.up.byLayer, options: .nonRepeating)
+    }
   }
 }

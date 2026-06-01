@@ -2,7 +2,7 @@ import UIKit
 
 extension FKButton {
   open override func sendActions(for controlEvents: UIControl.Event) {
-    guard !isLoading else { return }
+    guard !isLoading, !isPresentingTransientResult else { return }
     currentlySendingControlEvents = controlEvents
     defer { currentlySendingControlEvents = [] }
     if shouldSuppressThrottledPrimaryAction(for: controlEvents) {
@@ -10,12 +10,13 @@ extension FKButton {
     }
     if controlEvents.contains(.primaryActionTriggered) || controlEvents.contains(.touchUpInside) {
       emitInteractionFeedback(for: .primaryAction)
+      playSymbolEffects(for: .onPrimaryAction)
     }
     super.sendActions(for: controlEvents)
   }
 
   open override func sendAction(_ action: Selector, to target: Any?, for event: UIEvent?) {
-    guard !isLoading else { return }
+    guard !isLoading, !isPresentingTransientResult else { return }
     // Some UIKit dispatch paths call `sendAction` directly and skip `sendActions(for:)`.
     // In that case, default to primary-action semantics so tap throttling still works.
     let effectiveEvents: UIControl.Event = currentlySendingControlEvents.isEmpty ? [.touchUpInside] : currentlySendingControlEvents
@@ -24,7 +25,7 @@ extension FKButton {
   }
 
   open override func sendAction(_ action: UIAction) {
-    guard !isLoading else { return }
+    guard !isLoading, !isPresentingTransientResult else { return }
     // `addAction(_:for:)` / UIAction dispatch commonly uses this overload without a `UIEvent`.
     let effectiveEvents: UIControl.Event = currentlySendingControlEvents.isEmpty ? [.touchUpInside] : currentlySendingControlEvents
     if shouldSuppressThrottledPrimaryAction(for: effectiveEvents, event: nil) { return }

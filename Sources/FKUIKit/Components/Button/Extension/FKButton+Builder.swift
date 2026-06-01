@@ -15,6 +15,12 @@ public extension FKButton {
   }
 
   @discardableResult
+  func withMinimumTouchTargetSize(_ value: CGSize?) -> Self {
+    minimumTouchTargetSize = value
+    return self
+  }
+
+  @discardableResult
   func withAutomaticallyDimsWhenDisabled(_ value: Bool) -> Self {
     automaticallyDimsWhenDisabled = value
     return self
@@ -33,8 +39,14 @@ public extension FKButton {
   }
 
   @discardableResult
-  func withLoadingActivityIndicatorColor(_ value: UIColor?) -> Self {
-    loadingActivityIndicatorColor = value
+  func withLoadingIndicatorConfiguration(_ value: FKButtonLoadingIndicatorConfiguration) -> Self {
+    loadingIndicatorConfiguration = value
+    return self
+  }
+
+  @discardableResult
+  func withLoadingPreservesIntrinsicWidth(_ value: Bool) -> Self {
+    loadingPreservesIntrinsicWidth = value
     return self
   }
 

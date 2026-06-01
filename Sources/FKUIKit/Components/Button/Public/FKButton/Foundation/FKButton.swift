@@ -35,7 +35,7 @@ import UIKit
 ///
 /// ## Loading
 /// `setLoading(_:presentation:)` shows a built-in activity indicator, blocks interaction, and supports overlay or content-replacement styles.
-/// `performWhileLoading` wraps async work.
+/// `performWhileLoading` wraps async work. Spinner tint lives in `loadingIndicatorConfiguration.color`.
 ///
 /// ## Global defaults
 /// `FKButton.GlobalStyle` is applied during initialization (tap interval, long-press timing, disabled dimming, optional default appearances).
@@ -209,6 +209,8 @@ import UIKit
   var batchUpdateDepth = 0
   var needsVisualRefresh = false
   var needsContentLayoutRefresh = false
+  /// Skips symbol-effect playback during initial setup; enabled at the end of `commonInit()`.
+  var allowsSymbolEffectAnimations = false
 
   // MARK: - Interaction & behavior configuration
 
@@ -225,6 +227,10 @@ import UIKit
   /// Negative insets enlarge the target (same semantics as `CGRect.inset(by:)` with negative edges).
   public var hitTestEdgeInsets: UIEdgeInsets = .zero
 
+  /// When non-`nil`, expands hit testing to at least this size centered on the button (HIG recommends 44×44).
+  /// Layout and visual bounds are unchanged; combine with `hitTestEdgeInsets` when needed.
+  public var minimumTouchTargetSize: CGSize?
+
   /// When `true`, applies `disabledDimmingAlpha` on top of resolved appearance while `isEnabled == false` (skipped while `isLoading`).
   public var automaticallyDimsWhenDisabled: Bool = true
   /// Multiplier applied to resolved appearance alpha when `automaticallyDimsWhenDisabled` is active.
@@ -234,11 +240,18 @@ import UIKit
   public internal(set) var isLoading: Bool = false
   /// Spinner + optional status row layout while loading. Ignored until the next time loading becomes active unless you call `applyLoadingPresentation(_:)`.
   public var loadingPresentationStyle: LoadingPresentationStyle = .overlay(dimmedContentAlpha: 0.35)
-  /// When non-`nil`, sets `UIActivityIndicatorView.color` for the built-in loading spinner. When `nil`, the system default tint is used.
-  public var loadingActivityIndicatorColor: UIColor? {
-    didSet { syncLoadingActivityIndicatorColor() }
+  /// Built-in spinner style, scale, and tint while loading.
+  public var loadingIndicatorConfiguration: FKButtonLoadingIndicatorConfiguration = .default {
+    didSet { syncLoadingIndicatorConfiguration() }
   }
+  /// When `true`, `intrinsicContentSize` keeps the pre-loading width so `.replacesContent` loading does not shrink wide buttons.
+  public var loadingPreservesIntrinsicWidth: Bool = false
   var userInteractionEnabledBeforeLoading: Bool = true
+  var intrinsicWidthPinnedForLoading: CGFloat?
+  var isPresentingTransientResult: Bool = false
+  var userInteractionEnabledBeforeTransientResult: Bool = true
+  /// `Timer` is not `Sendable`; only created/invalidated on the main run loop for transient results.
+  nonisolated(unsafe) var transientResultDismissTimer: Timer?
 
   /// Minimum finger-down duration before `UILongPressGestureRecognizer` enters `.began`.
   public var longPressMinimumDuration: TimeInterval = 0.5 {
@@ -338,23 +351,16 @@ import UIKit
   
   open override var isHighlighted: Bool {
     didSet {
-      requestVisualRefresh()
-      let appearance = resolveAppearance()
-      let feedback = appearance.interaction.isHighlightFeedbackEnabled
-      let shouldScale = !UIAccessibility.isReduceMotionEnabled
-      if isHighlighted, feedback {
+      if isHighlighted, resolveAppearance().interaction.isHighlightFeedbackEnabled {
         emitInteractionFeedback(for: .pressDown)
       }
-      UIView.animate(withDuration: 0.12) {
-        self.alpha = self.resolvedAlpha(for: appearance) * self.disabledVisualMultiplier()
-        self.transform = (self.isHighlighted && feedback && shouldScale)
-          ? CGAffineTransform(scaleX: appearance.interaction.pressedScale, y: appearance.interaction.pressedScale)
-          : .identity
-      }
+      requestVisualRefresh()
+      applyHighlightVisuals(animated: !UIAccessibility.isReduceMotionEnabled)
     }
   }
   deinit {
     longPressRepeatTimer?.invalidate()
+    transientResultDismissTimer?.invalidate()
     if let cachedPressDownSoundID {
       AudioServicesDisposeSystemSoundID(cachedPressDownSoundID)
     }

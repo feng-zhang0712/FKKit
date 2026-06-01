@@ -77,7 +77,6 @@ extension FKTabBar {
   ///   - items: New item list.
   ///   - updatePolicy: Selection retention behavior.
   public func reload(items: [FKTabBarItem], updatePolicy: ItemsUpdatePolicy = .preserveSelection) {
-    manualItems = items
     applyReload(items: items, updatePolicy: updatePolicy, animated: false, completion: nil)
   }
 
@@ -200,11 +199,9 @@ extension FKTabBar {
     switch plan {
     case .contentUpdates(let indices):
       visibleItemsStorage = newVisible
-      for index in indices {
-        refreshCellIfVisible(at: index)
-      }
       if !indices.isEmpty {
         collectionView.collectionViewLayout.invalidateLayout()
+        refreshVisibleCellsForCurrentState()
       }
       finalizeItemsTransition(animated: animated, completion: completion)
 
@@ -456,12 +453,11 @@ extension FKTabBar {
   ) {
     assertMainThreadInDebug()
     guard visibleItems.indices.contains(index) else { return }
-    let visibleID = visibleItems[index].id
-    guard let fullIndex = items.firstIndex(where: { $0.id == visibleID }) else { return }
-    itemsStorage[fullIndex].badge.state.normal = badge
-    itemsStorage[fullIndex].badge.accessibilityValue = accessibilityValue
-    visibleItemsStorage[index].badge.state.normal = badge
-    visibleItemsStorage[index].badge.accessibilityValue = accessibilityValue
+    let itemID = visibleItems[index].id
+    guard mutateStoredItem(withID: itemID, { item in
+      item.badge.state.normal = badge
+      item.badge.accessibilityValue = accessibilityValue
+    }) else { return }
     refreshCellIfVisible(at: index)
     updateIndicatorFrame(animated: animated)
   }
@@ -527,7 +523,9 @@ extension FKTabBar {
       )
       return true
     }
-    visibleItemsStorage[index] = item
+    if visibleItemsStorage.indices.contains(index), visibleItemsStorage[index].id == item.id {
+      visibleItemsStorage[index] = item
+    }
     invalidateItemSizeCache()
     collectionView.collectionViewLayout.invalidateLayout()
     collectionView.layoutIfNeeded()
@@ -549,5 +547,18 @@ extension FKTabBar {
     next[atFullIndex] = item
     itemsStorage = next
     manualItems = next
+  }
+
+  /// Updates one item in ``items`` / ``visibleItems`` storage and keeps both lists in sync.
+  @discardableResult
+  func mutateStoredItem(withID itemID: String, _ transform: (inout FKTabBarItem) -> Void) -> Bool {
+    guard let fullIndex = itemsStorage.firstIndex(where: { $0.id == itemID }) else { return false }
+    var item = itemsStorage[fullIndex]
+    transform(&item)
+    replaceStoredItem(item, atFullIndex: fullIndex)
+    if let visibleIndex = visibleItemsStorage.firstIndex(where: { $0.id == itemID }) {
+      visibleItemsStorage[visibleIndex] = item
+    }
+    return true
   }
 }

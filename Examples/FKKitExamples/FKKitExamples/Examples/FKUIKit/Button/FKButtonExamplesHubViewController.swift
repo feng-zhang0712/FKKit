@@ -36,6 +36,11 @@ final class FKButtonExamplesHubViewController: UITableViewController {
       controllerType: FKButtonExampleLoadingViewController.self
     ),
     Row(
+      title: "Production patterns",
+      subtitle: "Touch target, batch APIs, loading polish, badge, symbol effects, transient result",
+      controllerType: FKButtonExampleProductionViewController.self
+    ),
+    Row(
       title: "Global & Interface Builder",
       subtitle: "GlobalStyle snapshot, Storyboard inspectables",
       controllerType: FKButtonExampleAdvancedViewController.self

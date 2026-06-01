@@ -161,6 +161,7 @@ extension FKButton {
     applyImagesForCurrentState()
     applyCustomContentForCurrentState()
     applyAppearanceForCurrentState()
+    applyHighlightVisuals(animated: false)
     applyAccessibilityForCurrentState()
   }
   

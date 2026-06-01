@@ -88,6 +88,33 @@ public struct FKButtonLabelConfiguration {
 
 // MARK: - Image
 
+/// SF Symbol motion applied to an image slot (iOS 17+; ignored on earlier OS versions).
+public struct FKButtonSymbolEffectConfiguration: Equatable, Sendable {
+  /// Built-in symbol motion kinds mapped to ``UIImage/SymbolEffect`` on iOS 17+.
+  public enum Effect: Equatable, Sendable {
+    case bounce
+    case pulse
+    case scale
+  }
+
+  /// When the effect runs.
+  public enum Trigger: Equatable, Sendable {
+    /// Fires when resolved image content changes (for example `isSelected` toggles).
+    case onStateChange
+    /// Fires when a primary action is delivered.
+    case onPrimaryAction
+  }
+
+  public var effect: Effect
+  public var trigger: Trigger
+
+  /// Creates symbol-effect options.
+  public init(effect: Effect, trigger: Trigger = .onStateChange) {
+    self.effect = effect
+    self.trigger = trigger
+  }
+}
+
 /// Image slot payload (SF Symbols, tint, sizing, RTL, hit-test outsets).
 public struct FKButtonImageConfiguration {
   public var image: UIImage?
@@ -108,6 +135,8 @@ public struct FKButtonImageConfiguration {
   public var accessibilityLabel: String?
   public var accessibilityHint: String?
   public var accessibilityIdentifier: String?
+  /// Optional SF Symbol animation (requires iOS 17+).
+  public var symbolEffect: FKButtonSymbolEffectConfiguration?
 
   /// Creates an image configuration for `FKButton`.
   public init(
@@ -128,7 +157,8 @@ public struct FKButtonImageConfiguration {
     hitTestOutsets: UIEdgeInsets = .zero,
     accessibilityLabel: String? = nil,
     accessibilityHint: String? = nil,
-    accessibilityIdentifier: String? = nil
+    accessibilityIdentifier: String? = nil,
+    symbolEffect: FKButtonSymbolEffectConfiguration? = nil
   ) {
     self.image = image
     self.systemName = systemName
@@ -148,6 +178,7 @@ public struct FKButtonImageConfiguration {
     self.accessibilityLabel = accessibilityLabel
     self.accessibilityHint = accessibilityHint
     self.accessibilityIdentifier = accessibilityIdentifier
+    self.symbolEffect = symbolEffect
   }
 
   /// Baseline configuration.

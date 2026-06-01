@@ -116,7 +116,7 @@ extension FKTabBar {
     )
   }
 
-private func resolvedItemFrame(at index: Int) -> CGRect? {
+  func resolvedItemFrame(at index: Int) -> CGRect? {
     let indexPath = IndexPath(item: index, section: 0)
     if let cell = collectionView.cellForItem(at: indexPath) {
       return cell.frame
@@ -139,7 +139,7 @@ private func resolvedItemFrame(at index: Int) -> CGRect? {
     progressSnapshotToFrame = nil
   }
 
-// MARK: - Accessibility
+  // MARK: - Indicator z-order
 
   func updateIndicatorZOrder(for style: FKTabBarIndicatorStyle) {
     if case .none = style { return }
