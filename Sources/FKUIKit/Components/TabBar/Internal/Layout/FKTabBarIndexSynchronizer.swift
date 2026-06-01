@@ -18,7 +18,7 @@ enum FKTabBarIndexSynchronizer {
     policy: FKTabBar.ItemsUpdatePolicy
   ) -> Int {
     // Policy rules (high level):
-    // - preserveSelection: prefer stable ID mapping, otherwise clamp old index.
+    // - preserveSelection: prefer stable ID mapping; if that tab is disabled, fall back to nearest enabled item.
     // - resetSelection: always select the first visible item.
     // - nearestAvailable: pick the closest enabled item to minimize user surprise when
     //   the selected item disappears or becomes disabled.
@@ -28,9 +28,16 @@ enum FKTabBarIndexSynchronizer {
       return 0
     case .preserveSelection:
       if let previousVisibleID, let idx = visibleItems.firstIndex(where: { $0.id == previousVisibleID }) {
-        return idx
+        if visibleItems[idx].isEnabled {
+          return idx
+        }
+        return nearestSelectableIndex(from: idx, visibleItems: visibleItems)
       }
-      return clamp(previousSelectedIndex, count: visibleItems.count)
+      let clamped = clamp(previousSelectedIndex, count: visibleItems.count)
+      if visibleItems.indices.contains(clamped), visibleItems[clamped].isEnabled {
+        return clamped
+      }
+      return nearestSelectableIndex(from: clamped, visibleItems: visibleItems)
     case .nearestAvailable:
       return nearestSelectableIndex(from: previousSelectedIndex, visibleItems: visibleItems)
     }

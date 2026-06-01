@@ -13,12 +13,12 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
   }
 
   private var items: [FKTabBarItem] = [
-    FKTabBarItem(id: "all", title: .init(normal: .init(text: "All")), accessory: chevronDownAccessory()),
-    FKTabBarItem(id: "price", title: .init(normal: .init(text: "Price")), accessory: chevronDownAccessory()),
-    FKTabBarItem(id: "brand", title: .init(normal: .init(text: "Brand")), accessory: chevronDownAccessory()),
-    FKTabBarItem(id: "rating", title: .init(normal: .init(text: "Rating")), accessory: chevronDownAccessory()),
-    FKTabBarItem(id: "favorites", title: .init(normal: .init(text: "Favorites")), accessory: heartAccessory()),
-    FKTabBarItem(id: "saved", title: .init(normal: .init(text: "Saved")), accessory: sparklesAccessory()),
+    FKTabBarItem(id: "all", title: .init(normal: .init(text: "All")), accessoryIcon: chevronDownIcon()),
+    FKTabBarItem(id: "price", title: .init(normal: .init(text: "Price")), accessoryIcon: chevronDownIcon()),
+    FKTabBarItem(id: "brand", title: .init(normal: .init(text: "Brand")), accessoryIcon: chevronDownIcon()),
+    FKTabBarItem(id: "rating", title: .init(normal: .init(text: "Rating")), accessoryIcon: chevronDownIcon()),
+    FKTabBarItem(id: "favorites", title: .init(normal: .init(text: "Favorites")), accessoryIcon: heartIcon()),
+    FKTabBarItem(id: "saved", title: .init(normal: .init(text: "Saved")), accessoryIcon: sparklesIcon()),
   ]
 
   private let animationStyleByItemID: [String: AccessoryAnimationStyle] = [
@@ -226,11 +226,11 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
       var copy = item
       switch item.id {
       case "all", "price", "brand", "rating":
-        copy.accessory = chevronDownAccessory(style: sharedIconStyle())
+        copy.accessoryIcon = chevronDownIcon(style: sharedIconStyle())
       case "favorites":
-        copy.accessory = heartAccessory(style: sharedIconStyle())
+        copy.accessoryIcon = heartIcon(style: sharedIconStyle())
       case "saved":
-        copy.accessory = sparklesAccessory(style: sharedIconStyle())
+        copy.accessoryIcon = sparklesIcon(style: sharedIconStyle())
       default:
         break
       }
@@ -405,67 +405,63 @@ final class FKTabBarFilterStripExampleViewController: UIViewController, FKTabBar
   }
 }
 
-// MARK: - Accessory factories
+// MARK: - Accessory icon factories
 
-private func chevronDownAccessory(
+private func chevronDownIcon(
   style: FKTabBarAccessoryIconStyle = FKTabBarAccessoryIconStyle()
-) -> FKTabBarAccessoryConfiguration {
-  .init(icon: .systemSymbol("chevron.down", style: style))
+) -> FKTabBarAccessoryIconConfiguration {
+  .systemSymbol("chevron.down", style: style)
 }
 
-private func heartAccessory(
+private func heartIcon(
   style: FKTabBarAccessoryIconStyle = FKTabBarAccessoryIconStyle()
-) -> FKTabBarAccessoryConfiguration {
+) -> FKTabBarAccessoryIconConfiguration {
   .init(
-    icon: .init(
-      normal: .init(
-        source: .systemSymbol(name: "heart.fill"),
-        style: FKTabBarAccessoryIconStyle(
-          pointSize: style.pointSize,
-          weight: style.weight,
-          tintColor: .secondaryLabel,
-          fixedSize: style.fixedSize,
-          spacingToTitle: style.spacingToTitle
-        )
-      ),
-      selected: .init(
-        source: .systemSymbol(name: "heart.fill"),
-        style: FKTabBarAccessoryIconStyle(
-          pointSize: style.pointSize,
-          weight: style.weight,
-          tintColor: .systemPink,
-          fixedSize: style.fixedSize,
-          spacingToTitle: style.spacingToTitle
-        )
+    normal: .init(
+      source: .systemSymbol(name: "heart.fill"),
+      style: FKTabBarAccessoryIconStyle(
+        pointSize: style.pointSize,
+        weight: style.weight,
+        tintColor: .secondaryLabel,
+        fixedSize: style.fixedSize,
+        spacingToTitle: style.spacingToTitle
+      )
+    ),
+    selected: .init(
+      source: .systemSymbol(name: "heart.fill"),
+      style: FKTabBarAccessoryIconStyle(
+        pointSize: style.pointSize,
+        weight: style.weight,
+        tintColor: .systemPink,
+        fixedSize: style.fixedSize,
+        spacingToTitle: style.spacingToTitle
       )
     )
   )
 }
 
-private func sparklesAccessory(
+private func sparklesIcon(
   style: FKTabBarAccessoryIconStyle = FKTabBarAccessoryIconStyle()
-) -> FKTabBarAccessoryConfiguration {
+) -> FKTabBarAccessoryIconConfiguration {
   .init(
-    icon: .init(
-      normal: .init(
-        source: .systemSymbol(name: "sparkles"),
-        style: FKTabBarAccessoryIconStyle(
-          pointSize: style.pointSize,
-          weight: style.weight,
-          tintColor: .secondaryLabel,
-          fixedSize: style.fixedSize,
-          spacingToTitle: style.spacingToTitle
-        )
-      ),
-      selected: .init(
-        source: .systemSymbol(name: "sparkles"),
-        style: FKTabBarAccessoryIconStyle(
-          pointSize: style.pointSize,
-          weight: style.weight,
-          tintColor: .systemYellow,
-          fixedSize: style.fixedSize,
-          spacingToTitle: style.spacingToTitle
-        )
+    normal: .init(
+      source: .systemSymbol(name: "sparkles"),
+      style: FKTabBarAccessoryIconStyle(
+        pointSize: style.pointSize,
+        weight: style.weight,
+        tintColor: .secondaryLabel,
+        fixedSize: style.fixedSize,
+        spacingToTitle: style.spacingToTitle
+      )
+    ),
+    selected: .init(
+      source: .systemSymbol(name: "sparkles"),
+      style: FKTabBarAccessoryIconStyle(
+        pointSize: style.pointSize,
+        weight: style.weight,
+        tintColor: .systemYellow,
+        fixedSize: style.fixedSize,
+        spacingToTitle: style.spacingToTitle
       )
     )
   )

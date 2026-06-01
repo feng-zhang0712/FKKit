@@ -56,22 +56,16 @@ extension FKTabBar {
     return cell.interactiveButtonForIntegration()
   }
 
-  /// Returns the trailing accessory ``UIImageView`` for the visible item at `index` when the item uses ``FKTabBarAccessoryConfiguration/Kind/icon(_:)``.
+  /// Returns the trailing accessory ``UIImageView`` for the visible item at `index` when the item has ``FKTabBarItem/accessoryIcon``.
   ///
   /// Use this view to apply host-owned animations (for example chevron rotation or icon scale).
-  /// Returns `nil` when the index is out of range, the cell is off-screen, or the item has no trailing icon accessory.
+  /// Returns `nil` when the index is out of range, the cell is off-screen, or the item has no trailing icon.
   ///
   /// - Parameter index: Index in the visible items list.
   public func visibleItemAccessoryView(at index: Int) -> UIImageView? {
     guard visibleItems.indices.contains(index),
-          visibleItems[index].accessory.iconConfiguration != nil else { return nil }
+          visibleItems[index].accessoryIcon != nil else { return nil }
     return visibleItemButton(at: index)?.trailingImageView
-  }
-
-  /// Backward-compatible alias for ``visibleItemAccessoryView(at:)``.
-  @available(*, deprecated, renamed: "visibleItemAccessoryView(at:)")
-  public func visibleItemChevronView(at index: Int) -> UIImageView? {
-    visibleItemAccessoryView(at: index)
   }
 
   /// Reloads the tab bar with a new item list using ID-based diff when possible.
@@ -392,6 +386,20 @@ extension FKTabBar {
     updateIndicatorFrame(animated: false)
   }
 
+  /// Clears in-flight interactive progress without changing ``selectedIndex``.
+  ///
+  /// Use when an external container cancels a gesture or clears its progress binding before selection settles.
+  public func resetSelectionProgress() {
+    assertMainThreadInDebug()
+    guard progressFromIndex != nil || progressToIndex != nil || progressValue != 0 else { return }
+    progressFromIndex = nil
+    progressToIndex = nil
+    progressValue = 0
+    clearProgressSnapshot()
+    refreshVisibleCellsForCurrentState()
+    updateIndicatorFrame(animated: false)
+  }
+
   /// Updates indicator and item rendering for an in-flight selection transition.
   ///
   /// This API is intended for interactive containers (such as pagers) and accepts
@@ -520,6 +528,9 @@ extension FKTabBar {
       return true
     }
     visibleItemsStorage[index] = item
+    invalidateItemSizeCache()
+    collectionView.collectionViewLayout.invalidateLayout()
+    collectionView.layoutIfNeeded()
     refreshCellIfVisible(at: index)
     updateIndicatorFrame(animated: animated)
     return true

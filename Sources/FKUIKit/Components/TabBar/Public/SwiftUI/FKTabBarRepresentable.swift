@@ -96,6 +96,8 @@ public struct FKTabBarRepresentable: UIViewRepresentable {
         context.coordinator.lastSelectionProgress = value
         if let value {
           uiView.setSelectionProgress(from: value.fromIndex, to: value.toIndex, progress: value.progress)
+        } else {
+          uiView.resetSelectionProgress()
         }
       }
     }

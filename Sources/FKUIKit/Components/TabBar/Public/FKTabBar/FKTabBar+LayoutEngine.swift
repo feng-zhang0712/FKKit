@@ -109,8 +109,6 @@ extension FKTabBar {
     let layout = resolvedLayoutForCurrentEnvironment()
     guard shouldRelayoutIntrinsicWidthsOnSelection(for: layout) else {
       refreshVisibleCellsForCurrentState()
-      if let previous { refreshCellIfVisible(at: previous) }
-      refreshCellIfVisible(at: to)
       scrollSelectedIntoView(animated: animated)
       updateIndicatorFrame(animated: animated)
       return

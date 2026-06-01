@@ -146,7 +146,7 @@ enum FKTabBarItemButtonConfigurator {
     item: FKTabBarItem,
     customization: FKTabBarCustomization?
   ) {
-    resetButtonContent(button, preservingTrailingSlot: item.accessory.iconConfiguration != nil)
+    resetButtonContent(button, preservingTrailingSlot: item.accessoryIcon != nil)
 
     switch kind {
     case .textOnly:

@@ -78,11 +78,9 @@ final class FKTabBarCustomizationHooksExampleViewController: UIViewController {
   private let customization = FKTabBarExampleHooksCustomization()
   private lazy var tabView: FKTabBar = {
     var items = FKTabBarExampleSupport.makeItems(4)
-    items[0].accessory = .init(
-      icon: .init(
-        normal: .init(source: .systemSymbol(name: "star"), style: .init(tintColor: .secondaryLabel)),
-        selected: .init(source: .systemSymbol(name: "star.fill"), style: .init(tintColor: .systemOrange))
-      )
+    items[0].accessoryIcon = .init(
+      normal: .init(source: .systemSymbol(name: "star"), style: .init(tintColor: .secondaryLabel)),
+      selected: .init(source: .systemSymbol(name: "star.fill"), style: .init(tintColor: .systemOrange))
     )
     var config = FKTabBarPresets.segmentedControl(itemSpacing: 12)
     let bar = FKTabBar(items: items, selectedIndex: 0, configuration: config)
@@ -116,16 +114,14 @@ final class FKTabBarCustomizationHooksExampleViewController: UIViewController {
       let willExpand = self.tabView.expandedItemID != "tab-0"
       self.tabView.expandedItemID = willExpand ? "tab-0" : nil
       var item = self.tabView.visibleItems[0]
-      item.accessory = .init(
-        icon: .init(
-          normal: .init(
-            source: .systemSymbol(name: willExpand ? "star.fill" : "star"),
-            style: .init(tintColor: .secondaryLabel)
-          ),
-          selected: .init(
-            source: .systemSymbol(name: "star.fill"),
-            style: .init(tintColor: .systemOrange)
-          )
+      item.accessoryIcon = .init(
+        normal: .init(
+          source: .systemSymbol(name: willExpand ? "star.fill" : "star"),
+          style: .init(tintColor: .secondaryLabel)
+        ),
+        selected: .init(
+          source: .systemSymbol(name: "star.fill"),
+          style: .init(tintColor: .systemOrange)
         )
       )
       _ = self.tabView.setItem(item, at: 0, animated: false)

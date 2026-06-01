@@ -24,7 +24,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
   }
 
   private let tabButton = FKButton()
-  private var tabButtonTrailingConstraint: NSLayoutConstraint?
   private var customBadgeView: UIView?
   var onTap: ((FKButton) -> Void)?
   var onLongPress: ((FKButton) -> Void)?
@@ -34,11 +33,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
   /// We intentionally keep this internal (instead of exposing a public mutable property on the cell)
   /// to preserve reuse invariants and avoid external replacement of the button instance.
   func interactiveButtonForIntegration() -> FKButton { tabButton }
-
-  /// Returns the trailing accessory ``UIImageView`` hosted by the internal ``FKButton``, if any.
-  func accessoryViewForIntegration() -> UIView? {
-    tabButton.trailingImageView
-  }
 
   // MARK: - Lifecycle
 
@@ -60,7 +54,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
     customBadgeView?.removeFromSuperview()
     customBadgeView = nil
     tabButton.trailingImageView?.transform = .identity
-    pinTabButtonTrailingToContentView()
     tabButton.setCustomContent(nil, for: .normal)
     tabButton.setCustomContent(nil, for: .selected)
     tabButton.setCustomContent(nil, for: .disabled)
@@ -240,6 +233,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
     applyBadge(
       item.badge,
       item: item,
+      isSelected: selected,
       customization: customization,
       badgeConfiguration: badgeConfiguration,
       badgeAnimation: badgeAnimation
@@ -276,19 +270,12 @@ final class FKTabBarItemCell: UICollectionViewCell {
     tabButton.addTarget(self, action: #selector(handleTap), for: .touchUpInside)
     tabButton.addTarget(self, action: #selector(handleTap), for: .primaryActionTriggered)
 
-    tabButtonTrailingConstraint = tabButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     NSLayoutConstraint.activate([
       tabButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
       tabButton.topAnchor.constraint(equalTo: contentView.topAnchor),
       tabButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-      tabButtonTrailingConstraint!,
+      tabButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
     ])
-  }
-
-  private func pinTabButtonTrailingToContentView() {
-    tabButtonTrailingConstraint?.isActive = false
-    tabButtonTrailingConstraint = tabButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-    tabButtonTrailingConstraint?.isActive = true
   }
 
   @objc private func handleTap() {
@@ -300,6 +287,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
   private func applyBadge(
     _ badge: FKTabBarBadgeConfiguration,
     item: FKTabBarItem,
+    isSelected: Bool,
     customization: FKTabBarCustomization?,
     badgeConfiguration: FKBadgeConfiguration?,
     badgeAnimation: FKBadgeAnimation
@@ -321,7 +309,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
       clipsToBounds = false
     }
 
-    switch badge.state.resolved(isSelected: item.isEnabled && tabButton.isSelected, isEnabled: item.isEnabled) {
+    switch badge.state.resolved(isSelected: isSelected, isEnabled: item.isEnabled) {
     case .none:
       break
     case .dot:
@@ -354,19 +342,17 @@ final class FKTabBarItemCell: UICollectionViewCell {
     item: FKTabBarItem,
     textColor: UIColor
   ) {
-    switch item.accessory.kind {
-    case .none:
+    guard let icon = item.accessoryIcon else {
       [.normal, .selected, .disabled].forEach { tabButton.setTrailingImage(nil, for: $0) }
       return
-    case .icon(let icon):
-      // Do not clear the trailing image slot before re-applying — host code may be animating
-      // ``FKButton/trailingImageView`` (for example via ``FKTabBar/visibleItemAccessoryView(at:)``).
-      FKTabBarItemButtonConfigurator.applyIconAccessory(
-        to: tabButton,
-        icon: icon,
-        textColor: textColor
-      )
     }
+    // Do not clear the trailing image slot before re-applying — host code may be animating
+    // ``FKButton/trailingImageView`` (for example via ``FKTabBar/visibleItemAccessoryView(at:)``).
+    FKTabBarItemButtonConfigurator.applyIconAccessory(
+      to: tabButton,
+      icon: icon,
+      textColor: textColor
+    )
   }
 
   // MARK: - Content
