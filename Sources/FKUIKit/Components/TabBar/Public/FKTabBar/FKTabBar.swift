@@ -210,15 +210,11 @@ public final class FKTabBar: UIView {
     }
   }
 
-  /// Visual expanded state for accessory chevrons (for example filter panels). Does not affect selection.
-  public var expandedItemID: String? {
-    didSet {
-      guard oldValue != expandedItemID else { return }
-      invalidateItemSizeCache()
-      invalidateLayoutAndRelayout(animatedScroll: false)
-      refreshVisibleCellsForCurrentState()
-    }
-  }
+  /// Host-owned expansion marker for accessory visuals (for example filter panels). Does not affect selection or layout.
+  ///
+  /// ``FKTabBar`` does not animate accessories when this changes. Use ``visibleItemChevronView(at:)`` or
+  /// ``visibleItemAccessoryView(at:)`` to drive expansion visuals in host code.
+  public var expandedItemID: String?
 
   /// Optional shared `FKBadge` visual configuration for tab badges.
   ///

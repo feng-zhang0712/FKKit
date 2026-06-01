@@ -5,7 +5,7 @@ public struct FKTabBarAccessoryConfiguration: Equatable {
   /// Accessory kind.
   public enum Kind: Equatable, Sendable {
     case none
-    /// Built-in chevron; expanded visual state follows ``FKTabBar/expandedItemID``.
+    /// Built-in chevron; host code owns expansion visuals (see ``FKTabBar/visibleItemChevronView(at:)``).
     case chevron(FKTabBarChevronAccessoryConfiguration)
     /// Host supplies the view via ``FKTabBarCustomization/customAccessoryView(for:isSelected:isExpanded:)``.
     case custom(id: String)

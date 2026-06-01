@@ -36,7 +36,7 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
         ),
         RowModel(
           title: "Basic — filter strip preset",
-          subtitle: "filterStrip preset, chevron rotation via customization, expandedItemID, optional pending selection + commit.",
+          subtitle: "filterStrip preset, per-tab chevron/custom accessory animations, expandedItemID, pending selection.",
           make: { FKTabBarFilterStripExampleViewController() }
         ),
         RowModel(

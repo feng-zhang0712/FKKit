@@ -37,6 +37,11 @@ final class FKTabBarItemCell: UICollectionViewCell {
   /// to preserve reuse invariants and avoid external replacement of the button instance.
   func interactiveButtonForIntegration() -> FKButton { tabButton }
 
+  /// Returns the trailing accessory view (built-in chevron image view or host custom accessory).
+  func accessoryViewForIntegration() -> UIView? {
+    customAccessoryView ?? tabButton.trailingImageView
+  }
+
   // MARK: - Lifecycle
 
   override init(frame: CGRect) {
@@ -370,22 +375,28 @@ final class FKTabBarItemCell: UICollectionViewCell {
     isExpanded: Bool,
     customization: FKTabBarCustomization?
   ) {
-    customAccessoryView?.removeFromSuperview()
-    customAccessoryView = nil
-    [.normal, .selected, .disabled].forEach { tabButton.setTrailingImage(nil, for: $0) }
-
     switch item.accessory.kind {
     case .none:
+      customAccessoryView?.removeFromSuperview()
+      customAccessoryView = nil
+      [.normal, .selected, .disabled].forEach { tabButton.setTrailingImage(nil, for: $0) }
       pinTabButtonTrailingToContentView()
       return
     case .chevron(let chevron):
+      customAccessoryView?.removeFromSuperview()
+      customAccessoryView = nil
       pinTabButtonTrailingToContentView()
+      // Do not clear the trailing image slot before re-applying — host code may be animating
+      // ``FKButton/trailingImageView`` (for example chevron rotation via ``FKTabBar/visibleItemChevronView(at:)``).
       FKTabBarItemButtonConfigurator.applyChevronAccessory(
         to: tabButton,
         chevron: chevron,
         textColor: textColor
       )
     case .custom:
+      [.normal, .selected, .disabled].forEach { tabButton.setTrailingImage(nil, for: $0) }
+      customAccessoryView?.removeFromSuperview()
+      customAccessoryView = nil
       guard let custom = customization?.customAccessoryView(for: item, isSelected: isSelected, isExpanded: isExpanded) else {
         pinTabButtonTrailingToContentView()
         return

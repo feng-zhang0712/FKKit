@@ -32,8 +32,8 @@ public struct FKTabBarChevronAccessoryConfiguration: Equatable {
 
   /// Creates a chevron accessory configuration.
   ///
-  /// Built-in chevrons always render ``chevron.down``; ``FKTabBar`` does not swap symbols or apply transforms.
-  /// Host code (for example via ``FKTabBar/visibleItemButton(at:)``) owns expansion visuals and animations.
+  /// Built-in chevrons always render ``chevron.down``. ``FKTabBar`` does not swap symbols, apply transforms, or animate expansion.
+  /// Use ``FKTabBar/visibleItemChevronView(at:)`` in host code to drive rotation or other visuals.
   public init(
     pointSize: CGFloat = 14,
     weight: FKTabBarChevronSymbolWeight = .semibold,

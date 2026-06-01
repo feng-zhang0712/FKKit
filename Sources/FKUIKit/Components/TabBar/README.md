@@ -137,7 +137,9 @@ Line/backdrop fills come from the style configuration's `fill`. ``FKTabBarAppear
 - ``FKTabBarLayoutConfiguration/contentAlignment`` — leading / center / trailing group alignment when the strip is non-scrollable and total item width is smaller than the container. Use ``widthMode = .fillEqually`` for equal-width tabs.
 - ``FKTabBarLayoutConfiguration/emptyStateMessage`` — optional centered placeholder when the visible strip is empty.
 - ``FKTabBarLayoutConfiguration/scrollEdgeFade`` — horizontal edge fade when scrollable (enabled in ``FKTabBarPresets/filterStrip()``).
-- ``FKTabBar/expandedItemID`` — host-owned expansion state (does not change selection). Built-in chevrons render ``chevron.down`` only; drive rotation or other expansion visuals in host code (see ``FKTabBar/visibleItemButton(at:)``).
+- ``FKTabBar/expandedItemID`` — host-owned expansion marker (does not change selection or layout). Built-in chevrons render ``chevron.down`` only; drive rotation or other expansion visuals in host code (see ``FKTabBar/visibleItemChevronView(at:)``).
+- ``FKTabBar/visibleItemChevronView(at:)`` — built-in chevron ``UIImageView`` for host-owned expansion animations.
+- ``FKTabBar/visibleItemAccessoryView(at:)`` — built-in chevron or custom accessory view from ``FKTabBarCustomization``.
 - ``FKTabBar/visibleItemButton(at:)`` — returns the internal ``FKButton`` for popover/menu anchoring.
 - Item width measurement uses each item's ``FKTabBarImageStyle/fixedSize`` (not a hard-coded icon size).
 

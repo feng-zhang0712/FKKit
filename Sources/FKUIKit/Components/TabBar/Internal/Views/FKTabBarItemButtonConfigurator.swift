@@ -127,12 +127,14 @@ enum FKTabBarItemButtonConfigurator {
     }
   }
 
-  static func resetButtonContent(_ button: FKButton) {
+  static func resetButtonContent(_ button: FKButton, preservingTrailingSlot: Bool = false) {
     let states: [UIControl.State] = [.normal, .selected, .disabled]
     states.forEach {
       button.setCenterImage(nil, for: $0)
       button.setLeadingImage(nil, for: $0)
-      button.setTrailingImage(nil, for: $0)
+      if !preservingTrailingSlot {
+        button.setTrailingImage(nil, for: $0)
+      }
       button.setSubtitle(nil, for: $0)
       button.setCustomContent(nil, for: $0)
     }
@@ -144,7 +146,7 @@ enum FKTabBarItemButtonConfigurator {
     item: FKTabBarItem,
     customization: FKTabBarCustomization?
   ) {
-    resetButtonContent(button)
+    resetButtonContent(button, preservingTrailingSlot: item.accessory.chevronConfiguration != nil)
 
     switch kind {
     case .textOnly:
