@@ -4,6 +4,20 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.59.1] - 2026-06-02
+
+### Fixed (FKUIKit — TabBar)
+
+- Restore **`touchUpInside`** for item cell tap targets so finger taps select tabs again (`FKButton` subclasses `UIControl`; **`primaryActionTriggered`** alone does not receive finger taps).
+
+### Changed (FKUIKit — Button)
+
+- **README**: add **Control events** section documenting when to use **`.touchUpInside`** vs **`.primaryActionTriggered`** with `addTarget` / `addAction`.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.59.1** (Git tag **`0.59.1`**).
+
 ## [0.59.0] - 2026-06-02
 
 ### Added (FKUIKit — TabBar)
@@ -2383,7 +2397,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.59.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.59.1...HEAD
+[0.59.1]: https://github.com/feng-zhang0712/FKKit/compare/0.59.0...0.59.1
 [0.59.0]: https://github.com/feng-zhang0712/FKKit/compare/0.58.0...0.59.0
 [0.58.0]: https://github.com/feng-zhang0712/FKKit/compare/0.57.0...0.58.0
 [0.57.0]: https://github.com/feng-zhang0712/FKKit/compare/0.56.0...0.57.0

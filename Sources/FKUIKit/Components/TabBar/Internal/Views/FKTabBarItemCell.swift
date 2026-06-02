@@ -267,7 +267,9 @@ final class FKTabBarItemCell: UICollectionViewCell {
     isAccessibilityElement = false
     contentView.isAccessibilityElement = false
 
-    tabButton.addTarget(self, action: #selector(handleTap), for: .primaryActionTriggered)
+    // Finger taps on `FKButton` (a `UIControl` subclass) deliver `.touchUpInside`; `.primaryActionTriggered`
+    // is mainly wired for `UIButton` / accessibility / keyboard (see ProgressBar example comments).
+    tabButton.addTarget(self, action: #selector(handleTap), for: .touchUpInside)
 
     NSLayoutConstraint.activate([
       tabButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),

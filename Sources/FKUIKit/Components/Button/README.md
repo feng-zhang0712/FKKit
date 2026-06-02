@@ -128,6 +128,40 @@ button.setLeadingImage(.init(systemName: "paperplane.fill", tintColor: .white), 
 
 Use `setLeadingImage` / `setTrailingImage` / `setCenterImage` convenience APIs instead of `setImage(_:slot:for:)` when the slot is fixed.
 
+## Control events
+
+`FKButton` subclasses **`UIControl`**, not `UIButton`. UIKit’s default touch tracking delivers **`.touchUpInside`** on a successful finger tap. **`.primaryActionTriggered`** is a semantic event: on `UIButton` it mirrors `touchUpInside`, but on a plain `UIControl` it is **not** guaranteed for finger taps (it is used for accessibility activation, hardware keyboard, tvOS focus, and similar paths).
+
+### What to register
+
+| Input | Recommended event |
+|-------|-------------------|
+| Finger tap (iPhone / iPad touch) | **`.touchUpInside`** |
+| VoiceOver activate, external keyboard, other non-touch primary actions | **`.primaryActionTriggered`** (in addition, not instead) |
+
+**Default:** use **`.touchUpInside`** only — same as Quick start above and most FKUIKit components.
+
+**Do not** register the same handler for **both** `.touchUpInside` and `.primaryActionTriggered` unless you intentionally want coverage for non-touch inputs *and* accept that some platforms may deliver both events for one gesture (duplicate callbacks). Prefer a single event when finger tap is enough.
+
+**Do not** use **only** `.primaryActionTriggered` for touch-only UI (for example tab items); the handler may never run.
+
+### Throttling and feedback
+
+`minimumTapInterval` and primary-action haptics / sound apply to **either** `.touchUpInside` or `.primaryActionTriggered` (see `FKButton+ControlDispatch.swift`). Loading and transient-result presentation suppress **all** primary dispatches until cleared.
+
+### Full input coverage (optional)
+
+When a control must respond to both touch and accessibility / keyboard primary action, register **both** events with the **same** action only if you need that breadth. The ProgressBar button-mode example documents this pattern:
+
+`Examples/FKKitExamples/.../FKUIKit/ProgressBar/Scenarios/FKProgressBarProgressButtonExampleViewController.swift`
+
+```swift
+button.addAction(UIAction { _ in onTap() }, for: .touchUpInside)
+button.addAction(UIAction { _ in onTap() }, for: .primaryActionTriggered)
+```
+
+Internal library code (for example `FKTabBar` item cells) should use **`.touchUpInside`** unless a scenario explicitly requires the dual registration above.
+
 ## State resolution
 
 - Register appearance and content per **exact** `UIControl.State` bit pattern.
@@ -136,6 +170,8 @@ Use `setLeadingImage` / `setTrailingImage` / `setCenterImage` convenience APIs i
 - Non-`nil` **`setModel`** is **partial**: omitted fields (e.g. `images == nil`) do not clear existing slot registrations.
 
 ## Interaction notes
+
+See **Control events** for which `UIControl.Event` to use with `addTarget` / `addAction`.
 
 - **Throttling** applies only to primary actions (UIKit may call `sendAction` directly; `FKButton` intercepts that path).
 - **Loading** forces interaction off and suppresses primary actions until cleared. Use `loadingIndicatorConfiguration`, `loadingPreservesIntrinsicWidth`, and `showTransientResult` for submit flows.
