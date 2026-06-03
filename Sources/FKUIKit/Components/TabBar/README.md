@@ -84,7 +84,9 @@ let tabBar = FKTabBar(
 )
 ```
 
-Scene presets: ``FKTabBarPresets/pagerHeader()``, ``bottomDocked(showsIndicator:)``, ``segmentedControl(itemSpacing:)``, ``filterStrip()``.
+Scene presets: ``FKTabBarPresets/pagerHeader()``, ``bottomDocked(showsIndicator:)``, ``segmentedControl(itemSpacing:)``, ``navigationBarSegmented(itemSpacing:)``, ``navigationBarScrollable()``, ``filterStrip()``.
+
+Set ``FKTabBarLayoutConfiguration/hostingContext`` to ``FKTabBarHostingContext/navigationBarTitleView`` (or use a navigation-bar preset) when embedding in ``UINavigationItem/titleView`` — this enables compact height, transparent chrome, hidden divider, automatic scroll-edge fade, and ``sizeThatFits`` width deferral to UIKit.
 
 Partial item updates: ``setItem(_:at:animated:)`` / ``setItem(_:forItemID:animated:)``, ``setBadge(_:at:animated:accessibilityValue:)`` / ``setBadge(_:forItemID:animated:accessibilityValue:)``. Structural batches: ``applyChanges(_:)`` (returns `false` when any change is invalid). Full reload with ID diff: ``reload(items:)``. Configuration refresh: ``applyConfiguration(_:animated:)``. ``updateItem(at:animated:)`` only re-renders from the current in-memory model — it does not fetch new data. When models change but selection index is unchanged, call ``reapplyVisibleItemConfigurations()`` so visible cells pick up new title/icon/badge data.
 

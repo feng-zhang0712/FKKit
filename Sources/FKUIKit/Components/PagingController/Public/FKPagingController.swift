@@ -14,6 +14,22 @@ public final class FKPagingController: UIViewController {
 
   public let tabBar: FKTabBar
 
+  /// Optional override for ``FKPagingTabBarPlacement/navigationBar`` host resolution.
+  ///
+  /// When `nil`, the nearest ancestor in a navigation stack or `self` is used.
+  public weak var tabBarNavigationHost: UIViewController? {
+    didSet { tabBarPlacementCoordinator.tabBarNavigationHost = tabBarNavigationHost }
+  }
+
+  /// Current tab strip placement (mirrors ``configuration/tabBarPlacement``).
+  public var tabBarPlacement: FKPagingTabBarPlacement { configuration.tabBarPlacement }
+
+  /// `true` when ``tabBarPlacement`` is ``FKPagingTabBarPlacement/external`` and the host must layout ``tabBar``.
+  public var isTabBarExternallyManaged: Bool {
+    if case .external = configuration.tabBarPlacement { return true }
+    return false
+  }
+
   public private(set) var selectedIndex: Int
   public var selectedItemID: String? { tabBar.selectedItemID }
   public private(set) var pendingPageIndex: Int?
@@ -45,13 +61,13 @@ public final class FKPagingController: UIViewController {
   private let stateMachine: FKPagingStateMachine
   private let pageStore: FKPagingPageStore
   private let tabCoordinator = FKPagingTabBarCoordinator()
+  private lazy var tabBarPlacementCoordinator = FKPagingTabBarPlacementCoordinator(tabBar: tabBar, pagingViewController: self)
 
   private var pendingProgrammaticIndex: Int?
   private var queuedProgrammaticTarget: Int?
   private var queuedProgrammaticAnimated: Bool = true
   private var scrollView: UIScrollView?
-  private var tabHeightConstraint: NSLayoutConstraint?
-  private var layoutConstraints = LayoutConstraints()
+  private var pageHorizontalConstraints = PageHorizontalConstraints()
   private var didInstallPagingPanRequiresNavigationPopFailure = false
   private var installedNestedScrollPanRecognizers = Set<ObjectIdentifier>()
   private var lastNestedScrollInstallIndex: Int?
@@ -117,10 +133,27 @@ public final class FKPagingController: UIViewController {
     updateEmptyStateVisibility()
   }
 
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    applyTabBarPlacement()
+  }
+
+  public override func didMove(toParent parent: UIViewController?) {
+    super.didMove(toParent: parent)
+    if parent == nil {
+      tabBarPlacementCoordinator.teardownNavigationBarTitleViewIfInstalled()
+    }
+    guard isViewLoaded else { return }
+    applyTabBarPlacement()
+  }
+
   public override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     attachScrollViewIfNeeded()
-    updateTabBarHeightIfNeeded()
+    tabBarPlacementCoordinator.updateTabBarHeightIfNeeded(
+      placement: configuration.tabBarPlacement,
+      tabBarHeightPolicy: configuration.tabBarHeightPolicy
+    )
   }
 
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -384,11 +417,7 @@ extension FKPagingController: UIScrollViewDelegate {
 // MARK: - Private
 
 private extension FKPagingController {
-  struct LayoutConstraints {
-    var tabTop: NSLayoutConstraint?
-    var tabBottom: NSLayoutConstraint?
-    var pageTop: NSLayoutConstraint?
-    var pageBottom: NSLayoutConstraint?
+  struct PageHorizontalConstraints {
     var pageLeading: NSLayoutConstraint?
     var pageTrailing: NSLayoutConstraint?
   }
@@ -554,54 +583,34 @@ private extension FKPagingController {
     emptyStateLabel.isHidden = !showEmpty
     emptyStateLabel.text = configuration.emptyStateConfiguration.message
     pageViewController.view.isHidden = showEmpty
-    tabBar.isHidden = showEmpty
+    applyTabBarPlacement()
   }
 
   func setupHierarchy() {
-    tabBar.translatesAutoresizingMaskIntoConstraints = false
     installPageViewControllerInHierarchy(pageViewController)
-    view.addSubview(tabBar)
-    tabHeightConstraint = tabBar.heightAnchor.constraint(equalToConstant: resolvedTabBarHeight())
-    tabHeightConstraint?.isActive = true
-    NSLayoutConstraint.activate([
-      tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-    ])
+    tabBarPlacementCoordinator.bind(pageHostView: pageViewController.view)
     rebindPageViewHorizontalConstraints()
-    applyTabBarLayout()
+    applyTabBarPlacement()
     attachScrollViewIfNeeded()
   }
 
   func rebindPageViewHorizontalConstraints() {
-    layoutConstraints.pageLeading?.isActive = false
-    layoutConstraints.pageTrailing?.isActive = false
-    layoutConstraints.pageLeading = pageViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor)
-    layoutConstraints.pageTrailing = pageViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-    layoutConstraints.pageLeading?.isActive = true
-    layoutConstraints.pageTrailing?.isActive = true
+    pageHorizontalConstraints.pageLeading?.isActive = false
+    pageHorizontalConstraints.pageTrailing?.isActive = false
+    pageHorizontalConstraints.pageLeading = pageViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+    pageHorizontalConstraints.pageTrailing = pageViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+    pageHorizontalConstraints.pageLeading?.isActive = true
+    pageHorizontalConstraints.pageTrailing?.isActive = true
   }
 
-  func applyTabBarLayout() {
-    layoutConstraints.tabTop?.isActive = false
-    layoutConstraints.tabBottom?.isActive = false
-    layoutConstraints.pageTop?.isActive = false
-    layoutConstraints.pageBottom?.isActive = false
-
-    switch configuration.tabBarPosition {
-    case .top:
-      layoutConstraints.tabTop = tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
-      layoutConstraints.pageTop = pageViewController.view.topAnchor.constraint(equalTo: tabBar.bottomAnchor)
-      layoutConstraints.pageBottom = pageViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-    case .bottom:
-      layoutConstraints.pageTop = pageViewController.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
-      layoutConstraints.pageBottom = pageViewController.view.bottomAnchor.constraint(equalTo: tabBar.topAnchor)
-      layoutConstraints.tabBottom = tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-    }
-
-    layoutConstraints.tabTop?.isActive = configuration.tabBarPosition == .top
-    layoutConstraints.tabBottom?.isActive = configuration.tabBarPosition == .bottom
-    layoutConstraints.pageTop?.isActive = true
-    layoutConstraints.pageBottom?.isActive = true
+  func applyTabBarPlacement() {
+    guard isViewLoaded else { return }
+    let showsEmpty = pageCount == 0 && configuration.emptyStateConfiguration.isEnabled
+    tabBarPlacementCoordinator.apply(
+      placement: configuration.tabBarPlacement,
+      tabBarHeightPolicy: configuration.tabBarHeightPolicy,
+      showsEmptyState: showsEmpty
+    )
   }
 
   func installPageViewControllerInHierarchy(_ controller: UIPageViewController) {
@@ -632,8 +641,9 @@ private extension FKPagingController {
 
     pageViewController = replacement
     installPageViewControllerInHierarchy(pageViewController)
+    tabBarPlacementCoordinator.bind(pageHostView: pageViewController.view)
     rebindPageViewHorizontalConstraints()
-    applyTabBarLayout()
+    applyTabBarPlacement()
 
     oldPageViewController.willMove(toParent: nil)
     oldPageViewController.view.removeFromSuperview()
@@ -811,8 +821,7 @@ private extension FKPagingController {
   func applyConfiguration() {
     tabCoordinator.applyPageSwitchGate(configuration.pageSwitchGate, scope: configuration.pageSwitchGateScope)
     rebuildPageViewControllerIfNeeded()
-    updateTabBarHeightIfNeeded()
-    if isViewLoaded { applyTabBarLayout() }
+    if isViewLoaded { applyTabBarPlacement() }
     if pageCount == 0 {
       pageViewController.dataSource = nil
       scrollView?.isScrollEnabled = false
@@ -835,17 +844,6 @@ private extension FKPagingController {
 
   func updateSwipeEnabledForCurrentPage() {
     scrollView?.isScrollEnabled = isSwipePagingEnabled
-  }
-
-  func resolvedTabBarHeight() -> CGFloat {
-    switch configuration.tabBarHeightPolicy {
-    case .fixed(let height): return max(36, height)
-    case .automatic: return max(36, tabBar.intrinsicContentSize.height)
-    }
-  }
-
-  func updateTabBarHeightIfNeeded() {
-    tabHeightConstraint?.constant = resolvedTabBarHeight()
   }
 
   func notifyPhase() {

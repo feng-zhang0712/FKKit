@@ -31,7 +31,7 @@ For tab-only demos (progress slider, indicator styles), see [`TabBar/README.md`]
 |------|------|----------------|
 | Public API | `Public/FKPagingController.swift` | Container VC, selection, content updates, layout, gestures |
 | | `Public/FKPagingConfiguration.swift` | Swipe, caching, gate scope, layout, empty state |
-| | `Public/FKPagingLayout.swift` | Tab position, navigation direction, nested scroll, tab height, empty state config |
+| | `Public/FKPagingLayout.swift` | Tab placement, navigation direction, nested scroll, tab height, empty state config |
 | | `Public/FKPagingContentChange.swift` | Incremental tab/page mutations |
 | | `Public/FKPagingDataSource.swift` | Dynamic tab (+ optional eager page) data source |
 | | `Public/FKPagingSwitchReason.swift` | Switch reason, gate scope, reselect behavior |
@@ -39,6 +39,7 @@ For tab-only demos (progress slider, indicator styles), see [`TabBar/README.md`]
 | | `Public/SwiftUI/FKPagingControllerRepresentable.swift` | SwiftUI bridge (index or ID binding + callbacks) |
 | Internal | `Internal/FKPagingPageStore.swift` | Eager/lazy cache, sync, invalidation, parent detach |
 | | `Internal/FKPagingScrollUtilities.swift` | Scroll-to-top, nested horizontal scroll discovery |
+| | `Internal/FKPagingTabBarPlacementCoordinator.swift` | Tab strip placement (content / navigation bar / external) |
 | | `Internal/FKPagingTabBarCoordinator.swift` | Tab delegate forwarding, gate mapping |
 | | `Internal/FKPagingStateMachine.swift` | Phase tracking |
 
@@ -67,7 +68,7 @@ Bottom-docked tab strip:
 
 ```swift
 var config = FKPagingConfiguration()
-config.tabBarPosition = .bottom
+config.tabBarPlacement = .contentBottom
 let pager = FKPagingController(
   tabs: tabs,
   viewControllers: pages,
@@ -76,13 +77,41 @@ let pager = FKPagingController(
 )
 ```
 
+Navigation-bar tabs (child VC in a navigation stack):
+
+```swift
+var config = FKPagingConfiguration()
+config.tabBarPlacement = .navigationBar()
+config.tabBarHeightPolicy = .fixed(32)
+let pager = FKPagingController(
+  tabs: tabs,
+  viewControllers: pages,
+  tabConfiguration: FKTabBarPresets.navigationBarSegmented(),
+  configuration: config
+)
+addChild(pager)
+// … embed pager.view …
+pager.tabBarNavigationHost = self
+```
+
+External tab strip (host lays out ``tabBar``):
+
+```swift
+var config = FKPagingConfiguration()
+config.tabBarPlacement = .external
+let pager = FKPagingController(tabs: tabs, viewControllers: pages, configuration: config)
+headerContainer.addSubview(pager.tabBar)
+```
+
 ---
 
 ## Configuration highlights
 
 | Field | Role |
 |-------|------|
-| `tabBarPosition` | `.top` (default) or `.bottom` |
+| `tabBarPlacement` | `.contentTop` / `.contentBottom`, `.navigationBar(...)`, or `.external` |
+| `tabBarNavigationHost` (on controller) | Override nav-bar host when placement is `.navigationBar` |
+| `isTabBarExternallyManaged` | `true` when placement is `.external` — host must layout ``tabBar`` |
 | `allowsSwipePaging` | Enables horizontal swipe via `UIPageViewController` |
 | `allowsSwipePagingFrom` | Per settled index — master swipe enable/disable |
 | `allowsSwipePagingTo` | Per index **and** ``FKPagingNavigationDirection`` — directional swipe control |
@@ -177,8 +206,9 @@ Callbacks and binding updates are dispatched asynchronously to avoid publishing 
 
 | Section | Scenarios |
 |---------|-----------|
+| Tab bar placement | Content top, navigation bar titleView, external host layout |
 | Basics | Eager sync, tab bar indicators, tab bar layout (width / scroll / alignment) |
-| Layout & lifecycle | Bottom tabs + spacing, empty state, reselect scroll-to-top |
+| Layout & lifecycle | Content bottom + spacing, empty state, reselect scroll-to-top |
 | Configuration & control | Delegate/config, controlled gate (all scopes), ID selection, directional swipe |
 | Dynamic content | setContent, sync visible tabs, applyContentChanges, data source |
 | Gestures | Nested horizontal scroll |
@@ -190,7 +220,7 @@ Callbacks and binding updates are dispatched asynchronously to avoid publishing 
 ## API checklist
 
 - `FKPagingController`
-- `FKPagingConfiguration`, `FKPagingRetentionPolicy`, `FKPagingGesturePolicy`, `FKPagingTabAlignment`, `FKPagingPageSwitchGate`, `FKPagingPageSwitchGateScope`, `FKPagingTabBarHeightPolicy`, `FKPagingReselectBehavior`, `FKPagingTabBarPosition`, `FKPagingNavigationDirection`, `FKPagingNestedHorizontalScrollPolicy`, `FKPagingEmptyStateConfiguration`
+- `FKPagingConfiguration`, `FKPagingRetentionPolicy`, `FKPagingGesturePolicy`, `FKPagingTabAlignment`, `FKPagingPageSwitchGate`, `FKPagingPageSwitchGateScope`, `FKPagingTabBarHeightPolicy`, `FKPagingReselectBehavior`, `FKPagingTabBarPlacement`, `FKPagingTabBarPosition`, `FKPagingNavigationBarTabOptions`, `FKPagingNavigationDirection`, `FKPagingNestedHorizontalScrollPolicy`, `FKPagingEmptyStateConfiguration`
 - `FKPagingContentChange`
 - `FKPagingDataSource`, `FKPagingEagerDataSource`
 - `FKPagingSwitchReason`

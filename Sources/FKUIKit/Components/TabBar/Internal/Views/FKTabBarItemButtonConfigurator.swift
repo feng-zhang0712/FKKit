@@ -95,6 +95,39 @@ enum FKTabBarItemButtonConfigurator {
     return selectedWidth >= normalWidth ? typography.selectedFont : typography.normalFont
   }
 
+  private static let defaultTitleStyle = FKTabBarTextStyle()
+
+  /// `true` when the item uses the module-default ``FKTabBarTextStyle/color`` (inherit from ``FKTabBarAppearance/colors``).
+  static func usesDefaultTitleColor(_ style: FKTabBarTextStyle) -> Bool {
+    style.color == defaultTitleStyle.color
+  }
+
+  /// Resolves the normal title color, falling back to ``FKTabBarAppearance/colors/normalText`` when the item style is default.
+  static func resolvedNormalTitleColor(for item: FKTabBarItem, appearance: FKTabBarAppearance) -> UIColor {
+    usesDefaultTitleColor(item.title.normal.style)
+      ? appearance.colors.normalText
+      : item.title.normal.style.color
+  }
+
+  /// Resolves the selected title color, falling back to ``FKTabBarAppearance/colors/selectedText`` when only text differs per state.
+  static func resolvedSelectedTitleColor(for item: FKTabBarItem, appearance: FKTabBarAppearance) -> UIColor {
+    guard let selected = item.title.selected else {
+      return appearance.colors.selectedText
+    }
+    return usesDefaultTitleColor(selected.style)
+      ? appearance.colors.selectedText
+      : selected.style.color
+  }
+
+  /// Resolves subtitle color for a resolved text state, matching title color inheritance rules.
+  static func resolvedSubtitleColor(
+    for state: FKTabBarTextConfiguration.State,
+    appearance: FKTabBarAppearance,
+    fallbackSelected: UIColor
+  ) -> UIColor {
+    usesDefaultTitleColor(state.style) ? fallbackSelected : state.style.color
+  }
+
   // MARK: - Button mutation
 
   static func applyItemInsets(_ insets: NSDirectionalEdgeInsets, to button: FKButton) {

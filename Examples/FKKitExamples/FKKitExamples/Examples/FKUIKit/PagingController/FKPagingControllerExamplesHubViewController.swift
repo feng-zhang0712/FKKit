@@ -16,6 +16,26 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
   private let sections: [SectionModel] = {
     var list: [SectionModel] = [
       SectionModel(
+        title: "Tab bar placement",
+        rows: [
+          RowModel(
+            title: "Content area (top)",
+            subtitle: "tabBarPlacement .contentTop — strip inside pager view below nav bar (default).",
+            make: { FKPagingContentTopPlacementExampleViewController() }
+          ),
+          RowModel(
+            title: "Navigation bar tabs",
+            subtitle: "tabBarPlacement .navigationBar — 18 mixed tab styles, half-height pager, inline config panel.",
+            make: { FKPagingNavigationBarPlacementExampleViewController() }
+          ),
+          RowModel(
+            title: "External tab strip",
+            subtitle: "tabBarPlacement .external — host adds tabBar above pages; isTabBarExternallyManaged.",
+            make: { FKPagingExternalTabBarPlacementExampleViewController() }
+          ),
+        ]
+      ),
+      SectionModel(
         title: "Basics",
         rows: [
           RowModel(
@@ -40,7 +60,7 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         rows: [
           RowModel(
             title: "Layout & spacing",
-            subtitle: "Bottom-docked tab strip; interPageSpacing visible only while swiping (menu toggles gap).",
+            subtitle: "tabBarPlacement .contentBottom; interPageSpacing visible only while swiping.",
             make: { FKPagingLayoutSpacingExampleViewController() }
           ),
           RowModel(

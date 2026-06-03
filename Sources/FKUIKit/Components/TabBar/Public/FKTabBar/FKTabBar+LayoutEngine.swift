@@ -51,7 +51,8 @@ extension FKTabBar {
     }
     rebuildItemSizeCache()
     guard cachedItemSizes.indices.contains(index) else {
-      return CGSize(width: 44, height: max(44, resolvedLayout().minimumItemHeight))
+      let layout = resolvedLayout()
+      return CGSize(width: 44, height: max(FKTabBarLayoutMetrics.minimumBarHeight(for: layout), layout.minimumItemHeight))
     }
     return cachedItemSizes[index]
   }
@@ -68,7 +69,7 @@ extension FKTabBar {
     let measurementBounds = collectionMeasurementBounds()
     cachedItemSizes = visibleItems.indices.map { index in
       guard let item = visibleItems[safe: index] else {
-        return CGSize(width: 44, height: max(44, layout.minimumItemHeight))
+        return CGSize(width: 44, height: max(FKTabBarLayoutMetrics.minimumBarHeight(for: layout), layout.minimumItemHeight))
       }
       return FKTabBarItemWidthStrategy.sizeForItem(
         item: item,

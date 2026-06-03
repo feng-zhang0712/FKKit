@@ -19,7 +19,8 @@ enum FKTabBarItemWidthStrategy {
     // `itemInsets` are applied as `FKButton` contentInsets inside the cell; do not subtract them
     // again here or vertical padding double-shrinks item height and makes tabs jump vertically.
     let availableHeight = max(1, collectionBounds.height - verticalInsets)
-    var itemHeight = max(44, layout.minimumItemHeight, availableHeight)
+    let barFloor = FKTabBarLayoutMetrics.minimumBarHeight(for: layout)
+    var itemHeight = max(barFloor, layout.minimumItemHeight, availableHeight)
     if let tabBar, let custom = customization?.customWidth(for: index, item: item, in: tabBar) {
       return CGSize(width: max(32, custom), height: itemHeight)
     }
@@ -109,7 +110,7 @@ enum FKTabBarItemWidthStrategy {
       ? imageMetrics.height + imageMetrics.titleSpacing
       : 0
     let textReserve = ceil(scaledFont.lineHeight * CGFloat(lineCount))
-    return max(44, layout.minimumItemHeight, textReserve + iconReserve + verticalChrome)
+    return max(FKTabBarLayoutMetrics.minimumBarHeight(for: layout), layout.minimumItemHeight, textReserve + iconReserve + verticalChrome)
   }
 
   private static func legacyImageMetrics(for item: FKTabBarItem) -> (width: CGFloat, height: CGFloat, titleSpacing: CGFloat) {

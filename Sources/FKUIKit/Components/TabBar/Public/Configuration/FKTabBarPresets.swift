@@ -44,6 +44,48 @@ public enum FKTabBarPresets {
     return config
   }
 
+  /// Compact segmented strip for ``UINavigationItem/titleView`` with ``FKPagingTabBarPlacement/navigationBar``.
+  public static func navigationBarSegmented(itemSpacing: CGFloat = 0) -> FKTabBarConfiguration {
+    var config = segmentedControl(itemSpacing: itemSpacing)
+    config.layout.hostingContext = .navigationBarTitleView
+    config.layout.contentInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 0)
+    config.layout.minimumItemHeight = 28
+    config.layout.preferredBarHeight = 32
+    config.layout.itemInsets = .init(top: 2, leading: 6, bottom: 2, trailing: 6)
+    config.appearance.backgroundStyle = .solid(.clear)
+    config.appearance.showsDivider = false
+    config.appearance.shadow = .none
+    config.appearance.typography = .init(
+      normalFont: .systemFont(ofSize: 13, weight: .regular),
+      selectedFont: .systemFont(ofSize: 13, weight: .semibold),
+      adjustsForContentSizeCategory: true,
+      allowsTwoLineTitle: false
+    )
+    config.appearance.indicatorStyle = .none
+    return config
+  }
+
+  /// Scrollable navigation-bar title view with edge fade for long tab sets.
+  public static func navigationBarScrollable(indicatorThickness: CGFloat = 2) -> FKTabBarConfiguration {
+    var config = pagerHeader(indicatorThickness: indicatorThickness)
+    config.layout.hostingContext = .navigationBarTitleView
+    config.layout.minimumItemHeight = 28
+    config.layout.preferredBarHeight = 32
+    config.layout.itemInsets = .init(top: 2, leading: 8, bottom: 2, trailing: 8)
+    config.layout.scrollEdgeFade = FKTabBarScrollEdgeFade(isEnabled: true)
+    config.appearance.backgroundStyle = .solid(.clear)
+    config.appearance.showsDivider = false
+    config.appearance.shadow = .none
+    config.appearance.typography = .init(
+      normalFont: .systemFont(ofSize: 13, weight: .regular),
+      selectedFont: .systemFont(ofSize: 13, weight: .semibold),
+      adjustsForContentSizeCategory: true,
+      allowsTwoLineTitle: false
+    )
+    config.appearance.indicatorStyle = .none
+    return config
+  }
+
   /// Segmented control: non-scrollable, equal-width items, pill backdrop indicator.
   public static func segmentedControl(itemSpacing: CGFloat = 0) -> FKTabBarConfiguration {
     var config = FKTabBarConfiguration()

@@ -2,30 +2,33 @@ import UIKit
 import FKUIKit
 
 enum FKTabBarExampleSupport {
+  private static let defaultTabTitles = [
+    NSLocalizedString("Home", comment: ""),
+    NSLocalizedString("Explore", comment: ""),
+    NSLocalizedString("Inbox", comment: ""),
+    NSLocalizedString("Profile", comment: ""),
+    NSLocalizedString("Settings", comment: ""),
+    NSLocalizedString("Video", comment: ""),
+    NSLocalizedString("Shop", comment: ""),
+    NSLocalizedString("Updates", comment: ""),
+    NSLocalizedString("Favorites", comment: ""),
+    NSLocalizedString("Archive", comment: ""),
+    NSLocalizedString("More", comment: ""),
+  ]
+
+  private static let defaultTabIcons = [
+    "house", "safari", "tray", "person.crop.circle", "gearshape",
+    "play.rectangle", "bag", "bell", "heart", "archivebox", "ellipsis.circle",
+  ]
+
   static func makeItems(_ count: Int, localizedTitles: [String]? = nil) -> [FKTabBarItem] {
-    let baseTitles = localizedTitles ?? [
-      NSLocalizedString("Home", comment: ""),
-      NSLocalizedString("Explore", comment: ""),
-      NSLocalizedString("Inbox", comment: ""),
-      NSLocalizedString("Profile", comment: ""),
-      NSLocalizedString("Settings", comment: ""),
-      NSLocalizedString("Video", comment: ""),
-      NSLocalizedString("Shop", comment: ""),
-      NSLocalizedString("Updates", comment: ""),
-      NSLocalizedString("Favorites", comment: ""),
-      NSLocalizedString("Archive", comment: ""),
-      NSLocalizedString("More", comment: ""),
-    ]
-    let baseIcons = [
-      "house", "safari", "tray", "person.crop.circle", "gearshape",
-      "play.rectangle", "bag", "bell", "heart", "archivebox", "ellipsis.circle",
-    ]
-    let n = max(1, min(count, min(baseTitles.count, baseIcons.count)))
+    let baseTitles = localizedTitles ?? defaultTabTitles
+    let n = max(1, min(count, min(baseTitles.count, defaultTabIcons.count)))
     return (0..<n).map { idx in
       FKTabBarItem(
         id: "tab-\(idx)",
         title: .init(normal: .init(text: baseTitles[idx])),
-        image: .init(normal: .init(source: .systemSymbol(name: baseIcons[idx]))),
+        image: .init(normal: .init(source: .systemSymbol(name: defaultTabIcons[idx]))),
         accessibilityLabel: baseTitles[idx]
       )
     }
@@ -46,6 +49,79 @@ enum FKTabBarExampleSupport {
       "About This Application",
     ]
     return makeItems(titles.count, localizedTitles: titles)
+  }
+
+  /// Title-only tabs for compact navigation-bar title views.
+  static func makeTitleOnlyItems(_ count: Int, localizedTitles: [String]? = nil) -> [FKTabBarItem] {
+    let titles = localizedTitles ?? defaultTabTitles
+    let n = max(1, min(count, titles.count))
+    return (0..<n).map { idx in
+      FKTabBarItem(
+        id: "title-\(idx)",
+        title: .init(normal: .init(text: titles[idx])),
+        accessibilityLabel: titles[idx]
+      )
+    }
+  }
+
+  /// Symbol-only tabs; titles are empty and accessibility labels carry VoiceOver text.
+  static func makeIconOnlyItems(_ count: Int) -> [FKTabBarItem] {
+    let n = max(1, min(count, min(defaultTabTitles.count, defaultTabIcons.count)))
+    return (0..<n).map { idx in
+      FKTabBarItem(
+        id: "icon-\(idx)",
+        title: .init(normal: .init(text: "")),
+        image: .init(normal: .init(source: .systemSymbol(name: defaultTabIcons[idx]))),
+        accessibilityLabel: defaultTabTitles[idx]
+      )
+    }
+  }
+
+  /// Title with a leading SF Symbol (default tab layout).
+  static func makeLeadingIconTitleItems(_ count: Int) -> [FKTabBarItem] {
+    makeItems(count)
+  }
+
+  /// Title with a trailing SF Symbol (`FKTabBarImageStyle/position` `.trailing`).
+  static func makeTrailingIconTitleItems(_ count: Int) -> [FKTabBarItem] {
+    let n = max(1, min(count, min(defaultTabTitles.count, defaultTabIcons.count)))
+    return (0..<n).map { idx in
+      FKTabBarItem(
+        id: "trailing-\(idx)",
+        title: .init(normal: .init(text: defaultTabTitles[idx])),
+        image: .init(
+          normal: .init(
+            source: .systemSymbol(name: defaultTabIcons[idx]),
+            style: .init(position: .trailing)
+          )
+        ),
+        accessibilityLabel: defaultTabTitles[idx]
+      )
+    }
+  }
+
+  /// Two-line tabs with title and subtitle per item.
+  static func makeTitleSubtitleItems(_ count: Int) -> [FKTabBarItem] {
+    let subtitles = ["Feed", "Discover", "Messages", "Account", "Prefs", "Watch"]
+    let n = max(1, min(count, min(defaultTabTitles.count, subtitles.count)))
+    return (0..<n).map { idx in
+      FKTabBarItem(
+        id: "subtitle-\(idx)",
+        title: .init(normal: .init(text: defaultTabTitles[idx])),
+        subtitle: .init(normal: .init(text: subtitles[idx])),
+        accessibilityLabel: "\(defaultTabTitles[idx]), \(subtitles[idx])"
+      )
+    }
+  }
+
+  /// Icon + title tabs with dot/count/text badges for accessory spacing demos.
+  static func makeBadgeItems(_ count: Int) -> [FKTabBarItem] {
+    var items = makeItems(count)
+    let badges: [FKTabBarBadgeContent] = [.dot, .count(3), .count(120), .text("NEW"), .none, .dot]
+    for idx in items.indices {
+      items[idx].badge.state.normal = badges[idx % badges.count]
+    }
+    return items
   }
 
   static func makeMixedContentItems() -> [FKTabBarItem] {

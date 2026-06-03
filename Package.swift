@@ -69,7 +69,8 @@ let package = Package(
       name: "FKUIKit",
       dependencies: ["FKCoreKit"],
       path: "Sources/FKUIKit",
-      exclude: readmeExcludes(moduleDirectories: fkUIKitComponentDocDirectories),
+      exclude: readmeExcludes(moduleDirectories: fkUIKitComponentDocDirectories)
+        + ["Components/PagingController/REFACTOR_BREAKING_UPGRADE.md"],
       resources: [
         .process("Resources"),
       ]

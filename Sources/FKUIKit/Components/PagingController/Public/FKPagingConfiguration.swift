@@ -62,8 +62,8 @@ public struct FKPagingConfiguration: Equatable {
   public var tabAlignment: FKPagingTabAlignment
   /// Behavior when the active tab is tapped again.
   public var reselectBehavior: FKPagingReselectBehavior
-  /// Placement of the embedded tab strip relative to the page host.
-  public var tabBarPosition: FKPagingTabBarPosition
+  /// Where the tab strip is laid out relative to the paging controller and navigation chrome.
+  public var tabBarPlacement: FKPagingTabBarPlacement
   /// Nested horizontal scroll arbitration policy for page content.
   public var nestedHorizontalScrollPolicy: FKPagingNestedHorizontalScrollPolicy
   /// Placeholder configuration when ``FKPagingController/pageCount`` is zero.
@@ -90,7 +90,7 @@ public struct FKPagingConfiguration: Equatable {
     gesturePolicy: FKPagingGesturePolicy = .preferNavigationBackGesture(edgeWidth: 24),
     tabAlignment: FKPagingTabAlignment = .followTabBarDefault,
     reselectBehavior: FKPagingReselectBehavior = .passthrough,
-    tabBarPosition: FKPagingTabBarPosition = .top,
+    tabBarPlacement: FKPagingTabBarPlacement = .contentTop,
     nestedHorizontalScrollPolicy: FKPagingNestedHorizontalScrollPolicy = .pagerPreferred,
     emptyStateConfiguration: FKPagingEmptyStateConfiguration = FKPagingEmptyStateConfiguration(),
     evictPagesOnMemoryWarning: Bool = true,
@@ -107,7 +107,7 @@ public struct FKPagingConfiguration: Equatable {
     self.gesturePolicy = gesturePolicy
     self.tabAlignment = tabAlignment
     self.reselectBehavior = reselectBehavior
-    self.tabBarPosition = tabBarPosition
+    self.tabBarPlacement = tabBarPlacement
     self.nestedHorizontalScrollPolicy = nestedHorizontalScrollPolicy
     self.emptyStateConfiguration = emptyStateConfiguration
     self.evictPagesOnMemoryWarning = evictPagesOnMemoryWarning
@@ -126,7 +126,7 @@ public struct FKPagingConfiguration: Equatable {
       && lhs.gesturePolicy == rhs.gesturePolicy
       && lhs.tabAlignment == rhs.tabAlignment
       && lhs.reselectBehavior == rhs.reselectBehavior
-      && lhs.tabBarPosition == rhs.tabBarPosition
+      && lhs.tabBarPlacement == rhs.tabBarPlacement
       && lhs.nestedHorizontalScrollPolicy == rhs.nestedHorizontalScrollPolicy
       && lhs.emptyStateConfiguration == rhs.emptyStateConfiguration
       && lhs.evictPagesOnMemoryWarning == rhs.evictPagesOnMemoryWarning

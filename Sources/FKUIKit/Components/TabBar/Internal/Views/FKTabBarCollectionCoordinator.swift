@@ -77,7 +77,7 @@ extension FKTabBarCollectionCoordinator: UICollectionViewDelegateFlowLayout {
     }
     guard host.visibleItems.indices.contains(indexPath.item) else {
       let layout = host.resolvedLayoutForCurrentEnvironment()
-      return CGSize(width: 44, height: max(44, layout.minimumItemHeight))
+      return CGSize(width: 44, height: max(FKTabBarLayoutMetrics.minimumBarHeight(for: layout), layout.minimumItemHeight))
     }
     return host.cachedItemSize(at: indexPath.item)
   }

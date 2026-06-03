@@ -77,8 +77,22 @@ extension FKTabBar {
       return
     }
 
+    guard isValidIndicatorFrame(target, in: backgroundHost.bounds) else {
+      indicator.isHidden = true
+      return
+    }
+
     indicator.isHidden = false
     indicator.move(to: target, animation: resolvedAnimation().indicatorAnimation, animated: animated)
+  }
+
+  private func isValidIndicatorFrame(_ frame: CGRect, in containerBounds: CGRect) -> Bool {
+    guard frame.width.isFinite, frame.height.isFinite else { return false }
+    guard frame.width > 0.5, frame.height > 0.5 else { return false }
+    guard containerBounds.width > 1, containerBounds.height > 1 else { return false }
+    let intersection = frame.intersection(containerBounds)
+    guard !intersection.isNull, intersection.width > 0.5, intersection.height > 0.5 else { return false }
+    return true
   }
 
   /// Re-applies the current `visibleItems` to already-visible cells.

@@ -31,7 +31,7 @@ enum FKTabBarItemContentMeasurer {
       }
     }()
 
-    configurePrototype(
+    let primarySize = measurePrototypeSize(
       item: item,
       layout: layout,
       appearance: appearance,
@@ -39,7 +39,44 @@ enum FKTabBarItemContentMeasurer {
       maximumTitleLines: maximumTitleLines,
       isSelected: measureAsSelected
     )
-    prototype.isSelected = measureAsSelected
+    guard primarySize.width > 0 else { return .zero }
+
+    guard layout.intrinsicWidthMeasurement == .normalStateOnly,
+          item.title.selected != nil else {
+      return primarySize
+    }
+
+    let selectedSize = measurePrototypeSize(
+      item: item,
+      layout: layout,
+      appearance: appearance,
+      effectiveOverflowMode: effectiveOverflowMode,
+      maximumTitleLines: maximumTitleLines,
+      isSelected: true
+    )
+    return CGSize(
+      width: max(primarySize.width, selectedSize.width),
+      height: max(primarySize.height, selectedSize.height)
+    )
+  }
+
+  private static func measurePrototypeSize(
+    item: FKTabBarItem,
+    layout: FKTabBarLayoutConfiguration,
+    appearance: FKTabBarAppearance,
+    effectiveOverflowMode: FKTabBarTitleOverflowMode,
+    maximumTitleLines: Int,
+    isSelected: Bool
+  ) -> CGSize {
+    configurePrototype(
+      item: item,
+      layout: layout,
+      appearance: appearance,
+      effectiveOverflowMode: effectiveOverflowMode,
+      maximumTitleLines: maximumTitleLines,
+      isSelected: isSelected
+    )
+    prototype.isSelected = isSelected
     let size = prototype.intrinsicContentSize
     guard size.width > 0, size.width != UIView.noIntrinsicMetric else { return .zero }
     return CGSize(
