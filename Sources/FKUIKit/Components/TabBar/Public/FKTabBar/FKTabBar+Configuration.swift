@@ -23,6 +23,22 @@ extension FKTabBar {
     return layout
   }
 
+  func resolvedIntrinsicBarHeight(
+    presentation: FKTabBarResolvedTitlePresentation? = nil
+  ) -> CGFloat {
+    let layout = resolvedLayoutForCurrentEnvironment()
+    let resolvedPresentation = presentation ?? resolvedTitlePresentationForCurrentEnvironment()
+    let safeAreaAddition = layout.bottomSafeAreaBehavior == .extendBarHeight || layout.bottomSafeAreaBehavior == .bottomDocked
+      ? safeAreaInsets.bottom
+      : 0
+    return FKTabBarLayoutMetrics.resolvedBarHeight(
+      layout: layout,
+      appearance: resolvedAppearance(),
+      presentation: resolvedPresentation,
+      safeAreaBottomAddition: safeAreaAddition
+    )
+  }
+
   func syncCustomizationHooks() {
     indicator.customViewProvider = { [weak customization] id in
       customization?.customIndicatorView(id: id)

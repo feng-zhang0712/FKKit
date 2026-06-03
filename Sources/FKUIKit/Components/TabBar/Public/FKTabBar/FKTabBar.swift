@@ -350,18 +350,7 @@ public final class FKTabBar: UIView {
 
   public override var intrinsicContentSize: CGSize {
     assertMainThreadInDebug()
-    let layout = resolvedLayoutForCurrentEnvironment()
-    let presentation = resolvedTitlePresentationForCurrentEnvironment()
-    let safeAreaAddition = layout.bottomSafeAreaBehavior == .extendBarHeight || layout.bottomSafeAreaBehavior == .bottomDocked
-      ? safeAreaInsets.bottom
-      : 0
-    let height = FKTabBarLayoutMetrics.resolvedBarHeight(
-      layout: layout,
-      appearance: resolvedAppearance(),
-      presentation: presentation,
-      safeAreaBottomAddition: safeAreaAddition
-    )
-    return CGSize(width: UIView.noIntrinsicMetric, height: height)
+    return CGSize(width: UIView.noIntrinsicMetric, height: resolvedIntrinsicBarHeight())
   }
 
   public override func sizeThatFits(_ size: CGSize) -> CGSize {
@@ -370,16 +359,7 @@ public final class FKTabBar: UIView {
     if layout.hostingContext == .navigationBarTitleView {
       return navigationBarTitleSizeThatFits(size)
     }
-    let presentation = resolvedTitlePresentationForCurrentEnvironment()
-    let safeAreaAddition = layout.bottomSafeAreaBehavior == .extendBarHeight || layout.bottomSafeAreaBehavior == .bottomDocked
-      ? safeAreaInsets.bottom
-      : 0
-    let height = FKTabBarLayoutMetrics.resolvedBarHeight(
-      layout: layout,
-      appearance: resolvedAppearance(),
-      presentation: presentation,
-      safeAreaBottomAddition: safeAreaAddition
-    )
+    let height = resolvedIntrinsicBarHeight()
     if size.width > 0 {
       return CGSize(width: size.width, height: height)
     }

@@ -1,7 +1,5 @@
 //
-// FKTabBar+NavigationBarTitle.swift
-//
-// Sizing for ``FKTabBarHostingContext/navigationBarTitleView`` when hosted in ``UINavigationItem/titleView``.
+// Navigation-bar titleView sizing for ``FKTabBar``.
 //
 
 import UIKit
@@ -12,17 +10,7 @@ extension FKTabBar {
   /// UIKit may call ``sizeThatFits(_:)`` before the title slot has a width proposal; this path supplies
   /// a content-based fallback so the strip is not laid out at zero width.
   func navigationBarTitleSizeThatFits(_ size: CGSize) -> CGSize {
-    let layout = resolvedLayoutForCurrentEnvironment()
-    let presentation = resolvedTitlePresentationForCurrentEnvironment()
-    let safeAreaAddition = layout.bottomSafeAreaBehavior == .extendBarHeight || layout.bottomSafeAreaBehavior == .bottomDocked
-      ? safeAreaInsets.bottom
-      : 0
-    let height = FKTabBarLayoutMetrics.resolvedBarHeight(
-      layout: layout,
-      appearance: resolvedAppearance(),
-      presentation: presentation,
-      safeAreaBottomAddition: safeAreaAddition
-    )
+    let height = resolvedIntrinsicBarHeight()
     let width = resolvedNavigationBarTitleWidth(proposedContainerWidth: size.width)
     let resolvedHeight = size.height > 1 ? min(size.height, height) : height
     return CGSize(width: width, height: resolvedHeight)

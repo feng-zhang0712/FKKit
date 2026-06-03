@@ -138,6 +138,12 @@ public final class FKPagingController: UIViewController {
     applyTabBarPlacement()
   }
 
+  public override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    guard case .navigationBar = configuration.tabBarPlacement else { return }
+    tabBarPlacementCoordinator.teardownNavigationBarTitleViewIfInstalled()
+  }
+
   public override func didMove(toParent parent: UIViewController?) {
     super.didMove(toParent: parent)
     if parent == nil {
@@ -151,6 +157,10 @@ public final class FKPagingController: UIViewController {
     super.viewDidLayoutSubviews()
     attachScrollViewIfNeeded()
     tabBarPlacementCoordinator.updateTabBarHeightIfNeeded(
+      placement: configuration.tabBarPlacement,
+      tabBarHeightPolicy: configuration.tabBarHeightPolicy
+    )
+    tabBarPlacementCoordinator.updateNavigationBarTitleViewLayoutIfNeeded(
       placement: configuration.tabBarPlacement,
       tabBarHeightPolicy: configuration.tabBarHeightPolicy
     )

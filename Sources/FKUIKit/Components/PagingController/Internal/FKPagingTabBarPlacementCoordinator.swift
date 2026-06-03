@@ -23,7 +23,6 @@ final class FKPagingTabBarPlacementCoordinator {
   private weak var navigationTitleViewHost: UIViewController?
   private weak var previousTitleView: UIView?
   private var savedHostTitle: String?
-  private var activeNavigationBarOptions: FKPagingNavigationBarTabOptions?
 
   init(tabBar: FKTabBar, pagingViewController: UIViewController) {
     self.tabBar = tabBar
@@ -44,17 +43,14 @@ final class FKPagingTabBarPlacementCoordinator {
 
     switch placement {
     case .contentArea(let position):
-      activeNavigationBarOptions = nil
-      teardownNavigationBarTitleViewIfNeeded()
+      teardownNavigationBarTitleViewIfInstalled()
       installTabBarInPagingView()
       applyContentAreaLayout(position: position, tabBarHeightPolicy: tabBarHeightPolicy)
     case .navigationBar(let options):
-      activeNavigationBarOptions = options
       removeTabBarFromPagingView()
       applyNavigationBarPlacement(options: options, tabBarHeightPolicy: tabBarHeightPolicy)
     case .external:
-      activeNavigationBarOptions = nil
-      teardownNavigationBarTitleViewIfNeeded()
+      teardownNavigationBarTitleViewIfInstalled()
       removeTabBarFromPagingView()
       applyPageHostOnlyLayout()
     }
@@ -90,8 +86,38 @@ final class FKPagingTabBarPlacementCoordinator {
     tabHeightConstraint?.constant = resolvedTabBarHeight(placement: placement, tabBarHeightPolicy: tabBarHeightPolicy)
   }
 
+  func updateNavigationBarTitleViewLayoutIfNeeded(
+    placement: FKPagingTabBarPlacement,
+    tabBarHeightPolicy: FKPagingTabBarHeightPolicy
+  ) {
+    guard case .navigationBar(let options) = placement else { return }
+    guard let host = navigationTitleViewHost, host.navigationItem.titleView === tabBar else { return }
+
+    let titleSlotWidth = navigationBarTitleSlotWidth(for: host, options: options)
+    let barHeight = resolvedTabBarHeight(
+      placement: .navigationBar(options),
+      tabBarHeightPolicy: tabBarHeightPolicy
+    )
+    let fittingSize = tabBar.sizeThatFits(CGSize(width: titleSlotWidth, height: barHeight))
+    guard fittingSize != tabBar.bounds.size else { return }
+
+    tabBar.bounds = CGRect(origin: .zero, size: fittingSize)
+    tabBar.setNeedsLayout()
+    host.navigationItem.titleView?.setNeedsLayout()
+    host.navigationController?.navigationBar.setNeedsLayout()
+  }
+
   func teardownNavigationBarTitleViewIfInstalled() {
-    teardownNavigationBarTitleViewIfNeeded()
+    guard let host = navigationTitleViewHost else { return }
+    if host.navigationItem.titleView === tabBar {
+      host.navigationItem.titleView = previousTitleView
+    }
+    if let savedHostTitle {
+      host.navigationItem.title = savedHostTitle
+      self.savedHostTitle = nil
+    }
+    previousTitleView = nil
+    navigationTitleViewHost = nil
   }
 
   // MARK: - Private
@@ -190,7 +216,7 @@ final class FKPagingTabBarPlacementCoordinator {
     guard let host = resolveNavigationBarHost() else { return }
 
     if navigationTitleViewHost !== host {
-      teardownNavigationBarTitleViewIfNeeded()
+      teardownNavigationBarTitleViewIfInstalled()
     }
 
     if options.suppressesHostTitle, savedHostTitle == nil {
@@ -249,19 +275,6 @@ final class FKPagingTabBarPlacementCoordinator {
     if let tabBarNavigationHost { return tabBarNavigationHost }
     if let parent = pagingViewController?.parent, parent.navigationController != nil { return parent }
     if pagingViewController?.navigationController != nil { return pagingViewController }
-    return pagingViewController?.parent
-  }
-
-  private func teardownNavigationBarTitleViewIfNeeded() {
-    guard let host = navigationTitleViewHost else { return }
-    if host.navigationItem.titleView === tabBar {
-      host.navigationItem.titleView = previousTitleView
-    }
-    if let savedHostTitle {
-      host.navigationItem.title = savedHostTitle
-      self.savedHostTitle = nil
-    }
-    previousTitleView = nil
-    navigationTitleViewHost = nil
+    return nil
   }
 }

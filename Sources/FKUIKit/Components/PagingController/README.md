@@ -230,6 +230,21 @@ Callbacks and binding updates are dispatched asynchronously to avoid publishing 
 
 ---
 
+## Breaking changes (tab bar placement)
+
+`FKPagingConfiguration.tabBarPosition` was replaced by ``tabBarPlacement``:
+
+| Before | After |
+|--------|--------|
+| `config.tabBarPosition = .top` | `config.tabBarPlacement = .contentTop` |
+| `config.tabBarPosition = .bottom` | `config.tabBarPlacement = .contentBottom` |
+| (none) | `config.tabBarPlacement = .navigationBar()` — tab strip in ``UINavigationItem/titleView`` |
+| (none) | `config.tabBarPlacement = .external` — host lays out ``FKPagingController/tabBar`` |
+
+Navigation-bar placement restores the host ``titleView`` and ``title`` on ``viewWillDisappear`` and re-applies on ``viewWillAppear``.
+
+---
+
 ## License
 
 Same as the enclosing FKKit repository.

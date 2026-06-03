@@ -257,11 +257,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
       badgeAnimation: badgeAnimation
     )
     // After badge + selection styling: keep overflow clipping off and pin insets last.
-    FKTabBarItemButtonConfigurator.applyItemInsets(
-      model.itemInsets,
-      to: tabButton,
-      allowsBadgeOverflow: allowsBadgeOverflow
-    )
+    FKTabBarItemButtonConfigurator.applyItemInsets(model.itemInsets, to: tabButton)
     applyBadgeOverflowHostingIfNeeded()
 
     // Long-press is opt-in. Keeping callbacks nil avoids interfering with normal taps.
@@ -355,13 +351,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
       isSelected: isSelected,
       customization: customization
     )
-    if allowsBadgeOverflow {
-      // `FKBadge` attaches to `FKButton/contentContainerView`; selection refreshes re-enable clipping in `layoutSubviews`.
-      target.fk_badge.displayLayerZPosition = 0
-      applyBadgeOverflowHostingIfNeeded()
-    } else {
-      target.fk_badge.displayLayerZPosition = 10_000
-    }
+    applyBadgeOverflowHostingIfNeeded()
   }
 
   private func applyBadgeOverflowHostingIfNeeded() {
@@ -437,9 +427,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
     tabButton.clipsToBounds = true
     tabButton.contentContainerView.clipsToBounds = true
     [tabButton, tabButton.imageView, tabButton.leadingImageView, tabButton.trailingImageView].forEach { view in
-      guard let view else { return }
-      view.fk_badge.displayLayerZPosition = 10_000
-      view.fk_badge.clear(animated: false)
+      view?.fk_badge.clear(animated: false)
     }
   }
 

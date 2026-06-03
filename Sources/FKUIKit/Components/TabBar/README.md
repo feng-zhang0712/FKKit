@@ -23,7 +23,7 @@ Files are grouped for readability; **all types remain `import FKUIKit`** regardl
 | | `Public/SwiftUI/` | `FKTabBarRepresentable` |
 | Internal | `Internal/Configuration/` | Configuration diff domains and apply routing |
 | | `Internal/Selection/` | Selection reducer, item diff engine, index sync |
-| | `Internal/Layout/` | Width measurement, flow layout, scroll alignment, indicator frame math |
+| | `Internal/Layout/` | Width measurement, flow layout, scroll alignment, indicator frame math, bar height metrics |
 | | `Internal/Views/` | `FKTabBarItemCell`, `FKTabBarItemButtonConfigurator`, `FKTabBarCollectionCoordinator`, indicator, scroll edge fade |
 | | `Internal/Badge/` | Badge anchor resolution |
 

@@ -2,7 +2,7 @@ import UIKit
 
 /// Where ``FKPagingController`` lays out or publishes its ``FKTabBar``.
 public enum FKPagingTabBarPlacement: Equatable, Sendable {
-  /// Tab strip inside the paging controller’s view (legacy default).
+  /// Tab strip inside the paging controller’s view (default).
   case contentArea(FKPagingTabBarPosition)
   /// Tab strip in the resolved host’s ``UINavigationItem/titleView``.
   case navigationBar(FKPagingNavigationBarTabOptions)
