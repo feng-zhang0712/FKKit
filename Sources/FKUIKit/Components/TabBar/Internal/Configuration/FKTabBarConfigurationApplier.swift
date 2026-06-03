@@ -36,6 +36,9 @@ enum FKTabBarConfigurationApplier {
     if old.appearance.dividerPosition != new.appearance.dividerPosition { domains.insert(.appearanceBackground) }
     if old.appearance.shadow != new.appearance.shadow { domains.insert(.appearanceBackground) }
     if old.animation != new.animation { domains.insert(.animation) }
+    if old.layout.hostingContext != new.layout.hostingContext {
+      domains.insert(.appearanceBackground)
+    }
     if scrollBehaviorFieldsChanged(from: old.layout, to: new.layout) { domains.insert(.scrollBehavior) }
     if layoutFieldsChanged(from: old.layout, to: new.layout) { domains.insert(.layout) }
     return domains
@@ -46,6 +49,7 @@ enum FKTabBarConfigurationApplier {
     to new: FKTabBarLayoutConfiguration
   ) -> Bool {
     old.isScrollable != new.isScrollable
+      || old.hostingContext != new.hostingContext
       || old.itemSpacing != new.itemSpacing
       || old.contentInsets != new.contentInsets
       || old.bottomSafeAreaBehavior != new.bottomSafeAreaBehavior

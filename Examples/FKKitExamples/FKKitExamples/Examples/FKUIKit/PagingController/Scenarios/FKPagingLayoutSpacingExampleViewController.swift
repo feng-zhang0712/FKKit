@@ -10,7 +10,7 @@ final class FKPagingLayoutSpacingExampleViewController: UIViewController {
 
   init() {
     var config = FKPagingConfiguration()
-    config.tabBarPosition = .bottom
+    config.tabBarPlacement = .contentBottom
     config.interPageSpacing = 16
     let tabs = FKTabBarExampleSupport.makeItems(4)
     let pages: [UIViewController] = [

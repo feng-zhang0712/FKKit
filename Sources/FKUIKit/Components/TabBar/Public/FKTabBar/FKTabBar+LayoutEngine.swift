@@ -28,15 +28,35 @@ extension FKTabBar {
 
   func syncFlowLayoutSpacingProvider() {
     let layout = resolvedLayoutForCurrentEnvironment()
-    guard layout.widthMode != .fillEqually,
-          contentDistribution(for: layout, in: max(collectionView.bounds.width, bounds.width)) == nil,
-          customization != nil else {
+    let containerWidth = max(collectionView.bounds.width, bounds.width)
+    let usesContentDistribution = layout.widthMode != .fillEqually
+      && contentDistribution(for: layout, in: containerWidth) != nil
+
+    if layout.widthMode == .fillEqually {
+      flowLayout.minimumInteritemSpacing = 0
+      flowLayout.minimumLineSpacing = 0
       flowLayout.spacingAfterIndex = nil
+      flowLayout.defaultItemSpacing = 0
       return
     }
+
+    let spacing = max(0, layout.itemSpacing)
+    flowLayout.minimumInteritemSpacing = spacing
+    flowLayout.minimumLineSpacing = 0
+
+    guard !usesContentDistribution else {
+      flowLayout.spacingAfterIndex = nil
+      flowLayout.defaultItemSpacing = 0
+      return
+    }
+
+    flowLayout.defaultItemSpacing = spacing
     flowLayout.spacingAfterIndex = { [weak self] index in
       guard let self else { return nil }
-      return self.resolvedCustomSpacing(after: index, layout: self.resolvedLayoutForCurrentEnvironment())
+      return self.resolvedCustomSpacing(
+        after: index,
+        layout: self.resolvedLayoutForCurrentEnvironment()
+      )
     }
   }
 
@@ -51,7 +71,8 @@ extension FKTabBar {
     }
     rebuildItemSizeCache()
     guard cachedItemSizes.indices.contains(index) else {
-      return CGSize(width: 44, height: max(44, resolvedLayout().minimumItemHeight))
+      let layout = resolvedLayout()
+      return CGSize(width: 44, height: max(FKTabBarLayoutMetrics.minimumBarHeight(for: layout), layout.minimumItemHeight))
     }
     return cachedItemSizes[index]
   }
@@ -68,7 +89,7 @@ extension FKTabBar {
     let measurementBounds = collectionMeasurementBounds()
     cachedItemSizes = visibleItems.indices.map { index in
       guard let item = visibleItems[safe: index] else {
-        return CGSize(width: 44, height: max(44, layout.minimumItemHeight))
+        return CGSize(width: 44, height: max(FKTabBarLayoutMetrics.minimumBarHeight(for: layout), layout.minimumItemHeight))
       }
       return FKTabBarItemWidthStrategy.sizeForItem(
         item: item,
@@ -127,6 +148,7 @@ extension FKTabBar {
     guard bounds.width > 0, bounds.height > 0 else {
       return
     }
+    syncFlowLayoutSpacingProvider()
     // All geometry-sensitive relayouts go through one path so indicator, scrolling, and cell frames
     // stay synchronized across rotation, trait changes, and host-driven layout updates.
     collectionView.collectionViewLayout.invalidateLayout()

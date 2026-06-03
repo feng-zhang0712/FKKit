@@ -1,6 +1,45 @@
 import UIKit
 
-/// Placement of the embedded ``FKTabBar`` relative to the page host.
+/// Where ``FKPagingController`` lays out or publishes its ``FKTabBar``.
+public enum FKPagingTabBarPlacement: Equatable, Sendable {
+  /// Tab strip inside the paging controller’s view (default).
+  case contentArea(FKPagingTabBarPosition)
+  /// Tab strip in the resolved host’s ``UINavigationItem/titleView``.
+  case navigationBar(FKPagingNavigationBarTabOptions)
+  /// Host adds ``FKPagingController/tabBar`` to a custom container; pager does not layout the strip.
+  case external
+
+  /// Tab strip below the safe-area top edge inside the paging view.
+  public static var contentTop: Self { .contentArea(.top) }
+
+  /// Tab strip above the safe-area bottom edge inside the paging view.
+  public static var contentBottom: Self { .contentArea(.bottom) }
+
+  /// Default navigation-bar placement with factory options.
+  public static var navigationBar: Self { .navigationBar(.init()) }
+}
+
+/// Options for ``FKPagingTabBarPlacement/navigationBar``.
+public struct FKPagingNavigationBarTabOptions: Equatable, Sendable {
+  /// Horizontal inset subtracted from the navigation-bar title slot width and applied as ``FKTabBar`` leading/trailing content insets.
+  public var horizontalInset: CGFloat
+  /// Preferred title-view height in points (clamped to 28…44).
+  public var preferredHeight: CGFloat
+  /// When `true`, clears the host ``UINavigationItem/title`` while the tab strip is active and restores on teardown.
+  public var suppressesHostTitle: Bool
+
+  public init(
+    horizontalInset: CGFloat = 0,
+    preferredHeight: CGFloat = 32,
+    suppressesHostTitle: Bool = true
+  ) {
+    self.horizontalInset = max(0, horizontalInset)
+    self.preferredHeight = min(44, max(28, preferredHeight))
+    self.suppressesHostTitle = suppressesHostTitle
+  }
+}
+
+/// Vertical position of the tab strip when ``FKPagingTabBarPlacement`` is ``FKPagingTabBarPlacement/contentArea``.
 public enum FKPagingTabBarPosition: Equatable, Sendable {
   /// Tab strip below the safe-area top edge; pages fill the area below the strip.
   case top

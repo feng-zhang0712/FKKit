@@ -145,6 +145,14 @@ public enum FKTabBarNonScrollableOverflowPolicy: Equatable, Sendable {
   case clip
 }
 
+/// Describes how ``FKTabBar`` is hosted so layout and chrome adapt (for example compact navigation-bar title views).
+public enum FKTabBarHostingContext: Equatable, Sendable {
+  /// Standard header, bottom strip, or external host layout.
+  case standalone
+  /// Embedded in ``UINavigationItem/titleView``; uses compact height and navigation-bar chrome rules.
+  case navigationBarTitleView
+}
+
 /// Layout configuration for `FKTabBar`.
 public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
   /// Runtime spacing context for custom spacing strategies.
@@ -167,6 +175,8 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
   ///
   /// When `false`, width strategy and alignment should typically avoid overflow.
   public var isScrollable: Bool
+  /// Hosting surface that influences measurement and chrome (divider, background, edge fade).
+  public var hostingContext: FKTabBarHostingContext
   /// Item spacing.
   public var itemSpacing: CGFloat
   /// Content insets.
@@ -234,6 +244,7 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
 
   public init(
     isScrollable: Bool = true,
+    hostingContext: FKTabBarHostingContext = .standalone,
     itemSpacing: CGFloat = 8,
     contentInsets: NSDirectionalEdgeInsets = .init(top: 0, leading: 8, bottom: 0, trailing: 8),
     bottomSafeAreaBehavior: FKTabBarBottomSafeAreaBehavior = .ignore,
@@ -255,6 +266,7 @@ public struct FKTabBarLayoutConfiguration: Equatable, @unchecked Sendable {
     emptyStateMessage: String? = nil
   ) {
     self.isScrollable = isScrollable
+    self.hostingContext = hostingContext
     self.itemSpacing = itemSpacing
     self.contentInsets = contentInsets
     self.bottomSafeAreaBehavior = bottomSafeAreaBehavior

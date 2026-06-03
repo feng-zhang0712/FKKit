@@ -107,6 +107,222 @@ final class FKTabBarContentAlignmentExampleViewController: UIViewController {
   }
 }
 
+// MARK: - Insets & spacing playground
+
+/// Interactive demo for ``FKTabBarLayoutConfiguration`` spacing and inset knobs (including ``FKButton`` content padding via ``itemInsets``).
+final class FKTabBarInsetsSpacingExampleViewController: UIViewController {
+  private var configuration = FKTabBarConfiguration(
+    layout: .init(
+      isScrollable: false,
+      itemSpacing: 15,
+      contentInsets: .init(top: 0, leading: 0, bottom: 0, trailing: 80),
+      contentAlignment: .leading,
+      widthMode: .intrinsic,
+      itemInsets: .zero
+    )
+  )
+
+  private lazy var tabView = FKTabBar(
+    items: FKTabBarExampleSupport.makeTitleOnlyItems(
+      2,
+      localizedTitles: ["Overview", "Activity"]
+    ),
+    selectedIndex: 0,
+    configuration: configuration
+  )
+
+  private let statusLabel = UILabel()
+  private var tabBarHeightConstraint: NSLayoutConstraint?
+
+  private let alignmentControl = UISegmentedControl(items: ["Leading", "Center", "Trailing"])
+  private let itemSpacingSlider = UISlider()
+  private let itemInsetsSlider = UISlider()
+  private let contentLeadingSlider = UISlider()
+  private let contentTrailingSlider = UISlider()
+  private let tabCountControl = UISegmentedControl(items: ["2 tabs", "3 tabs"])
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    title = "Insets & spacing"
+    view.backgroundColor = .systemBackground
+
+    tabBarHeightConstraint = FKTabBarExampleSupport.attachPinnedTabBar(tabView, to: view)
+
+    let stack = FKTabBarExampleSupport.makeRootStack(
+      in: view,
+      scrollTopBelow: tabView.bottomAnchor,
+      scrollTopSpacing: 16
+    )
+    stack.addArrangedSubview(FKTabBarExampleSupport.titleLabel("Spacing & inset controls"))
+    stack.addArrangedSubview(
+      FKTabBarExampleSupport.captionLabel(
+        "``itemSpacing`` — gap between adjacent tab cells. ``itemInsets`` — per-tab ``FKButton`` contentInsets (title/icon padding inside each cell). ``contentInsets`` — section padding around the whole strip. ``contentAlignment`` — distributes extra horizontal slack when the strip is non-scrollable and items fit."
+      )
+    )
+
+    alignmentControl.selectedSegmentIndex = 0
+    alignmentControl.addAction(UIAction { [weak self] _ in
+      self?.applyAlignment()
+    }, for: .valueChanged)
+    stack.addArrangedSubview(labeledControl(title: "contentAlignment", control: alignmentControl))
+
+    configureSlider(itemSpacingSlider, min: 0, max: 32, value: Float(configuration.layout.itemSpacing))
+    itemSpacingSlider.addAction(UIAction { [weak self] _ in
+      self?.applyItemSpacing()
+    }, for: .valueChanged)
+    stack.addArrangedSubview(labeledControl(title: "itemSpacing", control: itemSpacingSlider))
+
+    configureSlider(itemInsetsSlider, min: 0, max: 24, value: 0)
+    itemInsetsSlider.addAction(UIAction { [weak self] _ in
+      self?.applyItemInsets()
+    }, for: .valueChanged)
+    stack.addArrangedSubview(
+      labeledControl(
+        title: "itemInsets → FKButton contentInsets",
+        control: itemInsetsSlider
+      )
+    )
+
+    configureSlider(contentLeadingSlider, min: 0, max: 48, value: 0)
+    contentLeadingSlider.addAction(UIAction { [weak self] _ in
+      self?.applyContentInsets()
+    }, for: .valueChanged)
+    stack.addArrangedSubview(labeledControl(title: "contentInsets.leading", control: contentLeadingSlider))
+
+    configureSlider(contentTrailingSlider, min: 0, max: 160, value: 80)
+    contentTrailingSlider.addAction(UIAction { [weak self] _ in
+      self?.applyContentInsets()
+    }, for: .valueChanged)
+    stack.addArrangedSubview(labeledControl(title: "contentInsets.trailing", control: contentTrailingSlider))
+
+    tabCountControl.selectedSegmentIndex = 0
+    tabCountControl.addAction(UIAction { [weak self] _ in
+      self?.applyTabCount()
+    }, for: .valueChanged)
+    stack.addArrangedSubview(labeledControl(title: "Visible tabs", control: tabCountControl))
+
+    stack.addArrangedSubview(
+      FKTabBarExampleSupport.actionButton("Reset defaults") { [weak self] in
+        self?.resetDefaults()
+      }
+    )
+
+    statusLabel.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+    statusLabel.textColor = .secondaryLabel
+    statusLabel.numberOfLines = 0
+    stack.addArrangedSubview(statusLabel)
+
+    applyLayout(animated: false)
+  }
+
+  private func labeledControl(title: String, control: UIView) -> UIStackView {
+    let row = UIStackView()
+    row.axis = .vertical
+    row.spacing = 6
+    row.addArrangedSubview(FKTabBarExampleSupport.captionLabel(title))
+    row.addArrangedSubview(control)
+    return row
+  }
+
+  private func configureSlider(_ slider: UISlider, min: Float, max: Float, value: Float) {
+    slider.minimumValue = min
+    slider.maximumValue = max
+    slider.value = value
+  }
+
+  private func applyAlignment() {
+    switch alignmentControl.selectedSegmentIndex {
+    case 1: configuration.layout.contentAlignment = .center
+    case 2: configuration.layout.contentAlignment = .trailing
+    default: configuration.layout.contentAlignment = .leading
+    }
+    applyLayout()
+  }
+
+  private func applyItemSpacing() {
+    configuration.layout.itemSpacing = CGFloat(itemSpacingSlider.value.rounded())
+    applyLayout()
+  }
+
+  private func applyItemInsets() {
+    let inset = CGFloat(itemInsetsSlider.value.rounded())
+    configuration.layout.itemInsets = .init(top: inset, leading: inset, bottom: inset, trailing: inset)
+    applyLayout()
+  }
+
+  private func applyContentInsets() {
+    configuration.layout.contentInsets.leading = CGFloat(contentLeadingSlider.value.rounded())
+    configuration.layout.contentInsets.trailing = CGFloat(contentTrailingSlider.value.rounded())
+    applyLayout()
+  }
+
+  private func applyTabCount() {
+    let count = tabCountControl.selectedSegmentIndex == 0 ? 2 : 3
+    let titles = ["Overview", "Activity", "Settings"]
+    tabView.reload(
+      items: FKTabBarExampleSupport.makeTitleOnlyItems(count, localizedTitles: titles),
+      updatePolicy: .preserveSelection
+    )
+    applyLayout()
+  }
+
+  private func resetDefaults() {
+    configuration.layout.itemSpacing = 15
+    configuration.layout.itemInsets = .zero
+    configuration.layout.contentInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 80)
+    configuration.layout.contentAlignment = .leading
+    alignmentControl.selectedSegmentIndex = 0
+    itemSpacingSlider.value = 15
+    itemInsetsSlider.value = 0
+    contentLeadingSlider.value = 0
+    contentTrailingSlider.value = 80
+    tabCountControl.selectedSegmentIndex = 0
+    tabView.reload(
+      items: FKTabBarExampleSupport.makeTitleOnlyItems(2, localizedTitles: ["Overview", "Activity"]),
+      updatePolicy: .resetSelection
+    )
+    applyLayout()
+  }
+
+  private func applyLayout(animated: Bool = true) {
+    tabView.applyConfiguration(configuration, animated: animated)
+    tabBarHeightConstraint?.constant = max(44, tabView.intrinsicContentSize.height)
+    updateStatusLabel()
+  }
+
+  private func updateStatusLabel() {
+    view.layoutIfNeeded()
+    let layout = tabView.configuration.layout
+    let spacing = layout.itemSpacing
+    let itemInset = layout.itemInsets.leading
+
+    let buttonInsets: String
+    if let button = tabView.visibleItemButton(at: tabView.selectedIndex),
+       let appearance = button.appearance(for: .normal) {
+      let insets = appearance.contentInsets
+      buttonInsets = String(
+        format: "FKButton contentInsets (selected tab): top %.0f leading %.0f bottom %.0f trailing %.0f",
+        insets.top, insets.leading, insets.bottom, insets.trailing
+      )
+    } else {
+      buttonInsets = "FKButton contentInsets: —"
+    }
+
+    statusLabel.text = """
+    itemSpacing=\(Int(spacing))  itemInsets=\(Int(itemInset))  contentInsets=(\(Int(layout.contentInsets.leading)), \(Int(layout.contentInsets.trailing)))  alignment=\(alignmentLabel(layout.contentAlignment))
+    \(buttonInsets)
+    """
+  }
+
+  private func alignmentLabel(_ alignment: FKTabBarContentAlignment) -> String {
+    switch alignment {
+    case .leading: return "leading"
+    case .center: return "center"
+    case .trailing: return "trailing"
+    }
+  }
+}
+
 // MARK: - Scroll edge fade
 
 final class FKTabBarScrollEdgeFadeExampleViewController: UIViewController {

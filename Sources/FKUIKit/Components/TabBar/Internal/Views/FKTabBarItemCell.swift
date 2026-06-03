@@ -25,6 +25,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
 
   private let tabButton = FKButton()
   private var customBadgeView: UIView?
+  private var allowsBadgeOverflow = false
   var onTap: ((FKButton) -> Void)?
   var onLongPress: ((FKButton) -> Void)?
 
@@ -44,6 +45,11 @@ final class FKTabBarItemCell: UICollectionViewCell {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyBadgeOverflowHostingIfNeeded()
   }
 
   override func prepareForReuse() {
@@ -92,13 +98,18 @@ final class FKTabBarItemCell: UICollectionViewCell {
     }
     let baseFont = useSelectedFont ? appearance.typography.selectedFont : appearance.typography.normalFont
 
-    let normalTitleColor = item.title.normal.style.color
-    let selectedTitleColor = item.title.selected?.style.color ?? appearance.colors.selectedText
+    let normalTitleColor = FKTabBarItemButtonConfigurator.resolvedNormalTitleColor(for: item, appearance: appearance)
+    let selectedTitleColor = FKTabBarItemButtonConfigurator.resolvedSelectedTitleColor(for: item, appearance: appearance)
 
     let textColor: UIColor
     let iconColor: UIColor
     if !item.isEnabled {
-      textColor = item.title.resolved(isSelected: selected, isEnabled: false).style.color
+      let disabledState = item.title.resolved(isSelected: selected, isEnabled: false)
+      textColor = FKTabBarItemButtonConfigurator.resolvedSubtitleColor(
+        for: disabledState,
+        appearance: appearance,
+        fallbackSelected: appearance.colors.disabledText
+      )
       iconColor = appearance.colors.disabledIcon
     } else if selected || progress > 0 {
       // Prefer per-item title colors (composite bars often encode state in `FKTabBarItem` styles).
@@ -111,7 +122,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
         iconColor = interpolate(from: appearance.colors.normalIcon, to: appearance.colors.selectedIcon, progress: progress)
       }
     } else {
-      textColor = item.title.resolved(isSelected: false, isEnabled: true).style.color
+      textColor = normalTitleColor
       if let imageConfiguration = item.image, imageConfiguration.normal.source != nil {
         iconColor = imageConfiguration.normal.style.tintColor ?? appearance.colors.normalIcon
       } else {
@@ -139,7 +150,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
 
     tabButton.isEnabled = item.isEnabled
     tabButton.isSelected = selected
-    FKTabBarItemButtonConfigurator.applyItemInsets(model.itemInsets, to: tabButton)
     let label = FKButton.LabelAttributes(
       text: titleText,
       font: baseFont,
@@ -170,8 +180,18 @@ final class FKTabBarItemCell: UICollectionViewCell {
           // Match title color when no per-state subtitle override is configured.
           subtitleColor = textColor
         } else if selected || progress > 0 {
-          let normalColor = subtitleConfiguration.normal.style.color
-          let selectedColor = subtitleConfiguration.selected?.style.color ?? appearance.colors.selectedText
+          let normalColor = FKTabBarItemButtonConfigurator.resolvedSubtitleColor(
+            for: subtitleConfiguration.normal,
+            appearance: appearance,
+            fallbackSelected: appearance.colors.normalText
+          )
+          let selectedColor = subtitleConfiguration.selected.map {
+            FKTabBarItemButtonConfigurator.resolvedSubtitleColor(
+              for: $0,
+              appearance: appearance,
+              fallbackSelected: appearance.colors.selectedText
+            )
+          } ?? appearance.colors.selectedText
           subtitleColor = interpolate(from: normalColor, to: selectedColor, progress: progress)
         } else {
           subtitleColor = subtitleState.style.color
@@ -214,8 +234,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
       textColor: textColor
     )
     customization?.configure(button: tabButton, item: item, isSelected: selected)
-    // Re-apply after customization so strip padding stays on ``FKTabBarLayoutConfiguration/itemInsets``.
-    FKTabBarItemButtonConfigurator.applyItemInsets(model.itemInsets, to: tabButton)
 
     // Accessibility is hosted by `FKButton` so VoiceOver focus matches the tappable element.
     tabButton.isAccessibilityElement = true
@@ -238,6 +256,9 @@ final class FKTabBarItemCell: UICollectionViewCell {
       badgeConfiguration: badgeConfiguration,
       badgeAnimation: badgeAnimation
     )
+    // After badge + selection styling: keep overflow clipping off and pin insets last.
+    FKTabBarItemButtonConfigurator.applyItemInsets(model.itemInsets, to: tabButton)
+    applyBadgeOverflowHostingIfNeeded()
 
     // Long-press is opt-in. Keeping callbacks nil avoids interfering with normal taps.
     if model.isLongPressEnabled {
@@ -303,12 +324,6 @@ final class FKTabBarItemCell: UICollectionViewCell {
       target.fk_badge.configuration = badgeConfiguration
     }
     target.fk_badge.setAnchor(badge.anchor, offset: badge.offset)
-    if badge.avoidsClipping {
-      // Some badge offsets intentionally extend beyond the cell bounds (e.g. count bubble).
-      // Allowing overflow is opt-in to keep scrolling performance predictable by default.
-      contentView.clipsToBounds = false
-      clipsToBounds = false
-    }
 
     switch badge.state.resolved(isSelected: isSelected, isEnabled: item.isEnabled) {
     case .none:
@@ -328,6 +343,38 @@ final class FKTabBarItemCell: UICollectionViewCell {
         custom.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -2),
       ])
       customBadgeView = custom
+    }
+
+    allowsBadgeOverflow = badge.avoidsClipping && hasVisibleTabBadge(
+      badge: badge,
+      item: item,
+      isSelected: isSelected,
+      customization: customization
+    )
+    applyBadgeOverflowHostingIfNeeded()
+  }
+
+  private func applyBadgeOverflowHostingIfNeeded() {
+    guard allowsBadgeOverflow else { return }
+    contentView.clipsToBounds = false
+    clipsToBounds = false
+    tabButton.clipsToBounds = false
+    tabButton.contentContainerView.clipsToBounds = false
+  }
+
+  private func hasVisibleTabBadge(
+    badge: FKTabBarBadgeConfiguration,
+    item: FKTabBarItem,
+    isSelected: Bool,
+    customization: FKTabBarCustomization?
+  ) -> Bool {
+    switch badge.state.resolved(isSelected: isSelected, isEnabled: item.isEnabled) {
+    case .none:
+      return false
+    case .custom:
+      return customization?.customBadgeView(for: item) != nil
+    case .dot, .count, .text:
+      return true
     }
   }
 
@@ -373,9 +420,12 @@ final class FKTabBarItemCell: UICollectionViewCell {
   }
 
   private func clearBadges() {
+    allowsBadgeOverflow = false
     // Reset clipping defaults because some badge placements require overflow.
     contentView.clipsToBounds = true
     clipsToBounds = true
+    tabButton.clipsToBounds = true
+    tabButton.contentContainerView.clipsToBounds = true
     [tabButton, tabButton.imageView, tabButton.leadingImageView, tabButton.trailingImageView].forEach { view in
       view?.fk_badge.clear(animated: false)
     }

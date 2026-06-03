@@ -281,7 +281,10 @@ public final class FKTabBar: UIView {
     configuration: FKTabBarConfiguration = FKTabBarDefaults.defaultConfiguration
   ) {
     self.init(frame: .zero)
+    let priorConfiguration = self.configuration
     self.configuration = configuration
+    let domains = FKTabBarConfigurationApplier.domains(from: priorConfiguration, to: configuration)
+    applyConfigurationDomains(domains, animated: false)
     reload(items: items, updatePolicy: .preserveSelection)
     setSelectedIndex(selectedIndex, animated: false, reason: .programmatic)
   }
@@ -294,7 +297,9 @@ public final class FKTabBar: UIView {
   public override func layoutSubviews() {
     assertMainThreadInDebug()
     super.layoutSubviews()
+    let layout = resolvedLayout()
     backgroundHost.frame = bounds
+    backgroundHost.clipsToBounds = layout.hostingContext == .navigationBarTitleView
     collectionView.frame = backgroundHost.bounds
     let ap = resolvedAppearance()
     let shadowPath = UIBezierPath(rect: backgroundHost.bounds).cgPath
@@ -348,27 +353,20 @@ public final class FKTabBar: UIView {
 
   public override var intrinsicContentSize: CGSize {
     assertMainThreadInDebug()
+    return CGSize(width: UIView.noIntrinsicMetric, height: resolvedIntrinsicBarHeight())
+  }
+
+  public override func sizeThatFits(_ size: CGSize) -> CGSize {
+    assertMainThreadInDebug()
     let layout = resolvedLayoutForCurrentEnvironment()
-    let presentation = resolvedTitlePresentation(layout: layout)
-    let preferredBase = layout.preferredBarHeight ?? layout.minimumItemHeight
-    let baseHeight = max(44, preferredBase)
-    guard presentation.shouldIncreaseHeightForLargeText else {
-      let safeAreaAddition = layout.bottomSafeAreaBehavior == .extendBarHeight || layout.bottomSafeAreaBehavior == .bottomDocked
-        ? safeAreaInsets.bottom
-        : 0
-      return CGSize(width: UIView.noIntrinsicMetric, height: baseHeight + safeAreaAddition + layout.contentInsets.top + layout.contentInsets.bottom)
+    if layout.hostingContext == .navigationBarTitleView {
+      return navigationBarTitleSizeThatFits(size)
     }
-    let typography = resolvedAppearance().typography
-    let scaledFont: UIFont = typography.adjustsForContentSizeCategory
-      ? UIFontMetrics(forTextStyle: .subheadline).scaledFont(for: typography.selectedFont)
-      : typography.selectedFont
-    let textHeight = ceil(scaledFont.lineHeight * CGFloat(max(1, presentation.maximumTitleLines)))
-    let iconReserve: CGFloat = resolvedLayout().itemLayoutDirection == .vertical ? 28 : 0
-    let preferredHeight = max(baseHeight, textHeight + iconReserve + 24)
-    let safeAreaAddition = layout.bottomSafeAreaBehavior == .extendBarHeight || layout.bottomSafeAreaBehavior == .bottomDocked
-      ? safeAreaInsets.bottom
-      : 0
-    return CGSize(width: UIView.noIntrinsicMetric, height: preferredHeight + safeAreaAddition + layout.contentInsets.top + layout.contentInsets.bottom)
+    let height = resolvedIntrinsicBarHeight()
+    if size.width > 0 {
+      return CGSize(width: size.width, height: height)
+    }
+    return CGSize(width: bounds.width > 0 ? bounds.width : UIView.noIntrinsicMetric, height: height)
   }
 
   // MARK: - Setup
@@ -382,6 +380,7 @@ public final class FKTabBar: UIView {
 
     collectionView.backgroundColor = .clear
     collectionView.showsHorizontalScrollIndicator = false
+    collectionView.showsVerticalScrollIndicator = false
     collectionView.contentInsetAdjustmentBehavior = .never
     collectionCoordinator.host = self
     collectionView.dataSource = collectionCoordinator

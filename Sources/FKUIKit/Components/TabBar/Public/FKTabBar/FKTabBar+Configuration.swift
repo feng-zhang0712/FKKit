@@ -23,6 +23,22 @@ extension FKTabBar {
     return layout
   }
 
+  func resolvedIntrinsicBarHeight(
+    presentation: FKTabBarResolvedTitlePresentation? = nil
+  ) -> CGFloat {
+    let layout = resolvedLayoutForCurrentEnvironment()
+    let resolvedPresentation = presentation ?? resolvedTitlePresentationForCurrentEnvironment()
+    let safeAreaAddition = layout.bottomSafeAreaBehavior == .extendBarHeight || layout.bottomSafeAreaBehavior == .bottomDocked
+      ? safeAreaInsets.bottom
+      : 0
+    return FKTabBarLayoutMetrics.resolvedBarHeight(
+      layout: layout,
+      appearance: resolvedAppearance(),
+      presentation: resolvedPresentation,
+      safeAreaBottomAddition: safeAreaAddition
+    )
+  }
+
   func syncCustomizationHooks() {
     indicator.customViewProvider = { [weak customization] id in
       customization?.customIndicatorView(id: id)
@@ -34,23 +50,36 @@ extension FKTabBar {
 
   func applyBackgroundAppearance() {
     let ap = resolvedAppearance()
-    switch ap.backgroundStyle {
-    case .solid(let color):
-      backgroundHost.backgroundColor = color
-      backgroundHost.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
-    case .systemBlur(let style):
+    let layout = resolvedLayout()
+    let navigationBarChrome = layout.hostingContext == .navigationBarTitleView
+
+    if navigationBarChrome {
       backgroundHost.backgroundColor = .clear
       backgroundHost.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
-      let blur = UIVisualEffectView(effect: UIBlurEffect(style: style))
-      blur.frame = backgroundHost.bounds
-      blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-      backgroundHost.insertSubview(blur, at: 0)
+    } else {
+      switch ap.backgroundStyle {
+      case .solid(let color):
+        backgroundHost.backgroundColor = color
+        backgroundHost.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
+      case .systemBlur(let style):
+        backgroundHost.backgroundColor = .clear
+        backgroundHost.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: style))
+        blur.frame = backgroundHost.bounds
+        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        backgroundHost.insertSubview(blur, at: 0)
+      }
     }
-    divider.isHidden = !ap.showsDivider
+
+    divider.isHidden = navigationBarChrome || !ap.showsDivider
     divider.backgroundColor = ap.colors.divider
     backgroundHost.layer.masksToBounds = false
     let shadowPath = UIBezierPath(rect: backgroundHost.bounds).cgPath
-    backgroundHost.layer.fk_applyShadow(ap.shadow, path: shadowPath)
+    if navigationBarChrome {
+      backgroundHost.layer.fk_applyShadow(.none, path: nil)
+    } else {
+      backgroundHost.layer.fk_applyShadow(ap.shadow, path: shadowPath)
+    }
     updateScrollEdgeFadeAppearance()
     setNeedsLayout()
   }
@@ -65,17 +94,22 @@ extension FKTabBar {
   func updateScrollEdgeFadeAppearance() {
     let layout = resolvedLayout()
     let fade = layout.scrollEdgeFade
-    guard layout.isScrollable, fade.isEnabled else {
+    let fadeEnabled = fade.isEnabled || (layout.hostingContext == .navigationBarTitleView && layout.isScrollable)
+    guard layout.isScrollable, fadeEnabled else {
       scrollEdgeFadeOverlay.isHidden = true
       return
     }
     scrollEdgeFadeOverlay.isHidden = false
     let fadeColor: UIColor
-    switch resolvedAppearance().backgroundStyle {
-    case .solid(let color):
-      fadeColor = color
-    case .systemBlur:
-      fadeColor = backgroundHost.backgroundColor ?? .systemBackground
+    if layout.hostingContext == .navigationBarTitleView {
+      fadeColor = .systemBackground
+    } else {
+      switch resolvedAppearance().backgroundStyle {
+      case .solid(let color):
+        fadeColor = color
+      case .systemBlur:
+        fadeColor = backgroundHost.backgroundColor ?? .systemBackground
+      }
     }
     scrollEdgeFadeOverlay.configure(fadeColor: fadeColor, fadeWidth: fade.width)
     scrollEdgeFadeOverlay.frame = backgroundHost.bounds
@@ -87,7 +121,8 @@ extension FKTabBar {
 
   func updateScrollEdgeFadeOpacity() {
     let layout = resolvedLayout()
-    guard layout.isScrollable, layout.scrollEdgeFade.isEnabled else { return }
+    let fadeEnabled = layout.scrollEdgeFade.isEnabled || (layout.hostingContext == .navigationBarTitleView && layout.isScrollable)
+    guard layout.isScrollable, fadeEnabled else { return }
     let offsetX = collectionView.contentOffset.x
     let minOffset = -collectionView.contentInset.left
     let maxOffset = max(
@@ -160,6 +195,9 @@ extension FKTabBar {
     if domains.contains(.layout) {
       applySemanticDirection()
       applyLayoutScrollBehavior()
+      if resolvedLayout().hostingContext == .navigationBarTitleView {
+        applyBackgroundAppearance()
+      }
       updateEmptyStatePresentation()
       invalidateItemSizeCache()
       syncFlowLayoutSpacingProvider()

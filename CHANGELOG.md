@@ -4,6 +4,44 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.60.0] - 2026-06-03
+
+### Added (FKUIKit — PagingController)
+
+- **`FKPagingTabBarPlacement`** — ``contentTop`` / ``contentBottom``, ``navigationBar(...)``, and ``external`` for content-area, navigation-bar ``titleView``, and host-managed tab strips.
+- **`FKPagingNavigationBarTabOptions`**, **`tabBarNavigationHost`**, and **`isTabBarExternallyManaged`** for navigation-bar and external placement.
+- **`FKPagingTabBarPlacementCoordinator`** — installs tab strip per placement, restores host ``titleView`` / ``title`` on disappear.
+- **Examples**: Tab bar placement hub section (content top, navigation bar, external).
+
+### Added (FKUIKit — TabBar)
+
+- **`FKTabBarHostingContext/navigationBarTitleView`** and **`FKTabBarLayoutMetrics`** for compact navigation-bar chrome and bar height.
+- **`FKTabBarPresets/navigationBarSegmented()``** and **`navigationBarScrollable()`**; **`FKTabBar+NavigationBarTitle`** sizing for ``UINavigationItem/titleView``.
+- **Examples**: **Layout — insets & spacing** interactive playground (``itemSpacing``, ``itemInsets``, ``contentInsets``, ``contentAlignment``).
+
+### Changed (FKUIKit — PagingController)
+
+- **Breaking:** replace **`FKPagingConfiguration.tabBarPosition`** with **`tabBarPlacement`** (see component **README** breaking-changes table).
+
+### Changed (FKUIKit — TabBar)
+
+- Map **`layout.itemSpacing`** to horizontal flow **`minimumInteritemSpacing`** (not **`minimumLineSpacing`**); sync spacing on bounds changes and in **`convenience init(items:configuration:)`** (Swift does not call **`didSet`** during init).
+- **`FKTabBarFlowLayout`**: **`defaultItemSpacing`** fallback when **`customSpacing`** returns **`nil`**; enable per-index spacing provider without requiring **`customization`**.
+- **README**: document **`contentInsets`** / **`itemInsets`** / **`itemSpacing`** responsibilities.
+
+### Fixed (FKUIKit — PagingController)
+
+- Navigation-bar placement lifecycle — teardown on **`viewWillDisappear`**, refresh title slot on layout, tighten host resolution.
+
+### Fixed (FKUIKit — TabBar)
+
+- **`itemSpacing`** ignored when tabs use leading alignment with trailing slack (wrong flow-layout spacing property and stale init sync).
+- Badge overflow cell path — remove references to non-existent spacing APIs; keep **`avoidsClipping`** via **`clipsToBounds`**.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.60.0** (Git tag **`0.60.0`**).
+
 ## [0.59.1] - 2026-06-02
 
 ### Fixed (FKUIKit — TabBar)
@@ -2397,7 +2435,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.59.1...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.60.0...HEAD
+[0.60.0]: https://github.com/feng-zhang0712/FKKit/compare/0.59.1...0.60.0
 [0.59.1]: https://github.com/feng-zhang0712/FKKit/compare/0.59.0...0.59.1
 [0.59.0]: https://github.com/feng-zhang0712/FKKit/compare/0.58.0...0.59.0
 [0.58.0]: https://github.com/feng-zhang0712/FKKit/compare/0.57.0...0.58.0

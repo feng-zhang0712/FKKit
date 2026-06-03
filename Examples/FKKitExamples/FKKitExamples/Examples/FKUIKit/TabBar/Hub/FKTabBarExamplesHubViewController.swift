@@ -60,6 +60,11 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
           make: { FKTabBarContentAlignmentExampleViewController() }
         ),
         RowModel(
+          title: "Layout — insets & spacing",
+          subtitle: "Live controls for itemSpacing, itemInsets (FKButton padding), contentInsets, and contentAlignment.",
+          make: { FKTabBarInsetsSpacingExampleViewController() }
+        ),
+        RowModel(
           title: "Layout — scroll edge fade",
           subtitle: "Toggle scrollEdgeFade width and enabled state on a scrollable strip.",
           make: { FKTabBarScrollEdgeFadeExampleViewController() }

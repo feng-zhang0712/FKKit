@@ -1,4 +1,5 @@
 import UIKit
+import FKUIKit
 
 /// Shared demo pages and layout helpers for paging examples.
 @MainActor
@@ -16,6 +17,37 @@ enum FKPagingDemoSupport {
       child.view.bottomAnchor.constraint(equalTo: host.view.bottomAnchor),
     ])
     child.didMove(toParent: host)
+  }
+
+  /// Embeds ``FKPagingController`` below an externally managed ``FKTabBar`` (``.external`` placement).
+  static func embedPagingController(
+    _ pagingController: FKPagingController,
+    below tabBar: FKTabBar,
+    in host: UIViewController,
+    tabBarHeight: CGFloat? = nil
+  ) {
+    host.addChild(pagingController)
+    pagingController.view.translatesAutoresizingMaskIntoConstraints = false
+    pagingController.view.clipsToBounds = true
+    host.view.addSubview(pagingController.view)
+
+    tabBar.translatesAutoresizingMaskIntoConstraints = false
+    if tabBar.superview !== host.view {
+      host.view.addSubview(tabBar)
+    }
+
+    let height = tabBarHeight ?? max(44, tabBar.intrinsicContentSize.height)
+    NSLayoutConstraint.activate([
+      tabBar.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor),
+      tabBar.leadingAnchor.constraint(equalTo: host.view.leadingAnchor),
+      tabBar.trailingAnchor.constraint(equalTo: host.view.trailingAnchor),
+      tabBar.heightAnchor.constraint(equalToConstant: height),
+      pagingController.view.topAnchor.constraint(equalTo: tabBar.bottomAnchor),
+      pagingController.view.leadingAnchor.constraint(equalTo: host.view.leadingAnchor),
+      pagingController.view.trailingAnchor.constraint(equalTo: host.view.trailingAnchor),
+      pagingController.view.bottomAnchor.constraint(equalTo: host.view.bottomAnchor),
+    ])
+    pagingController.didMove(toParent: host)
   }
 }
 

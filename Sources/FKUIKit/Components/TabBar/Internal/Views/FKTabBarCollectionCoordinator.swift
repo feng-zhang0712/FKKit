@@ -77,7 +77,7 @@ extension FKTabBarCollectionCoordinator: UICollectionViewDelegateFlowLayout {
     }
     guard host.visibleItems.indices.contains(indexPath.item) else {
       let layout = host.resolvedLayoutForCurrentEnvironment()
-      return CGSize(width: 44, height: max(44, layout.minimumItemHeight))
+      return CGSize(width: 44, height: max(FKTabBarLayoutMetrics.minimumBarHeight(for: layout), layout.minimumItemHeight))
     }
     return host.cachedItemSize(at: indexPath.item)
   }
@@ -86,6 +86,14 @@ extension FKTabBarCollectionCoordinator: UICollectionViewDelegateFlowLayout {
     _ collectionView: UICollectionView,
     layout collectionViewLayout: UICollectionViewLayout,
     minimumLineSpacingForSectionAt section: Int
+  ) -> CGFloat {
+    0
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    minimumInteritemSpacingForSectionAt section: Int
   ) -> CGFloat {
     guard let host else { return 0 }
     let layout = host.resolvedLayoutForCurrentEnvironment()

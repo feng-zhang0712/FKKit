@@ -33,6 +33,7 @@ final class FKTabBarIndicatorView: UIView {
   override init(frame: CGRect) {
     super.init(frame: frame)
     isUserInteractionEnabled = false
+    clipsToBounds = true
     addSubview(fillView)
   }
 
