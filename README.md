@@ -163,7 +163,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.59.1")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.60.0")
 ],
 targets: [
   .target(
@@ -178,7 +178,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.59.1`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.60.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -187,8 +187,8 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.59.1'
-pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.59.1'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.60.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.60.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).
@@ -272,7 +272,7 @@ Please report security vulnerabilities through [GitHub private security advisori
   - change summary
   - test/verification notes
   - migration notes when APIs change
-- Tag stable releases with semantic versions (for example: `0.59.1`), then merge release work back into `develop`.
+- Tag stable releases with semantic versions (for example: `0.60.0`), then merge release work back into `develop`.
 
 ## License
 This repository is licensed under the MIT License.  
