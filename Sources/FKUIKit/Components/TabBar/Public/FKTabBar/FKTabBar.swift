@@ -281,7 +281,10 @@ public final class FKTabBar: UIView {
     configuration: FKTabBarConfiguration = FKTabBarDefaults.defaultConfiguration
   ) {
     self.init(frame: .zero)
+    let priorConfiguration = self.configuration
     self.configuration = configuration
+    let domains = FKTabBarConfigurationApplier.domains(from: priorConfiguration, to: configuration)
+    applyConfigurationDomains(domains, animated: false)
     reload(items: items, updatePolicy: .preserveSelection)
     setSelectedIndex(selectedIndex, animated: false, reason: .programmatic)
   }

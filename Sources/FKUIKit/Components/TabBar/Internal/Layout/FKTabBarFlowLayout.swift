@@ -3,8 +3,10 @@ import UIKit
 /// Horizontal flow layout that honors per-gap spacing from ``FKTabBarCustomization/customSpacing(after:context:)``.
 @MainActor
 final class FKTabBarFlowLayout: UICollectionViewFlowLayout {
-  /// When non-`nil`, spacing after each visible index overrides ``minimumLineSpacing``.
+  /// When non-`nil`, spacing after each visible index overrides ``defaultItemSpacing``.
   var spacingAfterIndex: ((Int) -> CGFloat?)?
+  /// Fallback gap between adjacent items when ``spacingAfterIndex`` returns `nil`.
+  var defaultItemSpacing: CGFloat = 0
 
   private struct LayoutMetrics {
     var frames: [CGRect]
@@ -116,7 +118,7 @@ final class FKTabBarFlowLayout: UICollectionViewFlowLayout {
   }
 
   private func resolvedSpacing(after index: Int) -> CGFloat {
-    spacingAfterIndex?(index) ?? minimumLineSpacing
+    spacingAfterIndex?(index) ?? defaultItemSpacing
   }
 
   private func resolvedItemSize(at indexPath: IndexPath, in collectionView: UICollectionView) -> CGSize {

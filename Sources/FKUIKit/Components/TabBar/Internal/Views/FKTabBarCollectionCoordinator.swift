@@ -87,6 +87,14 @@ extension FKTabBarCollectionCoordinator: UICollectionViewDelegateFlowLayout {
     layout collectionViewLayout: UICollectionViewLayout,
     minimumLineSpacingForSectionAt section: Int
   ) -> CGFloat {
+    0
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    minimumInteritemSpacingForSectionAt section: Int
+  ) -> CGFloat {
     guard let host else { return 0 }
     let layout = host.resolvedLayoutForCurrentEnvironment()
     if layout.widthMode == .fillEqually { return 0 }

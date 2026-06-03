@@ -129,11 +129,12 @@ Line/backdrop fills come from the style configuration's `fill`. ``FKTabBarAppear
 
 ## Layout notes
 
-- ``FKTabBarLayoutConfiguration/contentInsets`` — section insets around the whole tab strip (collection layout), not per-tab title/icon padding.
-- ``FKTabBarLayoutConfiguration/itemInsets`` — single knob for per-tab padding from the cell edge to title/icon. Applied only as the hosted ``FKButton`` appearance `contentInsets`; the cell does not add a second margin layer. Prefer this over tuning `FKButton` insets in ``FKTabBarCustomization/configure(button:item:isSelected:)``.
+- ``FKTabBarLayoutConfiguration/contentInsets`` — section insets around the whole tab strip (collection section insets). Use trailing/leading inset to pad the strip from the container edge; extra space from ``contentAlignment`` is distributed separately when items fit without scrolling.
+- ``FKTabBarLayoutConfiguration/itemInsets`` — per-tab padding from the cell edge to title/icon. Applied only as the hosted ``FKButton`` appearance `contentInsets`; the cell does not add a second margin layer. Prefer this over tuning `FKButton` insets in ``FKTabBarCustomization/configure(button:item:isSelected:)``.
+- ``FKTabBarLayoutConfiguration/itemSpacing`` — horizontal gap **between adjacent tab cells** on the single-row strip. The internal collection view scrolls horizontally, so this maps to `UICollectionViewFlowLayout.minimumInteritemSpacing` (not `minimumLineSpacing`, which is row-to-row spacing and stays `0` for TabBar).
 - Item width in ``FKTabBarItemWidthMode/intrinsic`` is measured with the same ``FKButton`` layout path as ``FKTabBarItemCell`` (see ``FKTabBarItemContentMeasurer`` / ``FKTabBarItemButtonConfigurator``) so center alignment does not leave extra slack inside ``FKButton/contentContainerView``.
 - Indicator ``trackContentFrame`` modes use the laid-out ``FKButton`` stack bounds so line/backdrop width matches visible content when `itemInsets` changes.
-- ``FKTabBarCustomization/customSpacing(after:context:)`` — per-gap spacing after each visible index (honored by ``FKTabBarFlowLayout`` when content alignment is not distributing extra width).
+- ``FKTabBarCustomization/customSpacing(after:context:)`` — optional per-gap override after each visible index. When ``contentAlignment`` distributes extra width (non-scrollable strip with slack), spacing comes from ``itemSpacing`` via collection layout; otherwise the internal ``FKTabBarFlowLayout`` applies ``itemSpacing`` by default and ``customSpacing`` when set.
 - ``FKTabBarAppearance/subtitleConfiguration`` — global subtitle fallback when ``FKTabBarItem/subtitle`` is nil; item-level subtitle always wins.
 - ``FKTabBarLayoutConfiguration/nonScrollableOverflowPolicy`` — shrink / truncate / clip when ``isScrollable`` is `false`.
 - ``FKTabBarLayoutConfiguration/intrinsicWidthMeasurement`` — how intrinsic/constrained widths are measured (see below).
