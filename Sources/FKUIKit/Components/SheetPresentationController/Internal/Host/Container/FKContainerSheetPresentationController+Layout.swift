@@ -72,7 +72,7 @@ extension FKContainerSheetPresentationController {
 
   /// Sizes the system-provided presented view inside the content container.
   ///
-  /// - Bottom sheet: fills the shell (content should be top-aligned in the child view controller).
+  /// - Bottom sheet: pins non-scroll content to the top edge; scroll hosts fill the shell.
   /// - Top sheet: pins non-scroll content to the bottom edge (above the grabber) so detent growth expands upward.
   /// - Scroll/table/collection hosts always fill the shell.
   func layoutHostedPresentedView() {
@@ -95,12 +95,29 @@ extension FKContainerSheetPresentationController {
       return
     }
 
+    if usesBottomSheetTopPinnedHostedLayout {
+      let height = min(max(44, resolvedPinnedHostedContentHeight()), bounds.height)
+      hostedPresentedView.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+      hostedPresentedView.frame = CGRect(
+        x: 0,
+        y: 0,
+        width: bounds.width,
+        height: height
+      )
+      return
+    }
+
     hostedPresentedView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     hostedPresentedView.frame = bounds
   }
 
   private var usesTopSheetBottomPinnedHostedLayout: Bool {
     guard case .topSheet(_) = configuration.layout else { return false }
+    return !hostedContentPrefersFillLayout()
+  }
+
+  private var usesBottomSheetTopPinnedHostedLayout: Bool {
+    guard case .bottomSheet(_) = configuration.layout else { return false }
     return !hostedContentPrefersFillLayout()
   }
 
@@ -117,9 +134,8 @@ extension FKContainerSheetPresentationController {
       return pinnedHostedContentHeight
     }
 
-    let measured = FKSheetPresentationLayoutEngine.measuredContentHeight(
-      for: layoutEnvironment(in: containerView),
-      appliesLegacyFittingFloor: false
+    let measured = FKSheetPresentationLayoutEngine.measuredHostedPresentedContentHeight(
+      for: layoutEnvironment(in: containerView)
     )
     pinnedHostedContentHeight = measured
     pinnedHostedContentContainerWidth = width
@@ -135,16 +151,7 @@ extension FKContainerSheetPresentationController {
 
   /// Computes extra content inset reserved for the grabber area.
   func grabberContentInsets() -> UIEdgeInsets {
-    guard configuration.sheet.prefersGrabberVisible else { return .zero }
-    let padding = configuration.sheet.grabberTopInset + configuration.sheet.grabberSize.height + 8
-    switch configuration.layout {
-    case .bottomSheet(_):
-      return .init(top: padding, left: 0, bottom: 0, right: 0)
-    case .topSheet(_):
-      return .init(top: 0, left: 0, bottom: padding, right: 0)
-    default:
-      return .zero
-    }
+    FKSheetGrabberLayout.reservedContentInsets(configuration: configuration, layout: configuration.layout)
   }
 
   /// Adds/removes and styles grabber depending on active layout.
@@ -214,10 +221,16 @@ extension FKContainerSheetPresentationController {
   // MARK: - Detent Resolution
 
   func layoutEnvironment(in containerView: UIView) -> FKSheetPresentationLayoutEngine.Environment {
-    FKSheetPresentationLayoutEngine.Environment(
+    let window = containerView.window ?? presentingViewController.view.window
+    let safeInsets = FKSheetSizingSafeArea.effectiveContainerSafeAreaInsets(
+      configuration: configuration,
+      containerInsets: containerView.safeAreaInsets,
+      window: window
+    )
+    return FKSheetPresentationLayoutEngine.Environment(
       configuration: configuration,
       containerBounds: containerView.bounds,
-      containerSafeAreaInsets: containerView.safeAreaInsets,
+      containerSafeAreaInsets: safeInsets,
       preferredContentSize: presentedViewController.preferredContentSize,
       contentViewForFitting: hostedPresentedView
     )

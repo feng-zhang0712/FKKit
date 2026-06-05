@@ -3,10 +3,15 @@ import UIKit
 @MainActor
 extension FKOverlayPresentationViewController {
   func layoutEnvironment() -> FKSheetPresentationLayoutEngine.Environment {
-    FKSheetPresentationLayoutEngine.Environment(
+    let safeInsets = FKSheetSizingSafeArea.effectiveContainerSafeAreaInsets(
+      configuration: configuration,
+      containerInsets: view.safeAreaInsets,
+      window: view.window
+    )
+    return FKSheetPresentationLayoutEngine.Environment(
       configuration: configuration,
       containerBounds: view.bounds,
-      containerSafeAreaInsets: view.safeAreaInsets,
+      containerSafeAreaInsets: safeInsets,
       preferredContentSize: children.first?.preferredContentSize ?? .zero,
       contentViewForFitting: children.first?.view
     )
