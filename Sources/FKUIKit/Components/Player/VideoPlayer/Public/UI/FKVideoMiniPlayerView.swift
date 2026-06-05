@@ -136,7 +136,7 @@ public final class FKVideoMiniPlayerView: UIView {
   public func reload(for item: FKVideoItem?) {
     titleLabel.text = item?.title ?? FKUIKitI18n.string("fkuikit.video.unknown_title")
     let live = player?.isLive == true
-    subtitleLabel.text = live ? FKVideoPlayerStrings.live : nil
+    subtitleLabel.text = live ? FKUIKitI18n.string("fkuikit.video.live") : nil
     subtitleLabel.isHidden = subtitleLabel.text == nil
     setNeedsLayout()
   }
@@ -184,8 +184,8 @@ public final class FKVideoMiniPlayerView: UIView {
     addSubview(closeButton)
 
     addGestureRecognizer(expandTap)
-    playPauseButton.accessibilityLabel = FKVideoPlayerStrings.play
-    closeButton.accessibilityLabel = FKVideoPlayerStrings.close
+    playPauseButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.video.play")
+    closeButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.video.close")
   }
 
   private func updatePlayIcon(for state: FKMediaPlaybackState) {
@@ -193,7 +193,7 @@ public final class FKVideoMiniPlayerView: UIView {
     let playing = state == .playing || state == .buffering
     let name = playing ? "pause.fill" : "play.fill"
     playPauseButton.setImage(UIImage(systemName: name), for: .normal)
-    playPauseButton.accessibilityLabel = playing ? FKVideoPlayerStrings.pause : FKVideoPlayerStrings.play
+    playPauseButton.accessibilityLabel = playing ? FKUIKitI18n.string("fkuikit.video.pause") : FKUIKitI18n.string("fkuikit.video.play")
   }
 
   private func setPlaySpinnerVisible(_ visible: Bool) {

@@ -19,7 +19,7 @@ final class FKRefreshInspiredExamplesHubViewController: UITableViewController {
     case .instagram:
       extra = "API: `defaultContentLayout = .vertical` + indicator-only terminal states."
     case .weChat:
-      extra = "API: full `FKRefreshText` copy + horizontal layout."
+      extra = "API: horizontal layout + FKUIKit bundled copy."
     case .tikTokFeed:
       extra = "API: `loadMorePreloadOffset` + hide footer at end of feed."
     case .reddit:

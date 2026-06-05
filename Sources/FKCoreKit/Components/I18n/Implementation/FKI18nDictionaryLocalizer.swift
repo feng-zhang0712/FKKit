@@ -82,16 +82,21 @@ public final class FKI18nDictionaryLocalizer: FKI18nLocalizing, @unchecked Senda
 
   /// Updates the active language and notifies observers when the code changes.
   public func setLanguageCode(_ code: String) {
+    let canonical = FKI18nLocaleMatcher.canonicalize(
+      code
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .replacingOccurrences(of: "_", with: "-")
+    )
     lock.lock()
-    guard languageCode != code, !code.isEmpty else {
+    guard languageCode != canonical, !canonical.isEmpty else {
       lock.unlock()
       return
     }
-    languageCode = code
+    languageCode = canonical
     let handlers = observers.values
     lock.unlock()
 
-    let language = FKI18nLanguage(code: code)
+    let language = FKI18nLanguage(code: canonical)
     handlers.forEach { $0(language) }
   }
 

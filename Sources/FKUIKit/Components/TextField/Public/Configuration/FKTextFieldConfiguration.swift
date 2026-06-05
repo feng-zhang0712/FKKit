@@ -422,8 +422,6 @@ public struct FKTextFieldConfiguration {
   public var validationPolicy: FKTextFieldValidationPolicy
   /// Accessibility behavior.
   public var accessibility: FKTextFieldAccessibilityConfiguration
-  /// Localization strings.
-  public var localization: FKTextFieldLocalization
   /// Motion policy.
   public var motion: FKTextFieldMotionConfiguration
   /// System text input traits (AutoFill, return key, capitalization, password rules).
@@ -453,7 +451,6 @@ public struct FKTextFieldConfiguration {
     accessories: FKTextFieldAccessoryConfiguration = FKTextFieldAccessoryConfiguration(),
     validationPolicy: FKTextFieldValidationPolicy = FKTextFieldValidationPolicy(),
     accessibility: FKTextFieldAccessibilityConfiguration = FKTextFieldAccessibilityConfiguration(),
-    localization: FKTextFieldLocalization = FKTextFieldLocalization(),
     motion: FKTextFieldMotionConfiguration = FKTextFieldMotionConfiguration(),
     textInputTraits: FKTextFieldTextInputTraitsConfiguration = FKTextFieldTextInputTraitsConfiguration(),
     messages: FKTextFieldMessages = FKTextFieldMessages(),
@@ -472,7 +469,6 @@ public struct FKTextFieldConfiguration {
     self.accessories = accessories
     self.validationPolicy = validationPolicy
     self.accessibility = accessibility
-    self.localization = localization
     self.motion = motion
     self.textInputTraits = textInputTraits
     self.messages = messages

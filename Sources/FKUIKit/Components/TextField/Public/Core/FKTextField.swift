@@ -125,8 +125,7 @@ public final class FKTextField: UITextField, FKTextFieldConfigurable {
   public convenience init(inputRule: FKTextFieldInputRule) {
     let configuration = FKTextFieldConfiguration(
       inputRule: inputRule,
-      style: FKTextFieldManager.shared.defaultStyle,
-      localization: FKTextFieldManager.shared.defaultLocalization
+      style: FKTextFieldManager.shared.defaultStyle
     )
     self.init(configuration: configuration)
   }
@@ -135,8 +134,7 @@ public final class FKTextField: UITextField, FKTextFieldConfigurable {
   public required init?(coder: NSCoder) {
     configuration = FKTextFieldConfiguration(
       inputRule: FKTextFieldInputRule(formatType: .alphaNumeric),
-      style: FKTextFieldManager.shared.defaultStyle,
-      localization: FKTextFieldManager.shared.defaultLocalization
+      style: FKTextFieldManager.shared.defaultStyle
     )
     formatter = FKTextFieldDefaultFormatter()
     validator = FKTextFieldDefaultValidator()
@@ -395,7 +393,7 @@ private extension FKTextField {
         for: .normal
       )
       clearButton.accessibilityLabel = configuration.accessories.clearButton.accessibilityLabel.isEmpty
-        ? configuration.localization.clearButtonLabel
+        ? FKUIKitI18n.string("fkuikit.textfield.clear_label")
         : configuration.accessories.clearButton.accessibilityLabel
       clearButton.addTarget(self, action: #selector(didTapClearButton), for: .touchUpInside)
       trailingAccessoryStack.addArrangedSubview(clearButton)
@@ -415,7 +413,7 @@ private extension FKTextField {
         configuredAccessoryImage(configuration.accessories.passwordToggle.hiddenImage ?? UIImage(systemName: "eye.slash")),
         for: .normal
       )
-      passwordToggleButton.accessibilityLabel = configuration.localization.passwordHiddenLabel
+      passwordToggleButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.textfield.show_password")
       passwordToggleButton.addTarget(self, action: #selector(togglePasswordVisible), for: .touchUpInside)
       trailingAccessoryStack.addArrangedSubview(passwordToggleButton)
     }
@@ -439,8 +437,8 @@ private extension FKTextField {
       : (configuration.accessories.passwordToggle.hiddenImage ?? UIImage(systemName: "eye.slash"))
     passwordToggleButton.setImage(configuredAccessoryImage(image), for: .normal)
     passwordToggleButton.accessibilityLabel = isPasswordVisible
-      ? configuration.localization.passwordVisibleLabel
-      : configuration.localization.passwordHiddenLabel
+      ? FKUIKitI18n.string("fkuikit.textfield.hide_password")
+      : FKUIKitI18n.string("fkuikit.textfield.show_password")
   }
 
   /// Applies the appropriate visual style for normal/focused/error state.
@@ -809,7 +807,7 @@ private extension FKTextField {
     if configuration.accessibility.announcesCounterChanges, UIAccessibility.isVoiceOverRunning, let counterText = counterLabel.text {
       UIAccessibility.post(
         notification: .announcement,
-        argument: "\(configuration.localization.counterAnnouncementPrefix): \(counterText)"
+        argument: "\(FKUIKitI18n.string("fkuikit.textfield.counter_prefix")): \(counterText)"
       )
     }
   }
@@ -827,13 +825,13 @@ private extension FKTextField {
       inlineErrorLabel.textColor = configuration.inlineMessage.errorColor
       inlineErrorLabel.text = textState.errorMessage ?? configuration.messages.error
       inlineErrorLabel.isHidden = inlineErrorLabel.text?.isEmpty ?? true
-      announceForAccessibilityIfNeeded(prefix: configuration.localization.errorAnnouncementPrefix, message: inlineErrorLabel.text)
+      announceForAccessibilityIfNeeded(prefix: FKUIKitI18n.string("fkuikit.textfield.error_prefix"), message: inlineErrorLabel.text)
     case .success:
       inlineErrorLabel.font = configuration.inlineMessage.helperFont
       inlineErrorLabel.textColor = configuration.inlineMessage.successColor
       inlineErrorLabel.text = configuration.messages.success
       inlineErrorLabel.isHidden = inlineErrorLabel.text?.isEmpty ?? true
-      announceForAccessibilityIfNeeded(prefix: configuration.localization.successAnnouncementPrefix, message: inlineErrorLabel.text)
+      announceForAccessibilityIfNeeded(prefix: FKUIKitI18n.string("fkuikit.textfield.success_prefix"), message: inlineErrorLabel.text)
     default:
       inlineErrorLabel.font = configuration.inlineMessage.helperFont
       inlineErrorLabel.textColor = configuration.inlineMessage.helperColor

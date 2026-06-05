@@ -111,7 +111,7 @@ public final class FKAudioPlayerView: UIView {
     queueModeButton.setImage(UIImage(systemName: symbol), for: .normal)
     queueModeButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.queue.mode_label")
     queueModeButton.accessibilityValue = accessibilityValue
-    sleepButton.accessibilityLabel = FKAudioPlayerStrings.sleepTimer
+    sleepButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.sleep")
   }
 
   public func reload(for item: FKAudioItem) {
@@ -353,7 +353,7 @@ public final class FKAudioPlayerView: UIView {
 
   private func makeRetryButton() -> UIButton {
     let button = UIButton(type: .system)
-    button.setTitle(FKAudioPlayerStrings.retry, for: .normal)
+    button.setTitle(FKUIKitI18n.string("fkuikit.audio.retry"), for: .normal)
     button.addTarget(self, action: #selector(retryTapped), for: .touchUpInside)
     return button
   }

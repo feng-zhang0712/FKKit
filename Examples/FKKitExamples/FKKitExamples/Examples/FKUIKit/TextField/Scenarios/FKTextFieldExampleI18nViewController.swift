@@ -1,3 +1,4 @@
+import FKCoreKit
 import UIKit
 import FKUIKit
 
@@ -17,7 +18,7 @@ final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewCont
   }
 
   private func build() {
-    addSection(title: "Locale Switch (EN / ZH)", note: "Verifies localizable placeholder, helper text, and accessibility labels without hardcoded copy.")
+    addSection(title: "Locale Switch (EN / ZH)", note: "Uses FKI18nManager + FKUIKit bundled strings for accessories and announcements.")
     let localeControl = UISegmentedControl(items: ["English", "中文"])
     localeControl.selectedSegmentIndex = 0
     localeControl.addAction(UIAction { [weak self] action in
@@ -30,7 +31,6 @@ final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewCont
     var config = FKTextFieldConfiguration(inputRule: FKTextFieldInputRule(formatType: .email))
     config.inlineMessage.showsErrorMessage = true
     config.messages.helper = "Use a valid email address."
-    config.localization = FKTextFieldLocalization()
     config.placeholder = "Email"
     localizedField.configure(config)
     addField(title: "Localized field", field: localizedField, ruleHint: "Allowed: email characters. Labels and hints switch by locale.")
@@ -59,31 +59,21 @@ final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewCont
   }
 
   private func applyLocale() {
+    let code = localeMode == .english
+      ? FKI18nRecommendedLanguages.english
+      : FKI18nRecommendedLanguages.simplifiedChinese
+    FKI18nManager.shared.setLanguageCode(code)
+
     var config = localizedField.configuration
     switch localeMode {
     case .english:
       config.placeholder = "Email"
       config.messages.helper = "Use a valid email address."
-      config.localization = FKTextFieldLocalization(
-        clearButtonLabel: "Clear text",
-        passwordHiddenLabel: "Show password",
-        passwordVisibleLabel: "Hide password",
-        counterAnnouncementPrefix: "Character count",
-        errorAnnouncementPrefix: "Error",
-        successAnnouncementPrefix: "Success"
-      )
     case .chinese:
       config.placeholder = "邮箱"
       config.messages.helper = "请输入有效邮箱地址。"
-      config.localization = FKTextFieldLocalization(
-        clearButtonLabel: "清空输入",
-        passwordHiddenLabel: "显示密码",
-        passwordVisibleLabel: "隐藏密码",
-        counterAnnouncementPrefix: "字符数量",
-        errorAnnouncementPrefix: "错误",
-        successAnnouncementPrefix: "成功"
-      )
     }
     localizedField.configure(config)
+    localizedField.setNeedsLayout()
   }
 }

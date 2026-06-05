@@ -25,8 +25,7 @@ Same layering as **`Badge`**: **`Public`** (exported surface), **`Internal`** (h
 | File | Role |
 |------|------|
 | `FKTextFieldConfiguration.swift` | `FKTextFieldConfiguration`, `FKTextFieldInputRule`, layout/accessories/decoration, validation policy, motion, **text input traits** |
-| `FKTextFieldManager.swift` | Shared default style & localization |
-| `FKTextFieldLocalization.swift` | Strings for accessories & announcements |
+| `FKTextFieldManager.swift` | Shared default style |
 
 ### `Public/Types/`
 

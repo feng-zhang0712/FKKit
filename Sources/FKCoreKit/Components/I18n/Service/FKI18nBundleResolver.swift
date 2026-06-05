@@ -20,7 +20,8 @@ public enum FKI18nBundleResolver {
     )
 
     for code in candidates {
-      guard let path = container.path(forResource: code, ofType: "lproj"),
+      let resourceCode = FKI18nLocaleMatcher.canonicalize(code)
+      guard let path = container.path(forResource: resourceCode, ofType: "lproj"),
             let bundle = Bundle(path: path) else {
         continue
       }

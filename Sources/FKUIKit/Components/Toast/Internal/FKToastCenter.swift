@@ -139,7 +139,7 @@ final class FKToastCenter {
       case let .message(message):
         return message
       case .customView:
-        return presentation.request.configuration.localizedText.loadingText
+        return FKUIKitI18n.string("fkuikit.common.loading")
       }
     }()
     return update(id: id, content: .titleSubtitle(title: resolvedTitle, subtitle: progressText))

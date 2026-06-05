@@ -742,17 +742,18 @@ public final class FKRefreshControl: UIView {
 
   private func announceAccessibilityStateIfNeeded(_ state: FKRefreshState) {
     guard UIAccessibility.isVoiceOverRunning else { return }
-    let text = configuration.texts
     let message: String?
     switch state {
     case .refreshing:
-      message = text.headerLoading
+      message = FKUIKitI18n.string("fkuikit.refresh.header.loading")
     case .loadingMore:
-      message = text.footerLoading
+      message = FKUIKitI18n.string("fkuikit.refresh.footer.loading")
     case .failed:
-      message = kind == .loadMore ? text.footerFailed : text.headerFailed
+      message = FKUIKitI18n.string(
+        kind == .loadMore ? "fkuikit.refresh.footer.failed" : "fkuikit.refresh.header.failed"
+      )
     case .noMoreData:
-      message = text.footerNoMoreData
+      message = FKUIKitI18n.string("fkuikit.refresh.footer.no_more")
     default:
       message = nil
     }

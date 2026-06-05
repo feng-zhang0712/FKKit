@@ -42,9 +42,6 @@ public struct FKRefreshConfiguration: Sendable {
   /// Secondary label weight for bundled text.
   public var messageFontWeight: UIFont.Weight
 
-  /// Localizable / brand copy for the default content view.
-  public var texts: FKRefreshText
-
   /// Row vs column layout for arrow / spinner and label in ``FKDefaultRefreshContentView``.
   public var defaultContentLayout: FKDefaultRefreshContentLayout
 
@@ -97,7 +94,6 @@ public struct FKRefreshConfiguration: Sendable {
     backgroundColor: UIColor = .clear,
     messageFontSize: CGFloat = 12,
     messageFontWeight: UIFont.Weight = .regular,
-    texts: FKRefreshText = .default,
     defaultContentLayout: FKDefaultRefreshContentLayout = .horizontal,
     statusTextMode: FKRefreshStatusTextMode = .full,
     noMoreDataBehavior: FKRefreshNoMoreDataBehavior = .showFooter,
@@ -121,7 +117,6 @@ public struct FKRefreshConfiguration: Sendable {
     self.backgroundColor = backgroundColor
     self.messageFontSize = max(8, messageFontSize)
     self.messageFontWeight = messageFontWeight
-    self.texts = texts
     self.defaultContentLayout = defaultContentLayout
     self.statusTextMode = statusTextMode
     self.noMoreDataBehavior = noMoreDataBehavior

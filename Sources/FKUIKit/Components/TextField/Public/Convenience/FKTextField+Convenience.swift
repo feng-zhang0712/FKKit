@@ -17,7 +17,6 @@ public extension FKTextField {
     let configuration = FKTextFieldConfiguration(
       inputRule: rule,
       style: FKTextFieldManager.shared.defaultStyle,
-      localization: FKTextFieldManager.shared.defaultLocalization,
       placeholder: placeholder
     )
     return FKTextField(configuration: configuration)

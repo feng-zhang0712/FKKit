@@ -49,4 +49,81 @@ public enum FKI18nLocaleMatcher {
 
     return result
   }
+
+  /// Maps region-style Chinese codes to script-based `.lproj` folder names used by FKKit.
+  ///
+  /// FKKit stores Chinese as `zh-Hans.lproj` / `zh-Hant.lproj`, while iOS often reports
+  /// `zh-CN`, `zh-TW`, etc. Other languages use language-level folders (`ja`, `en`, …) and
+  /// are covered by ``fallbackCandidates(for:additionalFallbacks:)`` without extra aliases.
+  private static let languageAliases: [String: String] = [
+    "zh-CN": "zh-Hans",
+    "zh-Hans-CN": "zh-Hans",
+    "zh-SG": "zh-Hans",
+    "zh-TW": "zh-Hant",
+    "zh-HK": "zh-Hant",
+    "zh-MO": "zh-Hant",
+    "zh-Hant-TW": "zh-Hant",
+    "zh-Hant-HK": "zh-Hant",
+  ]
+
+  /// Normalizes a BCP-47 code and maps known aliases to FKKit resource folder names.
+  ///
+  /// - Parameter code: Input language code such as `zh-CN` or `zh-Hans`.
+  /// - Returns: Canonical code used for persistence and `.lproj` lookup.
+  public static func canonicalize(_ code: String) -> String {
+    let normalized = normalize(code)
+    return languageAliases[normalized] ?? normalized
+  }
+
+  /// De-duplicates language codes while preserving first-seen order.
+  public static func uniqueLanguageCodes(_ codes: [String]) -> [String] {
+    var result: [String] = []
+    var seen = Set<String>()
+    for code in codes {
+      let normalized = normalize(code)
+      guard !normalized.isEmpty, !seen.contains(normalized) else { continue }
+      seen.insert(normalized)
+      result.append(normalized)
+    }
+    return result
+  }
+
+  /// Picks the best supported language for the user's preferred locales.
+  ///
+  /// - Parameters:
+  ///   - preferredLanguageCodes: Ordered preferred codes (for example `Bundle.main.preferredLocalizations`).
+  ///   - supportedLanguageCodes: Languages exposed by the host app or library configuration.
+  ///   - fallback: Code used when no preferred locale matches.
+  /// - Returns: First matching supported code, or ``fallback`` when none match.
+  public static func bestSupportedLanguage(
+    preferredLanguageCodes: [String],
+    supportedLanguageCodes: [String],
+    fallback: String
+  ) -> String {
+    guard !supportedLanguageCodes.isEmpty else { return normalize(fallback) }
+
+    let supported = Set(supportedLanguageCodes.map(normalize))
+
+    for preferred in preferredLanguageCodes {
+      let normalizedPreferred = normalize(preferred)
+      for candidate in fallbackCandidates(for: normalizedPreferred) {
+        let resolved = canonicalize(candidate)
+        if supported.contains(resolved) {
+          return resolved
+        }
+      }
+    }
+
+    let normalizedFallback = normalize(fallback)
+    if supported.contains(normalizedFallback) {
+      return normalizedFallback
+    }
+    return supportedLanguageCodes[0]
+  }
+
+  private static func normalize(_ code: String) -> String {
+    code
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .replacingOccurrences(of: "_", with: "-")
+  }
 }

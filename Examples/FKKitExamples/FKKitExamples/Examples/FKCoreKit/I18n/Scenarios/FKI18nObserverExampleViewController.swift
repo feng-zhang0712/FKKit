@@ -33,12 +33,14 @@ final class FKI18nObserverExampleViewController: FKI18nExampleBaseViewController
     ) { [weak self] notification in
       let from = notification.userInfo?[FKI18nNotificationKey.previousLanguageCode] as? String ?? "?"
       let to = notification.userInfo?[FKI18nNotificationKey.languageCode] as? String ?? "?"
-      self?.appendOutput(
-        FKI18nExampleSupport.localized(
-          "i18n.demo.observer.changed",
-          variables: ["from": from, "to": to]
+      Task { @MainActor in
+        self?.appendOutput(
+          FKI18nExampleSupport.localized(
+            "i18n.demo.observer.changed",
+            variables: ["from": from, "to": to]
+          )
         )
-      )
+      }
     }
 
     appendOutput("current=\(FKI18nManager.shared.currentLanguageCode)")

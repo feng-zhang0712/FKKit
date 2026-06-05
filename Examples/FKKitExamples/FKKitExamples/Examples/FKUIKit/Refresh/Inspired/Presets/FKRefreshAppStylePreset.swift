@@ -106,9 +106,6 @@ enum FKRefreshAppStylePreset: String, CaseIterable {
     header.finishedHoldDuration = 0.2
     header.expandedHeight = 72
     header.statusTextMode = .indicatorOnly
-    header.texts.headerListEmpty = "No posts yet"
-    header.texts.headerFailed = "Couldn't refresh"
-    header.texts.footerFailed = "Couldn't load"
 
     var footer = header
     footer.loadMorePreloadOffset = 160
@@ -130,22 +127,7 @@ enum FKRefreshAppStylePreset: String, CaseIterable {
   private static func makeWeChat() -> Bundle {
     let green = UIColor(red: 7 / 255, green: 193 / 255, blue: 96 / 255, alpha: 1)
 
-    let texts = FKRefreshText(
-      pullToRefresh: "Pull down to refresh",
-      releaseToRefresh: "Release to refresh",
-      headerLoading: "Refreshing…",
-      headerFinished: "Updated",
-      headerListEmpty: "No messages",
-      headerFailed: "Refresh failed",
-      footerLoading: "Loading earlier messages…",
-      footerFinished: "Loaded",
-      footerNoMoreData: "No earlier messages",
-      footerFailed: "Couldn't load messages",
-      footerTapToRetry: "Tap to retry"
-    )
-
     var header = FKRefreshConfiguration()
-    header.texts = texts
     header.tintColor = green
     header.defaultContentLayout = .horizontal
     header.finishedHoldDuration = 0.45
@@ -156,7 +138,7 @@ enum FKRefreshAppStylePreset: String, CaseIterable {
 
     return Bundle(
       screenTitle: "WeChat chat list",
-      summary: "Text-forward pull header and paging footer with messaging-style copy.",
+      summary: "Text-forward pull header and paging footer using FKUIKit bundled copy.",
       header: header,
       footer: footer,
       requestDelay: 0.75,
@@ -197,22 +179,7 @@ enum FKRefreshAppStylePreset: String, CaseIterable {
   private static func makeReddit() -> Bundle {
     let orange = UIColor(red: 1, green: 69 / 255, blue: 0, alpha: 1)
 
-    let texts = FKRefreshText(
-      pullToRefresh: "Pull to refresh",
-      releaseToRefresh: "Release to refresh",
-      headerLoading: "Refreshing feed…",
-      headerFinished: "Feed updated",
-      headerListEmpty: "Nothing here yet",
-      headerFailed: "Couldn't refresh feed",
-      footerLoading: "Loading more posts…",
-      footerFinished: "More posts loaded",
-      footerNoMoreData: "You've reached the end",
-      footerFailed: "Couldn't load more",
-      footerTapToRetry: "Tap to try again"
-    )
-
     var header = FKRefreshConfiguration()
-    header.texts = texts
     header.tintColor = orange
     header.finishedHoldDuration = 0.55
     header.minimumLoadingVisibilityDuration = 0.4
@@ -222,7 +189,7 @@ enum FKRefreshAppStylePreset: String, CaseIterable {
 
     return Bundle(
       screenTitle: "Reddit feed",
-      summary: "Full status copy, orange accent, explicit no-more and tap-to-retry footer.",
+      summary: "Full status copy from FKUIKit i18n, orange accent, explicit no-more and tap-to-retry footer.",
       header: header,
       footer: footer,
       requestDelay: 1.1,

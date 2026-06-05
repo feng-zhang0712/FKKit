@@ -64,12 +64,11 @@ final class FKRefreshAsyncAwaitExampleViewController: UIViewController {
       tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
     ])
 
-    var pullConfig = FKRefreshConfiguration(
+    let pullConfig = FKRefreshConfiguration(
       tintColor: .systemCyan,
       automaticallyEndsRefreshingOnAsyncCompletion: true,
       automaticEndDelay: 0.2
     )
-    pullConfig.texts.headerLoading = "Async refreshing..."
 
     tableView.fk_addPullToRefresh(configuration: pullConfig, asyncAction: { [weak self] in
       guard let self else { return }
@@ -85,7 +84,6 @@ final class FKRefreshAsyncAwaitExampleViewController: UIViewController {
     // Footer must end explicitly: `throw` + `automaticallyEndsRefreshingOnAsyncCompletion` would double-drive failure/success.
     loadConfig.automaticallyEndsRefreshingOnAsyncCompletion = false
     loadConfig.autohidesFooterWhenNotScrollable = false
-    loadConfig.texts.footerLoading = "Async loading..."
     tableView.fk_addLoadMore(configuration: loadConfig, asyncAction: { [weak self] in
       guard let self else { return }
       await self.handleAsyncLoadMore()

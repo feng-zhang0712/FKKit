@@ -1,29 +1,7 @@
 import UIKit
 
-// MARK: - Localization & actions
+// MARK: - Actions
 
-/// Strings used for default action titles and HUD loading fallbacks; override via `FKToast.defaultConfiguration.localizedText`.
-public struct FKToastLocalizedText: Sendable, Equatable {
-  /// Default title for a dismiss action.
-  public var dismissAction: String
-  /// Default title for a retry action.
-  public var retryAction: String
-  /// Default text for loading states.
-  public var loadingText: String
-
-  /// Creates a localization payload that can be replaced by app-level strings.
-  public init(
-    dismissAction: String = FKUIKitI18n.string("fkuikit.common.dismiss"),
-    retryAction: String = FKUIKitI18n.string("fkuikit.common.retry"),
-    loadingText: String = FKUIKitI18n.string("fkuikit.common.loading")
-  ) {
-    self.dismissAction = dismissAction
-    self.retryAction = retryAction
-    self.loadingText = loadingText
-  }
-}
-
-/// Action descriptor for snackbar and custom toast interactions.
 public struct FKToastAction: Sendable, Equatable {
   /// Action title rendered in the action button.
   public var title: String
@@ -185,8 +163,6 @@ public struct FKToastConfiguration: Sendable, Equatable {
   public var disableVisualEffectInLowPowerMode: Bool
   /// Sound behavior triggered when this request is presented.
   public var sound: FKToastSound
-  /// Localized fallback text payload.
-  public var localizedText: FKToastLocalizedText
 
   /// Creates a configuration tuned for production overlays.
   ///
@@ -235,8 +211,7 @@ public struct FKToastConfiguration: Sendable, Equatable {
     visualEffectOpacity: CGFloat = 1,
     fallbackToSolidColorWhenReduceTransparencyEnabled: Bool = true,
     disableVisualEffectInLowPowerMode: Bool = false,
-    sound: FKToastSound = .none,
-    localizedText: FKToastLocalizedText = .init()
+    sound: FKToastSound = .none
   ) {
     self.kind = kind
     self.style = style
@@ -281,6 +256,5 @@ public struct FKToastConfiguration: Sendable, Equatable {
     self.fallbackToSolidColorWhenReduceTransparencyEnabled = fallbackToSolidColorWhenReduceTransparencyEnabled
     self.disableVisualEffectInLowPowerMode = disableVisualEffectInLowPowerMode
     self.sound = sound
-    self.localizedText = localizedText
   }
 }

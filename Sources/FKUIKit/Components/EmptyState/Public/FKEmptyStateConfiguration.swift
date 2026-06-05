@@ -324,6 +324,24 @@ public extension FKEmptyStateConfiguration {
   /// Default retry title when `phase == .error` and `buttonStyle.title` is empty.
   static var defaultRetryButtonTitle: String { FKUIKitI18n.string("fkuikit.empty.action.retry") }
 
+  /// Returns bundled title and description for a semantic ``FKEmptyStateType``.
+  static func localizedCopy(
+    for type: FKEmptyStateType,
+    variables: [String: String] = [:]
+  ) -> (title: String, description: String) {
+    let segment: String
+    switch type {
+    case .noResults: segment = "noResults"
+    case .permissionDenied: segment = "permissionDenied"
+    case .notFound: segment = "notFound"
+    case .newUser: segment = "newUser"
+    default: segment = type.rawValue
+    }
+    let title = FKUIKitI18n.string("fkuikit.empty.\(segment).title", variables: variables)
+    let description = FKUIKitI18n.string("fkuikit.empty.\(segment).description", variables: variables)
+    return (title, description)
+  }
+
   /// Returns a configuration pre-filled for `scenario`.
   static func scenario(_ scenario: FKEmptyStateScenario) -> FKEmptyStateConfiguration {
     switch scenario {

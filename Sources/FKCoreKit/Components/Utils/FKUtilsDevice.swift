@@ -65,7 +65,13 @@ public enum FKUtilsDevice {
   /// Returns current battery state.
   public static func batteryState() -> String {
     #if canImport(UIKit)
-    return FKCoreKitBatteryStateI18n.localized(FKMainActorUIKitBridge.batteryStateDescription())
+    switch FKMainActorUIKitBridge.batteryStateDescription() {
+    case "unknown": return FKI18n.string("fkcore.utils.battery.state.unknown")
+    case "unplugged": return FKI18n.string("fkcore.utils.battery.state.unplugged")
+    case "charging": return FKI18n.string("fkcore.utils.battery.state.charging")
+    case "full": return FKI18n.string("fkcore.utils.battery.state.full")
+    case let state: return state
+    }
     #else
     return "unknown"
     #endif
@@ -88,7 +94,16 @@ public enum FKUtilsDevice {
       } else {
         value = "other"
       }
-      completion(FKCoreKitNetworkStatusI18n.localized(value))
+      let localized: String
+      switch value {
+      case "unreachable": localized = FKI18n.string("fkcore.utils.network.unreachable")
+      case "wifi": localized = FKI18n.string("fkcore.utils.network.wifi")
+      case "cellular": localized = FKI18n.string("fkcore.utils.network.cellular")
+      case "ethernet": localized = FKI18n.string("fkcore.utils.network.ethernet")
+      case "other": localized = FKI18n.string("fkcore.utils.network.other")
+      default: localized = value
+      }
+      completion(localized)
       monitor.cancel()
     }
     monitor.start(queue: queue)

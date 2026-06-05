@@ -22,7 +22,7 @@ enum FKI18nExampleSupport {
         supportedLanguageCodes: supportedLanguageCodes,
         fallbackLanguageCodes: [FKI18nRecommendedLanguages.english],
         bundle: localizationBundle,
-        persistSelection: true,
+        persistSelection: false,
         storageKey: storageKey,
         enforceSupportedLanguages: true
       )

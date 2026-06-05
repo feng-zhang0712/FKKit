@@ -1,6 +1,6 @@
 import UIKit
 
-/// Built-in indicator: arrow that rotates into a spinner plus status label driven by ``FKRefreshText``.
+/// Built-in indicator: arrow that rotates into a spinner plus status label from ``FKUIKitI18n``.
 public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
 
   /// Hosts the arrow layer and spinner in one slot beside or above the label (avoids overlap).
@@ -118,7 +118,6 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
 
   public func refreshControl(_ control: FKRefreshControl, didTransitionTo state: FKRefreshState, from previous: FKRefreshState) {
     configuration = control.configuration
-    let texts = configuration.texts
     let isFooter = control.kind == .loadMore
 
     applyAppearance()
@@ -136,13 +135,13 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
       setIndicatorInStack(true)
       showArrow(rotated: false, animated: false)
       spinner.stopAnimating()
-      setLabel(resolvedStatusText(texts.pullToRefresh))
+      setLabel(resolvedStatusText(FKUIKitI18n.string("fkuikit.refresh.pull")))
 
       retryButton.isHidden = true
     case .readyToRefresh, .triggered:
       setIndicatorInStack(true)
       showArrow(rotated: true, animated: true)
-      setLabel(resolvedStatusText(texts.releaseToRefresh))
+      setLabel(resolvedStatusText(FKUIKitI18n.string("fkuikit.refresh.release")))
       retryButton.isHidden = true
 
     case .refreshing, .loadingMore:
@@ -152,36 +151,41 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
         self.spinner.alpha = 1
       }
       spinner.startAnimating()
-      setLabel(resolvedStatusText(isFooter ? texts.footerLoading : texts.headerLoading))
+      let loadingKey = isFooter ? "fkuikit.refresh.footer.loading" : "fkuikit.refresh.header.loading"
+      setLabel(resolvedStatusText(FKUIKitI18n.string(loadingKey)))
       retryButton.isHidden = true
 
     case .finished:
       setIndicatorInStack(false)
-      setLabel(resolvedStatusText(isFooter ? texts.footerFinished : texts.headerFinished))
+      let finishedKey = isFooter ? "fkuikit.refresh.footer.finished" : "fkuikit.refresh.header.finished"
+      setLabel(resolvedStatusText(FKUIKitI18n.string(finishedKey)))
 
     case .listEmpty:
       setIndicatorInStack(false)
-      setLabel(resolvedStatusText(texts.headerListEmpty))
+      setLabel(resolvedStatusText(FKUIKitI18n.string("fkuikit.refresh.header.empty")))
 
     case .noMoreData:
       setIndicatorInStack(false)
-      setLabel(resolvedStatusText(isFooter ? texts.footerNoMoreData : texts.headerListEmpty))
+      let noMoreKey = isFooter ? "fkuikit.refresh.footer.no_more" : "fkuikit.refresh.header.empty"
+      setLabel(resolvedStatusText(FKUIKitI18n.string(noMoreKey)))
       retryButton.isHidden = true
 
     case .failed:
       setIndicatorInStack(false)
       retryTapGesture.isEnabled = isFooter
       if isFooter {
-        setLabel(resolvedStatusText("\(texts.footerFailed)\n\(texts.footerTapToRetry)"))
-        retryButton.setTitle(texts.footerTapToRetry, for: .normal)
+        let failed = FKUIKitI18n.string("fkuikit.refresh.footer.failed")
+        let retry = FKUIKitI18n.string("fkuikit.refresh.footer.tap_retry")
+        setLabel(resolvedStatusText("\(failed)\n\(retry)"))
+        retryButton.setTitle(retry, for: .normal)
         retryButton.isHidden = false
       } else {
-        setLabel(resolvedStatusText(texts.headerFailed))
+        setLabel(resolvedStatusText(FKUIKitI18n.string("fkuikit.refresh.header.failed")))
         retryButton.isHidden = true
       }
     }
 
-    updateAccessibility(state: state, texts: texts, isFooter: isFooter)
+    updateAccessibility(state: state, isFooter: isFooter)
   }
 
   public func refreshControl(_ control: FKRefreshControl, didUpdatePullProgress progress: CGFloat) {
@@ -282,33 +286,34 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
     retryButton.tintColor = color
   }
 
-  private func updateAccessibility(state: FKRefreshState, texts: FKRefreshText, isFooter: Bool) {
+  private func updateAccessibility(state: FKRefreshState, isFooter: Bool) {
     isAccessibilityElement = true
     accessibilityTraits = .staticText
     switch state {
     case .refreshing:
-      accessibilityLabel = texts.headerLoading
+      accessibilityLabel = FKUIKitI18n.string("fkuikit.refresh.header.loading")
       accessibilityHint = nil
     case .loadingMore:
-      accessibilityLabel = texts.footerLoading
+      accessibilityLabel = FKUIKitI18n.string("fkuikit.refresh.footer.loading")
       accessibilityHint = nil
     case .failed:
-      accessibilityLabel = isFooter ? texts.footerFailed : texts.headerFailed
-      accessibilityHint = isFooter ? texts.footerTapToRetry : nil
+      accessibilityLabel = FKUIKitI18n.string(isFooter ? "fkuikit.refresh.footer.failed" : "fkuikit.refresh.header.failed")
+      accessibilityHint = isFooter ? FKUIKitI18n.string("fkuikit.refresh.footer.tap_retry") : nil
     case .noMoreData:
-      accessibilityLabel = texts.footerNoMoreData
+      accessibilityLabel = FKUIKitI18n.string("fkuikit.refresh.footer.no_more")
       accessibilityHint = nil
     case .readyToRefresh, .triggered:
-      accessibilityLabel = texts.releaseToRefresh
+      accessibilityLabel = FKUIKitI18n.string("fkuikit.refresh.release")
       accessibilityHint = nil
     case .pulling:
-      accessibilityLabel = texts.pullToRefresh
+      accessibilityLabel = FKUIKitI18n.string("fkuikit.refresh.pull")
       accessibilityHint = nil
     case .finished:
-      accessibilityLabel = isFooter ? texts.footerFinished : texts.headerFinished
+      let finishedKey = isFooter ? "fkuikit.refresh.footer.finished" : "fkuikit.refresh.header.finished"
+      accessibilityLabel = FKUIKitI18n.string(finishedKey)
       accessibilityHint = nil
     case .listEmpty:
-      accessibilityLabel = texts.headerListEmpty
+      accessibilityLabel = FKUIKitI18n.string("fkuikit.refresh.header.empty")
       accessibilityHint = nil
     case .idle:
       accessibilityLabel = nil
@@ -317,6 +322,6 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
 
     retryButton.isAccessibilityElement = !retryButton.isHidden
     retryButton.accessibilityTraits = [.button]
-    retryButton.accessibilityHint = texts.footerTapToRetry
+    retryButton.accessibilityHint = FKUIKitI18n.string("fkuikit.refresh.footer.tap_retry")
   }
 }

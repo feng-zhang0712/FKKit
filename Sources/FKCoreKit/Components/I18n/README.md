@@ -40,7 +40,7 @@ Sources under `Sources/FKCoreKit/Components/I18n/`:
 
 ## Features
 
-- BCP-47 language codes with progressive fallback (`zh-Hans-CN` → `zh-Hans` → `zh` → `en`)
+- BCP-47 language codes with progressive fallback (`zh-Hans-CN` → `zh-Hans` → `en`; region codes such as `zh-CN` map to script folders via ``FKI18nLocaleMatcher/canonicalize(_:)``)
 - ``FKI18nRecommendedLanguages`` — documented starter set for global apps and FKKitExamples
 - Optional UserDefaults persistence
 - Dictionary translator hook (tests, previews, remote copy)
@@ -58,7 +58,7 @@ Sources under `Sources/FKCoreKit/Components/I18n/`:
 ```swift
 import FKCoreKit
 
-// Bootstrap once at launch
+// Bootstrap once at launch (matches iOS app preferred language when nothing is persisted)
 var config = FKI18nConfiguration(
   defaultLanguageCode: "en",
   supportedLanguageCodes: ["en", "zh-Hans", "ja"],
@@ -123,15 +123,15 @@ Use ``FKI18nDictionaryLocalizer`` when you need a standalone in-memory provider 
 | Code | Locale | Notes |
 |------|--------|-------|
 | `en` | English | Base / ultimate fallback |
-| `zh-Hans` | Simplified Chinese | Maps to EmptyState `zh-CN` |
-| `zh-Hant` | Traditional Chinese | Taiwan, Hong Kong, Macau |
-| `ja` | Japanese | Aligns with EmptyState |
+| `zh-Hans` | Simplified Chinese | Accepts system aliases such as `zh-CN` |
+| `zh-Hant` | Traditional Chinese | Taiwan, Hong Kong, Macau (`zh-TW`, `zh-HK`, …) |
+| `ja` | Japanese | |
 | `ko` | Korean | High App Store traffic |
-| `es` | Spanish | Aligns with EmptyState |
+| `es` | Spanish | |
 | `fr` | French | Western Europe |
 | `de` | German | Western Europe |
 | `pt-BR` | Portuguese (Brazil) | Latin America |
-| `ar` | Arabic | RTL layout validation; aligns with EmptyState |
+| `ar` | Arabic | RTL layout validation |
 | `ru` | Russian | Eastern Europe / CIS |
 
 Trim or extend for your market. Production apps typically ship `.lproj` / `.xcstrings` for the subset they support.
@@ -157,7 +157,7 @@ Demo strings: `Examples/FKCoreKit/I18n/Support/Resources/Localization/<code>.lpr
 - ``FKI18nLocalizing``, ``FKI18nDictionaryTranslating``
 - ``FKI18nLanguage``, ``FKI18nKey``, ``FKI18nObservationToken``
 - ``FKI18nRecommendedLanguages``
-- ``FKI18nBundleResolver``, ``FKI18nLocaleMatcher``
+- ``FKI18nBundleResolver``, ``FKI18nLocaleMatcher`` (including ``FKI18nLocaleMatcher/canonicalize(_:)``)
 - ``FKI18nMessageFormat``, ``FKI18nFormatterProvider``
 - ``FKI18nDictionaryLocalizer``, ``FKI18nStaticDictionaryTranslator``
 - ``FKI18nString(_:)``, ``String/fk_localized(table:using:)``
@@ -166,6 +166,8 @@ Demo strings: `Examples/FKCoreKit/I18n/Support/Resources/Localization/<code>.lpr
 
 - Library modules should store `.strings` / `.xcstrings` in their resource bundle and set `FKI18nConfiguration.bundle` accordingly.
 - ``FKI18nManager/shared`` is the recommended app-wide entry point; create dedicated instances for tests or isolated subsystems.
+- On first launch (no persisted selection), ``FKI18nManager`` picks the best match from `Locale.preferredLanguages` (device preference) and `Bundle.main.preferredLocalizations` against ``supportedLanguageCodes``. iOS **Settings → General → Language & Region** therefore drives FKUIKit/FKCoreKit copy after ``configure(_:)`` at launch.
+- Explicit in-app language selection (``setLanguageCode(_:)``) is persisted and overrides system preference on subsequent launches.
 - ``FKBusinessI18nManager`` keeps BusinessKit compatibility; prefer ``FKI18nManager`` for new code.
 
 ## License

@@ -95,14 +95,13 @@ final class FKEmptyStateResolverExampleViewController: UIViewController {
   private func render(type: FKEmptyStateType, input: FKEmptyStateInputs) {
     var model = FKEmptyStateConfiguration(phase: type == .loading ? .loading : .empty, type: type)
     model.image = UIImage(systemName: "rectangle.3.group")
-    let factory = FKEmptyStateFactory(locale: .en)
-    let copy = factory.copy(for: type, variables: ["query": input.searchQuery ?? ""])
+    let copy = FKEmptyStateConfiguration.localizedCopy(for: type, variables: ["query": input.searchQuery ?? ""])
     model.title = copy.title
     model.description = copy.description
     model.isButtonHidden = true
     if type == .error {
       model.phase = .error
-      model.actions = FKEmptyStateActionSet(primary: FKEmptyStateAction(id: "retry", title: "Retry", kind: .primary))
+      model.actions = FKEmptyStateActionSet(primary: FKEmptyStateAction(id: "retry", title: FKUIKitI18n.string("fkuikit.empty.action.retry"), kind: .primary))
       model.isButtonHidden = false
     }
     container.fk_applyEmptyState(model, actionHandler: { [weak self] _ in

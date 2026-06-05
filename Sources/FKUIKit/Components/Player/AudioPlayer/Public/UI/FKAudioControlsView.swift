@@ -194,10 +194,10 @@ public final class FKAudioControlsView: UIView {
   }
 
   private func configureAccessibility() {
-    playPauseButton.accessibilityLabel = FKAudioPlayerStrings.play
-    previousButton.accessibilityLabel = FKAudioPlayerStrings.previous
-    nextButton.accessibilityLabel = FKAudioPlayerStrings.next
-    rateButton.accessibilityLabel = FKAudioPlayerStrings.playbackSpeed
+    playPauseButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.play")
+    previousButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.previous")
+    nextButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.next")
+    rateButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.rate")
   }
 
   public func applyTheme(_ tint: UIColor) {
@@ -240,17 +240,17 @@ public final class FKAudioControlsView: UIView {
       playPauseButton.setImage(nil, for: .normal)
       setPlaySpinnerVisible(true, tint: tint)
       playPauseButton.accessibilityLabel = isBuffering
-        ? FKAudioPlayerStrings.pause
-        : FKAudioPlayerStrings.play
+        ? FKUIKitI18n.string("fkuikit.audio.pause")
+        : FKUIKitI18n.string("fkuikit.audio.play")
     } else {
       setPlaySpinnerVisible(false, tint: tint)
       switch state {
       case .playing:
         playPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
-        playPauseButton.accessibilityLabel = FKAudioPlayerStrings.pause
+        playPauseButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.pause")
       default:
         playPauseButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
-        playPauseButton.accessibilityLabel = FKAudioPlayerStrings.play
+        playPauseButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.play")
       }
     }
   }

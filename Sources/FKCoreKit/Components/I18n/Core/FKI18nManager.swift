@@ -46,24 +46,27 @@ public final class FKI18nManager: FKI18nLocalizing, @unchecked Sendable {
   ) {
     self.configuration = configuration
     self.userDefaults = userDefaults
-
-    if configuration.persistSelection,
-       let stored = userDefaults.string(forKey: configuration.storageKey),
-       !stored.isEmpty {
-      self.languageCode = stored
-    } else {
-      self.languageCode = configuration.defaultLanguageCode
-    }
+    self.languageCode = Self.resolveInitialLanguageCode(
+      using: configuration,
+      userDefaults: userDefaults
+    )
   }
 
   /// Replaces runtime configuration and clears bundle caches.
   ///
+  /// Re-applies persisted or system-preferred language using the new ``FKI18nConfiguration/storageKey``.
+  ///
   /// - Parameter configuration: New configuration values.
   public func configure(_ configuration: FKI18nConfiguration) {
+    let resolved = Self.resolveInitialLanguageCode(
+      using: configuration,
+      userDefaults: userDefaults
+    )
     lock.lock()
     self.configuration = configuration
     bundleCache.removeAll()
     lock.unlock()
+    setLanguageCode(resolved)
   }
 
   /// Installs an optional dictionary backend consulted before bundle lookup.
@@ -116,38 +119,39 @@ public final class FKI18nManager: FKI18nLocalizing, @unchecked Sendable {
     let normalized = code
       .trimmingCharacters(in: .whitespacesAndNewlines)
       .replacingOccurrences(of: "_", with: "-")
+    let canonical = FKI18nLocaleMatcher.canonicalize(normalized)
 
     lock.lock()
 
-    guard !normalized.isEmpty, languageCode != normalized else {
+    guard !canonical.isEmpty, languageCode != canonical else {
       lock.unlock()
       return
     }
 
     if configuration.enforceSupportedLanguages,
        !configuration.supportedLanguageCodes.isEmpty,
-       !configuration.supportedLanguageCodes.contains(normalized) {
+       !configuration.supportedLanguageCodes.contains(canonical) {
       lock.unlock()
       return
     }
 
     let previous = languageCode
-    languageCode = normalized
+    languageCode = canonical
 
     if configuration.persistSelection {
-      userDefaults.set(normalized, forKey: configuration.storageKey)
+      userDefaults.set(canonical, forKey: configuration.storageKey)
     }
 
     bundleCache.removeAll()
     let handlers = observers.values
     lock.unlock()
 
-    let language = FKI18nLanguage(code: normalized)
+    let language = FKI18nLanguage(code: canonical)
     NotificationCenter.default.post(
       name: Self.languageDidChangeNotification,
       object: self,
       userInfo: [
-        FKI18nNotificationKey.languageCode: normalized,
+        FKI18nNotificationKey.languageCode: canonical,
         FKI18nNotificationKey.previousLanguageCode: previous,
       ]
     )
@@ -276,5 +280,32 @@ public final class FKI18nManager: FKI18nLocalizing, @unchecked Sendable {
     }
 
     return key
+  }
+
+  /// Resolves launch language: persisted in-app selection, then device preferred locales.
+  private static func resolveInitialLanguageCode(
+    using configuration: FKI18nConfiguration,
+    userDefaults: UserDefaults
+  ) -> String {
+    if configuration.persistSelection,
+       let stored = userDefaults.string(forKey: configuration.storageKey),
+       !stored.isEmpty {
+      let canonical = FKI18nLocaleMatcher.canonicalize(stored)
+      if !configuration.enforceSupportedLanguages
+        || configuration.supportedLanguageCodes.isEmpty
+        || configuration.supportedLanguageCodes.contains(canonical) {
+        return canonical
+      }
+    }
+
+    let preferredLanguageCodes = FKI18nLocaleMatcher.uniqueLanguageCodes(
+      Locale.preferredLanguages + configuration.bundle.preferredLocalizations
+    )
+
+    return FKI18nLocaleMatcher.bestSupportedLanguage(
+      preferredLanguageCodes: preferredLanguageCodes,
+      supportedLanguageCodes: configuration.supportedLanguageCodes,
+      fallback: configuration.defaultLanguageCode
+    )
   }
 }

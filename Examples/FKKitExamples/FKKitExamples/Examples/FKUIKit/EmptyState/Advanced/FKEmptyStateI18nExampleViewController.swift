@@ -1,9 +1,10 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
 final class FKEmptyStateI18nExampleViewController: UIViewController {
   private let container = UIView()
-  private let localeSelector = UISegmentedControl(items: ["en", "zh-CN"])
+  private let localeSelector = UISegmentedControl(items: ["en", "zh-Hans"])
   private let queryField = UITextField()
 
   override func viewDidLoad() {
@@ -50,11 +51,11 @@ final class FKEmptyStateI18nExampleViewController: UIViewController {
   }
 
   @objc private func render() {
-    let locale: FKEmptyStateLocale = localeSelector.selectedSegmentIndex == 0 ? .en : .zhCN
-    let factory = FKEmptyStateFactory(locale: locale)
+    let code = localeSelector.selectedSegmentIndex == 0 ? "en" : "zh-Hans"
+    FKI18nManager.shared.setLanguageCode(code)
+
     let query = queryField.text?.isEmpty == false ? (queryField.text ?? "") : "wallet"
-    // Interpolation keeps runtime user input localized in-place (e.g. query text).
-    let copy = factory.copy(for: .noResults, variables: ["query": query])
+    let copy = FKEmptyStateConfiguration.localizedCopy(for: .noResults, variables: ["query": query])
 
     var model = FKEmptyStateConfiguration(phase: .empty, type: .noResults)
     model.image = UIImage(systemName: "magnifyingglass.circle")
@@ -63,7 +64,7 @@ final class FKEmptyStateI18nExampleViewController: UIViewController {
     model.actions = FKEmptyStateActionSet(
       secondary: FKEmptyStateAction(
         id: "clear",
-        title: factory.actionTitle(FKEmptyStateI18nKey("empty.action.clearFilters")),
+        title: FKUIKitI18n.string("fkuikit.empty.action.clearFilters"),
         kind: .secondary
       )
     )

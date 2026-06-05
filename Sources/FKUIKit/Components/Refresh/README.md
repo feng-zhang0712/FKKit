@@ -36,7 +36,7 @@ Sources under `Sources/FKUIKit/Components/Refresh/`:
 | Area | Role |
 |------|------|
 | `Public/Control/` | `FKRefreshControl`, `FKRefreshKind` |
-| `Public/Models/` | `FKRefreshState`, `FKRefreshConfiguration`, `FKRefreshStatusTextMode`, `FKRefreshNoMoreDataBehavior`, `FKLoadMoreTriggerMode`, `FKRefreshText`, `FKRefreshPagination`, `FKRefreshActionContext`, `FKRefreshClock` |
+| `Public/Models/` | `FKRefreshState`, `FKRefreshConfiguration`, `FKRefreshStatusTextMode`, `FKRefreshNoMoreDataBehavior`, `FKLoadMoreTriggerMode`, `FKRefreshPagination`, `FKRefreshActionContext`, `FKRefreshClock` |
 | `Public/Policy/` | `FKRefreshPolicy`, concurrency and auto-fill types |
 | `Public/Callbacks/` | Async and context handler type aliases |
 | `Public/Protocols/` | `FKRefreshContentView`, `FKRefreshControlDelegate` |
@@ -177,11 +177,11 @@ The same overloads exist with a custom `contentView:` parameter when you impleme
 
 ### Texts and localization
 
-`FKDefaultRefreshContentView` reads copy from `FKRefreshText`. Override `FKRefreshConfiguration.texts` per screen or assign localized defaults in `FKRefreshSettings`.
+`FKDefaultRefreshContentView` resolves copy via ``FKUIKitI18n`` at display time. Set ``statusTextMode`` to `.indicatorOnly` to hide pull/release/loading labels; VoiceOver still announces bundled strings.
 
 ### Indicator only (no status text)
 
-Set `statusTextMode` to `.indicatorOnly` to show only the arrow or spinner — no pull/release/loading/finished labels. VoiceOver still announces state using `FKRefreshText`.
+Set `statusTextMode` to `.indicatorOnly` to show only the arrow or spinner — no pull/release/loading/finished labels. VoiceOver still announces bundled strings.
 
 ```swift
 var config = FKRefreshConfiguration()
@@ -261,7 +261,7 @@ FKKitExamples `Examples/FKUIKit/Refresh/`:
 ### Core types
 
 - `FKRefreshControl`, `FKRefreshKind`, `FKRefreshState`
-- `FKRefreshConfiguration`, `FKLoadMoreTriggerMode`, `FKRefreshText`
+- `FKRefreshConfiguration`, `FKLoadMoreTriggerMode`
 - `FKRefreshPolicy`, `FKAutoFillPolicy`, `FKRefreshConcurrencyPolicy`, `FKRefreshTriggerSource`
 - `FKRefreshActionContext`
 - `FKRefreshContentView`, `FKRefreshControlDelegate`

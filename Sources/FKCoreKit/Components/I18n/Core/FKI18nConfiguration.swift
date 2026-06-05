@@ -34,8 +34,8 @@ public struct FKI18nConfiguration: Sendable {
   ///   - storageKey: Key used to store selected language code.
   ///   - enforceSupportedLanguages: Restrict switching to ``supportedLanguageCodes``.
   public init(
-    defaultLanguageCode: String = "en",
-    supportedLanguageCodes: [String] = ["en"],
+    defaultLanguageCode: String = FKI18nRecommendedLanguages.english,
+    supportedLanguageCodes: [String] = FKI18nRecommendedLanguages.languageCodes,
     fallbackLanguageCodes: [String] = [],
     bundle: Bundle = .main,
     persistSelection: Bool = true,

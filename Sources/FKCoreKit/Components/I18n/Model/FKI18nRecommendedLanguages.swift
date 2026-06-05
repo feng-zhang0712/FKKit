@@ -2,14 +2,13 @@ import Foundation
 
 /// Recommended BCP-47 language codes for FKKit products and demo apps.
 ///
-/// The list prioritizes global App Store reach, aligns with built-in
-/// ``FKEmptyStateLocale`` coverage (`en`, `zh-CN` → `zh-Hans`, `ja`, `es`, `ar`),
-/// and adds other high-traffic locales. Trim or extend for your market.
+/// The list prioritizes global App Store reach and aligns with built-in FKUIKit
+/// localization coverage (`en`, `zh-Hans`, `zh-Hant`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ar`, `ru`).
 public enum FKI18nRecommendedLanguages {
   /// English — base language and ultimate fallback.
   public static let english = "en"
 
-  /// Simplified Chinese. Maps to EmptyState ``FKEmptyStateLocale/zhCN`` (`zh-CN`).
+  /// Simplified Chinese (`zh-Hans`).
   public static let simplifiedChinese = "zh-Hans"
 
   /// Traditional Chinese (Taiwan, Hong Kong, Macau).

@@ -143,10 +143,10 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
   }
 
   private func configureAccessibility() {
-    playPauseButton.accessibilityLabel = FKVideoPlayerStrings.play
-    fullscreenButton.accessibilityLabel = FKVideoPlayerStrings.fullscreen
-    settingsButton.accessibilityLabel = FKVideoPlayerStrings.settings
-    progressSlider.accessibilityLabel = FKVideoPlayerStrings.progress
+    playPauseButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.video.play")
+    fullscreenButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.video.fullscreen")
+    settingsButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.video.settings")
+    progressSlider.accessibilityLabel = FKUIKitI18n.string("fkuikit.video.progress")
   }
 
   public func update(
@@ -333,11 +333,11 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
 
   private func updateTransportAccessibility(for state: FKMediaPlaybackState) {
     if showsPlaySpinner {
-      playPauseButton.accessibilityLabel = FKVideoPlayerStrings.loading
+      playPauseButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.video.loading")
       return
     }
     playPauseButton.accessibilityLabel =
-      state == .playing ? FKVideoPlayerStrings.pause : FKVideoPlayerStrings.play
+      state == .playing ? FKUIKitI18n.string("fkuikit.video.pause") : FKUIKitI18n.string("fkuikit.video.play")
   }
 
   private func bufferedCoverage(_ ranges: [ClosedRange<TimeInterval>], duration: TimeInterval) -> Double {
@@ -353,7 +353,7 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
   ) -> String {
     let currentText = formatTime(current)
     if isLive {
-      return "\(currentText) / \(FKVideoPlayerStrings.live)"
+      return "\(currentText) / \(FKUIKitI18n.string("fkuikit.video.live"))"
     }
     if showsRemainingTime, duration > 0 {
       let remaining = formatTime(max(0, duration - current))

@@ -213,7 +213,7 @@ public enum FKHUD {
     interceptTouches: Bool = true,
     timeout: TimeInterval? = 25
   ) {
-    let message = text ?? FKToastLocalizedText().loadingText
+    let message = text ?? FKUIKitI18n.string("fkuikit.common.loading")
     FKToast.show(
       builder: .init(
         content: .message(message),
