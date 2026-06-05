@@ -105,20 +105,10 @@ enum FKRefreshAppStylePreset: String, CaseIterable {
     }
     header.finishedHoldDuration = 0.2
     header.expandedHeight = 72
-    header.texts = FKRefreshText(
-      pullToRefresh: "",
-      releaseToRefresh: "",
-      headerLoading: "",
-      headerFinished: "",
-      headerListEmpty: "No posts yet",
-      headerFailed: "Couldn't refresh",
-      footerLoading: "",
-      footerFinished: "",
-      footerNoMoreData: "",
-      footerFailed: "Couldn't load",
-      footerTapToRetry: "Tap to retry"
-    )
     header.statusTextMode = .indicatorOnly
+    header.texts.headerListEmpty = "No posts yet"
+    header.texts.headerFailed = "Couldn't refresh"
+    header.texts.footerFailed = "Couldn't load"
 
     var footer = header
     footer.loadMorePreloadOffset = 160

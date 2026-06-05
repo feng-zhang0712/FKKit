@@ -312,8 +312,7 @@ public extension UIScrollView {
 
   /// Controls footer visibility without removing the load-more control.
   func fk_setLoadMoreHidden(_ isHidden: Bool) {
-    fk_loadMore?.isHidden = isHidden
-    fk_loadMore?.isUserInteractionEnabled = !isHidden
+    fk_loadMore?.setLoadMoreHidden(isHidden)
   }
 
   /// Clears `.noMoreData` / `.failed` and returns footer to `.idle`.

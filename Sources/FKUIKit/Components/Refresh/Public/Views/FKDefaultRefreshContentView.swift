@@ -185,6 +185,7 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
   }
 
   public func refreshControl(_ control: FKRefreshControl, didUpdatePullProgress progress: CGFloat) {
+    guard isIndicatorInStack else { return }
     arrowLayer.opacity = Float(min(1, progress * 1.5))
   }
 

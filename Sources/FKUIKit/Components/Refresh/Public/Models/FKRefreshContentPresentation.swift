@@ -1,5 +1,3 @@
-import UIKit
-
 /// Controls when ``FKDefaultRefreshContentView`` shows status text beside the indicator.
 public enum FKRefreshStatusTextMode: Sendable {
   /// Arrow/spinner plus copy for every applicable state (default).
