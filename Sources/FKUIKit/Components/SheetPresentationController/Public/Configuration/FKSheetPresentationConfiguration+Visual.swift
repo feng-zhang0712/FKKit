@@ -34,10 +34,10 @@ public extension FKSheetPresentationConfiguration {
     public init(
       announcesScreenChange: Bool = true,
       announcement: String? = nil,
-      dismissLabel: String = "Dismiss",
-      dismissActionName: String = "Dismiss",
-      grabberLabel: String = "Handle",
-      grabberHint: String = "Swipe up or down to adjust."
+      dismissLabel: String = FKUIKitI18n.string("fkuikit.sheet.dismiss_label"),
+      dismissActionName: String = FKUIKitI18n.string("fkuikit.sheet.dismiss_action"),
+      grabberLabel: String = FKUIKitI18n.string("fkuikit.sheet.grabber_label"),
+      grabberHint: String = FKUIKitI18n.string("fkuikit.sheet.grabber_hint")
     ) {
       self.announcesScreenChange = announcesScreenChange
       self.announcement = announcement

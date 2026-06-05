@@ -1,0 +1,600 @@
+{
+  "Long title": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_scrollable_fkt.long_title.73651e0615"
+  ],
+  "MKV/DASH are not bundled — format probe table and expected load failures.": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.12.subtitle"
+  ],
+  "Manual load more": [
+    "examples.scenario.examples_fkuikit_refresh_scenarios_fkrefreshscro.manual_load_more.3501f10cf5"
+  ],
+  "Many items + frequent updates": [
+    "examples.hub.fktabbarexampleshubviewcontroller.35.title"
+  ],
+  "Maybe later": [
+    "examples.scenario.examples_fkuikit_ratingcontrol_sheet_fkratingshe.maybe_later.27ad1d8334"
+  ],
+  "Media": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.9.title"
+  ],
+  "Mini bar": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.11.title"
+  ],
+  "Mini player": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.9.title"
+  ],
+  "Modes & feedback": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.7.title"
+  ],
+  "More": [
+    "examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.more.4bab2d8fe1"
+  ],
+  "Multi-actions for offline guidance and recovery": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.3.subtitle"
+  ],
+  "Multi-stage backdrop": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.35.title"
+  ],
+  "Navigation bar anchor popup": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.29.title"
+  ],
+  "Navigation bar tabs": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.1.title"
+  ],
+  "Nested horizontal scroll": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.17.title"
+  ],
+  "Networking": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.1.title"
+  ],
+  "No Results": [
+    "examples.scenario.examples_fkuikit_emptystate_basics_fkemptystates.no_results.26af1ef2bb"
+  ],
+  "No results + clear filters": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.1.title"
+  ],
+  "Non-scrollable strip: leading, center, trailing when items fit without scrolling.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.5.subtitle"
+  ],
+  "Normal, focused, filled, error, success, disabled, read-only": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.2.subtitle"
+  ],
+  "Now Playing": [
+    "examples.scenario.examples_fkuikit_player_audioplayer_scenarios_ui.now_playing.0844730531"
+  ],
+  "Now Playing page": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.12.title"
+  ],
+  "OTP & Counter": [
+    "examples.scenario.examples_fkuikit_textfield_scenarios_fktextfield.otp_counter.85a34804b6"
+  ],
+  "OTP & counter": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.5.title"
+  ],
+  "Observers": [
+    "examples.hub.fki18nexampleshubviewcontroller.4.title"
+  ],
+  "Offline": [
+    "examples.scenario.examples_fkuikit_emptystate_basics_fkemptystateo.offline.e01fa717ba"
+  ],
+  "Offline + open docs/check network": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.3.title"
+  ],
+  "Offline HLS": [
+    "examples.scenario.examples_fkuikit_player_videoplayer_scenarios_in.offline_hls.86f90f2861"
+  ],
+  "Offline HLS download": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.14.title"
+  ],
+  "One page: fixedEqual vs scrollable, enabled=false, programmatic select notify, and reload(items:).": [
+    "examples.hub.fktabbarexampleshubviewcontroller.0.subtitle"
+  ],
+  "One-way expand": [
+    "examples.hub.fkexpandabletextexampleshubviewcontroller.4.title"
+  ],
+  "Open": [
+    "examples.scenario.examples_fkcorekit_utils_fkutilsexampleviewcontr.open.cf9b77061f"
+  ],
+  "Open Settings": [
+    "examples.scenario.examples_fkcorekit_permissions_fkpermissionsexam.open_settings.134635e9a2"
+  ],
+  "Overflow policy": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_integration_fk.overflow_policy.5b3b39291d"
+  ],
+  "Overlay": [
+    "examples.scenario.examples_fkuikit_skeleton_scenarios_fkskeletonex.overlay.249450cb72"
+  ],
+  "Overlay on UIView": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.0.title"
+  ],
+  "Overlay vs hidden-content + status text, async guard": [
+    "examples.hub.fkbuttonexampleshubviewcontroller.4.subtitle"
+  ],
+  "Overrides & convenience": [
+    "examples.scenario.examples_fkuikit_skeleton_scenarios_fkskeletonex.overrides_convenience.283261d857"
+  ],
+  "Pagination": [
+    "examples.scenario.examples_fkuikit_refresh_scenarios_fkrefreshpagi.pagination.100325b8d6"
+  ],
+  "Pagination helper": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.13.title"
+  ],
+  "Password": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.6.title"
+  ],
+  "Pay Now": [
+    "examples.scenario.examples_fkuikit_cornershadow_scenarios_fkcorner.pay_now.124af67c86"
+  ],
+  "Per-view overrides & convenience": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.2.title"
+  ],
+  "Performance": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_performance_fk.performance.63c9045599"
+  ],
+  "Permission Denied": [
+    "examples.scenario.examples_fkuikit_emptystate_basics_fkemptystatep.permission_denied.244fbfa0ca"
+  ],
+  "Permission copy, request access and contact admin": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.4.subtitle"
+  ],
+  "Permission denied + request access": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.4.title"
+  ],
+  "Phases, progress, combined transition, gesture policy, nested scroll toggle.": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.9.subtitle"
+  ],
+  "Pinned edges, global defaults, Interface Builder": [
+    "examples.hub.fkdividerexampleshubviewcontroller.2.subtitle"
+  ],
+  "Pins FKTabBar to bottom and compares safe-area height policy, blur/solid background, divider & shadow.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.19.subtitle"
+  ],
+  "Placeholder, default value, clear, disabled, read-only": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.0.subtitle"
+  ],
+  "Placements & beak": [
+    "examples.scenario.examples_fkuikit_callout_scenarios_fkcalloutplac.placements_beak.971949cd75"
+  ],
+  "Placements & beak offset": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.7.title"
+  ],
+  "Placements, multiline, iconMessage, light & dark styles": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.0.subtitle"
+  ],
+  "Plain lyrics": [
+    "examples.scenario.examples_fkuikit_player_audioplayer_scenarios_ly.plain_lyrics.1adbbefdb9"
+  ],
+  "Plain lyrics text": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.9.title"
+  ],
+  "Play history": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.20.title"
+  ],
+  "Play/Pause": [
+    "examples.scenario.examples_fkuikit_player_videoplayer_scenarios_ui.play_pause.ebb1e1e891"
+  ],
+  "Playground": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.17.title",
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.4.title",
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.6.title"
+  ],
+  "Playground (full configuration)": [
+    "examples.hub.fkprogressbarexampleshubviewcontroller.0.title"
+  ],
+  "Playlist": [
+    "examples.scenario.examples_fkuikit_player_videoplayer_scenarios_pl.playlist.cd95b41f85"
+  ],
+  "Playlist & chapters": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.3.title"
+  ],
+  "Pluggable · Analytics": [
+    "examples.scenario.examples_fkcorekit_pluggable_analytics_fkpluggab.pluggable_analytics.10ddca8734"
+  ],
+  "Pluggable · Configuration": [
+    "examples.scenario.examples_fkcorekit_pluggable_configuration_fkplu.pluggable_configuration.f42dbf7442"
+  ],
+  "Pluggable · Core": [
+    "examples.scenario.examples_fkcorekit_pluggable_core_fkpluggablecor.pluggable_core.686efb0d42"
+  ],
+  "Pluggable · List Cells": [
+    "examples.scenario.examples_fkcorekit_pluggable_uikit_fkpluggableli.pluggable_list_cells.5d4f8c106d"
+  ],
+  "Pluggable · Localization": [
+    "examples.scenario.examples_fkcorekit_pluggable_localization_fkplug.pluggable_localization.977ef18f4b"
+  ],
+  "Pluggable · Logging": [
+    "examples.scenario.examples_fkcorekit_pluggable_logging_fkpluggable.pluggable_logging.2424e342f5"
+  ],
+  "Pluggable · Media": [
+    "examples.scenario.examples_fkcorekit_pluggable_media_fkpluggableme.pluggable_media.d3702d2aec"
+  ],
+  "Pluggable · Networking": [
+    "examples.scenario.examples_fkcorekit_pluggable_networking_fkplugga.pluggable_networking.de11afb3d4"
+  ],
+  "Pluggable · Routing": [
+    "examples.scenario.examples_fkcorekit_pluggable_routing_fkpluggable.pluggable_routing.2c4b35f24f"
+  ],
+  "Pluggable · Session": [
+    "examples.scenario.examples_fkcorekit_pluggable_session_fkpluggable.pluggable_session.b1d144e161"
+  ],
+  "Pluggable · Storage": [
+    "examples.scenario.examples_fkcorekit_pluggable_storage_fkpluggable.pluggable_storage.aab7a73f5a"
+  ],
+  "Pluggable · Text Input": [
+    "examples.scenario.examples_fkcorekit_pluggable_uikit_fkpluggablete.pluggable_text_input.a72b38f12a"
+  ],
+  "Podcast chapters": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.10.title"
+  ],
+  "Policy + Boundaries": [
+    "examples.scenario.examples_fkuikit_refresh_scenarios_fkrefreshpoli.policy_boundaries.d4d7e940d5"
+  ],
+  "Policy and stress test": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.11.title"
+  ],
+  "Popover content": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.1.title"
+  ],
+  "Position, multiline text, style, icon, custom view": [
+    "examples.hub.fktoastexampleshubviewcontroller.0.subtitle"
+  ],
+  "Pre-roll ads": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.15.title"
+  ],
+  "Present (content-only height)": [
+    "examples.scenario.examples_fkuikit_sheetpresentationcontroller_exa.present_content_only_height.b928df7274"
+  ],
+  "Presentation": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.1.title"
+  ],
+  "Presenting view effect": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.24.title"
+  ],
+  "Preserve/reset/nearestAvailable policies and hidden item handling.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.36.subtitle"
+  ],
+  "Preset gallery": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.36.title",
+    "examples.hub.fkprogressbarexampleshubviewcontroller.2.title"
+  ],
+  "Presets": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.8.title"
+  ],
+  "Presets, leading alignment, separators, section titles": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.3.subtitle"
+  ],
+  "Preview light/dark/extraLight/systemMaterial…": [
+    "examples.hub.fkblurexampleshubviewcontroller.1.subtitle"
+  ],
+  "Product-style 4.5★ summary and review list rows.": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.1.subtitle"
+  ],
+  "Production patterns": [
+    "examples.hub.fkbuttonexampleshubviewcontroller.5.title"
+  ],
+  "Profile": [
+    "examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.profile.ff4fc0276e"
+  ],
+  "Progress as button": [
+    "examples.hub.fkprogressbarexampleshubviewcontroller.1.title"
+  ],
+  "Progressive MP3": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.0.title"
+  ],
+  "Progressive MP4": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.0.title"
+  ],
+  "Push another divider using current default": [
+    "examples.scenario.examples_fkuikit_divider_scenarios_fkdividerexam.push_another_divider_using_curre.4d57aedd82"
+  ],
+  "QoE reporter": [
+    "examples.scenario.examples_fkuikit_player_audioplayer_scenarios_in.qoe_reporter.4f47d5b35d"
+  ],
+  "QoE snapshot": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.21.title",
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.16.title"
+  ],
+  "Queue & Strategy": [
+    "examples.hub.fktoastexampleshubviewcontroller.1.title"
+  ],
+  "Queue editing": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.7.title"
+  ],
+  "RTL & VoiceOver copy": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.11.title"
+  ],
+  "RTL & a11y": [
+    "examples.scenario.examples_fkuikit_ratingcontrol_scenarios_fkratin.rtl_a11y.fa03dc6fe2"
+  ],
+  "RTL & accessibility": [
+    "examples.scenario.examples_fkuikit_progressbar_scenarios_fkprogres.rtl_accessibility.b2c0c05918"
+  ],
+  "RTL Layout": [
+    "examples.hub.fki18nexampleshubviewcontroller.5.title"
+  ],
+  "RTL layout example": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.9.title"
+  ],
+  "RTL — layout direction + mirroring": [
+    "examples.hub.fktabbarexampleshubviewcontroller.20.title"
+  ],
+  "RTL, semantics & VoiceOver copy": [
+    "examples.hub.fkprogressbarexampleshubviewcontroller.5.title"
+  ],
+  "Rate, mute, LL-HLS toggle, peak bitrate, thumbnail scrub.": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.4.subtitle"
+  ],
+  "Ratio-based detents that adapt across devices.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.7.subtitle"
+  ],
+  "Read-only": [
+    "examples.scenario.examples_fkuikit_ratingcontrol_scenarios_fkratin.read_only.9b19a5a212"
+  ],
+  "Read-only display": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.1.title"
+  ],
+  "Rect provider at the window bottom; panel grows upward from the physical screen bottom.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.31.subtitle"
+  ],
+  "Rect provider at the window top (`y = 0`); panel drops from the physical screen top.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.30.subtitle"
+  ],
+  "Reduce Motion": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_indicator_fkta.reduce_motion.b331f2cfe7"
+  ],
+  "Reduce Motion aware": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.39.title"
+  ],
+  "Registers next/previous remote commands; `refreshMetadata()` only toggles Now Playing.": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.23.subtitle"
+  ],
+  "Repeat modes": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.6.title"
+  ],
+  "Repeat one, repeat all, and coordinator playlist navigation.": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.6.subtitle"
+  ],
+  "Replace UITabBar": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_replaceuitabba.replace_uitabbar.b18a70f7ff"
+  ],
+  "Replace `FKDefaultVideoControlView`.": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.8.subtitle"
+  ],
+  "Replace built-in transitions with `FKSheetPresentationAnimatorProviding`.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.38.subtitle"
+  ],
+  "Reselect scroll to top": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.8.title"
+  ],
+  "Reset download bar": [
+    "examples.scenario.examples_fkuikit_progressbar_scenarios_fkprogres.reset_download_bar.f14f990830"
+  ],
+  "Reset global default": [
+    "examples.scenario.examples_fkuikit_blurview_scenarios_fkblurexampl.reset_global_default.ff26852c8d"
+  ],
+  "Resolve semantic type from loading/offline/permission/data/query/error": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.11.subtitle"
+  ],
+  "Retry button enters loading state before resolving": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.2.subtitle"
+  ],
+  "Reuses FKBlurView and shared appearance tokens.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.38.subtitle"
+  ],
+  "Rotate the device: frames stay stable (especially important for anchors).": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.41.subtitle"
+  ],
+  "Rotation": [
+    "examples.hub.fkblurexampleshubviewcontroller.18.title"
+  ],
+  "Rotation resilience": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.41.title"
+  ],
+  "Rounded Rect Blur": [
+    "examples.hub.fkblurexampleshubviewcontroller.10.title"
+  ],
+  "Routing": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.7.title"
+  ],
+  "Runtime `fk_setExpandableText`": [
+    "examples.hub.fkexpandabletextexampleshubviewcontroller.6.subtitle"
+  ],
+  "Runtime isHidden toggles realigned with setContent(tabs:viewControllers:).": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.14.subtitle"
+  ],
+  "Scale the presenting hierarchy while content is visible.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.24.subtitle"
+  ],
+  "Scopes, max count, validation, keepsSheetPresentedOnSelection": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.7.subtitle"
+  ],
+  "Screen bottom edge anchor popup": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.31.title"
+  ],
+  "Screen top edge anchor popup": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.30.title"
+  ],
+  "Scroll + Width": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_scrollable_fkt.scroll_width.8a7aeae27e"
+  ],
+  "Scroll Performance": [
+    "examples.hub.fkblurexampleshubviewcontroller.19.title"
+  ],
+  "Scroll edge fade": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_layout_fktabba.scroll_edge_fade.ada56cc51c"
+  ],
+  "Scroll target: minimal/center/leading/trailing + width strategies.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.12.subtitle"
+  ],
+  "Scroll tracking": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.11.title"
+  ],
+  "Scrollable panels": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.11.title"
+  ],
+  "Scrollable strip, itemLayoutDirection, rtlBehavior, semantic RTL, and auto-scroll checklist.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.20.subtitle"
+  ],
+  "Scrollable — 10+ tabs": [
+    "examples.hub.fktabbarexampleshubviewcontroller.10.title"
+  ],
+  "Scrollable — overflow strategies": [
+    "examples.hub.fktabbarexampleshubviewcontroller.11.title"
+  ],
+  "Scrollable — width & alignment matrix": [
+    "examples.hub.fktabbarexampleshubviewcontroller.12.title"
+  ],
+  "Search query interpolation with clear filters action": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.1.subtitle"
+  ],
+  "Sectioned menu, header rows, frosted menu variant": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.4.subtitle"
+  ],
+  "Select gentler animation when Reduce Motion is enabled at runtime.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.39.subtitle"
+  ],
+  "Select menu": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.5.title"
+  ],
+  "Selection": [
+    "examples.scenario.examples_fkuikit_actionsheet_scenarios_fkactions.selection.d1f8e5ea93"
+  ],
+  "Selection telemetry": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_integration_fk.selection_telemetry.bad98eb7cb"
+  ],
+  "Semantic colors and per-instance style overrides": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.9.subtitle"
+  ],
+  "Semi-Transparent Blur": [
+    "examples.hub.fkblurexampleshubviewcontroller.13.title"
+  ],
+  "Send feedback": [
+    "examples.scenario.examples_fkuikit_ratingcontrol_sheet_fkratingshe.send_feedback.c431a26258"
+  ],
+  "Sequential items, skip intro/outro, chapter seek.": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.3.subtitle"
+  ],
+  "Sequential queue": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.4.title"
+  ],
+  "Sequential vs replace-active presentation strategy": [
+    "examples.hub.fktoastexampleshubviewcontroller.2.subtitle"
+  ],
+  "Session": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.4.title"
+  ],
+  "SharePlay hook": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.17.title"
+  ],
+  "Shell vs content-only `preferredContentSize` reporting with a max height cap.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.8.subtitle"
+  ],
+  "Shop": [
+    "examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.shop.55de887092"
+  ],
+  "Shows animation downgrade behavior when Reduce Motion is enabled.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.16.subtitle"
+  ],
+  "Shows dot/number/none/custom and local badge updates without full reload.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.18.subtitle"
+  ],
+  "Shrink / truncate / clip + resolvedLayoutHintsForCurrentEnvironment() snapshot.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.30.subtitle"
+  ],
+  "Shuffle": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.5.title"
+  ],
+  "Side-by-side product-style presets.": [
+    "examples.hub.fkprogressbarexampleshubviewcontroller.2.subtitle"
+  ],
+  "Simulate Loading Flow": [
+    "examples.scenario.examples_fkuikit_emptystate_advanced_fkemptystat.simulate_loading_flow.d5c3d5407e"
+  ],
+  "Single & multiple selection": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.7.title"
+  ],
+  "Single anchor view at the bottom; popup expands upward from the anchor.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.26.subtitle"
+  ],
+  "Single anchor view at the top; tap it to present and tap again/mask to dismiss.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.25.subtitle"
+  ],
+  "Single layout pass for configuration + badge changes.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.25.subtitle"
+  ],
+  "Single per-tab padding knob; pairs with indicator trackContentFrame.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.4.subtitle"
+  ],
+  "Single-column compositional list in customView popover": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.6.subtitle"
+  ],
+  "Skeleton style placeholder and transition flow": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.5.subtitle"
+  ],
+  "Sleep timer": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.15.title"
+  ],
+  "Snackbar": [
+    "examples.hub.fktoastexampleshubviewcontroller.4.title"
+  ],
+  "Solid, dashed patterns, gradient strokes": [
+    "examples.hub.fkdividerexampleshubviewcontroller.1.subtitle"
+  ],
+  "Stable ID APIs": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_layout_fktabba.stable_id_apis.4305edb46b"
+  ],
+  "Standalone FKSkeletonView": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.6.title"
+  ],
+  "Standalone blocks": [
+    "examples.scenario.examples_fkuikit_skeleton_scenarios_fkskeletonex.standalone_blocks.8e24f94c98"
+  ],
+  "Star, heart, and thumb SF Symbol presets.": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.3.subtitle"
+  ],
+  "State Resolver": [
+    "examples.scenario.examples_fkuikit_emptystate_advanced_fkemptystat.state_resolver.540c87cc83"
+  ],
+  "State resolver example": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.11.title"
+  ],
+  "Static Blur": [
+    "examples.hub.fkblurexampleshubviewcontroller.6.title"
+  ],
+  "Static peak waveform from a downloaded copy of the track URL (independent of AVPlayer).": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.14.subtitle"
+  ],
+  "Status Gallery": [
+    "examples.scenario.examples_fkuikit_textfield_scenarios_fktextfield.status_gallery.d91a381239"
+  ],
+  "Status gallery": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.2.title"
+  ],
+  "Stop after current": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.16.title"
+  ],
+  "Storage": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.3.title"
+  ],
+  "Storyboard / XIB usage notes": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.10.subtitle"
+  ],
+  "Stub coordinator — `startSharePlay()` throws `notImplemented`.": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.17.subtitle"
+  ],
+  "Styling, visibility, animations, parsing": [
+    "examples.hub.fkbadgeexampleshubviewcontroller.2.subtitle"
+  ],
+  "Submit": [
+    "examples.scenario.examples_fkuikit_ratingcontrol_sheet_fkratingshe.submit.2dacf65959"
+  ],
+  "Submit Form": [
+    "examples.scenario.examples_fkuikit_textfield_scenarios_fktextfield.submit_form.af69d05ec3"
+  ],
+  "Subtitles": [
+    "examples.scenario.examples_fkuikit_player_videoplayer_scenarios_su.subtitles.17770471cb"
+  ],
+  "Success": [
+    "examples.scenario.examples_fkuikit_textfield_scenarios_fktextfield.success.42a8f651d7"
+  ]
+}

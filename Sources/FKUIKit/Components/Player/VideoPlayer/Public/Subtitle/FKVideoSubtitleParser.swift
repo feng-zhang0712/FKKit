@@ -108,3 +108,12 @@ public enum FKVideoSubtitleParser {
 public enum FKVideoSubtitleParserError: Error {
   case invalidEncoding
 }
+
+extension FKVideoSubtitleParserError: LocalizedError {
+  public var errorDescription: String? {
+    switch self {
+    case .invalidEncoding:
+      return FKUIKitI18n.string("fkuikit.video.subtitle.error.invalid_encoding")
+    }
+  }
+}

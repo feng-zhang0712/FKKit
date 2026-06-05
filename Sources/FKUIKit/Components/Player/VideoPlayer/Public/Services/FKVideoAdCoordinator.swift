@@ -25,7 +25,7 @@ public final class FKVideoAdCoordinator: FKVideoAdPlugin {
     container.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
     let label = UILabel()
-    label.text = "Advertisement"
+    label.text = FKUIKitI18n.string("fkuikit.video.advertisement")
     label.textColor = .white
     label.font = .systemFont(ofSize: 18, weight: .semibold)
     label.translatesAutoresizingMaskIntoConstraints = false

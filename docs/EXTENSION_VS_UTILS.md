@@ -4,14 +4,14 @@ This document is the **governance policy** for new APIs in `FKCoreKit`. It compl
 
 ## Roles
 
-### `Sources/FKCoreKit/Extension/`
+### `Sources/FKCoreKit/Components/Extension/`
 
 - **What:** `public` extensions on **Foundation**, **CoreGraphics**, and **UIKit** types (UIKit files are behind `#if canImport(UIKit)`).
 - **Naming:** Members use the **`fk_`** prefix (or `fk_`-prefixed typealiases / nested names where applicable) to reduce collisions with app code and future SDK APIs.
 - **When to use:** Operations that are naturally expressed as **“something you do *on* a value”** — chaining, small transforms, predicates, and ergonomic shims on `String`, `Date`, `Optional`, `URL`, `UIView`, etc.
 - **Discoverability:** Call sites benefit from **autocomplete on the receiver** (`value.fk_*`).
 
-### `Sources/FKCoreKit/Utils/` (`FKUtils` namespace)
+### `Sources/FKCoreKit/Components/Utils/` (`FKUtils` namespace)
 
 - **What:** Static helpers grouped as **`FKUtilsString`**, **`FKUtilsDate`**, **`FKUtilsDevice`**, **`FKUtilsUI`**, **`FKUtilsCollection`**, etc., exposed under the **`FKUtils`** enum (e.g. `FKUtils.String.trim(_:)`, `FKUtils.Date.*`).
 - **Naming:** Types are **`FKUtils*`**; functions are **not** `fk_`-prefixed on the receiver (there is no receiver).

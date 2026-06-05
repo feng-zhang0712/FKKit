@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 
 /// Entry table for FKButton example screens (see `Scenarios/`).
 final class FKButtonExamplesHubViewController: UITableViewController {
@@ -11,38 +12,38 @@ final class FKButtonExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: "Basics",
-      subtitle: "Text only, icon only, text + image composition",
+      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.0.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.0.subtitle"),
       controllerType: FKButtonExampleBasicsViewController.self
     ),
     Row(
-      title: "Layout & content",
-      subtitle: "Axis, capsule, subtitles, content kind morphing",
+      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.1.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.1.subtitle"),
       controllerType: FKButtonExampleLayoutViewController.self
     ),
     Row(
-      title: "Interaction",
-      subtitle: "Tap interval, hit target, long press, haptics/sound, chaining",
+      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.2.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.2.subtitle"),
       controllerType: FKButtonExampleInteractionViewController.self
     ),
     Row(
-      title: "Appearance",
-      subtitle: "Gradient, highlight feedback, disabled dimming, spacing",
+      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.3.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.3.subtitle"),
       controllerType: FKButtonExampleAppearanceViewController.self
     ),
     Row(
-      title: "Loading",
-      subtitle: "Overlay vs hidden-content + status text, async guard",
+      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.4.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.4.subtitle"),
       controllerType: FKButtonExampleLoadingViewController.self
     ),
     Row(
-      title: "Production patterns",
-      subtitle: "Touch target, batch APIs, loading polish, badge, symbol effects, transient result",
+      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.5.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.5.subtitle"),
       controllerType: FKButtonExampleProductionViewController.self
     ),
     Row(
-      title: "Global & Interface Builder",
-      subtitle: "GlobalStyle snapshot, Storyboard inspectables",
+      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.6.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.6.subtitle"),
       controllerType: FKButtonExampleAdvancedViewController.self
     ),
   ]

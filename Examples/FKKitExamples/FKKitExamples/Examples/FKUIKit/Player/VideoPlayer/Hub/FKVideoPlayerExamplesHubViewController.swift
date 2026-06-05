@@ -1,5 +1,6 @@
 import FKUIKit
 import UIKit
+import FKCoreKit
 
 /// Lists ``FKVideoPlayer`` example screens grouped by feature area.
 final class FKVideoPlayerExamplesHubViewController: UITableViewController {
@@ -25,107 +26,107 @@ final class FKVideoPlayerExamplesHubViewController: UITableViewController {
   }
 
   private lazy var sections: [DemoSection] = [
-    DemoSection(title: "Basics", items: [
+    DemoSection(title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.0.title"), items: [
       DemoItem(
-        title: "Progressive MP4",
-        subtitle: "HTTPS file, default controls, poster image.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.0.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.0.subtitle"),
         factory: { FKVideoPlayerProgressiveExampleViewController() }
       ),
       DemoItem(
-        title: "HLS on demand",
-        subtitle: "Adaptive streaming with multi-bitrate selection.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.1.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.1.subtitle"),
         factory: { FKVideoPlayerHLSVODExampleViewController() }
       ),
       DemoItem(
-        title: "UIView embed helper",
-        subtitle: "`fk_embedVideoPlayer` constraints helper.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.2.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.2.subtitle"),
         factory: { FKVideoPlayerEmbedHelperExampleViewController() }
       ),
     ]),
     DemoSection(title: "Playback", items: [
       DemoItem(
-        title: "Playlist & chapters",
-        subtitle: "Sequential items, skip intro/outro, chapter seek.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.3.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.3.subtitle"),
         factory: { FKVideoPlayerPlaylistExampleViewController() }
       ),
       DemoItem(
-        title: "Playground",
-        subtitle: "Rate, mute, LL-HLS toggle, peak bitrate, thumbnail scrub.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.4.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.4.subtitle"),
         factory: { FKVideoPlayerPlaygroundExampleViewController() }
       ),
     ]),
     DemoSection(title: "Live", items: [
       DemoItem(
-        title: "Live HLS",
-        subtitle: "Live badge, go-live, optional LL-HLS debug overlay.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.5.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.5.subtitle"),
         factory: { FKVideoPlayerLiveExampleViewController() }
       ),
     ]),
     DemoSection(title: "Subtitles & tracks", items: [
       DemoItem(
-        title: "External WebVTT",
-        subtitle: "Bundled `.vtt` plus embedded track names.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.6.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.6.subtitle"),
         factory: { FKVideoPlayerSubtitlesExampleViewController() }
       ),
     ]),
     DemoSection(title: "UI & chrome", items: [
       DemoItem(
-        title: "Fullscreen host",
-        subtitle: "`FKVideoPlayerViewController` presentation.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.7.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.7.subtitle"),
         factory: { FKVideoPlayerFullscreenExampleViewController() }
       ),
       DemoItem(
-        title: "Custom control surface",
-        subtitle: "Replace `FKDefaultVideoControlView`.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.8.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.8.subtitle"),
         factory: { FKVideoPlayerCustomControlsExampleViewController() }
       ),
       DemoItem(
-        title: "Mini player",
-        subtitle: "Floating `FKVideoMiniPlayerView` shell.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.9.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.9.subtitle"),
         factory: { FKVideoPlayerMiniPlayerExampleViewController() }
       ),
       DemoItem(
-        title: "SwiftUI bridge",
-        subtitle: "`FKVideoPlayerSwiftUIView` in UIHostingController.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.10.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.10.subtitle"),
         factory: { FKVideoPlayerSwiftUIExampleViewController() }
       ),
     ]),
     DemoSection(title: "Feed & performance", items: [
       DemoItem(
-        title: "Feed autoplay",
-        subtitle: "`FKVideoFeedPlaybackCoordinator` + `FKVideoPlayerPool`.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.11.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.11.subtitle"),
         factory: { FKVideoPlayerFeedExampleViewController() }
       ),
     ]),
-    DemoSection(title: "Integration", items: [
+    DemoSection(title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.6.title"), items: [
       DemoItem(
-        title: "Extended engine (Core)",
-        subtitle: "MKV/DASH are not bundled — format probe table and expected load failures.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.12.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.12.subtitle"),
         factory: { FKMediaExtendedEngineExampleViewController() }
       ),
       DemoItem(
-        title: "Delegate event log",
-        subtitle: "All `FKVideoPlayerDelegate` callbacks.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.13.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.13.subtitle"),
         factory: { FKVideoPlayerDelegateLogExampleViewController() }
       ),
       DemoItem(
-        title: "Offline HLS download",
-        subtitle: "`FKVideoOfflineDownloadManager` registry playback.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.14.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.14.subtitle"),
         factory: { FKVideoPlayerOfflineExampleViewController() }
       ),
       DemoItem(
-        title: "Pre-roll ads",
-        subtitle: "`FKVideoAdPlugin` placeholder interstitial.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.15.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.15.subtitle"),
         factory: { FKVideoPlayerAdsExampleViewController() }
       ),
       DemoItem(
-        title: "QoE snapshot",
-        subtitle: "`FKVideoQoEReporter` analytics plugin.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.16.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.16.subtitle"),
         factory: { FKVideoPlayerQoEExampleViewController() }
       ),
       DemoItem(
-        title: "SharePlay hook",
-        subtitle: "Stub coordinator — `startSharePlay()` throws `notImplemented`.",
+        title: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.17.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkvideoplayerexampleshubviewcontroller.17.subtitle"),
         factory: { FKVideoPlayerSharePlayExampleViewController() }
       ),
     ]),

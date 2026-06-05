@@ -48,7 +48,7 @@ enum FKProgressBarLabelFormatting {
 
   static func accessibilityValue(progress: CGFloat, buffer: CGFloat, configuration: FKProgressBarConfiguration, isIndeterminate: Bool) -> String {
     if isIndeterminate {
-      return NSLocalizedString("In progress", comment: "FKProgressBar indeterminate accessibility")
+      return FKUIKitI18n.string("fkuikit.progressbar.in_progress")
     }
     let t = min(max(progress, 0), 1)
     let lo = configuration.label.logicalMinimum
@@ -66,26 +66,14 @@ enum FKProgressBarLabelFormatting {
       let blogical = lo + Double(bt) * (hi - lo)
       let bstr = nf.string(from: NSNumber(value: blogical)) ?? "\(blogical)"
       return String.localizedStringWithFormat(
-        NSLocalizedString(
-          "fk_progress_bar_a11y_buffer",
-          tableName: nil,
-          bundle: .main,
-          value: "%1$@ progress, %2$@ buffered",
-          comment: "Accessibility: primary value, buffer value"
-        ),
+        FKUIKitI18n.string("fkuikit.progressbar.a11y_buffer"),
         main,
         bstr
       )
     }
     let pct = Int((t * 100).rounded(.toNearestOrAwayFromZero))
     return String.localizedStringWithFormat(
-      NSLocalizedString(
-        "fk_progress_bar_a11y_percent",
-        tableName: nil,
-        bundle: .main,
-        value: "%lld percent",
-        comment: "Accessibility: percent complete"
-      ),
+      FKUIKitI18n.string("fkuikit.progressbar.a11y_percent"),
       Int64(pct)
     )
   }

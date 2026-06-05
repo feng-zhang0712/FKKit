@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 
 /// Entry table for FKCallout, FKTooltip, and FKPopover demos.
 final class FKCalloutExamplesHubViewController: UITableViewController {
@@ -18,8 +19,8 @@ final class FKCalloutExamplesHubViewController: UITableViewController {
       title: "FKTooltip",
       rows: [
         Row(
-          title: "Tooltip basics",
-          subtitle: "Placements, multiline, iconMessage, light & dark styles",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.0.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.0.subtitle"),
           make: { FKCalloutTooltipBasicsExampleViewController() }
         ),
       ]
@@ -28,18 +29,18 @@ final class FKCalloutExamplesHubViewController: UITableViewController {
       title: "FKPopover · Content",
       rows: [
         Row(
-          title: "Popover content",
-          subtitle: "message, titleSubtitle, headerPanel, appearance styles",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.1.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.1.subtitle"),
           make: { FKCalloutPopoverContentExampleViewController() }
         ),
         Row(
-          title: "Coach mark",
-          subtitle: "FKPopover.showCoachMark with close and primary action",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.2.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.2.subtitle"),
           make: { FKCalloutCoachMarkExampleViewController() }
         ),
         Row(
-          title: "Footer actions",
-          subtitle: "FKPopover.show(message:actions:actionHandlers:)",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.3.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.3.subtitle"),
           make: { FKCalloutPopoverActionsExampleViewController() }
         ),
       ]
@@ -48,18 +49,18 @@ final class FKCalloutExamplesHubViewController: UITableViewController {
       title: "FKPopover · Menus",
       rows: [
         Row(
-          title: "Action menu",
-          subtitle: "Sectioned menu, header rows, frosted menu variant",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.4.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.4.subtitle"),
           make: { FKCalloutActionMenuExampleViewController() }
         ),
         Row(
-          title: "Select menu",
-          subtitle: "Content-sized menu, trailing checkmark, selection updates trigger",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.5.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.5.subtitle"),
           make: { FKCalloutSelectMenuExampleViewController() }
         ),
         Row(
-          title: "Account menu",
-          subtitle: "Single-column compositional list in customView popover",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.6.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.6.subtitle"),
           make: { FKCalloutAccountMenuExampleViewController() }
         ),
       ]
@@ -68,23 +69,23 @@ final class FKCalloutExamplesHubViewController: UITableViewController {
       title: "Layout & chrome",
       rows: [
         Row(
-          title: "Placements & beak offset",
-          subtitle: "All 12 FKCalloutPlacement values and FKCalloutBeakOffset",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.7.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.7.subtitle"),
           make: { FKCalloutPlacementGridExampleViewController() }
         ),
         Row(
-          title: "Beak styles",
-          subtitle: "FKCalloutBeakStyle presets and customBeakViewProvider",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.8.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.8.subtitle"),
           make: { FKCalloutBeakStylesExampleViewController() }
         ),
         Row(
-          title: "Frosted glass",
-          subtitle: "FKCalloutAppearance.usesFrostedGlassBackground",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.9.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.9.subtitle"),
           make: { FKCalloutFrostedGlassExampleViewController() }
         ),
         Row(
-          title: "Layout behavior",
-          subtitle: "sourceRect, maxContentHeight, keyboardAvoidance, edge flip",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.10.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.10.subtitle"),
           make: { FKCalloutLayoutBehaviorExampleViewController() }
         ),
       ]
@@ -93,23 +94,23 @@ final class FKCalloutExamplesHubViewController: UITableViewController {
       title: "Custom & advanced",
       rows: [
         Row(
-          title: "Scrollable panels",
-          subtitle: "UITableView and UIScrollView inside customView popovers",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.11.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.11.subtitle"),
           make: { FKCalloutScrollablePanelsExampleViewController() }
         ),
         Row(
-          title: "Interactive playground",
-          subtitle: "Live switches, segments, and sliders for configuration",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.12.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.12.subtitle"),
           make: { FKCalloutInteractivePlaygroundViewController() }
         ),
         Row(
-          title: "FKCallout advanced",
-          subtitle: "Builder, showOrUpdate, concurrent policy, lifecycle hooks",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.13.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.13.subtitle"),
           make: { FKCalloutAdvancedExampleViewController() }
         ),
         Row(
-          title: "SwiftUI bridge",
-          subtitle: "FKCalloutSwiftUIAnchorButton from FKUIKit",
+          title: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.14.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fkcalloutexampleshubviewcontroller.14.subtitle"),
           make: { FKCalloutExampleSwiftUIViewController() }
         ),
       ]

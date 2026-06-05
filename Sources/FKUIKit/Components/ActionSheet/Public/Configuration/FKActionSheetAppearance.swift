@@ -96,7 +96,7 @@ public struct FKActionSheetAppearance: Equatable, Sendable {
     cellBackgroundColor: UIColor = .systemBackground,
     sectionTitleFont: UIFont = .systemFont(ofSize: 13),
     sectionTitleColor: UIColor = .secondaryLabel,
-    destructiveAccessibilityHint: String = "This action cannot be undone."
+    destructiveAccessibilityHint: String = FKUIKitI18n.string("fkuikit.actionsheet.destructive_hint")
   ) {
     self.minimumRowHeight = max(44, minimumRowHeight)
     self.cancelGroupSpacing = max(0, cancelGroupSpacing)

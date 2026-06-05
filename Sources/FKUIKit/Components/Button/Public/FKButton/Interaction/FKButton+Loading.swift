@@ -243,9 +243,9 @@ extension FKButton {
   func resolvedTransientResultContent(for result: FKButtonTransientResult) -> (symbolName: String, tint: UIColor, defaultMessage: String) {
     switch result {
     case .success:
-      return ("checkmark.circle.fill", .systemGreen, "Success")
+      return ("checkmark.circle.fill", .systemGreen, FKUIKitI18n.string("fkuikit.button.success"))
     case .failure:
-      return ("xmark.circle.fill", .systemRed, "Failed")
+      return ("xmark.circle.fill", .systemRed, FKUIKitI18n.string("fkuikit.button.failed"))
     case .custom(let systemName, let tintColor, _):
       return (systemName, tintColor, "")
     }

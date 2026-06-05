@@ -17,10 +17,10 @@ public final class FKVideoLiveBadgeView: UIView {
 
     label.font = .systemFont(ofSize: 12, weight: .bold)
     label.textColor = .white
-    label.text = "LIVE"
+    label.text = FKUIKitI18n.string("fkuikit.video.live_badge")
     addSubview(label)
 
-    goLiveButton.setTitle("Go Live", for: .normal)
+    goLiveButton.setTitle(FKUIKitI18n.string("fkuikit.video.go_live"), for: .normal)
     goLiveButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
     goLiveButton.addTarget(self, action: #selector(goLive), for: .touchUpInside)
     addSubview(goLiveButton)
@@ -51,9 +51,9 @@ public final class FKVideoLiveBadgeView: UIView {
   public func update(isLive: Bool, latencySeconds: TimeInterval?) {
     isHidden = !isLive
     if let latencySeconds, latencySeconds > 1 {
-      label.text = String(format: "LIVE · ~%.0fs", latencySeconds)
+      label.text = FKUIKitI18n.format("fkuikit.video.live_latency", latencySeconds)
     } else {
-      label.text = "LIVE"
+      label.text = FKUIKitI18n.string("fkuikit.video.live_badge")
     }
     setNeedsLayout()
   }

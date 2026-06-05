@@ -322,9 +322,9 @@ public struct FKEmptyStateConfiguration {
 
 public extension FKEmptyStateConfiguration {
   /// Default retry title when `phase == .error` and `buttonStyle.title` is empty.
-  static let defaultRetryButtonTitle: String = "Retry"
+  static var defaultRetryButtonTitle: String { FKUIKitI18n.string("fkuikit.empty.action.retry") }
 
-  /// Returns a configuration pre-filled for `scenario` (English copy in the library; replace in app).
+  /// Returns a configuration pre-filled for `scenario`.
   static func scenario(_ scenario: FKEmptyStateScenario) -> FKEmptyStateConfiguration {
     switch scenario {
     case .noNetwork:
@@ -332,9 +332,9 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .offline,
         context: .section,
-        title: "No network",
-        description: "Check your connection and try again.",
-        buttonStyle: FKEmptyStateButtonStyle(title: "Reload"),
+        title: FKUIKitI18n.string("fkuikit.empty.scenario.no_network.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.scenario.no_network.description"),
+        buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.empty.scenario.no_network.action")),
         isButtonHidden: false
       )
     case .noSearchResult:
@@ -342,8 +342,8 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .noResults,
         context: .search,
-        title: "No results",
-        description: "Try different keywords.",
+        title: FKUIKitI18n.string("fkuikit.empty.noResults.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.scenario.no_search.description"),
         isButtonHidden: true
       )
     case .noFavorites:
@@ -351,9 +351,9 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .empty,
         context: .list,
-        title: "No favorites yet",
-        description: "Save items you like to see them here.",
-        buttonStyle: FKEmptyStateButtonStyle(title: "Go home"),
+        title: FKUIKitI18n.string("fkuikit.empty.scenario.no_favorites.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.scenario.no_favorites.description"),
+        buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.empty.scenario.no_favorites.action")),
         isButtonHidden: false
       )
     case .noOrders:
@@ -361,9 +361,9 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .empty,
         context: .list,
-        title: "No orders",
-        description: "Place an order to track it here.",
-        buttonStyle: FKEmptyStateButtonStyle(title: "Shop now"),
+        title: FKUIKitI18n.string("fkuikit.empty.scenario.no_orders.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.scenario.no_orders.description"),
+        buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.empty.scenario.no_orders.action")),
         isButtonHidden: false
       )
     case .noMessages:
@@ -371,8 +371,8 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .empty,
         context: .list,
-        title: "No messages",
-        description: "New notifications will appear here.",
+        title: FKUIKitI18n.string("fkuikit.empty.scenario.no_messages.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.scenario.no_messages.description"),
         isButtonHidden: true
       )
     case .loadFailed:
@@ -380,8 +380,8 @@ public extension FKEmptyStateConfiguration {
         phase: .error,
         type: .error,
         context: .section,
-        title: "Couldn’t load",
-        description: "The request timed out or the server returned an error. Try again.",
+        title: FKUIKitI18n.string("fkuikit.empty.scenario.load_failed.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.scenario.load_failed.description"),
         buttonStyle: FKEmptyStateButtonStyle(title: defaultRetryButtonTitle),
         isButtonHidden: false
       )
@@ -390,9 +390,9 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .permissionDenied,
         context: .section,
-        title: "No access",
-        description: "You don’t have permission to view this content.",
-        buttonStyle: FKEmptyStateButtonStyle(title: "OK"),
+        title: FKUIKitI18n.string("fkuikit.empty.scenario.no_permission.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.permissionDenied.description"),
+        buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.common.ok")),
         isButtonHidden: false
       )
     case .notLoggedIn:
@@ -400,9 +400,9 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .newUser,
         context: .fullPage,
-        title: "Sign in required",
-        description: "Log in to see your data here.",
-        buttonStyle: FKEmptyStateButtonStyle(title: "Sign in"),
+        title: FKUIKitI18n.string("fkuikit.empty.scenario.not_logged_in.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.scenario.not_logged_in.description"),
+        buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.empty.scenario.not_logged_in.action")),
         isButtonHidden: false
       )
     }

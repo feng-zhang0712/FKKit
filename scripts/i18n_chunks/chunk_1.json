@@ -1,0 +1,598 @@
+{
+  "Error": [
+    "examples.scenario.examples_fkuikit_textfield_scenarios_fktextfield.error.7f2f6a15cf"
+  ],
+  "Error + Retry": [
+    "examples.scenario.examples_fkuikit_emptystate_basics_fkemptystatee.error_retry.93516d30e8"
+  ],
+  "Error + retry loading action": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.2.title"
+  ],
+  "Events, common parameters, uploader, tracking, flush": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.2.subtitle"
+  ],
+  "Expands downward from the navigation bar bottom edge (typical title-bar menu pattern).": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.29.subtitle"
+  ],
+  "Explore": [
+    "examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.explore.b965ae66fc"
+  ],
+  "Extended engine": [
+    "examples.scenario.examples_fkuikit_player_core_scenarios_fkmediaex.extended_engine.cec967d757"
+  ],
+  "Extended engine (Core)": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.12.title"
+  ],
+  "External WebVTT": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.6.title"
+  ],
+  "External tab strip": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.2.title"
+  ],
+  "FKActionSheetBuilder and UIAlertAction-style configuration": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.11.subtitle"
+  ],
+  "FKBlur.defaultConfiguration demo": [
+    "examples.hub.fkblurexampleshubviewcontroller.14.subtitle"
+  ],
+  "FKCallout advanced": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.13.title"
+  ],
+  "FKCalloutAppearance.usesFrostedGlassBackground": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.9.subtitle"
+  ],
+  "FKCalloutBeakStyle presets and customBeakViewProvider": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.8.subtitle"
+  ],
+  "FKCalloutSwiftUIAnchorButton from FKUIKit": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.14.subtitle"
+  ],
+  "FKCellReusable, table/collection configurables, register/dequeue helpers": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.10.subtitle"
+  ],
+  "FKDividerView in a hosting controller": [
+    "examples.hub.fkdividerexampleshubviewcontroller.4.subtitle"
+  ],
+  "FKI18nStaticDictionaryTranslator overlay before bundle lookup": [
+    "examples.hub.fki18nexampleshubviewcontroller.3.subtitle"
+  ],
+  "FKImageLoading, FKImageCaching": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.9.subtitle"
+  ],
+  "FKKeyValueStoring, FKCodableStoring JSON helpers": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.3.subtitle"
+  ],
+  "FKLocalizing protocol and FKBusinessI18nManager adapter": [
+    "examples.hub.fki18nexampleshubviewcontroller.6.subtitle"
+  ],
+  "FKLocalizing, FKTranslating with placeholders": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.6.subtitle"
+  ],
+  "FKPagingControllerRepresentable with pageCount + factory closure binding.": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.20.subtitle"
+  ],
+  "FKPagingEagerDataSource with reloadFromDataSource() add/remove pages.": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.16.subtitle"
+  ],
+  "FKPluggableLogging levels and convenience helpers": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.8.subtitle"
+  ],
+  "FKPopover.show(message:actions:actionHandlers:)": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.3.subtitle"
+  ],
+  "FKPopover.showCoachMark with close and primary action": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.2.subtitle"
+  ],
+  "FKSheetPresentationController `.center` with quick rate, feedback, and App Store prompts.": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.8.subtitle"
+  ],
+  "FKSkeleton.defaultConfiguration (restored when you leave this screen)": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.9.subtitle"
+  ],
+  "FKSkeletonAnimationMode · shimmer directions · pulse · breathing · live preview": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.5.subtitle"
+  ],
+  "FKSkeletonCollectionViewCell": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.12.subtitle"
+  ],
+  "FKSkeletonContainerView": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.7.title"
+  ],
+  "FKSkeletonManager": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.4.title"
+  ],
+  "FKSkeletonTableViewCell + skeletonContainer": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.10.subtitle"
+  ],
+  "FKSwiftUIBlurView demo": [
+    "examples.hub.fkblurexampleshubviewcontroller.16.subtitle"
+  ],
+  "FKTabBarBadgeContent.custom + customBadgeView(for:).": [
+    "examples.hub.fktabbarexampleshubviewcontroller.28.subtitle"
+  ],
+  "FKTabBarRepresentable — controlled mode, progress callback, and progress Binding.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.34.subtitle"
+  ],
+  "FKTextField OTP, FKCodeTextField slots, FKCountTextView": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.5.subtitle"
+  ],
+  "FKTextFormatting, FKTextValidating, FKTextAsyncValidating": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.11.subtitle"
+  ],
+  "FKUIKit reuse (blur theme)": [
+    "examples.hub.fktabbarexampleshubviewcontroller.38.title"
+  ],
+  "FKUserSessionProviding, authentication observers": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.4.subtitle"
+  ],
+  "Factories": [
+    "examples.scenario.examples_fkuikit_ratingcontrol_scenarios_fkratin.factories.5580687121"
+  ],
+  "Factory-based localized copy with interpolation": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.10.subtitle"
+  ],
+  "Factory-driven pages, preload/retention, lifecycle log, invalidatePage(at:).": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.18.subtitle"
+  ],
+  "Favorites": [
+    "examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.favorites.07b3e447db"
+  ],
+  "Feed autoplay": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.11.title"
+  ],
+  "Filter strip": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_basics_fktabba.filter_strip.4574d2ecb0"
+  ],
+  "Fit to content": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.8.title"
+  ],
+  "Fixed vs fitted sizing with max constraints for large screens.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.4.subtitle"
+  ],
+  "Floating `FKVideoMiniPlayerView` shell.": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.9.subtitle"
+  ],
+  "Floating card, backdrop, presets, scroll, destructive flows": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.2.subtitle"
+  ],
+  "Focus chain, submit, first-error focus": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.4.subtitle"
+  ],
+  "Footer actions": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.3.title"
+  ],
+  "Force RTL direction with Arabic copy": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.9.subtitle"
+  ],
+  "Forced RTL and custom accessibility strings.": [
+    "examples.hub.fkprogressbarexampleshubviewcontroller.5.subtitle",
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.11.subtitle"
+  ],
+  "Form Orchestration": [
+    "examples.scenario.examples_fkuikit_textfield_scenarios_fktextfield.form_orchestration.2cdbca9230"
+  ],
+  "Form orchestration": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.4.title"
+  ],
+  "Format & Variables": [
+    "examples.hub.fki18nexampleshubviewcontroller.2.title"
+  ],
+  "Frosted glass": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.9.title"
+  ],
+  "Full Page vs Inline": [
+    "examples.scenario.examples_fkuikit_emptystate_advanced_fkemptystat.full_page_vs_inline.a9bb8f7bdf"
+  ],
+  "Full page vs inline section": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.6.title"
+  ],
+  "Fullscreen": [
+    "examples.scenario.examples_fkuikit_player_videoplayer_scenarios_ui.fullscreen.bb08d10b00"
+  ],
+  "Fullscreen host": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.7.title"
+  ],
+  "GIF indicator": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.7.title"
+  ],
+  "Generate Async": [
+    "examples.scenario.examples_fkuikit_blurview_scenarios_fkblurexampl.generate_async.3b9f2ee9cc"
+  ],
+  "Generate Sync": [
+    "examples.scenario.examples_fkuikit_blurview_scenarios_fkblurexampl.generate_sync.4d55be3576"
+  ],
+  "Generates 50/100/200 tabs and performs frequent local badge updates to avoid reloadData().": [
+    "examples.hub.fktabbarexampleshubviewcontroller.35.subtitle"
+  ],
+  "Global & Interface Builder": [
+    "examples.hub.fkbuttonexampleshubviewcontroller.6.title"
+  ],
+  "Global Defaults": [
+    "examples.hub.fkblurexampleshubviewcontroller.14.title"
+  ],
+  "Global defaultConfiguration": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.9.title"
+  ],
+  "Global defaults": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.14.title"
+  ],
+  "Global subtitle": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_layout_fktabba.global_subtitle.2b2e03fb90"
+  ],
+  "GlobalStyle snapshot, Storyboard inspectables": [
+    "examples.hub.fkbuttonexampleshubviewcontroller.6.subtitle"
+  ],
+  "Goal: animated-image indicator. Params: FKGIFRefreshContentView. Expect: animation starts/stops by state.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.7.subtitle"
+  ],
+  "Goal: arrow/spinner vs label axis. Params: FKRefreshConfiguration.defaultContentLayout. Expect: horizontal default; vertical legacy stack.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.5.subtitle"
+  ],
+  "Goal: async handlers + auto end. Params: automaticEndDelay. Expect: no duplicate triggers while requests run.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.3.subtitle"
+  ],
+  "Goal: conflict policy + rapid gestures. Params: mutex/queue/parallel + autoFill. Expect: no duplicate in-flight actions.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.11.subtitle"
+  ],
+  "Goal: custom indicator animation. Params: FKRefreshContentView protocol. Expect: progress-driven visuals stay in sync.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.6.subtitle"
+  ],
+  "Goal: hide all status text. Params: statusTextMode = .indicatorOnly. Expect: arrow/spinner centered without labels.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.9.subtitle"
+  ],
+  "Goal: host arbitrary UIKit subtree. Params: FKHostedRefreshContentView. Expect: custom view follows state transitions.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.8.subtitle"
+  ],
+  "Goal: i18n and a11y validation. Params: English/Spanish + Dynamic Type + RTL. Expect: readable copy and VoiceOver feedback.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.16.subtitle"
+  ],
+  "Goal: inspect exact state graph. Params: delegate + closure observers. Expect: deterministic transitions for QA logs.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.12.subtitle"
+  ],
+  "Goal: large title + tab bar + keyboard + rotation. Params: nested nav/tab containers. Expect: stable insets and no state drift.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.15.subtitle"
+  ],
+  "Goal: non-list scroll integration. Params: manual footer mode. Expect: stable header/footer layout on plain scroll content.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.2.subtitle"
+  ],
+  "Goal: page1→pageN lifecycle. Params: FKRefreshPagination reset/advance. Expect: noMoreData and reset recovery.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.13.subtitle"
+  ],
+  "Goal: pull gesture + programmatic trigger. Params: default config. Expect: success/error/empty/cancel safe transitions.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.0.subtitle"
+  ],
+  "Goal: reproduce well-known pull/load UX (Twitter, Instagram, WeChat, TikTok, Reddit, Mail). Params: Inspired presets hub.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.10.subtitle"
+  ],
+  "Goal: reuse UIKit refresh core in SwiftUI. Params: FKRefreshSwiftUIBridge + token-safe completion. Expect: single logic path.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.17.subtitle"
+  ],
+  "Goal: shared style baseline. Params: FKRefreshSettings + manager updates. Expect: screens inherit defaults consistently.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.14.subtitle"
+  ],
+  "Goal: text/theme/timing knobs. Params: minimum visibility + silent refresh. Expect: no loading flash and configurable copy.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.4.subtitle"
+  ],
+  "Goal: verify same API on collection lists. Params: segmented outcomes. Expect: paged loading and retry-ready failure state.": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.1.subtitle"
+  ],
+  "Grabber on/off": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.10.title"
+  ],
+  "Gradient, highlight feedback, disabled dimming, spacing": [
+    "examples.hub.fkbuttonexampleshubviewcontroller.3.subtitle"
+  ],
+  "HLS VOD": [
+    "examples.scenario.examples_fkuikit_player_videoplayer_scenarios_ba.hls_vod.ea2ee895cd"
+  ],
+  "HLS on demand": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.1.title",
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.1.title"
+  ],
+  "HTTPS file, artwork, default `FKAudioPlayerView` chrome.": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.0.subtitle"
+  ],
+  "HTTPS file, default controls, poster image.": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.0.subtitle"
+  ],
+  "HUD": [
+    "examples.hub.fktoastexampleshubviewcontroller.3.title"
+  ],
+  "Handler timing, haptics, hooks, dismiss reasons": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.8.subtitle"
+  ],
+  "Handlers & Lifecycle": [
+    "examples.scenario.examples_fkuikit_actionsheet_scenarios_fkactions.handlers_lifecycle.7229bb3bf6"
+  ],
+  "Handlers & lifecycle": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.8.title"
+  ],
+  "Home": [
+    "examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.home.70f8bb9a8a"
+  ],
+  "Horizontal, vertical, hairline, insets, thickness, color": [
+    "examples.hub.fkdividerexampleshubviewcontroller.0.subtitle"
+  ],
+  "Host screen title": [
+    "examples.scenario.examples_fkuikit_pagingcontroller_scenarios_plac.host_screen_title.1d9a2aafa4"
+  ],
+  "Hosted": [
+    "examples.scenario.examples_fkuikit_refresh_scenarios_fkrefreshhost.hosted.87d635c3e6"
+  ],
+  "Hosted view adapter": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.8.title"
+  ],
+  "I18N & Accessibility": [
+    "examples.scenario.examples_fkuikit_textfield_scenarios_fktextfield.i18n_accessibility.874d1f3ff1"
+  ],
+  "I18N & accessibility": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.8.title"
+  ],
+  "ID selection": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.11.title"
+  ],
+  "Icon presets": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.3.title"
+  ],
+  "Image Blur": [
+    "examples.hub.fkblurexampleshubviewcontroller.8.title"
+  ],
+  "Image Blur (UIImage)": [
+    "examples.scenario.examples_fkuikit_blurview_scenarios_fkblurexampl.image_blur_uiimage.b3d3bf51b6"
+  ],
+  "Inbox": [
+    "examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.inbox.44caf74675"
+  ],
+  "Indicator advanced": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_integration_fk.indicator_advanced.923dd8ef19"
+  ],
+  "Indicator and animation": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_indicator_fkta.indicator_and_animation.84eeb71df2"
+  ],
+  "Indicator layout": [
+    "examples.scenario.examples_fkuikit_refresh_scenarios_fkrefreshcont.indicator_layout.6485c63525"
+  ],
+  "Indicator only (spinner)": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.9.title"
+  ],
+  "Indicator progress": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_indicator_fkta.indicator_progress.5b65d78087"
+  ],
+  "Indicator — Reduce Motion": [
+    "examples.hub.fktabbarexampleshubviewcontroller.16.title"
+  ],
+  "Indicator — advanced customization": [
+    "examples.hub.fktabbarexampleshubviewcontroller.14.title"
+  ],
+  "Indicator — paging progress (slider)": [
+    "examples.hub.fktabbarexampleshubviewcontroller.15.title"
+  ],
+  "Indicator — styles & animation": [
+    "examples.hub.fktabbarexampleshubviewcontroller.13.title"
+  ],
+  "Inline `lyricsText` with timestamp parsing.": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.9.subtitle"
+  ],
+  "Insets & spacing": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_layout_fktabba.insets_spacing.b683e029f3"
+  ],
+  "Inspired by apps": [
+    "examples.scenario.examples_fkuikit_refresh_inspired_hub_fkrefreshi.inspired_by_apps.c16c317e7f"
+  ],
+  "Integration": [
+    "examples.hub.fki18nexampleshubviewcontroller.6.title"
+  ],
+  "Integration — DataSource": [
+    "examples.hub.fktabbarexampleshubviewcontroller.29.title"
+  ],
+  "Integration — SwiftUI representable": [
+    "examples.hub.fktabbarexampleshubviewcontroller.34.title"
+  ],
+  "Integration — anchor button": [
+    "examples.hub.fktabbarexampleshubviewcontroller.33.title"
+  ],
+  "Integration — custom badge": [
+    "examples.hub.fktabbarexampleshubviewcontroller.28.title"
+  ],
+  "Integration — customization hooks": [
+    "examples.hub.fktabbarexampleshubviewcontroller.24.title"
+  ],
+  "Integration — empty state": [
+    "examples.hub.fktabbarexampleshubviewcontroller.31.title"
+  ],
+  "Integration — long press": [
+    "examples.hub.fktabbarexampleshubviewcontroller.27.title"
+  ],
+  "Integration — non-scrollable overflow": [
+    "examples.hub.fktabbarexampleshubviewcontroller.30.title"
+  ],
+  "Integration — performBatchUpdates": [
+    "examples.hub.fktabbarexampleshubviewcontroller.25.title"
+  ],
+  "Integration — selection telemetry": [
+    "examples.hub.fktabbarexampleshubviewcontroller.32.title"
+  ],
+  "Integration — stable ID APIs": [
+    "examples.hub.fktabbarexampleshubviewcontroller.26.title"
+  ],
+  "Interaction": [
+    "examples.hub.fkbuttonexampleshubviewcontroller.2.title"
+  ],
+  "Interactive": [
+    "examples.scenario.examples_fkuikit_ratingcontrol_scenarios_fkratin.interactive.a9abf5059b"
+  ],
+  "Interactive playground": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.12.title"
+  ],
+  "Interactive progress callback": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.17.title"
+  ],
+  "Interactive stars": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.0.title"
+  ],
+  "Interface Builder": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.10.title"
+  ],
+  "Intrinsic widths + horizontal scrolling + auto-scroll to keep selection visible.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.10.subtitle"
+  ],
+  "Item insets": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_layout_fktabba.item_insets.21aac5f743"
+  ],
+  "Keyboard & scrolling": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.7.title"
+  ],
+  "Keyboard Interaction": [
+    "examples.scenario.examples_fkuikit_textfield_scenarios_fktextfield.keyboard_interaction.64cdf421b9"
+  ],
+  "Keyboard avoidance strategies": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.40.title"
+  ],
+  "Keyboard inset adjustments": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.7.subtitle"
+  ],
+  "Label + text view": [
+    "examples.hub.fkexpandabletextexampleshubviewcontroller.7.subtitle"
+  ],
+  "Language Switcher": [
+    "examples.hub.fki18nexampleshubviewcontroller.0.title"
+  ],
+  "Large Title + Keyboard": [
+    "examples.scenario.examples_fkuikit_refresh_scenarios_fkrefreshcomp.large_title_keyboard.974a1e882c"
+  ],
+  "Layout & content": [
+    "examples.hub.fkbuttonexampleshubviewcontroller.1.title"
+  ],
+  "Layout & spacing": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.6.title"
+  ],
+  "Layout behavior": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.10.title"
+  ],
+  "Layout — content alignment": [
+    "examples.hub.fktabbarexampleshubviewcontroller.5.title"
+  ],
+  "Layout — custom spacing": [
+    "examples.hub.fktabbarexampleshubviewcontroller.8.title"
+  ],
+  "Layout — global subtitle": [
+    "examples.hub.fktabbarexampleshubviewcontroller.9.title"
+  ],
+  "Layout — insets & spacing": [
+    "examples.hub.fktabbarexampleshubviewcontroller.6.title"
+  ],
+  "Layout — itemInsets": [
+    "examples.hub.fktabbarexampleshubviewcontroller.4.title"
+  ],
+  "Layout — scroll edge fade": [
+    "examples.hub.fktabbarexampleshubviewcontroller.7.title"
+  ],
+  "Lazy incremental tab updates and invalidatePage without full setContent.": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.15.subtitle"
+  ],
+  "Lazy pages & lifecycle": [
+    "examples.scenario.examples_fkuikit_pagingcontroller_scenarios_fkpa.lazy_pages_lifecycle.60361612ce"
+  ],
+  "Lazy pages (UIKit)": [
+    "examples.hub.fkpagingcontrollerexampleshubviewcontroller.18.title"
+  ],
+  "Lazy-load an accessory view and icon-only edge case": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.7.subtitle"
+  ],
+  "Left/right/top/bottom edge-attached trays without detents.": [
+    "examples.hub.fksheetpresentationcontrollerexampleshubviewcont.5.subtitle"
+  ],
+  "Light/Dark, Dynamic Type, rotation, keyboard avoidance": [
+    "examples.hub.fktoastexampleshubviewcontroller.5.subtitle"
+  ],
+  "Line styles & gradients": [
+    "examples.hub.fkdividerexampleshubviewcontroller.1.title"
+  ],
+  "Lists": [
+    "examples.hub.fkcornershadowexampleshubviewcontroller.2.title"
+  ],
+  "Live HLS": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.5.title"
+  ],
+  "Live Update": [
+    "examples.hub.fktoastexampleshubviewcontroller.2.title"
+  ],
+  "Live Updates": [
+    "examples.scenario.examples_fkuikit_actionsheet_scenarios_fkactions.live_updates.0bdeab2a4f"
+  ],
+  "Live badge, go-live, optional LL-HLS debug overlay.": [
+    "examples.hub.fkvideoplayerexampleshubviewcontroller.5.subtitle"
+  ],
+  "Live controls for itemSpacing, itemInsets (FKButton padding), contentInsets, and contentAlignment.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.6.subtitle"
+  ],
+  "Live preview of major configuration groups.": [
+    "examples.hub.fkratingcontrolexampleshubviewcontroller.6.subtitle"
+  ],
+  "Live switches, segments, and sliders for configuration": [
+    "examples.hub.fkcalloutexampleshubviewcontroller.12.subtitle"
+  ],
+  "Live updates": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.9.title"
+  ],
+  "Load a FKBlurView from a XIB": [
+    "examples.hub.fkblurexampleshubviewcontroller.15.subtitle"
+  ],
+  "Loading": [
+    "examples.hub.fkbuttonexampleshubviewcontroller.4.title"
+  ],
+  "Loading -> Empty": [
+    "examples.scenario.examples_fkuikit_emptystate_advanced_fkemptystat.loading_empty.6576fa304f"
+  ],
+  "Loading Content": [
+    "examples.scenario.examples_fkuikit_actionsheet_scenarios_fkactions.loading_content.dd95d0905d"
+  ],
+  "Loading content": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.10.title"
+  ],
+  "Loading helpers": [
+    "examples.hub.fkskeletonexampleshubviewcontroller.3.title"
+  ],
+  "Loading placeholder -> empty": [
+    "examples.hub.fkemptystateexampleshubviewcontroller.5.title"
+  ],
+  "Loading, progress, success/failure, blocking and timeout": [
+    "examples.hub.fktoastexampleshubviewcontroller.3.subtitle"
+  ],
+  "Loads `sample.lrc` from the example bundle.": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.8.subtitle"
+  ],
+  "Locale strings, RTL, Dynamic Type, VoiceOver": [
+    "examples.hub.fktextfieldexampleshubviewcontroller.8.subtitle"
+  ],
+  "Localization": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.6.title"
+  ],
+  "Localization + accessibility": [
+    "examples.hub.fkrefreshexampleshubviewcontroller.16.title"
+  ],
+  "Localized tab titles for string measurement and layout verification.": [
+    "examples.hub.fktabbarexampleshubviewcontroller.23.subtitle"
+  ],
+  "Lock device to see system transport on the lock screen.": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.18.subtitle"
+  ],
+  "Lock screen": [
+    "examples.scenario.examples_fkuikit_player_audioplayer_scenarios_in.lock_screen.6e2b667afd"
+  ],
+  "Lock screen Now Playing": [
+    "examples.hub.fkaudioplayerexampleshubviewcontroller.18.title"
+  ],
+  "Logging": [
+    "examples.hub.fkpluggableexampleshubviewcontroller.8.title"
+  ],
+  "Long List & Scroll": [
+    "examples.scenario.examples_fkuikit_actionsheet_scenarios_fkactions.long_list_scroll.34e6c98500"
+  ],
+  "Long list & scroll": [
+    "examples.hub.fkactionsheetexampleshubviewcontroller.6.title"
+  ],
+  "Long press": [
+    "examples.scenario.examples_fkuikit_tabbar_scenarios_layout_fktabba.long_press.878a9360bb"
+  ]
+}

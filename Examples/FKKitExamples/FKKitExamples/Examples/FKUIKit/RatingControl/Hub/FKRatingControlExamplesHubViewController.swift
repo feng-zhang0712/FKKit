@@ -1,5 +1,6 @@
 import FKUIKit
 import UIKit
+import FKCoreKit
 
 /// Lists ``FKRatingControl`` example screens.
 final class FKRatingControlExamplesHubViewController: UITableViewController {
@@ -25,73 +26,73 @@ final class FKRatingControlExamplesHubViewController: UITableViewController {
   }
 
   private lazy var sections: [DemoSection] = [
-    DemoSection(title: "Basics", items: [
+    DemoSection(title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.0.title"), items: [
       DemoItem(
-        title: "Interactive stars",
-        subtitle: "Tap and drag, whole vs half steps, live value readout.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.0.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.0.subtitle"),
         factory: { FKRatingExampleInteractiveViewController() }
       ),
       DemoItem(
-        title: "Read-only display",
-        subtitle: "Product-style 4.5★ summary and review list rows.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.1.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.1.subtitle"),
         factory: { FKRatingExampleReadOnlyViewController() }
       ),
       DemoItem(
-        title: "Convenience factories",
-        subtitle: "`readOnlyStars` and `interactiveStars` helpers.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.2.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.2.subtitle"),
         factory: { FKRatingExampleConvenienceViewController() }
       ),
     ]),
     DemoSection(title: "Icons & labels", items: [
       DemoItem(
-        title: "Icon presets",
-        subtitle: "Star, heart, and thumb SF Symbol presets.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.3.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.3.subtitle"),
         factory: { FKRatingExampleIconPresetsViewController() }
       ),
       DemoItem(
-        title: "Custom symbols & images",
-        subtitle: "`.symbols` and `.images` icon styles.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.4.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.4.subtitle"),
         factory: { FKRatingExampleCustomIconsViewController() }
       ),
       DemoItem(
-        title: "Value caption",
-        subtitle: "Trailing, bottom, prefix/suffix, and custom label text.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.5.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.5.subtitle"),
         factory: { FKRatingExampleLabelPlacementViewController() }
       ),
     ]),
-    DemoSection(title: "Interaction", items: [
+    DemoSection(title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.2.title"), items: [
       DemoItem(
-        title: "Playground",
-        subtitle: "Live preview of major configuration groups.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.6.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.6.subtitle"),
         factory: { FKRatingExamplePlaygroundViewController() }
       ),
       DemoItem(
-        title: "Modes & feedback",
-        subtitle: "Disabled, tap-only, haptics, and selection animation.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.7.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.7.subtitle"),
         factory: { FKRatingExampleInteractionModesViewController() }
       ),
     ]),
-    DemoSection(title: "Integration", items: [
+    DemoSection(title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.6.title"), items: [
       DemoItem(
-        title: "Center sheet + rating",
-        subtitle: "FKSheetPresentationController `.center` with quick rate, feedback, and App Store prompts.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.8.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.8.subtitle"),
         factory: { FKRatingExampleSheetIntegrationViewController() }
       ),
       DemoItem(
-        title: "Delegate event log",
-        subtitle: "`FKRatingControlDelegate` and `onValueChanged`.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.9.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.9.subtitle"),
         factory: { FKRatingExampleDelegateLogViewController() }
       ),
       DemoItem(
-        title: "SwiftUI bridge",
-        subtitle: "`FKRatingControlRepresentable` bindings.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.10.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.10.subtitle"),
         factory: { FKRatingExampleSwiftUIViewController() }
       ),
     ]),
     DemoSection(title: "Layout & accessibility", items: [
       DemoItem(
-        title: "RTL & VoiceOver copy",
-        subtitle: "Forced RTL and custom accessibility strings.",
+        title: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.11.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkratingcontrolexampleshubviewcontroller.11.subtitle"),
         factory: { FKRatingExampleEnvironmentViewController() }
       ),
     ]),

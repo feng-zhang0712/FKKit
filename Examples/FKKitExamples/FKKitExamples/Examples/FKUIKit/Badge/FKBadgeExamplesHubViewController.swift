@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 
 /// Table of links into focused FKBadge demo screens.
 final class FKBadgeExamplesHubViewController: UITableViewController {
@@ -11,23 +12,23 @@ final class FKBadgeExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: "Basics & numbers",
-      subtitle: "Appearance, dot, counts, text",
+      title: FKExamplesI18n.string("examples.hub.fkbadgeexampleshubviewcontroller.0.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbadgeexampleshubviewcontroller.0.subtitle"),
       controllerType: FKBadgeExampleBasicsViewController.self
     ),
     Row(
-      title: "Anchors & layout",
-      subtitle: "Corners, grid, offset slider",
+      title: FKExamplesI18n.string("examples.hub.fkbadgeexampleshubviewcontroller.1.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbadgeexampleshubviewcontroller.1.subtitle"),
       controllerType: FKBadgeExampleAnchorsViewController.self
     ),
     Row(
-      title: "Appearance & behavior",
-      subtitle: "Styling, visibility, animations, parsing",
+      title: FKExamplesI18n.string("examples.hub.fkbadgeexampleshubviewcontroller.2.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbadgeexampleshubviewcontroller.2.subtitle"),
       controllerType: FKBadgeExampleAppearanceViewController.self
     ),
     Row(
-      title: "System integration",
-      subtitle: "Tab bar item, bar button pattern, RTL",
+      title: FKExamplesI18n.string("examples.hub.fkbadgeexampleshubviewcontroller.3.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fkbadgeexampleshubviewcontroller.3.subtitle"),
       controllerType: FKBadgeExampleIntegrationViewController.self
     ),
   ]

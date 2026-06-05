@@ -58,17 +58,21 @@ FKKit/
 │  └─ FKCoreKitTests/
 ├─ Sources/
 │  ├─ FKCoreKit/
-│  │  ├─ Async/
-│  │  ├─ BusinessKit/
-│  │  ├─ Extension/
-│  │  ├─ FileManager/
-│  │  ├─ Logger/
-│  │  ├─ Network/
-│  │  ├─ Permissions/
-│  │  ├─ Pluggable/
-│  │  ├─ Security/
-│  │  ├─ Storage/
-│  │  └─ Utils/
+│  │  ├─ Components/
+│  │  │  ├─ Async/
+│  │  │  ├─ BusinessKit/
+│  │  │  ├─ Extension/
+│  │  │  ├─ FileManager/
+│  │  │  ├─ I18n/
+│  │  │  ├─ Logger/
+│  │  │  ├─ Network/
+│  │  │  ├─ Permissions/
+│  │  │  ├─ Pluggable/
+│  │  │  ├─ Security/
+│  │  │  ├─ Storage/
+│  │  │  └─ Utils/
+│  │  ├─ Core/
+│  │  └─ Resources/
 │  └─ FKUIKit/
 │     ├─ Components/
 │     │  ├─ ActionSheet/
@@ -99,9 +103,9 @@ FKKit/
 ## Core Components
 
 ### FKCoreKit
-`FKCoreKit` provides foundational capabilities used across app layers:
+`FKCoreKit` provides foundational capabilities under `Components/` used across app layers:
 
-- `Pluggable`: protocol-only contracts for dependency injection (networking, analytics, storage, session, routing, logging, images, list cells). See [`Sources/FKCoreKit/Pluggable/README.md`](Sources/FKCoreKit/Pluggable/README.md).
+- `Pluggable`: protocol-only contracts for dependency injection (networking, analytics, storage, session, routing, logging, images, list cells). See [`Sources/FKCoreKit/Components/Pluggable/README.md`](Sources/FKCoreKit/Components/Pluggable/README.md).
 - `Network`: URLSession-based networking stack (request models, interceptors, caching, upload/download helpers).
 - `Storage`: multi-backend storage abstraction (UserDefaults, Keychain, file, memory) with Codable support.
 - `Logger`: structured logging, formatting, file persistence, and diagnostics helpers.
@@ -115,7 +119,7 @@ FKKit/
 
 ### FKCoreKit: Extension vs Utils
 
-Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: [`docs/EXTENSION_VS_UTILS.md`](docs/EXTENSION_VS_UTILS.md).
+Use **`Components/Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Components/Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: [`docs/EXTENSION_VS_UTILS.md`](docs/EXTENSION_VS_UTILS.md).
 
 ### FKUIKit
 `FKUIKit` contains reusable UIKit components for modern iOS interfaces. Each folder under `Components/` is a self-contained module; most ship a colocated **`README.md`** with layout maps, configuration defaults, and usage snippets. The list below is a high-level index only.

@@ -52,3 +52,12 @@ public enum FKAudioLyricsParser {
     return index
   }
 }
+
+extension FKAudioLyricsParser.ParserError: LocalizedError {
+  public var errorDescription: String? {
+    switch self {
+    case .invalidEncoding:
+      return FKUIKitI18n.string("fkuikit.audio.lyrics.error.invalid_encoding")
+    }
+  }
+}

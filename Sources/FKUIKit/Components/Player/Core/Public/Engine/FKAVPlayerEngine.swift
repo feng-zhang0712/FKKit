@@ -170,7 +170,7 @@ public final class FKAVPlayerEngine: FKMediaPlayerEngine {
   }
 
   public func seek(to time: TimeInterval) async throws {
-    guard let player else { throw FKMediaError.invalidState("No active player") }
+    guard let player else { throw FKMediaError.invalidState(FKUIKitI18n.string("fkuikit.media.error.no_active_player")) }
     let cmTime = CMTime(seconds: time, preferredTimescale: 600)
     let finished = await player.seek(to: cmTime, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
     if !finished {
@@ -181,7 +181,7 @@ public final class FKAVPlayerEngine: FKMediaPlayerEngine {
 
   public func seekToLiveEdge() async throws {
     guard let item = player?.currentItem else {
-      throw FKMediaError.invalidState("No current item")
+      throw FKMediaError.invalidState(FKUIKitI18n.string("fkuikit.media.error.no_current_item"))
     }
     guard let range = item.seekableTimeRanges.last?.timeRangeValue else {
       throw FKMediaError.seekFailed
@@ -323,7 +323,7 @@ public final class FKAVPlayerEngine: FKMediaPlayerEngine {
       }
       group.addTask {
         try await Task.sleep(nanoseconds: timeoutNanoseconds)
-        throw FKMediaError.engineFailed(engine: .avFoundation, message: "Timed out waiting for player item")
+        throw FKMediaError.engineFailed(engine: .avFoundation, message: FKUIKitI18n.string("fkuikit.media.error.playback_timeout"))
       }
       try await group.next()
       group.cancelAll()
@@ -334,7 +334,7 @@ public final class FKAVPlayerEngine: FKMediaPlayerEngine {
     guard let player else { return }
 
     if let item = player.currentItem, item.status == .failed {
-      let error = FKMediaErrorMapper.mapPlayerItemError(item.error) ?? .engineFailed(engine: .avFoundation, message: "Playback failed")
+      let error = FKMediaErrorMapper.mapPlayerItemError(item.error) ?? .engineFailed(engine: .avFoundation, message: FKUIKitI18n.string("fkuikit.media.error.playback_failed"))
       state = .failed(error)
       return
     }
@@ -406,7 +406,7 @@ private final class PlayerItemStatusWaiter: @unchecked Sendable {
         }
       case .failed:
         let error = FKMediaErrorMapper.mapPlayerItemError(item.error)
-          ?? .engineFailed(engine: .avFoundation, message: "Item failed")
+          ?? .engineFailed(engine: .avFoundation, message: FKUIKitI18n.string("fkuikit.media.error.item_failed"))
         self.finish(observationCleanup: true) {
           continuation.resume(throwing: error)
         }

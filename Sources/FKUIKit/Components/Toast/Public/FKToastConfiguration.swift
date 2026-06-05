@@ -12,7 +12,11 @@ public struct FKToastLocalizedText: Sendable, Equatable {
   public var loadingText: String
 
   /// Creates a localization payload that can be replaced by app-level strings.
-  public init(dismissAction: String = "Dismiss", retryAction: String = "Retry", loadingText: String = "Loading…") {
+  public init(
+    dismissAction: String = FKUIKitI18n.string("fkuikit.common.dismiss"),
+    retryAction: String = FKUIKitI18n.string("fkuikit.common.retry"),
+    loadingText: String = FKUIKitI18n.string("fkuikit.common.loading")
+  ) {
     self.dismissAction = dismissAction
     self.retryAction = retryAction
     self.loadingText = loadingText

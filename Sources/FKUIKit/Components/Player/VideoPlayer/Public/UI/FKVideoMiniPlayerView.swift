@@ -134,7 +134,7 @@ public final class FKVideoMiniPlayerView: UIView {
   }
 
   public func reload(for item: FKVideoItem?) {
-    titleLabel.text = item?.title ?? "Video"
+    titleLabel.text = item?.title ?? FKUIKitI18n.string("fkuikit.video.unknown_title")
     let live = player?.isLive == true
     subtitleLabel.text = live ? FKVideoPlayerStrings.live : nil
     subtitleLabel.isHidden = subtitleLabel.text == nil

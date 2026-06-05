@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 import FKUIKit
 
 final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewController {
@@ -41,7 +42,7 @@ final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewCont
     rtl.textAlignment = .right
     addField(title: "RTL forced phone field", field: rtl, ruleHint: "Allowed: digits only. Layout is forced RTL.")
 
-    addSection(title: "Dynamic Type", note: "Uses preferred text styles and supports larger content sizes without truncation.")
+    addSection(title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_scenarios_accessibility_.dynamic_type.95b790ad62"), note: "Uses preferred text styles and supports larger content sizes without truncation.")
     var dynamicConfig = FKTextFieldConfiguration(inputRule: FKTextFieldInputRule(formatType: .alphaNumeric))
     dynamicConfig.style.font = .preferredFont(forTextStyle: .title3)
     dynamicConfig.style.placeholderFont = .preferredFont(forTextStyle: .title3)

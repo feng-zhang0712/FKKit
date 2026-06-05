@@ -1,5 +1,6 @@
 import FKUIKit
 import UIKit
+import FKCoreKit
 
 /// Lists ``FKProgressBar`` example screens.
 final class FKProgressBarExamplesHubViewController: UITableViewController {
@@ -25,39 +26,39 @@ final class FKProgressBarExamplesHubViewController: UITableViewController {
   }
 
   private lazy var sections: [DemoSection] = [
-    DemoSection(title: "Interactive", items: [
+    DemoSection(title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_ratingcontrol_scenarios_fkratin.interactive.a9abf5059b"), items: [
       DemoItem(
-        title: "Playground (full configuration)",
-        subtitle: "All public knobs on one live bar.",
+        title: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.0.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.0.subtitle"),
         factory: { FKProgressBarPlaygroundDemoViewController() }
       ),
       DemoItem(
-        title: "Progress as button",
-        subtitle: "UIControl actions, custom titles, touch target and haptics.",
+        title: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.1.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.1.subtitle"),
         factory: { FKProgressBarProgressButtonDemoViewController() }
       ),
       DemoItem(
-        title: "Preset gallery",
-        subtitle: "Side-by-side product-style presets.",
+        title: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.2.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.2.subtitle"),
         factory: { FKProgressBarGalleryDemoViewController() }
       ),
     ]),
-    DemoSection(title: "Integration", items: [
+    DemoSection(title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.6.title"), items: [
       DemoItem(
-        title: "Delegate event log",
-        subtitle: "Delegate callbacks with timestamps.",
+        title: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.3.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.3.subtitle"),
         factory: { FKProgressBarDelegateLogDemoViewController() }
       ),
       DemoItem(
-        title: "SwiftUI bridge",
-        subtitle: "`FKProgressBarView` and bindings.",
+        title: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.4.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.4.subtitle"),
         factory: { FKProgressBarSwiftUIDemoViewController() }
       ),
     ]),
     DemoSection(title: "Layout & accessibility", items: [
       DemoItem(
-        title: "RTL, semantics & VoiceOver copy",
-        subtitle: "Forced RTL and custom accessibility strings.",
+        title: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.5.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.5.subtitle"),
         factory: { FKProgressBarEnvironmentDemoViewController() }
       ),
     ]),

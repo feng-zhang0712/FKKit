@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 
 final class FKTabBarExamplesHubViewController: UITableViewController {
   // MARK: - Navigation shell (TabBar)
@@ -22,26 +23,26 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
 
   private let sections: [SectionModel] = [
     SectionModel(
-      title: "Basic",
+      title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_scenarios_basics_fktabba.basic.aa2c96dacf"),
       rows: [
         RowModel(
-          title: "Basic playground (recommended)",
-          subtitle: "One page: fixedEqual vs scrollable, enabled=false, programmatic select notify, and reload(items:).",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.0.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.0.subtitle"),
           make: { FKTabBarBasicPlaygroundExampleViewController() }
         ),
         RowModel(
-          title: "Basic — content types",
-          subtitle: "Text/symbol/image/custom content + intrinsicWidthMeasurement toggle (normalStateOnly vs adjustsOnSelection).",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.1.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.1.subtitle"),
           make: { FKTabBarContentTypesExampleViewController() }
         ),
         RowModel(
-          title: "Basic — filter strip preset",
-          subtitle: "filterStrip preset, per-tab trailing icon animations, expandedItemID, pending selection.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.2.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.2.subtitle"),
           make: { FKTabBarFilterStripExampleViewController() }
         ),
         RowModel(
-          title: "Basic — presets",
-          subtitle: "Compare pagerHeader, segmentedControl, filterStrip, and bottomDocked factories.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.3.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.3.subtitle"),
           make: { FKTabBarPresetsExampleViewController() }
         ),
       ]
@@ -50,33 +51,33 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
       title: "Layout & insets",
       rows: [
         RowModel(
-          title: "Layout — itemInsets",
-          subtitle: "Single per-tab padding knob; pairs with indicator trackContentFrame.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.4.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.4.subtitle"),
           make: { FKTabBarItemInsetsExampleViewController() }
         ),
         RowModel(
-          title: "Layout — content alignment",
-          subtitle: "Non-scrollable strip: leading, center, trailing when items fit without scrolling.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.5.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.5.subtitle"),
           make: { FKTabBarContentAlignmentExampleViewController() }
         ),
         RowModel(
-          title: "Layout — insets & spacing",
-          subtitle: "Live controls for itemSpacing, itemInsets (FKButton padding), contentInsets, and contentAlignment.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.6.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.6.subtitle"),
           make: { FKTabBarInsetsSpacingExampleViewController() }
         ),
         RowModel(
-          title: "Layout — scroll edge fade",
-          subtitle: "Toggle scrollEdgeFade width and enabled state on a scrollable strip.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.7.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.7.subtitle"),
           make: { FKTabBarScrollEdgeFadeExampleViewController() }
         ),
         RowModel(
-          title: "Layout — custom spacing",
-          subtitle: "customSpacing(after:) with per-index gaps via internal flow layout.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.8.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.8.subtitle"),
           make: { FKTabBarCustomSpacingExampleViewController() }
         ),
         RowModel(
-          title: "Layout — global subtitle",
-          subtitle: "appearance.subtitleConfiguration fallback when item.subtitle is nil.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.9.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.9.subtitle"),
           make: { FKTabBarGlobalSubtitleExampleViewController() }
         ),
       ]
@@ -85,18 +86,18 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
       title: "Scrollable",
       rows: [
         RowModel(
-          title: "Scrollable — 10+ tabs",
-          subtitle: "Intrinsic widths + horizontal scrolling + auto-scroll to keep selection visible.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.10.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.10.subtitle"),
           make: { FKTabBarScrollableManyTabsExampleViewController() }
         ),
         RowModel(
-          title: "Scrollable — overflow strategies",
-          subtitle: "Compares truncate/shrink/auto/fixed for long titles (Dynamic Type friendly).",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.11.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.11.subtitle"),
           make: { FKTabBarLongTitleStrategyExampleViewController() }
         ),
         RowModel(
-          title: "Scrollable — width & alignment matrix",
-          subtitle: "Scroll target: minimal/center/leading/trailing + width strategies.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.12.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.12.subtitle"),
           make: { FKTabBarScrollAndWidthStrategyExampleViewController() }
         ),
       ]
@@ -105,48 +106,48 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
       title: "Indicator",
       rows: [
         RowModel(
-          title: "Indicator — styles & animation",
-          subtitle: "Switch indicator styles and animation strategies; stress-tap to verify stability.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.13.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.13.subtitle"),
           make: { FKTabBarIndicatorAnimationExampleViewController() }
         ),
         RowModel(
-          title: "Indicator — advanced customization",
-          subtitle: "indicatorZOrder, indicatorFollowMode, renderCustomIndicator, customIndicatorFrame.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.14.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.14.subtitle"),
           make: { FKTabBarIndicatorAdvancedExampleViewController() }
         ),
         RowModel(
-          title: "Indicator — paging progress (slider)",
-          subtitle: "Drives setSelectionProgress(from:to:progress:) to simulate external pager scroll.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.15.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.15.subtitle"),
           make: { FKTabBarPagingProgressExampleViewController() }
         ),
         RowModel(
-          title: "Indicator — Reduce Motion",
-          subtitle: "Shows animation downgrade behavior when Reduce Motion is enabled.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.16.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.16.subtitle"),
           make: { FKTabBarReduceMotionExampleViewController() }
         ),
       ]
     ),
     SectionModel(
-      title: "Badge",
+      title: FKExamplesI18n.string("examples.menu.item.badge.6d12c8adbe"),
       rows: [
         RowModel(
-          title: "Badge — anchors & rotation",
-          subtitle: "Verifies FKBadge mapping, anchors, offsets, and rotation stability.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.17.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.17.subtitle"),
           make: { FKTabBarBadgeAnchorAndLandscapeExampleViewController() }
         ),
         RowModel(
-          title: "Badge — dynamic updates (99+)",
-          subtitle: "Shows dot/number/none/custom and local badge updates without full reload.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.18.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.18.subtitle"),
           make: { FKTabBarBadgeUpdatesExampleViewController() }
         ),
       ]
     ),
     SectionModel(
-      title: "Replace UITabBar",
+      title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_scenarios_replaceuitabba.replace_uitabbar.b18a70f7ff"),
       rows: [
         RowModel(
-          title: "Bottom-docked bar",
-          subtitle: "Pins FKTabBar to bottom and compares safe-area height policy, blur/solid background, divider & shadow.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.19.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.19.subtitle"),
           make: { FKTabBarReplaceUITabBarExampleViewController() }
         ),
       ]
@@ -155,87 +156,87 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
       title: "RTL / Dynamic Type / Accessibility",
       rows: [
         RowModel(
-          title: "RTL — layout direction + mirroring",
-          subtitle: "Scrollable strip, itemLayoutDirection, rtlBehavior, semantic RTL, and auto-scroll checklist.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.20.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.20.subtitle"),
           make: { FKTabBarRTLExampleViewController() }
         ),
         RowModel(
-          title: "Dynamic Type — large text strategies",
-          subtitle: "Switches largeTextLayoutStrategy (truncate/shrink/wrap/wrap+height) for accessibility categories.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.21.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.21.subtitle"),
           make: { FKTabBarDynamicTypeExampleViewController() }
         ),
         RowModel(
-          title: "Accessibility — VoiceOver checklist",
-          subtitle: "Validates selected/disabled/badge announcements using per-item state and local badge updates.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.22.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.22.subtitle"),
           make: { FKTabBarAccessibilityExampleViewController() }
         ),
         RowModel(
-          title: "i18n titles",
-          subtitle: "Localized tab titles for string measurement and layout verification.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.23.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.23.subtitle"),
           make: { FKTabBarI18nA11yExampleViewController() }
         ),
       ]
     ),
     SectionModel(
-      title: "Integration",
+      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.6.title"),
       rows: {
         var rows = [
           RowModel(
-            title: "Integration — customization hooks",
-            subtitle: "animateInteraction, trailing icon accessory, shouldSelect closure, badgeConfiguration, badgeAnimation.",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.24.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.24.subtitle"),
             make: { FKTabBarCustomizationHooksExampleViewController() }
           ),
           RowModel(
-            title: "Integration — performBatchUpdates",
-            subtitle: "Single layout pass for configuration + badge changes.",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.25.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.25.subtitle"),
             make: { FKTabBarBatchUpdatesExampleViewController() }
           ),
           RowModel(
-            title: "Integration — stable ID APIs",
-            subtitle: "setSelectedIndex(forItemID:), setBadge(forItemID:), setItem(forItemID:), reapplyVisibleItemConfigurations().",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.26.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.26.subtitle"),
             make: { FKTabBarStableIDExampleViewController() }
           ),
           RowModel(
-            title: "Integration — long press",
-            subtitle: "isLongPressEnabled, onLongPress, resolvedTitlePresentationForCurrentEnvironment().",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.27.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.27.subtitle"),
             make: { FKTabBarLongPressExampleViewController() }
           ),
           RowModel(
-            title: "Integration — custom badge",
-            subtitle: "FKTabBarBadgeContent.custom + customBadgeView(for:).",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.28.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.28.subtitle"),
             make: { FKTabBarCustomBadgeExampleViewController() }
           ),
           RowModel(
-            title: "Integration — DataSource",
-            subtitle: "Dynamic item supply via FKTabBarDataSource + reloadData().",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.29.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.29.subtitle"),
             make: { FKTabBarDataSourceExampleViewController() }
           ),
           RowModel(
-            title: "Integration — non-scrollable overflow",
-            subtitle: "Shrink / truncate / clip + resolvedLayoutHintsForCurrentEnvironment() snapshot.",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.30.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.30.subtitle"),
             make: { FKTabBarNonScrollableOverflowExampleViewController() }
           ),
           RowModel(
-            title: "Integration — empty state",
-            subtitle: "layout.emptyStateMessage placeholder when the visible strip is empty.",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.31.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.31.subtitle"),
             make: { FKTabBarEmptyStateExampleViewController() }
           ),
           RowModel(
-            title: "Integration — selection telemetry",
-            subtitle: "selectionSnapshot, selectedItemID, and onSelectionProgress logging.",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.32.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.32.subtitle"),
             make: { FKTabBarSelectionObservabilityExampleViewController() }
           ),
           RowModel(
-            title: "Integration — anchor button",
-            subtitle: "visibleItemButton(at:) for callout / menu anchoring.",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.33.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.33.subtitle"),
             make: { FKTabBarVisibleItemButtonExampleViewController() }
           ),
         ]
         #if canImport(SwiftUI)
         rows.append(
           RowModel(
-            title: "Integration — SwiftUI representable",
-            subtitle: "FKTabBarRepresentable — controlled mode, progress callback, and progress Binding.",
+            title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.34.title"),
+            subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.34.subtitle"),
             make: { FKTabBarSwiftUIExampleViewController() }
           )
         )
@@ -244,31 +245,31 @@ final class FKTabBarExamplesHubViewController: UITableViewController {
       }()
     ),
     SectionModel(
-      title: "Performance",
+      title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_scenarios_performance_fk.performance.63c9045599"),
       rows: [
         RowModel(
-          title: "Many items + frequent updates",
-          subtitle: "Generates 50/100/200 tabs and performs frequent local badge updates to avoid reloadData().",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.35.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.35.subtitle"),
           make: { FKTabBarPerformanceExampleViewController() }
         ),
       ]
     ),
     SectionModel(
-      title: "Dynamic data",
+      title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_scenarios_dynamic_fktabb.dynamic_data.bff8b6fd49"),
       rows: [
         RowModel(
-          title: "Add/remove tabs at runtime",
-          subtitle: "Preserve/reset/nearestAvailable policies and hidden item handling.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.36.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.36.subtitle"),
           make: { FKTabBarDynamicDataExampleViewController() }
         ),
         RowModel(
-          title: "applyChanges + ID diff reload",
-          subtitle: "Batch insert/delete/move/update via applyChanges; reload(items:) with preserveSelection.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.37.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.37.subtitle"),
           make: { FKTabBarApplyChangesExampleViewController() }
         ),
         RowModel(
-          title: "FKUIKit reuse (blur theme)",
-          subtitle: "Reuses FKBlurView and shared appearance tokens.",
+          title: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.38.title"),
+          subtitle: FKExamplesI18n.string("examples.hub.fktabbarexampleshubviewcontroller.38.subtitle"),
           make: { FKTabBarFKUIKitReuseExampleViewController() }
         ),
       ]

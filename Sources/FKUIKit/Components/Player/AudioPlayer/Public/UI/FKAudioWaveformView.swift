@@ -47,7 +47,7 @@ public final class FKAudioWaveformView: UIView {
       return await loadWaveform(from: urlAsset.url, sampleCount: sampleCount)
     }
     clearSamples()
-    return .readFailed("Only URL-based assets are supported for waveform extraction.")
+    return .readFailed(FKUIKitI18n.string("fkuikit.audio.waveform.url_only"))
   }
 
   public override func draw(_ rect: CGRect) {
@@ -73,7 +73,7 @@ public final class FKAudioWaveformView: UIView {
   private func performLoad(url: URL, sampleCount: Int) async -> FKAudioWaveformLoadResult {
     if Task.isCancelled {
       clearSamples()
-      return .readFailed("Cancelled")
+      return .readFailed(FKUIKitI18n.string("fkuikit.common.cancelled"))
     }
 
     do {
@@ -117,7 +117,7 @@ public final class FKAudioWaveformView: UIView {
 
       guard reader.startReading() else {
         clearSamples()
-        return .readFailed(reader.error?.localizedDescription ?? "AVAssetReader could not start.")
+        return .readFailed(reader.error?.localizedDescription ?? FKUIKitI18n.string("fkuikit.audio.waveform.reader_start_failed"))
       }
 
       var values: [Float] = []
@@ -126,7 +126,7 @@ public final class FKAudioWaveformView: UIView {
         if Task.isCancelled {
           reader.cancelReading()
           clearSamples()
-          return .readFailed("Cancelled")
+          return .readFailed(FKUIKitI18n.string("fkuikit.common.cancelled"))
         }
         guard let sampleBuffer = output.copyNextSampleBuffer() else { break }
         appendPCMLevels(from: sampleBuffer, into: &values, limit: sampleBudget)
@@ -134,12 +134,12 @@ public final class FKAudioWaveformView: UIView {
 
       if reader.status == .failed {
         clearSamples()
-        return .readFailed(reader.error?.localizedDescription ?? "AVAssetReader failed.")
+        return .readFailed(reader.error?.localizedDescription ?? FKUIKitI18n.string("fkuikit.audio.waveform.reader_failed"))
       }
 
       guard !values.isEmpty else {
         clearSamples()
-        return .readFailed("No PCM samples were decoded.")
+        return .readFailed(FKUIKitI18n.string("fkuikit.audio.waveform.no_samples"))
       }
 
       let chunk = max(1, values.count / sampleCount)
@@ -151,7 +151,7 @@ public final class FKAudioWaveformView: UIView {
       let peak = peaks.max() ?? 0
       guard peak > 0 else {
         clearSamples()
-        return .readFailed("Waveform peaks are zero.")
+        return .readFailed(FKUIKitI18n.string("fkuikit.audio.waveform.zero_peaks"))
       }
 
       samples = peaks.map { min(1, $0 / peak) }
@@ -160,7 +160,7 @@ public final class FKAudioWaveformView: UIView {
     } catch {
       clearSamples()
       if Task.isCancelled {
-        return .readFailed("Cancelled")
+        return .readFailed(FKUIKitI18n.string("fkuikit.common.cancelled"))
       }
       return .readFailed(error.localizedDescription)
     }

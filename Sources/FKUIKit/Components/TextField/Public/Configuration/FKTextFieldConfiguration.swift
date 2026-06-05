@@ -299,7 +299,7 @@ public struct FKTextFieldClearButtonConfiguration: @unchecked Sendable {
   public init(
     isEnabled: Bool = true,
     image: UIImage? = nil,
-    accessibilityLabel: String = "Clear text",
+    accessibilityLabel: String = FKUIKitI18n.string("fkuikit.textfield.clear_label"),
     resignsFirstResponderOnTap: Bool = false
   ) {
     self.isEnabled = isEnabled
@@ -320,7 +320,7 @@ public struct FKTextFieldPasswordToggleConfiguration: @unchecked Sendable {
     isEnabled: Bool = true,
     hiddenImage: UIImage? = nil,
     visibleImage: UIImage? = nil,
-    accessibilityLabel: String = "Toggle password visibility"
+    accessibilityLabel: String = FKUIKitI18n.string("fkuikit.textfield.toggle_password")
   ) {
     self.isEnabled = isEnabled
     self.hiddenImage = hiddenImage

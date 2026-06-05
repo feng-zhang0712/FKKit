@@ -1,0 +1,746 @@
+$selectedItemID binding plus FKPagingControllerRepresentableCallbacks telemetry.
+A top-attached sheet and common use cases (e.g. drop-down trays).
+API client, interceptors, signing, credentials, token refresh, reachability
+Accessibility
+Accessibility — VoiceOver checklist
+Account menu
+Action menu
+Action sheet style (content-only)
+Actions, swipe dismiss, VoiceOver and announcement
+Adaptive UI
+Adaptive streaming in audio-only presentation mode.
+Adaptive streaming with multi-bitrate selection.
+Add/remove tabs at runtime
+Adjust alpha with a slider and understand readability trade-offs.
+Advanced UI & Callbacks
+Advanced callbacks
+All 11 recommended locales — live greeting, RTL badge, persistence
+All 12 FKCalloutPlacement values and FKCalloutBeakOffset
+All System Styles
+All `FKAudioPlayerDelegate` callbacks.
+All `FKVideoPlayerDelegate` callbacks.
+All public knobs on one live bar.
+Allow or block touches to the presenting UI (powerful but risky).
+Analytics
+Anchor button
+Anchor content replacement
+Anchor popup blur
+Anchor popup blur with dim/material/backend/mode and custom blur controls.
+Anchors & layout
+Animation effects
+App-style simulations
+Appearance
+Appearance & behavior
+Appearance & layout
+Appearance, dot, counts, text
+Apply blur on sheet container and tune dim/material/custom blur parameters.
+Apply global default
+Apply global default (systemThinMaterial + 0.9)
+Arabic direction — semanticContentAttribute and leading/trailing
+Arbitrary maskPath demo
+Archive
+Async/Await
+Async/Await flow
+Auto & options
+Auto Layout + refresh after rotation
+Auto direction anchor popup
+Auto skeleton & display options
+Axis, capsule, subtitles, content kind morphing
+Background interaction policy
+Badge anchors + landscape
+Badge updates
+Badge — anchors & rotation
+Badge — dynamic updates (99+)
+Basic
+Basic Blur View
+Basic Toast
+Basic empty state
+Basic playground (recommended)
+Basic — content types
+Basic — filter strip preset
+Basic — presets
+Basics
+Basics & layout
+Basics & numbers
+Basics (eager)
+Batch insert/delete/move/update via applyChanges; reload(items:) with preserveSelection.
+Batch updates
+Beak styles
+Bottom anchor popup
+Bottom sheet blur
+Bottom sheet — Basics
+Bottom sheet — Scrollable content
+Bottom sheet, popover anchors, window scene, panel height
+Bottom-docked bar
+Builder & Migration
+Builder & alert migration
+Builder, showOrUpdate, concurrent policy, lifecycle hooks
+Bundle Strings
+Bundled LRC
+Bundled `.vtt` plus embedded track names.
+Burst queue, dedupe/coalesce, priority interruption
+Button, label, image view
+Callback delivery
+Callout playground
+CarPlay coordinator
+Center blur
+Center modal container blur with dim/material/backend/mode controls.
+Center sheet + rating
+Center — Basics
+Centered Card
+Centered card
+Circular Blur
+Coach mark
+Collection · auto visible
+Collection · skeleton cell
+CollectionView
+Combined callbacks, counter, shake, accessories
+Compact style
+Compare adjustContainer vs adjustContentInsets for form vs list content.
+Compare container layout strategies side-by-side
+Compare pagerHeader, segmentedControl, filterStrip, and bottomDocked factories.
+Compare thresholds and cancellation feel with live controls.
+Compares truncate/shrink/auto/fixed for long titles (Dynamic Type friendly).
+Complex Environments
+Complex environment suite
+Configuration
+Configuration + silent mode
+Configuration presets
+Container
+Container can touch screen edges; content insets handle safe area.
+Container itself stays away from safe area for card-like overlays.
+Content alignment
+Content area (top)
+Content types
+Content-sized menu, trailing checkmark, selection updates trigger
+Contract version, observation tokens, app lifecycle observing
+Controlled gate
+Convenience factories
+Core
+Corner radius / shadow / border
+Corners, grid, offset slider
+Corners, shadows, gradients, layout-driven updates, reset
+Cross-detent swipe dismiss
+Cross-track fade, playback rate, and per-item rate memory.
+Custom Blur Radius
+Custom Brightness
+Custom Content
+Custom Illustration
+Custom Mask
+Custom Saturation
+Custom Tint Overlay
+Custom action styling
+Custom animator provider
+Custom badge
+Custom blurRadius demo
+Custom brightness demo
+Custom control surface
+Custom controls
+Custom dots
+Custom dots view
+Custom header & rows
+Custom icon/illustration (lazy)
+Custom icons
+Custom line limit
+Custom saturation demo
+Custom spacing
+Custom symbols & images
+Custom timing
+Custom tintColor + tintOpacity demo
+Custom views, metadata, non-selectable banner row
+Customization hooks
+Dark + Tokens
+Dark Mode
+Dark mode + token override
+Dark mode and rotation
+Data source
+DataSource
+Deeplink parsing, handler chain, FKDeeplinkRouting
+Default
+Default configuration
+Default copy, icon and a minimal action
+Default indicator layout
+Deferred rows, finishLoading, setLoading retry, cancel while loading
+Delegate
+Delegate & config
+Delegate & configuration
+Delegate callbacks with timestamps.
+Delegate event log
+Delegate log
+Delegate logging
+Delegate-only vs handlers-only vs both lifecycle channels.
+Detent-aware dim intensity between minimum and maximum alpha.
+Detents — Fraction
+Detents — Points
+Dictionary Backend
+Dictionary keys override bundle strings for the active language. Toggle to compare sources.
+Dim backdrop
+Directional swipe
+Disabled, tap-only, haptics, and selection animation.
+Dismiss-then-present vs in-place content/height swap at the same anchor.
+Drives setSelectionProgress(from:to:progress:) to simulate external pager scroll.
+Dynamic Blur (Scroll Refresh)
+Dynamic Blur (Scroll)
+Dynamic Type
+Dynamic Type — large text strategies
+Dynamic content
+Dynamic data
+Dynamic item supply via FKTabBarDataSource + reloadData().
+Dynamic setContent
+Dynamic text
+Eager pages with $selectedIndex mirrored under the pager.
+Edge layout
+Edges & defaults
+Email, phone, password, amounts, OTP, custom masks
+Embed helper
+Empty state
+Environment
+Environment, feature flags, remote config
+Factory-based localized copy with interpolation
+Factory-driven pages, preload/retention, lifecycle log, invalidatePage(at:).
+Favorites
+Feed autoplay
+Filter strip
+Fit to content
+Fixed vs fitted sizing with max constraints for large screens.
+Floating `FKVideoMiniPlayerView` shell.
+Floating card, backdrop, presets, scroll, destructive flows
+Focus chain, submit, first-error focus
+Footer actions
+Force RTL direction with Arabic copy
+Forced RTL and custom accessibility strings.
+Form Orchestration
+Form orchestration
+Format & Variables
+Frosted glass
+Full Page vs Inline
+Full page vs inline section
+Fullscreen
+Fullscreen host
+GIF indicator
+Generate Async
+Generate Sync
+Generates 50/100/200 tabs and performs frequent local badge updates to avoid reloadData().
+Global & Interface Builder
+Global Defaults
+Global defaultConfiguration
+Global defaults
+Global subtitle
+GlobalStyle snapshot, Storyboard inspectables
+Goal: animated-image indicator. Params: FKGIFRefreshContentView. Expect: animation starts/stops by state.
+Goal: arrow/spinner vs label axis. Params: FKRefreshConfiguration.defaultContentLayout. Expect: horizontal default; vertical legacy stack.
+Goal: async handlers + auto end. Params: automaticEndDelay. Expect: no duplicate triggers while requests run.
+Goal: conflict policy + rapid gestures. Params: mutex/queue/parallel + autoFill. Expect: no duplicate in-flight actions.
+Goal: custom indicator animation. Params: FKRefreshContentView protocol. Expect: progress-driven visuals stay in sync.
+Goal: hide all status text. Params: statusTextMode = .indicatorOnly. Expect: arrow/spinner centered without labels.
+Goal: host arbitrary UIKit subtree. Params: FKHostedRefreshContentView. Expect: custom view follows state transitions.
+Goal: i18n and a11y validation. Params: English/Spanish + Dynamic Type + RTL. Expect: readable copy and VoiceOver feedback.
+Goal: inspect exact state graph. Params: delegate + closure observers. Expect: deterministic transitions for QA logs.
+Goal: large title + tab bar + keyboard + rotation. Params: nested nav/tab containers. Expect: stable insets and no state drift.
+Goal: non-list scroll integration. Params: manual footer mode. Expect: stable header/footer layout on plain scroll content.
+Goal: page1→pageN lifecycle. Params: FKRefreshPagination reset/advance. Expect: noMoreData and reset recovery.
+Goal: pull gesture + programmatic trigger. Params: default config. Expect: success/error/empty/cancel safe transitions.
+Goal: reproduce well-known pull/load UX (Twitter, Instagram, WeChat, TikTok, Reddit, Mail). Params: Inspired presets hub.
+Goal: reuse UIKit refresh core in SwiftUI. Params: FKRefreshSwiftUIBridge + token-safe completion. Expect: single logic path.
+Goal: shared style baseline. Params: FKRefreshSettings + manager updates. Expect: screens inherit defaults consistently.
+Goal: text/theme/timing knobs. Params: minimum visibility + silent refresh. Expect: no loading flash and configurable copy.
+Goal: verify same API on collection lists. Params: segmented outcomes. Expect: paged loading and retry-ready failure state.
+Grabber on/off
+Gradient, highlight feedback, disabled dimming, spacing
+HLS VOD
+HLS on demand
+HTTPS file, artwork, default `FKAudioPlayerView` chrome.
+HTTPS file, default controls, poster image.
+HUD
+Handler timing, haptics, hooks, dismiss reasons
+Handlers & Lifecycle
+Handlers & lifecycle
+Home
+Horizontal, vertical, hairline, insets, thickness, color
+Host screen title
+Hosted
+Hosted view adapter
+I18N & Accessibility
+I18N & accessibility
+ID selection
+Icon presets
+Image Blur
+Image Blur (UIImage)
+Inbox
+Indicator advanced
+Indicator and animation
+Indicator layout
+Indicator only (spinner)
+Indicator progress
+Indicator — Reduce Motion
+Indicator — advanced customization
+Indicator — paging progress (slider)
+Indicator — styles & animation
+Inline `lyricsText` with timestamp parsing.
+Insets & spacing
+Inspired by apps
+Integration
+Integration — DataSource
+Integration — SwiftUI representable
+Integration — anchor button
+Integration — custom badge
+Integration — customization hooks
+Integration — empty state
+Integration — long press
+Integration — non-scrollable overflow
+Integration — performBatchUpdates
+Integration — selection telemetry
+Integration — stable ID APIs
+Interaction
+Interactive
+Interactive playground
+Interactive progress callback
+Interactive stars
+Interface Builder
+Intrinsic widths + horizontal scrolling + auto-scroll to keep selection visible.
+Item insets
+Keyboard & scrolling
+Keyboard Interaction
+Keyboard avoidance strategies
+Keyboard inset adjustments
+Label + text view
+Language Switcher
+Large Title + Keyboard
+Layout & content
+Layout & spacing
+Layout behavior
+Layout — content alignment
+Layout — custom spacing
+Layout — global subtitle
+Layout — insets & spacing
+Layout — itemInsets
+Layout — scroll edge fade
+Lazy incremental tab updates and invalidatePage without full setContent.
+Lazy pages & lifecycle
+Lazy pages (UIKit)
+Lazy-load an accessory view and icon-only edge case
+Left/right/top/bottom edge-attached trays without detents.
+Light/Dark, Dynamic Type, rotation, keyboard avoidance
+Line styles & gradients
+Lists
+Live HLS
+Live Update
+Live Updates
+Live badge, go-live, optional LL-HLS debug overlay.
+Live controls for itemSpacing, itemInsets (FKButton padding), contentInsets, and contentAlignment.
+Live preview of major configuration groups.
+Live switches, segments, and sliders for configuration
+Live updates
+Load a FKBlurView from a XIB
+Loading
+Loading -> Empty
+Loading Content
+Loading content
+Loading helpers
+Loading placeholder -> empty
+Loading, progress, success/failure, blocking and timeout
+Loads `sample.lrc` from the example bundle.
+Locale strings, RTL, Dynamic Type, VoiceOver
+Localization
+Localization + accessibility
+Localized tab titles for string measurement and layout verification.
+Lock device to see system transport on the lock screen.
+Lock screen
+Lock screen Now Playing
+Logging
+Long List & Scroll
+Long list & scroll
+Long press
+Long title
+MKV/DASH are not bundled — format probe table and expected load failures.
+Manual load more
+Many items + frequent updates
+Maybe later
+Media
+Mini bar
+Mini player
+Modes & feedback
+More
+Multi-actions for offline guidance and recovery
+Multi-stage backdrop
+Navigation bar anchor popup
+Navigation bar tabs
+Nested horizontal scroll
+Networking
+No Results
+No results + clear filters
+Non-scrollable strip: leading, center, trailing when items fit without scrolling.
+Normal, focused, filled, error, success, disabled, read-only
+Now Playing
+Now Playing page
+OTP & Counter
+OTP & counter
+Observers
+Offline
+Offline + open docs/check network
+Offline HLS
+Offline HLS download
+One page: fixedEqual vs scrollable, enabled=false, programmatic select notify, and reload(items:).
+One-way expand
+Open
+Open Settings
+Overflow policy
+Overlay
+Overlay on UIView
+Overlay vs hidden-content + status text, async guard
+Overrides & convenience
+Pagination
+Pagination helper
+Password
+Pay Now
+Per-view overrides & convenience
+Performance
+Permission Denied
+Permission copy, request access and contact admin
+Permission denied + request access
+Phases, progress, combined transition, gesture policy, nested scroll toggle.
+Pinned edges, global defaults, Interface Builder
+Pins FKTabBar to bottom and compares safe-area height policy, blur/solid background, divider & shadow.
+Placeholder, default value, clear, disabled, read-only
+Placements & beak
+Placements & beak offset
+Placements, multiline, iconMessage, light & dark styles
+Plain lyrics
+Plain lyrics text
+Play history
+Play/Pause
+Playground
+Playground (full configuration)
+Playlist
+Playlist & chapters
+Pluggable · Analytics
+Pluggable · Configuration
+Pluggable · Core
+Pluggable · List Cells
+Pluggable · Localization
+Pluggable · Logging
+Pluggable · Media
+Pluggable · Networking
+Pluggable · Routing
+Pluggable · Session
+Pluggable · Storage
+Pluggable · Text Input
+Podcast chapters
+Policy + Boundaries
+Policy and stress test
+Popover content
+Position, multiline text, style, icon, custom view
+Pre-roll ads
+Present (content-only height)
+Presentation
+Presenting view effect
+Preserve/reset/nearestAvailable policies and hidden item handling.
+Preset gallery
+Presets
+Presets, leading alignment, separators, section titles
+Preview light/dark/extraLight/systemMaterial…
+Product-style 4.5★ summary and review list rows.
+Production patterns
+Profile
+Progress as button
+Progressive MP3
+Progressive MP4
+Push another divider using current default
+QoE reporter
+QoE snapshot
+Queue & Strategy
+Queue editing
+RTL & VoiceOver copy
+RTL & a11y
+RTL & accessibility
+RTL Layout
+RTL layout example
+RTL — layout direction + mirroring
+RTL, semantics & VoiceOver copy
+Rate, mute, LL-HLS toggle, peak bitrate, thumbnail scrub.
+Ratio-based detents that adapt across devices.
+Read-only
+Read-only display
+Rect provider at the window bottom; panel grows upward from the physical screen bottom.
+Rect provider at the window top (`y = 0`); panel drops from the physical screen top.
+Reduce Motion
+Reduce Motion aware
+Registers next/previous remote commands; `refreshMetadata()` only toggles Now Playing.
+Repeat modes
+Repeat one, repeat all, and coordinator playlist navigation.
+Replace UITabBar
+Replace `FKDefaultVideoControlView`.
+Replace built-in transitions with `FKSheetPresentationAnimatorProviding`.
+Reselect scroll to top
+Reset download bar
+Reset global default
+Resolve semantic type from loading/offline/permission/data/query/error
+Retry button enters loading state before resolving
+Reuses FKBlurView and shared appearance tokens.
+Rotate the device: frames stay stable (especially important for anchors).
+Rotation
+Rotation resilience
+Rounded Rect Blur
+Routing
+Runtime `fk_setExpandableText`
+Runtime isHidden toggles realigned with setContent(tabs:viewControllers:).
+Scale the presenting hierarchy while content is visible.
+Scopes, max count, validation, keepsSheetPresentedOnSelection
+Screen bottom edge anchor popup
+Screen top edge anchor popup
+Scroll + Width
+Scroll Performance
+Scroll edge fade
+Scroll target: minimal/center/leading/trailing + width strategies.
+Scroll tracking
+Scrollable panels
+Scrollable strip, itemLayoutDirection, rtlBehavior, semantic RTL, and auto-scroll checklist.
+Scrollable — 10+ tabs
+Scrollable — overflow strategies
+Scrollable — width & alignment matrix
+Search query interpolation with clear filters action
+Sectioned menu, header rows, frosted menu variant
+Select gentler animation when Reduce Motion is enabled at runtime.
+Select menu
+Selection
+Selection telemetry
+Semantic colors and per-instance style overrides
+Semi-Transparent Blur
+Send feedback
+Sequential items, skip intro/outro, chapter seek.
+Sequential queue
+Sequential vs replace-active presentation strategy
+Session
+SharePlay hook
+Shell vs content-only `preferredContentSize` reporting with a max height cap.
+Shop
+Shows animation downgrade behavior when Reduce Motion is enabled.
+Shows dot/number/none/custom and local badge updates without full reload.
+Shrink / truncate / clip + resolvedLayoutHintsForCurrentEnvironment() snapshot.
+Shuffle
+Side-by-side product-style presets.
+Simulate Loading Flow
+Single & multiple selection
+Single anchor view at the bottom; popup expands upward from the anchor.
+Single anchor view at the top; tap it to present and tap again/mask to dismiss.
+Single layout pass for configuration + badge changes.
+Single per-tab padding knob; pairs with indicator trackContentFrame.
+Single-column compositional list in customView popover
+Skeleton style placeholder and transition flow
+Sleep timer
+Snackbar
+Solid, dashed patterns, gradient strokes
+Stable ID APIs
+Standalone FKSkeletonView
+Standalone blocks
+Star, heart, and thumb SF Symbol presets.
+State Resolver
+State resolver example
+Static Blur
+Static peak waveform from a downloaded copy of the track URL (independent of AVPlayer).
+Status Gallery
+Status gallery
+Stop after current
+Storage
+Storyboard / XIB usage notes
+Stub coordinator — `startSharePlay()` throws `notImplemented`.
+Styling, visibility, animations, parsing
+Submit
+Submit Form
+Subtitles
+Success
+SwiftUI
+SwiftUI Bridge
+SwiftUI Demo
+SwiftUI advanced
+SwiftUI bridge
+SwiftUI lazy
+SwiftUI lazy provider
+SwiftUI list via bridge
+SwiftUI representable
+SwiftUI trigger surface with shared UIKit implementation
+Swipe to dismiss on/off
+Switch Light/Dark and inspect materials
+Switch indicator styles and animation strategies; stress-tap to verify stability.
+Switch presets (systemLike/spring/ease/fade/none) and compare motion.
+Switch to Arabic (ar) to flip semanticContentAttribute and leading/trailing edges.
+Switches largeTextLayoutStrategy (truncate/shrink/wrap/wrap+height) for accessibility categories.
+Symbols & States
+Symbols & row states
+Symbols, disabled/loading, stay-open, toggle rows
+Sync visible tabs
+System integration
+Tab + Rotation
+Tab bar indicators
+Tab bar item, bar button pattern, RTL
+Tab bar layout
+Tab indicators
+Table and collection cells with reuse-safe reset
+Table view scrolling + sheet dragging handoff without gesture fighting.
+Table · overlay visible
+Table · skeleton cell
+Table, collection, or scroll view with automatic pan/scroll handoff.
+Tall lists, selection memory, scroll-to-selection, indicator styles
+Tap and drag, whole vs half steps, live value readout.
+Tap full text area
+Tap interval, hit target, long press, haptics/sound, chaining
+Tap to dismiss on/off
+Text only, icon only, text + image composition
+Text/symbol/image/custom content + intrinsicWidthMeasurement toggle (normalStateOnly vs adjustsOnSelection).
+The simplest FKBlurView (system material)
+The simplest presentation with defaults and recommended usage notes.
+Theme Tokens
+Theme override with custom color tokens
+Theme tokens
+Throttler: rapid taps (first fire per 0.5s window)
+Toggle between 3 and 8 tabs to exercise reload + selection preservation.
+Toggle enabled
+Toggle extra blocks
+Toggle footer hidden
+Toggle grabber and adjust its size/inset.
+Toggle scrollEdgeFade width and enabled state on a scrollable strip.
+Token, fonts, `trailingBottom`
+Tooltip basics
+Top anchor popup
+Top sheet blur
+Top sheet container blur with dim/material/backend/mode controls.
+Top sheet — Basics
+Touch target, batch APIs, loading polish, badge, symbol effects, transient result
+Trailing, bottom, prefix/suffix, and custom label text.
+Trigger VoiceOver announcement state
+Tune visuals with sliders and see results immediately.
+Two actions + cancel; no manual grabber or safe-area padding on height.
+Two fixed heights + programmatic detent switching via `selectDetent`.
+Two-way tab sync, nested list, Stress x20 queue test (non-animated bursts).
+Types & Formatting
+Types & formatting
+UICollectionView baseline
+UICollectionView · auto on visible cells
+UICollectionView · skeleton cell
+UIControl actions, custom titles, touch target and haptics.
+UIImage.fk_blurred(...) demo
+UIKit composition
+UIKit controls
+UIKit — List Cells
+UIKit — Text Input
+UILabel — basic
+UIScrollView
+UIScrollView generic
+UITableView and UIScrollView inside customView popovers
+UITableView baseline
+UITableView · overlay on visible cells
+UITableView · skeleton cell
+UITextView — rich text
+UITextView — rich text + links
+UIView Snapshot Blur
+UIView embed helper
+UIView.fk_blurredSnapshot sync/async demo
+UIViewRepresentable bridge
+Updates
+Use progress updates to drive UI (e.g. a progress label).
+Uses `.auto` direction to choose upward/downward expansion based on available space.
+Validate smooth 60fps scrolling
+Validates selected/disabled/badge announcements using per-item state and local badge updates.
+Validation
+Validation Strategies
+Value caption
+Verifies FKBadge mapping, anchors, offsets, and rotation stability.
+Video
+View.fkActionSheet, popover anchors, loading via configuration binding
+Visibility toggle and strength rules
+Watch / Widget
+Watch / Widget snapshot
+Waveform
+When dim alpha is 0, choose dismissable/passthrough/disabled behavior.
+When you need explicit duration/curve/spring tuning.
+Why it’s on by default, and when you should disable it.
+XIB / Storyboard
+Zero-dim backdrop behavior
+`.lproj` lookup via FKI18nConfiguration.bundle and FKI18nDemo.strings
+`.symbols` and `.images` icon styles.
+`FKAudioChapter` markers and `seekToChapter`.
+`FKAudioMiniBar` docked above the safe area.
+`FKAudioPlayHistoryStore` recent item IDs.
+`FKAudioPlaybackSnapshot` from the player facade.
+`FKAudioPlayerSwiftUIView` in UIHostingController.
+`FKAudioPlayerViewController` full-screen host.
+`FKAudioPlayerViewStyle.compact` layout.
+`FKAudioQoEReporter` analytics plugin.
+`FKAudioQueueMode.shuffle` random order.
+`FKExpandableText.attach`
+`FKExpandableTextView`
+`FKProgressBarView` and bindings.
+`FKRatingControlDelegate` and `onValueChanged`.
+`FKRatingControlRepresentable` bindings.
+`FKVideoAdPlugin` placeholder interstitial.
+`FKVideoFeedPlaybackCoordinator` + `FKVideoPlayerPool`.
+`FKVideoOfflineDownloadManager` registry playback.
+`FKVideoPlayerSwiftUIView` in UIHostingController.
+`FKVideoPlayerViewController` presentation.
+`FKVideoQoEReporter` analytics plugin.
+`bottomSheetDefault`, `centerCard`, `passthroughOverlay`, and `applyingSheet`.
+`collapseRule: .lines(2)`
+`fk_embedAudioPlayer` constraints helper.
+`fk_embedVideoPlayer` constraints helper.
+`insertNext`, `append`, and `remove(at:)`.
+`interactionMode: .fullTextArea`
+`loadQueue`, next/previous, natural end-of-queue stop.
+`oneWayExpand`
+`readOnlyStars` and `interactiveStars` helpers.
+`setSleepTimer` pause/stop actions.
+`setStopAfterCurrentItem` on queue completion.
+`sheet.crossDetentSwipeDismissPolicy`: system-like single gesture vs strict-at-pan-start.
+allowsSwipePagingTo blocks forward swipe from a specific page.
+animateInteraction, trailing icon accessory, shouldSelect closure, badgeConfiguration, badgeAnimation.
+animation modes · FKSkeletonStyle · shimmer directions · gradient · border · breathing
+appearance.subtitleConfiguration fallback when item.subtitle is nil.
+applyChanges
+applyChanges + ID diff reload
+applyContentChanges
+containerRespectsSafeArea
+contentRespectsSafeArea
+customSpacing(after:) with per-index gaps via internal flow layout.
+emptyStateConfiguration when pageCount is zero; populate via setContent.
+filterStrip preset, per-tab trailing icon animations, expandedItemID, pending selection.
+fk_setSkeletonLoading · fk_withSkeletonLoading (token race)
+fk_showAutoSkeleton · FKSkeletonDisplayOptions · fk_isSkeletonExcluded · excludedViews
+fk_showAutoSkeletonOnVisibleCells / fk_hideAutoSkeletonOnVisibleCells
+fk_showSkeleton / fk_hideSkeleton · safe area · blocksInteraction · fk_isShowingSkeleton
+fk_showSkeletonOnVisibleCells / fk_hideSkeletonOnVisibleCells
+fk_skeletonShape · fk_skeletonConfigurationOverride · fk_showSkeletonLabel/Image/Button/TextField
+i18n
+i18n + Accessibility
+i18n and a11y
+i18n example (en + zh-CN)
+i18n titles
+indicatorZOrder, indicatorFollowMode, renderCustomIndicator, customIndicatorFrame.
+init, present, validate, retain instance
+isLongPressEnabled, onLongPress, resolvedTitlePresentationForCurrentEnvironment().
+layout.emptyStateMessage placeholder when the visible strip is empty.
+listRow · card · textBlock · gridCell · FKSkeletonAvatarStyle
+maskPath = ovalInRect demo
+maskedCornerRadius demo
+message, titleSubtitle, headerPanel, appearance styles
+mode = .dynamic (refresh while scrolling)
+mode = .static (blur once, maximum performance)
+observeLanguageChange token + NotificationCenter broadcast
+onChange / onBlur / onSubmit and async validation
+opacity demo
+pageSwitchGateScope tab / swipe / all, shouldSwitchTo veto, commit / cancel.
+preferNestedHorizontalScroll installs require(toFail:) on in-page carousels.
+reload, updateAction, dismiss, alreadyPresented guard
+reselectBehavior .scrollPageToTop when re-tapping the active tab.
+selectionSnapshot, selectedItemID, and onSelectionProgress logging.
+setSelectedIndex(forItemID:), selectedItemID after tab reorder.
+setSelectedIndex(forItemID:), setBadge(forItemID:), setItem(forItemID:), reapplyVisibleItemConfigurations().
+shared.show / hide on a host view (same pipeline as convenience APIs)
+sourceRect, maxContentHeight, keyboardAvoidance, edge flip
+tabBarPlacement .contentBottom; interPageSpacing visible only while swiping.
+tabBarPlacement .contentTop — strip inside pager view below nav bar (default).
+tabBarPlacement .external — host adds tabBar above pages; isTabBarExternallyManaged.
+tabBarPlacement .navigationBar — 18 mixed tab styles, half-height pager, inline config panel.
+tabConfiguration + FKTabBarCustomization for line, pill, and custom z-order.
+usesUnifiedShimmer · hide completion · refreshSkeletonAppearanceForCurrentTraits
+visibleItemButton(at:) for callout / menu anchoring.
+widthMode, selectionScrollPosition, contentAlignment via pagingController.tabBar.
+{token} interpolation, String(format:), formatters, plural counts

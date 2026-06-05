@@ -432,7 +432,7 @@ final class FKTabBarItemCell: UICollectionViewCell {
   }
 
   private func resolvedAccessibilityValue(item: FKTabBarItem, isSelected: Bool) -> String? {
-    let selectedToken = isSelected ? "Selected" : nil
+    let selectedToken = isSelected ? FKUIKitI18n.string("fkuikit.tabbar.selected") : nil
     if let explicit = item.badge.accessibilityValue, !explicit.isEmpty {
       if let selectedToken {
         return "\(selectedToken), \(explicit)"
@@ -444,14 +444,14 @@ final class FKTabBarItemCell: UICollectionViewCell {
       case .none:
         return nil
       case .dot:
-        return "Badge"
+        return FKUIKitI18n.string("fkuikit.tabbar.badge")
       case .count(let value):
-        return "Badge \(max(0, value))"
+        return FKUIKitI18n.format("fkuikit.tabbar.badge_count", max(0, value))
       case .text(let text):
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Badge" : "Badge \(trimmed)"
+        return trimmed.isEmpty ? FKUIKitI18n.string("fkuikit.tabbar.badge") : FKUIKitI18n.format("fkuikit.tabbar.badge_text", trimmed)
       case .custom:
-        return "Custom badge"
+        return FKUIKitI18n.string("fkuikit.tabbar.badge_custom")
       }
     }()
     switch (selectedToken, badgeToken) {

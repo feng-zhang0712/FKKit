@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 
 final class FKToastExamplesHubViewController: UITableViewController {
   private struct Row {
@@ -9,38 +10,38 @@ final class FKToastExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: "Basic Toast",
-      subtitle: "Position, multiline text, style, icon, custom view",
+      title: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.0.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.0.subtitle"),
       make: { FKToastBasicsExampleViewController() }
     ),
     Row(
-      title: "Queue & Strategy",
-      subtitle: "Burst queue, dedupe/coalesce, priority interruption",
+      title: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.1.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.1.subtitle"),
       make: { FKToastQueueStrategyExampleViewController() }
     ),
     Row(
-      title: "Live Update",
-      subtitle: "Sequential vs replace-active presentation strategy",
+      title: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.2.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.2.subtitle"),
       make: { FKToastLiveUpdateExampleViewController() }
     ),
     Row(
-      title: "HUD",
-      subtitle: "Loading, progress, success/failure, blocking and timeout",
+      title: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.3.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.3.subtitle"),
       make: { FKToastHUDExampleViewController() }
     ),
     Row(
-      title: "Snackbar",
-      subtitle: "Actions, swipe dismiss, VoiceOver and announcement",
+      title: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.4.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.4.subtitle"),
       make: { FKToastSnackbarExampleViewController() }
     ),
     Row(
-      title: "Environment",
-      subtitle: "Light/Dark, Dynamic Type, rotation, keyboard avoidance",
+      title: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.5.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.5.subtitle"),
       make: { FKToastEnvironmentExampleViewController() }
     ),
     Row(
-      title: "SwiftUI Bridge",
-      subtitle: "SwiftUI trigger surface with shared UIKit implementation",
+      title: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.6.title"),
+      subtitle: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.6.subtitle"),
       make: { FKToastSwiftUIHostViewController() }
     ),
   ]

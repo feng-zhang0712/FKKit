@@ -280,7 +280,7 @@ final class FKUtilsExampleViewController: UIViewController {
       preferredStyle: .alert
     )
     alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-    alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
+    alert.addAction(UIAlertAction(title: FKExamplesI18n.string("examples.scenario.examples_fkcorekit_utils_fkutilsexampleviewcontr.open.cf9b77061f"), style: .default, handler: { _ in
       FKUtils.Common.openSettings()
     }))
     present(alert, animated: true)

@@ -20,12 +20,12 @@ public struct FKTextFieldLocalization: Sendable, Equatable {
 
   /// Creates a localization bundle.
   public init(
-    clearButtonLabel: String = "Clear text",
-    passwordHiddenLabel: String = "Show password",
-    passwordVisibleLabel: String = "Hide password",
-    counterAnnouncementPrefix: String = "Character count",
-    errorAnnouncementPrefix: String = "Error",
-    successAnnouncementPrefix: String = "Success"
+    clearButtonLabel: String = FKUIKitI18n.string("fkuikit.textfield.clear_label"),
+    passwordHiddenLabel: String = FKUIKitI18n.string("fkuikit.textfield.show_password"),
+    passwordVisibleLabel: String = FKUIKitI18n.string("fkuikit.textfield.hide_password"),
+    counterAnnouncementPrefix: String = FKUIKitI18n.string("fkuikit.textfield.counter_prefix"),
+    errorAnnouncementPrefix: String = FKUIKitI18n.string("fkuikit.textfield.error_prefix"),
+    successAnnouncementPrefix: String = FKUIKitI18n.string("fkuikit.textfield.success_prefix")
   ) {
     self.clearButtonLabel = clearButtonLabel
     self.passwordHiddenLabel = passwordHiddenLabel

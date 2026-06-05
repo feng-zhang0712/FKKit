@@ -97,26 +97,26 @@ public final class FKAudioPlayerView: UIView {
     switch mode {
     case .sequential:
       symbol = "arrow.triangle.2.circlepath"
-      accessibilityValue = "Sequential"
+      accessibilityValue = FKUIKitI18n.string("fkuikit.audio.queue.sequential")
     case .shuffle:
       symbol = "shuffle"
-      accessibilityValue = "Shuffle"
+      accessibilityValue = FKUIKitI18n.string("fkuikit.audio.queue.shuffle")
     case .repeatAll:
       symbol = "repeat"
-      accessibilityValue = "Repeat all"
+      accessibilityValue = FKUIKitI18n.string("fkuikit.audio.queue.repeat_all")
     case .repeatOne:
       symbol = "repeat.1"
-      accessibilityValue = "Repeat one"
+      accessibilityValue = FKUIKitI18n.string("fkuikit.audio.queue.repeat_one")
     }
     queueModeButton.setImage(UIImage(systemName: symbol), for: .normal)
-    queueModeButton.accessibilityLabel = "Queue mode"
+    queueModeButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.queue.mode_label")
     queueModeButton.accessibilityValue = accessibilityValue
     sleepButton.accessibilityLabel = FKAudioPlayerStrings.sleepTimer
   }
 
   public func reload(for item: FKAudioItem) {
-    titleLabel.text = item.title ?? "Unknown Title"
-    artistLabel.text = item.artist ?? "Unknown Artist"
+    titleLabel.text = item.title ?? FKUIKitI18n.string("fkuikit.audio.unknown_title")
+    artistLabel.text = item.artist ?? FKUIKitI18n.string("fkuikit.audio.unknown_artist")
     loadArtwork(url: item.artworkURL)
   }
 
@@ -373,7 +373,7 @@ public final class FKAudioPlayerView: UIView {
     player.applyLoopModeFromQueue()
     refreshQueueModeChrome()
     guard let value = queueModeButton.accessibilityValue else { return }
-    let message = "Queue mode: \(value)"
+    let message = FKUIKitI18n.format("fkuikit.audio.queue.mode_toast", value)
     queueModeToastHandle = FKToast.showOrUpdate(
       message,
       handle: queueModeToastHandle,
@@ -385,6 +385,6 @@ public final class FKAudioPlayerView: UIView {
   @objc private func scheduleSleep() {
     let fireDate = Date().addingTimeInterval(30 * 60)
     player?.setSleepTimer(fireDate: fireDate)
-    FKToast.show("Sleep timer set for 30 minutes", style: .info, presentationStrategy: .replaceActive)
+    FKToast.show(FKUIKitI18n.string("fkuikit.audio.sleep_timer_set"), style: .info, presentationStrategy: .replaceActive)
   }
 }

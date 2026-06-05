@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 import FKUIKit
 
 /// Standalone `UITabBar` outside `UITabBarController` often reports a small intrinsic height when embedded in
@@ -36,7 +37,7 @@ final class FKBadgeExampleIntegrationViewController: FKBadgeExampleScrollViewCon
 
     demoTabBar.items = [
       UITabBarItem(title: "Messages", image: UIImage(systemName: "bubble.left.fill"), tag: 0),
-      UITabBarItem(title: "Profile", image: UIImage(systemName: "person.fill"), tag: 1),
+      UITabBarItem(title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.profile.ff4fc0276e"), image: UIImage(systemName: "person.fill"), tag: 1),
     ]
     demoTabBar.selectedItem = demoTabBar.items?.first
     demoTabBar.items?.first?.fk_setBadgeCount(128, maxDisplay: 99)

@@ -1,5 +1,6 @@
 import FKUIKit
 import UIKit
+import FKCoreKit
 
 /// Lists ExpandableText sample screens; each row pushes one example view controller.
 final class FKExpandableTextExamplesHubViewController: UITableViewController {
@@ -10,15 +11,15 @@ final class FKExpandableTextExamplesHubViewController: UITableViewController {
   }
 
   private let rows: [Row] = [
-    Row(title: "UILabel — basic", subtitle: "Default configuration", make: { FKExpandableTextExampleLabelBasicViewController() }),
-    Row(title: "UITextView — rich text + links", subtitle: "`FKExpandableText.attach`", make: { FKExpandableTextExampleTextViewRichViewController() }),
-    Row(title: "Custom line limit", subtitle: "`collapseRule: .lines(2)`", make: { FKExpandableTextExampleLineLimitViewController() }),
-    Row(title: "Custom action styling", subtitle: "Token, fonts, `trailingBottom`", make: { FKExpandableTextExampleActionStyleViewController() }),
-    Row(title: "One-way expand", subtitle: "`oneWayExpand`", make: { FKExpandableTextExampleOneWayExpandViewController() }),
-    Row(title: "Tap full text area", subtitle: "`interactionMode: .fullTextArea`", make: { FKExpandableTextExampleFullTextAreaViewController() }),
-    Row(title: "Dynamic text", subtitle: "Runtime `fk_setExpandableText`", make: { FKExpandableTextExampleDynamicTextViewController() }),
-    Row(title: "UIKit composition", subtitle: "Label + text view", make: { FKExpandableTextExampleUIKitCompositionViewController() }),
-    Row(title: "SwiftUI bridge", subtitle: "`FKExpandableTextView`", make: { FKExpandableTextExampleSwiftUIViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.0.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.0.subtitle"), make: { FKExpandableTextExampleLabelBasicViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.1.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.1.subtitle"), make: { FKExpandableTextExampleTextViewRichViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.2.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.2.subtitle"), make: { FKExpandableTextExampleLineLimitViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.3.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.3.subtitle"), make: { FKExpandableTextExampleActionStyleViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.4.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.4.subtitle"), make: { FKExpandableTextExampleOneWayExpandViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.5.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.5.subtitle"), make: { FKExpandableTextExampleFullTextAreaViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.6.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.6.subtitle"), make: { FKExpandableTextExampleDynamicTextViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.7.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.7.subtitle"), make: { FKExpandableTextExampleUIKitCompositionViewController() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.8.title"), subtitle: FKExamplesI18n.string("examples.hub.fkexpandabletextexampleshubviewcontroller.8.subtitle"), make: { FKExpandableTextExampleSwiftUIViewController() }),
   ]
 
   override func viewDidLoad() {

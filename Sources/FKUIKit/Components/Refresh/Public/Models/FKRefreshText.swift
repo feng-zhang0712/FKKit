@@ -23,17 +23,17 @@ public struct FKRefreshText: Equatable, Sendable {
   public var footerTapToRetry: String
 
   public init(
-    pullToRefresh: String = "Pull to refresh",
-    releaseToRefresh: String = "Release to refresh",
-    headerLoading: String = "Loading…",
-    headerFinished: String = "Up to date",
-    headerListEmpty: String = "No content",
-    headerFailed: String = "Couldn’t refresh",
-    footerLoading: String = "Loading…",
-    footerFinished: String = "Loaded",
-    footerNoMoreData: String = "No more data",
-    footerFailed: String = "Couldn’t load",
-    footerTapToRetry: String = "Tap to retry"
+    pullToRefresh: String = FKUIKitI18n.string("fkuikit.refresh.pull"),
+    releaseToRefresh: String = FKUIKitI18n.string("fkuikit.refresh.release"),
+    headerLoading: String = FKUIKitI18n.string("fkuikit.refresh.header.loading"),
+    headerFinished: String = FKUIKitI18n.string("fkuikit.refresh.header.finished"),
+    headerListEmpty: String = FKUIKitI18n.string("fkuikit.refresh.header.empty"),
+    headerFailed: String = FKUIKitI18n.string("fkuikit.refresh.header.failed"),
+    footerLoading: String = FKUIKitI18n.string("fkuikit.refresh.footer.loading"),
+    footerFinished: String = FKUIKitI18n.string("fkuikit.refresh.footer.finished"),
+    footerNoMoreData: String = FKUIKitI18n.string("fkuikit.refresh.footer.no_more"),
+    footerFailed: String = FKUIKitI18n.string("fkuikit.refresh.footer.failed"),
+    footerTapToRetry: String = FKUIKitI18n.string("fkuikit.refresh.footer.tap_retry")
   ) {
     self.pullToRefresh = pullToRefresh
     self.releaseToRefresh = releaseToRefresh
@@ -48,5 +48,5 @@ public struct FKRefreshText: Equatable, Sendable {
     self.footerTapToRetry = footerTapToRetry
   }
 
-  public static let `default` = FKRefreshText()
+  public static var `default`: FKRefreshText { FKRefreshText() }
 }

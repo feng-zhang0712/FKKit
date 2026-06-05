@@ -36,7 +36,7 @@ public extension FKActionSheetConfiguration {
     alertTitle: String?,
     message: String?,
     actions: [FKActionSheetAction],
-    cancelTitle: String? = "Cancel"
+    cancelTitle: String? = FKUIKitI18n.string("fkuikit.common.cancel")
   ) {
     let header: FKActionSheetHeaderContent? = {
       guard alertTitle != nil || message != nil else { return nil }
@@ -57,7 +57,7 @@ public extension FKActionSheetConfiguration {
     alertTitle: String?,
     message: String?,
     alertActions: [(title: String, style: UIAlertAction.Style, actionHandler: (@MainActor (FKActionSheetAction) -> Void)?)],
-    cancelTitle: String? = "Cancel"
+    cancelTitle: String? = FKUIKitI18n.string("fkuikit.common.cancel")
   ) {
     let mapped = alertActions.map { item in
       FKActionSheetAction(

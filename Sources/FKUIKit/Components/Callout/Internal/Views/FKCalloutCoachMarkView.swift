@@ -45,6 +45,7 @@ final class FKCalloutCoachMarkView: UIView {
     closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
     closeButton.tintColor = .secondaryLabel
     closeButton.isHidden = !content.showsCloseButton
+    closeButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.callout.close")
     closeButton.addAction(UIAction { [weak self] _ in self?.onClose?() }, for: .touchUpInside)
 
     let messageLabel = UILabel()

@@ -528,7 +528,7 @@ final class FKCalloutBubbleView: UIView {
     case let .messageWithActions(message, _): accessibilityLabel = message
     case let .headerPanel(header, body): accessibilityLabel = "\(header.title). \(body)"
     case let .coachMark(payload): accessibilityLabel = "\(payload.title). \(payload.message)"
-    case .menu, .customView: accessibilityLabel = "Popover content"
+    case .menu, .customView: accessibilityLabel = FKUIKitI18n.string("fkuikit.callout.popover_content")
     }
   }
 

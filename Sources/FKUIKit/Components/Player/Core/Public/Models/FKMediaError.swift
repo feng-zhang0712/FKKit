@@ -19,25 +19,25 @@ extension FKMediaError: LocalizedError {
   public var errorDescription: String? {
     switch self {
     case let .unsupportedFormat(descriptor):
-      return "Unsupported format: \(descriptor.container.rawValue)"
+      return FKUIKitI18n.format("fkuikit.media.error.unsupported_format", descriptor.container.rawValue)
     case let .transcodingRequired(suggested):
-      return "Transcoding required. Suggested delivery: \(suggested.displayName)"
+      return FKUIKitI18n.format("fkuikit.media.error.transcoding_required", suggested.displayName)
     case .networkUnavailable:
-      return "Network is unavailable."
+      return FKUIKitI18n.string("fkuikit.media.error.network_unavailable")
     case let .httpStatus(code):
-      return "HTTP error \(code)."
+      return FKUIKitI18n.format("fkuikit.media.error.http_status", code)
     case let .drmFailed(message):
-      return "DRM failed: \(message)"
+      return FKUIKitI18n.format("fkuikit.media.error.drm_failed", message)
     case let .engineFailed(engine, message):
-      return "Engine \(engine.rawValue) failed: \(message)"
+      return FKUIKitI18n.format("fkuikit.media.error.engine_failed", engine.rawValue, message)
     case .seekFailed:
-      return "Seek operation failed."
+      return FKUIKitI18n.string("fkuikit.media.error.seek_failed")
     case .cancelled:
-      return "Operation was cancelled."
+      return FKUIKitI18n.string("fkuikit.common.cancelled")
     case let .notImplemented(feature):
-      return "Not implemented: \(feature)"
+      return FKUIKitI18n.format("fkuikit.media.error.not_implemented", feature)
     case let .invalidState(message):
-      return "Invalid state: \(message)"
+      return FKUIKitI18n.format("fkuikit.media.error.invalid_state", message)
     }
   }
 }

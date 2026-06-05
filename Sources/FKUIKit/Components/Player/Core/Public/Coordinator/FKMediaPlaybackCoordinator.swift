@@ -135,7 +135,7 @@ public final class FKMediaPlaybackCoordinator: FKMediaNowPlayingCommandTarget {
     presentationMode: FKMediaPresentationMode
   ) {
     guard !playlist.items.isEmpty else {
-      transition(to: .failed(.invalidState("Playlist is empty")))
+      transition(to: .failed(.invalidState(FKUIKitI18n.string("fkuikit.media.error.playlist_empty"))))
       return
     }
     self.playlist = playlist
@@ -553,7 +553,7 @@ public final class FKMediaPlaybackCoordinator: FKMediaNowPlayingCommandTarget {
         allowsExtended: false
       )
     case .asset, .url:
-      throw FKMediaError.invalidState("Media source has no URL for format probing")
+      throw FKMediaError.invalidState(FKUIKitI18n.string("fkuikit.media.error.no_url_for_probe"))
     }
   }
 

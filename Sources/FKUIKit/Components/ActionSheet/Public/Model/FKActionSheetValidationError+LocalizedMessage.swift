@@ -1,25 +1,25 @@
 import Foundation
 
 public extension FKActionSheetValidationError {
-  /// A short English message suitable for alerts or toasts.
+  /// A short localized message suitable for alerts or toasts.
   var localizedMessage: String {
     switch self {
     case .noActions:
-      return "Add at least one action before presenting the action sheet."
+      return FKUIKitI18n.string("fkuikit.actionsheet.error.no_actions")
     case .emptyLoadingContent:
-      return "Enable the activity indicator or provide loading title or message text."
+      return FKUIKitI18n.string("fkuikit.actionsheet.error.empty_loading")
     case .multipleCancelActions:
-      return "Only one cancel action is allowed."
+      return FKUIKitI18n.string("fkuikit.actionsheet.error.multiple_cancel")
     case .presenterNotFound:
-      return "No presenter view controller was found."
+      return FKUIKitI18n.string("fkuikit.actionsheet.error.presenter_not_found")
     case .popoverAnchorRequired:
-      return "Popover presentation requires an anchor view or bar button item."
+      return FKUIKitI18n.string("fkuikit.actionsheet.error.popover_anchor")
     case .alreadyPresented:
-      return "This action sheet is already presented."
+      return FKUIKitI18n.string("fkuikit.actionsheet.error.already_presented")
     case .selectedCountExceedsMaximum:
-      return "Too many items are selected for this sheet’s maximum. Deselect some choices first."
+      return FKUIKitI18n.string("fkuikit.actionsheet.error.selection_exceeds_max")
     case .unknownSelectedActionIDs:
-      return "A pre-selected action ID is not in this sheet."
+      return FKUIKitI18n.string("fkuikit.actionsheet.error.unknown_selection")
     }
   }
 }

@@ -7,7 +7,7 @@ public extension FKActionSheetConfiguration {
     preferredPanelHeight: CGFloat = 180,
     contentInsets: NSDirectionalEdgeInsets = .init(top: 16, leading: 24, bottom: 16, trailing: 24),
     showsCancelWhileLoading: Bool = true,
-    cancelAction: FKActionSheetAction? = FKActionSheetAction(title: "Cancel", style: .cancel),
+    cancelAction: FKActionSheetAction? = FKActionSheetAction(title: FKUIKitI18n.string("fkuikit.common.cancel"), style: .cancel),
     header: FKActionSheetHeaderContent? = nil,
     appearance: FKActionSheetAppearance? = nil,
     appearancePreset: FKActionSheetAppearancePreset? = nil,

@@ -1,5 +1,6 @@
 import FKUIKit
 import UIKit
+import FKCoreKit
 
 /// Entry list for FKRefresh samples (`Scenarios/`, `SwiftUI/`, `Shared/`, `Support/`).
 final class FKRefreshExamplesHubViewController: UITableViewController {
@@ -17,55 +18,55 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
   private lazy var sections: [DemoSection] = [
     DemoSection(title: "Core scenarios", items: [
       DemoItem(
-        title: "UITableView baseline",
-        subtitle: "Goal: pull gesture + programmatic trigger. Params: default config. Expect: success/error/empty/cancel safe transitions.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.0.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.0.subtitle"),
         factory: { FKRefreshDefaultDemoViewController() }
       ),
       DemoItem(
-        title: "UICollectionView baseline",
-        subtitle: "Goal: verify same API on collection lists. Params: segmented outcomes. Expect: paged loading and retry-ready failure state.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.1.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.1.subtitle"),
         factory: { FKRefreshCollectionDemoViewController() }
       ),
       DemoItem(
-        title: "UIScrollView generic",
-        subtitle: "Goal: non-list scroll integration. Params: manual footer mode. Expect: stable header/footer layout on plain scroll content.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.2.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.2.subtitle"),
         factory: { FKRefreshScrollViewDemoViewController() }
       ),
       DemoItem(
-        title: "Async/Await flow",
-        subtitle: "Goal: async handlers + auto end. Params: automaticEndDelay. Expect: no duplicate triggers while requests run.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.3.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.3.subtitle"),
         factory: { FKRefreshAsyncAwaitExampleViewController() }
       ),
     ]),
     DemoSection(title: "Indicators & configuration", items: [
       DemoItem(
-        title: "Configuration + silent mode",
-        subtitle: "Goal: text/theme/timing knobs. Params: minimum visibility + silent refresh. Expect: no loading flash and configurable copy.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.4.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.4.subtitle"),
         factory: { FKRefreshConfigurationDemoViewController() }
       ),
       DemoItem(
-        title: "Default indicator layout",
-        subtitle: "Goal: arrow/spinner vs label axis. Params: FKRefreshConfiguration.defaultContentLayout. Expect: horizontal default; vertical legacy stack.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.5.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.5.subtitle"),
         factory: { FKRefreshContentLayoutDemoViewController() }
       ),
       DemoItem(
-        title: "Custom dots view",
-        subtitle: "Goal: custom indicator animation. Params: FKRefreshContentView protocol. Expect: progress-driven visuals stay in sync.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.6.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.6.subtitle"),
         factory: { FKRefreshDotsDemoViewController() }
       ),
       DemoItem(
-        title: "GIF indicator",
-        subtitle: "Goal: animated-image indicator. Params: FKGIFRefreshContentView. Expect: animation starts/stops by state.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.7.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.7.subtitle"),
         factory: { FKRefreshGIFDemoViewController() }
       ),
       DemoItem(
-        title: "Hosted view adapter",
-        subtitle: "Goal: host arbitrary UIKit subtree. Params: FKHostedRefreshContentView. Expect: custom view follows state transitions.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.8.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.8.subtitle"),
         factory: { FKRefreshHostedDemoViewController() }
       ),
       DemoItem(
-        title: "Indicator only (spinner)",
-        subtitle: "Goal: hide all status text. Params: statusTextMode = .indicatorOnly. Expect: arrow/spinner centered without labels.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.9.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.9.subtitle"),
         factory: {
           FKRefreshInspiredFeedExampleViewController(preset: FKRefreshAppStylePreset.indicatorOnly.bundle)
         }
@@ -73,49 +74,49 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
     ]),
     DemoSection(title: "Inspired by popular apps", items: [
       DemoItem(
-        title: "App-style simulations",
-        subtitle: "Goal: reproduce well-known pull/load UX (Twitter, Instagram, WeChat, TikTok, Reddit, Mail). Params: Inspired presets hub.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.10.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.10.subtitle"),
         factory: { FKRefreshInspiredExamplesHubViewController() }
       ),
     ]),
     DemoSection(title: "Policy & state", items: [
       DemoItem(
-        title: "Policy and stress test",
-        subtitle: "Goal: conflict policy + rapid gestures. Params: mutex/queue/parallel + autoFill. Expect: no duplicate in-flight actions.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.11.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.11.subtitle"),
         factory: { FKRefreshPolicyStressExampleViewController() }
       ),
       DemoItem(
-        title: "Delegate logging",
-        subtitle: "Goal: inspect exact state graph. Params: delegate + closure observers. Expect: deterministic transitions for QA logs.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.12.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.12.subtitle"),
         factory: { FKRefreshDelegateDemoViewController() }
       ),
       DemoItem(
-        title: "Pagination helper",
-        subtitle: "Goal: page1→pageN lifecycle. Params: FKRefreshPagination reset/advance. Expect: noMoreData and reset recovery.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.13.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.13.subtitle"),
         factory: { FKRefreshPaginationDemoViewController() }
       ),
     ]),
     DemoSection(title: "Globals & environment", items: [
       DemoItem(
-        title: "Global defaults",
-        subtitle: "Goal: shared style baseline. Params: FKRefreshSettings + manager updates. Expect: screens inherit defaults consistently.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.14.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.14.subtitle"),
         factory: { FKRefreshGlobalSettingsDemoViewController() }
       ),
       DemoItem(
-        title: "Complex environment suite",
-        subtitle: "Goal: large title + tab bar + keyboard + rotation. Params: nested nav/tab containers. Expect: stable insets and no state drift.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.15.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.15.subtitle"),
         factory: { FKRefreshComplexEnvironmentDemoViewController() }
       ),
       DemoItem(
-        title: "Localization + accessibility",
-        subtitle: "Goal: i18n and a11y validation. Params: English/Spanish + Dynamic Type + RTL. Expect: readable copy and VoiceOver feedback.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.16.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.16.subtitle"),
         factory: { FKRefreshLocalizationAccessibilityDemoViewController() }
       ),
     ]),
-    DemoSection(title: "SwiftUI Bridge", items: [
+    DemoSection(title: FKExamplesI18n.string("examples.hub.fktoastexampleshubviewcontroller.6.title"), items: [
       DemoItem(
-        title: "SwiftUI list via bridge",
-        subtitle: "Goal: reuse UIKit refresh core in SwiftUI. Params: FKRefreshSwiftUIBridge + token-safe completion. Expect: single logic path.",
+        title: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.17.title"),
+        subtitle: FKExamplesI18n.string("examples.hub.fkrefreshexampleshubviewcontroller.17.subtitle"),
         factory: { FKRefreshSwiftUIBridgeDemoViewController() }
       ),
     ]),

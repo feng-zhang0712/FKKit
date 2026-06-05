@@ -528,7 +528,7 @@ public final class FKProgressBar: UIControl {
     case .customTitleOnly, .customTitleWhenIdle:
       return c.label.customTitle.isEmpty ? "100%" : c.label.customTitle
     case .customTitleWithProgressSubtitle:
-      let t = c.label.customTitle.isEmpty ? "Title" : c.label.customTitle
+      let t = c.label.customTitle.isEmpty ? FKUIKitI18n.string("fkuikit.progressbar.sample_title") : c.label.customTitle
       return "\(t)\n100%"
     }
   }

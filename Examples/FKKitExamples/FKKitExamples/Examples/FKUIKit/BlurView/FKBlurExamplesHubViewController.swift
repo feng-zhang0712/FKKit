@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 import FKUIKit
 
 // MARK: - Hub
@@ -11,26 +12,26 @@ final class FKBlurViewExamplesHubViewController: UITableViewController {
   }
 
   private let rows: [Row] = [
-    Row(title: "Basic Blur View", subtitle: "The simplest FKBlurView (system material)", make: { FKBlurBasicVC() }),
-    Row(title: "All System Styles", subtitle: "Preview light/dark/extraLight/systemMaterial…", make: { FKBlurAllSystemStylesVC() }),
-    Row(title: "Custom Blur Radius", subtitle: "Custom blurRadius demo", make: { FKBlurCustomRadiusVC() }),
-    Row(title: "Custom Saturation", subtitle: "Custom saturation demo", make: { FKBlurCustomSaturationVC() }),
-    Row(title: "Custom Brightness", subtitle: "Custom brightness demo", make: { FKBlurCustomBrightnessVC() }),
-    Row(title: "Custom Tint Overlay", subtitle: "Custom tintColor + tintOpacity demo", make: { FKBlurCustomTintVC() }),
-    Row(title: "Static Blur", subtitle: "mode = .static (blur once, maximum performance)", make: { FKBlurStaticVC() }),
-    Row(title: "Dynamic Blur (Scroll)", subtitle: "mode = .dynamic (refresh while scrolling)", make: { FKBlurDynamicScrollVC() }),
-    Row(title: "Image Blur", subtitle: "UIImage.fk_blurred(...) demo", make: { FKBlurImageBlurVC() }),
-    Row(title: "UIView Snapshot Blur", subtitle: "UIView.fk_blurredSnapshot sync/async demo", make: { FKBlurUIViewSnapshotVC() }),
-    Row(title: "Rounded Rect Blur", subtitle: "maskedCornerRadius demo", make: { FKBlurRoundedRectVC() }),
-    Row(title: "Circular Blur", subtitle: "maskPath = ovalInRect demo", make: { FKBlurCircleVC() }),
-    Row(title: "Custom Mask", subtitle: "Arbitrary maskPath demo", make: { FKBlurCustomMaskVC() }),
-    Row(title: "Semi-Transparent Blur", subtitle: "opacity demo", make: { FKBlurOpacityVC() }),
-    Row(title: "Global Defaults", subtitle: "FKBlur.defaultConfiguration demo", make: { FKBlurGlobalConfigVC() }),
-    Row(title: "XIB / Storyboard", subtitle: "Load a FKBlurView from a XIB", make: { FKBlurXIBDemoVC() }),
-    Row(title: "SwiftUI Demo", subtitle: "FKSwiftUIBlurView demo", make: { FKBlurSwiftUIHostVC() }),
-    Row(title: "Dark Mode", subtitle: "Switch Light/Dark and inspect materials", make: { FKBlurDarkModeVC() }),
-    Row(title: "Rotation", subtitle: "Auto Layout + refresh after rotation", make: { FKBlurRotationVC() }),
-    Row(title: "Scroll Performance", subtitle: "Validate smooth 60fps scrolling", make: { FKBlurPerformanceTestVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.0.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.0.subtitle"), make: { FKBlurBasicVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.1.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.1.subtitle"), make: { FKBlurAllSystemStylesVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.2.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.2.subtitle"), make: { FKBlurCustomRadiusVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.3.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.3.subtitle"), make: { FKBlurCustomSaturationVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.4.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.4.subtitle"), make: { FKBlurCustomBrightnessVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.5.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.5.subtitle"), make: { FKBlurCustomTintVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.6.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.6.subtitle"), make: { FKBlurStaticVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.7.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.7.subtitle"), make: { FKBlurDynamicScrollVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.8.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.8.subtitle"), make: { FKBlurImageBlurVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.9.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.9.subtitle"), make: { FKBlurUIViewSnapshotVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.10.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.10.subtitle"), make: { FKBlurRoundedRectVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.11.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.11.subtitle"), make: { FKBlurCircleVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.12.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.12.subtitle"), make: { FKBlurCustomMaskVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.13.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.13.subtitle"), make: { FKBlurOpacityVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.14.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.14.subtitle"), make: { FKBlurGlobalConfigVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.15.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.15.subtitle"), make: { FKBlurXIBDemoVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.16.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.16.subtitle"), make: { FKBlurSwiftUIHostVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.17.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.17.subtitle"), make: { FKBlurDarkModeVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.18.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.18.subtitle"), make: { FKBlurRotationVC() }),
+    Row(title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.19.title"), subtitle: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.19.subtitle"), make: { FKBlurPerformanceTestVC() }),
   ]
 
   override func viewDidLoad() {

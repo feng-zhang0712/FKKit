@@ -40,7 +40,7 @@ public struct FKTextFieldCompositeValidator: FKTextFieldValidating {
 
 public extension FKTextFieldValidationRule {
   /// Requires input not to be empty.
-  static func required(message: String = "This field is required.") -> Self {
+  static func required(message: String = FKUIKitI18n.string("fkuikit.textfield.validation.required")) -> Self {
     .init { raw, _, _ in
       raw.isEmpty ? .init(isValid: false, message: message) : .valid
     }
@@ -50,7 +50,7 @@ public extension FKTextFieldValidationRule {
   static func minLength(_ value: Int, message: String? = nil) -> Self {
     .init { raw, _, _ in
       let passed = raw.count >= max(0, value)
-      return .init(isValid: passed, message: passed ? nil : (message ?? "Input is too short."))
+      return .init(isValid: passed, message: passed ? nil : (message ?? FKUIKitI18n.string("fkuikit.textfield.validation.too_short")))
     }
   }
 
@@ -58,12 +58,12 @@ public extension FKTextFieldValidationRule {
   static func maxLength(_ value: Int, message: String? = nil) -> Self {
     .init { raw, _, _ in
       let passed = raw.count <= max(0, value)
-      return .init(isValid: passed, message: passed ? nil : (message ?? "Input exceeds max length."))
+      return .init(isValid: passed, message: passed ? nil : (message ?? FKUIKitI18n.string("fkuikit.textfield.validation.too_long")))
     }
   }
 
   /// Requires full-text regex match.
-  static func regex(_ pattern: String, message: String = "Invalid format.") -> Self {
+  static func regex(_ pattern: String, message: String = FKUIKitI18n.string("fkuikit.textfield.validation.invalid_format")) -> Self {
     .init { raw, _, _ in
       let matched = raw.range(of: pattern, options: .regularExpression) != nil
       return .init(isValid: matched, message: matched ? nil : message)
