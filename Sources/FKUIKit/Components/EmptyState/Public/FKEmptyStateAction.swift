@@ -18,8 +18,7 @@ public enum FKEmptyStateActionKind: String, CaseIterable, Equatable, Sendable {
 /// Immutable-friendly action payload rendered by EmptyState.
 ///
 /// - Important: `id` should stay stable across releases because events are emitted by id.
-/// - Note: `isLoading` currently disables interaction but does not show a spinner by itself;
-///   callers decide the loading affordance in copy or host UI.
+/// - Note: `isLoading` disables interaction and shows an activity indicator on the action button (iOS 15+).
 /// - Note: `payload` is an optional string dictionary intended for analytics / routing metadata.
 ///   Keep it small (avoid large blobs) because it may be transported through NotificationCenter.
 public struct FKEmptyStateAction: Equatable, Sendable {

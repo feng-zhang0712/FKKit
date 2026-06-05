@@ -20,6 +20,51 @@ public extension UIView {
     return !view.isHidden && view.alpha > 0.01
   }
 
+  /// Updates content on an already-visible overlay without replaying the overlay fade-in.
+  ///
+  /// Falls back to ``fk_applyEmptyState(_:animated:actionHandler:viewTapHandler:)`` when no overlay is shown.
+  func fk_updateVisibleEmptyState(
+    _ configuration: FKEmptyStateConfiguration,
+    animated: Bool = true,
+    actionHandler: ((FKEmptyStateAction) -> Void)? = nil,
+    viewTapHandler: FKVoidHandler? = nil
+  ) {
+    fk_emptyStateAssertMainThread()
+    guard fk_isEmptyStateOverlayVisible, let view = fk_emptyStateView else {
+      fk_applyEmptyState(
+        configuration,
+        animated: animated,
+        actionHandler: actionHandler,
+        viewTapHandler: viewTapHandler
+      )
+      return
+    }
+
+    objc_setAssociatedObject(
+      self,
+      &FKEmptyStateHostKeys.configuration,
+      FKEmptyStateConfigurationBox(configuration),
+      .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+    )
+
+    if configuration.phase == .content {
+      fk_hideEmptyState(animated: animated)
+      return
+    }
+
+    if fk_emptyStateShouldSkipLoadingBecauseOfRefresh(host: self, configuration: configuration) {
+      fk_hideEmptyState(animated: animated)
+      return
+    }
+
+    view.actionHandler = actionHandler
+    view.viewTapHandler = viewTapHandler
+    let contentAnimated = animated && configuration.transition != .none
+    view.apply(configuration, animated: contentAnimated)
+    fk_emptyStateApplyScrollInteraction(host: self, configuration: configuration)
+    bringSubviewToFront(view)
+  }
+
   /// Applies or hides the empty-state overlay from `configuration`.
   ///
   /// - When `configuration.phase == .content`, hides the overlay (same as `fk_hideEmptyState`).
@@ -28,7 +73,7 @@ public extension UIView {
   ///
   /// - Parameters:
   ///   - configuration: Visual and behavioral configuration.
-  ///   - animated: Fade-in when showing; fade-out is handled by `fk_hideEmptyState`.
+  ///   - animated: Fade-in when the overlay is first shown; when already visible, drives ``FKEmptyStateView/apply(_:animated:)`` content transitions only.
   ///   - actionHandler: Invoked when an action button is tapped (primary/secondary/tertiary).
   ///     Use `action.id` to route multi-action flows and capture `[weak self]` to avoid retain cycles.
   ///   - viewTapHandler: Invoked when users tap the background area (outside any `UIControl`).
@@ -62,14 +107,17 @@ public extension UIView {
     let view = fk_ensureEmptyStateView()
     view.actionHandler = actionHandler
     view.viewTapHandler = viewTapHandler
-    view.apply(configuration, animated: false)
+    let overlayAlreadyVisible = fk_isEmptyStateOverlayVisible
+    view.apply(configuration, animated: animated && overlayAlreadyVisible)
 
     let display = {
       view.isHidden = false
       view.alpha = 1
     }
-    let shouldAnimate = animated && !UIAccessibility.isReduceMotionEnabled
-    if shouldAnimate {
+    // Fade-in applies only when the overlay is newly presented. Re-applying while visible
+    // should rely on `FKEmptyStateView.apply(_:animated:)` content transitions instead.
+    let shouldAnimateOverlayPresentation = animated && !overlayAlreadyVisible && !UIAccessibility.isReduceMotionEnabled
+    if shouldAnimateOverlayPresentation {
       view.alpha = 0
       view.isHidden = false
       UIView.animate(withDuration: configuration.fadeDuration, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState], animations: display)

@@ -4,36 +4,12 @@ import UIKit
 // MARK: - UIScrollView
 
 public extension UIScrollView {
-  /// Updates the existing overlay’s content without tearing down the view (no-op if never shown).
+  /// Updates the existing overlay’s content without tearing down the view.
   ///
-  /// Retains the latest configuration in associated storage and respects refresh-control skipping for loading phases.
-  ///
-  /// Performance notes:
-  /// - Updating avoids tearing down Auto Layout constraints and reduces animation jank.
-  /// - Prefer this method when you want to change copy/spinner while keeping the overlay visible.
+  /// Falls back to ``fk_applyEmptyState(_:animated:actionHandler:viewTapHandler:)`` when no overlay is visible.
+  /// Content transitions run only when `animated` is `true` and ``FKEmptyStateConfiguration/transition`` is not `.none`.
   func fk_updateEmptyState(_ model: FKEmptyStateConfiguration, animated: Bool = true) {
-    fk_emptyStateAssertMainThread()
-    objc_setAssociatedObject(
-      self,
-      &FKEmptyStateHostKeys.configuration,
-      FKEmptyStateConfigurationBox(model),
-      .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-    )
-
-    if model.phase == .content {
-      fk_hideEmptyState(animated: animated)
-      return
-    }
-
-    if fk_emptyStateShouldSkipLoadingBecauseOfRefresh(host: self, configuration: model) {
-      fk_hideEmptyState(animated: animated)
-      return
-    }
-
-    guard let view = fk_emptyStateView else { return }
-    view.apply(model, animated: animated)
-    fk_emptyStateApplyScrollInteraction(host: self, configuration: model)
-    bringSubviewToFront(view)
+    fk_updateVisibleEmptyState(model, animated: animated)
   }
 
   /// When `isEmpty` is false, forces `phase = .content` before applying (hides overlay).

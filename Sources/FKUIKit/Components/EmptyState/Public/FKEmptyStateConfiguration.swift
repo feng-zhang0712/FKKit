@@ -110,11 +110,17 @@ public struct FKEmptyStateConfiguration {
   /// Density preset used to derive spacing/layout defaults (does not override explicit values).
   public var density: FKEmptyStateDensity
 
-  /// Stack direction for content blocks (vertical/horizontal). UIKit implementation keeps vertical by default.
+  /// Stack direction for content blocks (vertical/horizontal). Loading phase always uses vertical layout.
   public var axis: FKEmptyStateAxis
 
   /// Main illustration; hidden when `isImageHidden` or `nil` (unless `customAccessoryView` replaces it).
   public var image: UIImage?
+  /// Applied to the built-in `UIImageView` (`scaleAspectFit` by default).
+  public var imageContentMode: UIView.ContentMode
+  /// When set, the illustration is rendered as a template image with this tint (useful for SF Symbols).
+  public var imageTintColor: UIColor?
+  /// VoiceOver label for the illustration; when `nil` the image is not an accessibility element.
+  public var imageAccessibilityLabel: String?
   /// Primary headline for empty/error; also fallback text for loading if `loadingMessage` is `nil`.
   public var title: String?
   /// Secondary body copy (empty/error; optional during loading via `hidesDescriptionForLoadingPhase`).
@@ -123,11 +129,16 @@ public struct FKEmptyStateConfiguration {
   public var loadingMessage: String?
   /// Primary button look-and-feel.
   public var buttonStyle: FKEmptyStateButtonStyle
+  /// Optional override for the secondary (bordered) action; `nil` derives a bordered variant from ``buttonStyle``.
+  public var secondaryButtonStyle: FKEmptyStateButtonStyle?
+  /// Optional override for the tertiary / plain action; `nil` derives a plain variant from ``buttonStyle``.
+  public var tertiaryButtonStyle: FKEmptyStateButtonStyle?
 
   /// Optional multi-action set; when not empty it supersedes the legacy single button slot.
   ///
   /// - Important: UIKit rendering maps `primary` → filled button, `secondary` → bordered button,
-  ///   `tertiary` → plain button. Action events are emitted by id.
+  ///   `tertiary` → plain button. Override chrome via ``secondaryButtonStyle`` / ``tertiaryButtonStyle``.
+  ///   Action events are emitted by id.
   public var actions: FKEmptyStateActionSet
 
   /// Hides the image view even when `image` is non-nil.
@@ -184,6 +195,8 @@ public struct FKEmptyStateConfiguration {
   public var supportsTapToDismissKeyboard: Bool
   /// Fade duration for `UIView` transitions and extension-driven show/hide animations.
   public var fadeDuration: TimeInterval
+  /// Animation applied when ``FKEmptyStateView/apply(_:animated:)`` updates content (`animated == true`).
+  public var transition: FKEmptyStateTransition
   /// When `false`, `UIScrollView` scrolling is disabled while the overlay is visible.
   public var keepScrollEnabled: Bool
   /// Enables `fk_refreshEmptyStateAutomatically` behavior on `UIScrollView`.
@@ -219,10 +232,15 @@ public struct FKEmptyStateConfiguration {
     density: FKEmptyStateDensity = .regular,
     axis: FKEmptyStateAxis = .vertical,
     image: UIImage? = nil,
+    imageContentMode: UIView.ContentMode = .scaleAspectFit,
+    imageTintColor: UIColor? = nil,
+    imageAccessibilityLabel: String? = nil,
     title: String? = nil,
     description: String? = nil,
     loadingMessage: String? = nil,
     buttonStyle: FKEmptyStateButtonStyle = FKEmptyStateButtonStyle(),
+    secondaryButtonStyle: FKEmptyStateButtonStyle? = nil,
+    tertiaryButtonStyle: FKEmptyStateButtonStyle? = nil,
     actions: FKEmptyStateActionSet = FKEmptyStateActionSet(),
     isImageHidden: Bool = false,
     isTitleHidden: Bool = false,
@@ -253,6 +271,7 @@ public struct FKEmptyStateConfiguration {
     blockingOverlayAlpha: CGFloat = 0,
     supportsTapToDismissKeyboard: Bool = true,
     fadeDuration: TimeInterval = 0.25,
+    transition: FKEmptyStateTransition = .none,
     keepScrollEnabled: Bool = true,
     automaticallyShowsWhenContentFits: Bool = false,
     loadingTintColor: UIColor = .secondaryLabel,
@@ -271,10 +290,15 @@ public struct FKEmptyStateConfiguration {
     self.density = density
     self.axis = axis
     self.image = image
+    self.imageContentMode = imageContentMode
+    self.imageTintColor = imageTintColor
+    self.imageAccessibilityLabel = imageAccessibilityLabel
     self.title = title
     self.description = description
     self.loadingMessage = loadingMessage
     self.buttonStyle = buttonStyle
+    self.secondaryButtonStyle = secondaryButtonStyle
+    self.tertiaryButtonStyle = tertiaryButtonStyle
     self.actions = actions
     self.isImageHidden = isImageHidden
     self.isTitleHidden = isTitleHidden
@@ -304,6 +328,7 @@ public struct FKEmptyStateConfiguration {
     self.blockingOverlayAlpha = min(1, max(0, blockingOverlayAlpha))
     self.supportsTapToDismissKeyboard = supportsTapToDismissKeyboard
     self.fadeDuration = max(0, fadeDuration)
+    self.transition = transition
     self.keepScrollEnabled = keepScrollEnabled
     self.automaticallyShowsWhenContentFits = automaticallyShowsWhenContentFits
     self.loadingTintColor = loadingTintColor
@@ -332,6 +357,7 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .offline,
         context: .section,
+        image: scenarioImage("wifi.exclamationmark"),
         title: FKUIKitI18n.string("fkuikit.empty.scenario.no_network.title"),
         description: FKUIKitI18n.string("fkuikit.empty.scenario.no_network.description"),
         buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.empty.scenario.no_network.action")),
@@ -342,6 +368,7 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .noResults,
         context: .search,
+        image: scenarioImage("magnifyingglass"),
         title: FKUIKitI18n.string("fkuikit.empty.noResults.title"),
         description: FKUIKitI18n.string("fkuikit.empty.scenario.no_search.description"),
         isButtonHidden: true
@@ -351,6 +378,7 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .empty,
         context: .list,
+        image: scenarioImage("heart.slash"),
         title: FKUIKitI18n.string("fkuikit.empty.scenario.no_favorites.title"),
         description: FKUIKitI18n.string("fkuikit.empty.scenario.no_favorites.description"),
         buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.empty.scenario.no_favorites.action")),
@@ -361,6 +389,7 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .empty,
         context: .list,
+        image: scenarioImage("shippingbox"),
         title: FKUIKitI18n.string("fkuikit.empty.scenario.no_orders.title"),
         description: FKUIKitI18n.string("fkuikit.empty.scenario.no_orders.description"),
         buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.empty.scenario.no_orders.action")),
@@ -371,6 +400,7 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .empty,
         context: .list,
+        image: scenarioImage("tray.full"),
         title: FKUIKitI18n.string("fkuikit.empty.scenario.no_messages.title"),
         description: FKUIKitI18n.string("fkuikit.empty.scenario.no_messages.description"),
         isButtonHidden: true
@@ -380,6 +410,7 @@ public extension FKEmptyStateConfiguration {
         phase: .error,
         type: .error,
         context: .section,
+        image: scenarioImage("exclamationmark.arrow.trianglehead.clockwise"),
         title: FKUIKitI18n.string("fkuikit.empty.scenario.load_failed.title"),
         description: FKUIKitI18n.string("fkuikit.empty.scenario.load_failed.description"),
         buttonStyle: FKEmptyStateButtonStyle(title: defaultRetryButtonTitle),
@@ -390,6 +421,7 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .permissionDenied,
         context: .section,
+        image: scenarioImage("lock.shield"),
         title: FKUIKitI18n.string("fkuikit.empty.scenario.no_permission.title"),
         description: FKUIKitI18n.string("fkuikit.empty.permissionDenied.description"),
         buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.common.ok")),
@@ -400,11 +432,107 @@ public extension FKEmptyStateConfiguration {
         phase: .empty,
         type: .newUser,
         context: .fullPage,
+        image: scenarioImage("person.crop.circle.badge.exclamationmark"),
         title: FKUIKitI18n.string("fkuikit.empty.scenario.not_logged_in.title"),
         description: FKUIKitI18n.string("fkuikit.empty.scenario.not_logged_in.description"),
         buttonStyle: FKEmptyStateButtonStyle(title: FKUIKitI18n.string("fkuikit.empty.scenario.not_logged_in.action")),
         isButtonHidden: false
       )
+    }
+  }
+
+  /// Builds a configuration from ``FKEmptyStateResolver`` output and optional input metadata.
+  ///
+  /// Returns `phase == .content` when the resolver yields `.none`. Error descriptions from
+  /// ``FKEmptyStateInputs/errorDescription`` override the preset body copy for `.error`.
+  static func resolved(from input: FKEmptyStateInputs) -> FKEmptyStateConfiguration {
+    switch FKEmptyStateResolver.resolve(input) {
+    case .none:
+      return FKEmptyStateConfiguration(phase: .content)
+    case let .show(type):
+      return configuration(for: type, input: input)
+    }
+  }
+
+  private static func scenarioImage(_ systemName: String) -> UIImage? {
+    let configuration = UIImage.SymbolConfiguration(pointSize: 44, weight: .medium)
+    return UIImage(systemName: systemName, withConfiguration: configuration)
+  }
+
+  /// Returns the effective secondary button style (explicit override or derived from ``buttonStyle``).
+  func resolvedSecondaryButtonStyle() -> FKEmptyStateButtonStyle {
+    if let secondaryButtonStyle { return secondaryButtonStyle }
+    return FKEmptyStateButtonStyle(
+      title: nil,
+      titleColor: buttonStyle.backgroundColor,
+      font: buttonStyle.font,
+      backgroundColor: .clear,
+      cornerRadius: buttonStyle.cornerRadius,
+      contentInsets: buttonStyle.contentInsets,
+      borderColor: buttonStyle.backgroundColor,
+      borderWidth: 1
+    )
+  }
+
+  /// Returns the effective tertiary / link button style (explicit override or derived from ``buttonStyle``).
+  func resolvedTertiaryButtonStyle() -> FKEmptyStateButtonStyle {
+    if let tertiaryButtonStyle { return tertiaryButtonStyle }
+    return FKEmptyStateButtonStyle(
+      title: nil,
+      titleColor: buttonStyle.backgroundColor,
+      font: buttonStyle.font,
+      backgroundColor: .clear,
+      cornerRadius: 0,
+      contentInsets: buttonStyle.contentInsets,
+      borderColor: nil,
+      borderWidth: 0
+    )
+  }
+
+  private static func configuration(for type: FKEmptyStateType, input: FKEmptyStateInputs) -> FKEmptyStateConfiguration {
+    switch type {
+    case .offline:
+      var config = scenario(.noNetwork)
+      config.type = .offline
+      return config
+    case .noResults:
+      var config = scenario(.noSearchResult)
+      config.type = .noResults
+      return config
+    case .error:
+      var config = scenario(.loadFailed)
+      config.type = .error
+      if let errorDescription = input.errorDescription, !errorDescription.isEmpty {
+        config.description = errorDescription
+      }
+      return config
+    case .permissionDenied:
+      var config = scenario(.noPermission)
+      config.type = .permissionDenied
+      return config
+    case .newUser:
+      var config = scenario(.notLoggedIn)
+      config.type = .newUser
+      return config
+    case .empty:
+      return scenario(.noMessages)
+    case .loading:
+      return FKEmptyStateConfiguration(phase: .loading, type: .loading)
+    case .notFound:
+      var config = scenario(.noMessages)
+      config.type = .notFound
+      return config
+    case .maintenance:
+      var config = customState(
+        identifier: "maintenance",
+        title: FKUIKitI18n.string("fkuikit.empty.scenario.load_failed.title"),
+        description: FKUIKitI18n.string("fkuikit.empty.scenario.load_failed.description"),
+        buttonTitle: defaultRetryButtonTitle
+      )
+      config.type = .maintenance
+      config.image = scenarioImage("wrench.and.screwdriver")
+      config.isButtonHidden = false
+      return config
     }
   }
 
@@ -448,6 +576,41 @@ public extension FKEmptyStateConfiguration {
   func withImage(_ image: UIImage?) -> Self {
     var copy = self
     copy.image = image
+    return copy
+  }
+
+  /// Returns a copy with `imageTintColor` replaced.
+  func withImageTintColor(_ color: UIColor?) -> Self {
+    var copy = self
+    copy.imageTintColor = color
+    return copy
+  }
+
+  /// Returns a copy with `density` replaced.
+  func withDensity(_ density: FKEmptyStateDensity) -> Self {
+    var copy = self
+    copy.density = density
+    return copy
+  }
+
+  /// Returns a copy with `axis` replaced.
+  func withAxis(_ axis: FKEmptyStateAxis) -> Self {
+    var copy = self
+    copy.axis = axis
+    return copy
+  }
+
+  /// Returns a copy with `transition` replaced.
+  func withTransition(_ transition: FKEmptyStateTransition) -> Self {
+    var copy = self
+    copy.transition = transition
+    return copy
+  }
+
+  /// Returns a copy with `context` replaced.
+  func withContext(_ context: FKEmptyStateLayoutContext) -> Self {
+    var copy = self
+    copy.context = context
     return copy
   }
 

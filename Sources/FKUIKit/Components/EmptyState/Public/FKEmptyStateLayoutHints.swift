@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Layout context
 
-/// Optional screen-level context for presets and analytics (carried on ``FKEmptyStateConfiguration``).
+/// Screen-level context for presets, analytics, and automatic layout tuning (image size, insets, column width).
 public enum FKEmptyStateLayoutContext: String, CaseIterable, Equatable, Sendable {
   case list
   case table
@@ -24,7 +24,7 @@ public enum FKEmptyStateDensity: String, CaseIterable, Equatable, Sendable {
   case comfortable
 }
 
-/// Preferred stack axis for future layout variants; current UIKit renderer uses a vertical stack.
+/// Preferred stack axis; `.horizontal` places the illustration beside the title/description column.
 public enum FKEmptyStateAxis: String, CaseIterable, Equatable, Sendable {
   case vertical
   case horizontal
