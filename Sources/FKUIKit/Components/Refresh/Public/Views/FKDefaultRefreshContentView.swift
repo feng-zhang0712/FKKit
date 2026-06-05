@@ -12,6 +12,7 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
   private let retryButton = UIButton(type: .system)
 
   private var configuration: FKRefreshConfiguration = .default
+  private var isIndicatorInStack = false
 
   /// Wired by ``FKRefreshControl`` to re-fire a failed load-more request.
   public var onRetryTap: (() -> Void)?
@@ -61,7 +62,6 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
 
     stackView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(stackView)
-    stackView.addArrangedSubview(indicatorHost)
     stackView.addArrangedSubview(label)
     stackView.addArrangedSubview(retryButton)
 
@@ -126,60 +126,57 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
 
     switch state {
     case .idle:
+      setIndicatorInStack(true)
       showArrow(rotated: false, animated: previous != .idle)
       spinner.stopAnimating()
       setLabel(nil)
 
       retryButton.isHidden = true
     case .pulling:
+      setIndicatorInStack(true)
       showArrow(rotated: false, animated: false)
       spinner.stopAnimating()
-      setLabel(texts.pullToRefresh)
+      setLabel(resolvedStatusText(texts.pullToRefresh))
 
       retryButton.isHidden = true
     case .readyToRefresh, .triggered:
+      setIndicatorInStack(true)
       showArrow(rotated: true, animated: true)
-      setLabel(texts.releaseToRefresh)
+      setLabel(resolvedStatusText(texts.releaseToRefresh))
       retryButton.isHidden = true
 
     case .refreshing, .loadingMore:
+      setIndicatorInStack(true)
       UIView.animate(withDuration: 0.2) {
         self.arrowLayer.opacity = 0
         self.spinner.alpha = 1
       }
       spinner.startAnimating()
-      setLabel(isFooter ? texts.footerLoading : texts.headerLoading)
+      setLabel(resolvedStatusText(isFooter ? texts.footerLoading : texts.headerLoading))
       retryButton.isHidden = true
 
     case .finished:
-      arrowLayer.opacity = 0
-      spinner.stopAnimating()
-      setLabel(isFooter ? texts.footerFinished : texts.headerFinished)
-      UIView.animate(withDuration: 0.2) { self.spinner.alpha = 0 }
+      setIndicatorInStack(false)
+      setLabel(resolvedStatusText(isFooter ? texts.footerFinished : texts.headerFinished))
 
     case .listEmpty:
-      arrowLayer.opacity = 0
-      spinner.stopAnimating()
-      setLabel(texts.headerListEmpty)
-      UIView.animate(withDuration: 0.2) { self.spinner.alpha = 0 }
+      setIndicatorInStack(false)
+      setLabel(resolvedStatusText(texts.headerListEmpty))
 
     case .noMoreData:
-      spinner.stopAnimating()
-      arrowLayer.opacity = 0
-      setLabel(isFooter ? texts.footerNoMoreData : texts.headerListEmpty)
+      setIndicatorInStack(false)
+      setLabel(resolvedStatusText(isFooter ? texts.footerNoMoreData : texts.headerListEmpty))
       retryButton.isHidden = true
 
     case .failed:
-      spinner.stopAnimating()
-      UIView.animate(withDuration: 0.2) { self.spinner.alpha = 0 }
-      arrowLayer.opacity = 0
+      setIndicatorInStack(false)
       retryTapGesture.isEnabled = isFooter
       if isFooter {
-        setLabel("\(texts.footerFailed)\n\(texts.footerTapToRetry)")
+        setLabel(resolvedStatusText("\(texts.footerFailed)\n\(texts.footerTapToRetry)"))
         retryButton.setTitle(texts.footerTapToRetry, for: .normal)
         retryButton.isHidden = false
       } else {
-        setLabel(texts.headerFailed)
+        setLabel(resolvedStatusText(texts.headerFailed))
         retryButton.isHidden = true
       }
     }
@@ -226,6 +223,23 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
     }
   }
 
+  /// Inserts or removes the arrow/spinner host so text-only states center correctly in the stack.
+  private func setIndicatorInStack(_ included: Bool) {
+    guard included != isIndicatorInStack else { return }
+    isIndicatorInStack = included
+
+    if included {
+      stackView.insertArrangedSubview(indicatorHost, at: 0)
+    } else {
+      stackView.removeArrangedSubview(indicatorHost)
+      indicatorHost.removeFromSuperview()
+      spinner.stopAnimating()
+      spinner.alpha = 0
+      arrowLayer.opacity = 0
+      arrowLayer.removeAllAnimations()
+    }
+  }
+
   private func showArrow(rotated: Bool, animated: Bool) {
     let targetTransform = rotated
       ? CATransform3DMakeRotation(.pi, 0, 0, 1)
@@ -245,6 +259,12 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
     arrowLayer.opacity = 1
     CATransaction.commit()
     spinner.alpha = 0
+  }
+
+  private func resolvedStatusText(_ text: String?) -> String? {
+    guard configuration.statusTextMode == .full else { return nil }
+    guard let text, !text.isEmpty else { return nil }
+    return text
   }
 
   private func setLabel(_ text: String?) {

@@ -48,6 +48,12 @@ public struct FKRefreshConfiguration: Sendable {
   /// Row vs column layout for arrow / spinner and label in ``FKDefaultRefreshContentView``.
   public var defaultContentLayout: FKDefaultRefreshContentLayout
 
+  /// Whether the default content view shows status text or only the arrow/spinner.
+  public var statusTextMode: FKRefreshStatusTextMode
+
+  /// What happens to the load-more footer after ``endRefreshingWithNoMoreData()``.
+  public var noMoreDataBehavior: FKRefreshNoMoreDataBehavior
+
   // MARK: - Behaviour
 
   /// Keeps the header expanded while `.refreshing` (classic pull-to-refresh).
@@ -93,6 +99,8 @@ public struct FKRefreshConfiguration: Sendable {
     messageFontWeight: UIFont.Weight = .regular,
     texts: FKRefreshText = .default,
     defaultContentLayout: FKDefaultRefreshContentLayout = .horizontal,
+    statusTextMode: FKRefreshStatusTextMode = .full,
+    noMoreDataBehavior: FKRefreshNoMoreDataBehavior = .showFooter,
     shouldKeepExpandedWhileRefreshing: Bool = true,
     isSilentRefresh: Bool = false,
     isHapticFeedbackEnabled: Bool = true,
@@ -115,6 +123,8 @@ public struct FKRefreshConfiguration: Sendable {
     self.messageFontWeight = messageFontWeight
     self.texts = texts
     self.defaultContentLayout = defaultContentLayout
+    self.statusTextMode = statusTextMode
+    self.noMoreDataBehavior = noMoreDataBehavior
     self.shouldKeepExpandedWhileRefreshing = shouldKeepExpandedWhileRefreshing
     self.isSilentRefresh = isSilentRefresh
     self.isHapticFeedbackEnabled = isHapticFeedbackEnabled

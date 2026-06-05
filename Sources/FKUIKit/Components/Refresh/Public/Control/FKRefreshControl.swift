@@ -85,6 +85,8 @@ public final class FKRefreshControl: UIView {
 
   /// After an automatic bottom load fires, stays `false` until the user scrolls clearly above the trigger band (avoids failure → idle → immediate re-fire while dragging near the bottom).
   private var loadMoreAutoTriggerArmed = true
+  /// Set when ``FKRefreshNoMoreDataBehavior/hideFooter`` suppresses the footer until the next reset.
+  private var isSuppressedAfterNoMoreData = false
 
   // MARK: - Init
 
@@ -334,6 +336,7 @@ public final class FKRefreshControl: UIView {
   }
 
   private func resetToIdleOnMain() {
+    isSuppressedAfterNoMoreData = false
     transition(to: .idle)
     if kind == .pullToRefresh {
       collapseScrollView(animated: false)
@@ -345,6 +348,7 @@ public final class FKRefreshControl: UIView {
 
   private func resetFooterAfterPullToRefreshOnMain() {
     guard kind == .loadMore else { return }
+    isSuppressedAfterNoMoreData = false
     loadMoreAutoTriggerArmed = true
     transition(to: .idle)
     if let scrollView {
@@ -621,9 +625,19 @@ public final class FKRefreshControl: UIView {
 
   private func updateFooterVisibility(for scrollView: UIScrollView) {
     guard kind == .loadMore else { return }
-    let hidden = isFooterHiddenForShortContent(scrollView)
+    let hidden = isFooterHiddenForShortContent(scrollView) || isSuppressedAfterNoMoreData
     isHidden = hidden
     isUserInteractionEnabled = !hidden
+  }
+
+  private func scheduleSuppressFooterAfterNoMoreData() {
+    let hold = configuration.finishedHoldDuration
+    DispatchQueue.main.asyncAfter(deadline: .now() + hold) { [weak self] in
+      guard let self, self.kind == .loadMore, self.state == .noMoreData else { return }
+      self.isSuppressedAfterNoMoreData = true
+      self.isHidden = true
+      self.isUserInteractionEnabled = false
+    }
   }
 
   private func panGestureStateChanged(_ gestureState: UIGestureRecognizer.State) {
@@ -671,6 +685,9 @@ public final class FKRefreshControl: UIView {
       hapticGenerator?.prepare()
     }
     contentView.refreshControl(self, didTransitionTo: current, from: previous)
+    if current == .noMoreData, configuration.noMoreDataBehavior == .hideFooter {
+      scheduleSuppressFooterAfterNoMoreData()
+    }
     announceAccessibilityStateIfNeeded(current)
     onStateChanged?(self, current)
     delegate?.refreshControl(self, didChange: current, from: previous)

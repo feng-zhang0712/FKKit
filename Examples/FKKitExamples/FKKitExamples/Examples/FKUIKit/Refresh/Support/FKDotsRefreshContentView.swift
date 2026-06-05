@@ -76,6 +76,7 @@ final class FKDotsRefreshContentView: UIView, FKRefreshContentView {
       setLabel(nil)
     case .finished:
       stopBouncing()
+      setDotsAlpha(0)
       setLabel(control.kind == .loadMore ? "Loaded" : "Done")
     case .listEmpty:
       stopBouncing()
@@ -87,6 +88,7 @@ final class FKDotsRefreshContentView: UIView, FKRefreshContentView {
       setLabel("No more data")
     case .failed:
       stopBouncing()
+      setDotsAlpha(0)
       setLabel("Failed")
     }
   }

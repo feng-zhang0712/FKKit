@@ -25,6 +25,7 @@ public final class FKGIFRefreshContentView: UIView, FKRefreshContentView {
 
   private func commonInit() {
     imageView.contentMode = .scaleAspectFit
+    imageView.isHidden = true
     imageView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(imageView)
     NSLayoutConstraint.activate([
@@ -38,9 +39,11 @@ public final class FKGIFRefreshContentView: UIView, FKRefreshContentView {
   public func refreshControl(_ control: FKRefreshControl, didTransitionTo state: FKRefreshState, from previous: FKRefreshState) {
     switch state {
     case .refreshing, .loadingMore:
+      imageView.isHidden = false
       startGIF()
     default:
       stopGIF()
+      imageView.isHidden = true
     }
   }
 
@@ -52,5 +55,6 @@ public final class FKGIFRefreshContentView: UIView, FKRefreshContentView {
 
   private func stopGIF() {
     imageView.stopAnimating()
+    imageView.image = nil
   }
 }
