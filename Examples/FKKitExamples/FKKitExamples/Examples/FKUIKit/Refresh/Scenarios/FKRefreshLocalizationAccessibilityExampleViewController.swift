@@ -20,7 +20,7 @@ final class FKRefreshLocalizationAccessibilityDemoViewController: UIViewControll
 
   private lazy var localeControl: UISegmentedControl = {
     let control = UISegmentedControl(items: ["English", "Arabic"])
-    control.selectedSegmentIndex = 0
+    control.selectedSegmentIndex = FKI18nManager.shared.currentLanguageCode == FKI18nRecommendedLanguages.arabic ? 1 : 0
     control.addTarget(self, action: #selector(localeChanged), for: .valueChanged)
     return control
   }()
@@ -59,6 +59,13 @@ final class FKRefreshLocalizationAccessibilityDemoViewController: UIViewControll
 
     applyLocaleMode()
     installRefresh()
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    if isMovingFromParent || isBeingDismissed {
+      FKI18nExampleSupport.syncWithDeviceLanguage()
+    }
   }
 
   @objc

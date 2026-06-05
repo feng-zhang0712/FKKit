@@ -89,7 +89,11 @@ final class FKButtonExampleProductionViewController: FKButtonExampleScrollViewCo
     button.setTitle(.init(text: "Submit payment", font: .systemFont(ofSize: 15, weight: .semibold), color: .white), for: .normal)
     button.setAppearances(.init(normal: .filled(backgroundColor: .systemIndigo, cornerStyle: .init(corner: .fixed(12)))))
     button.loadingIndicatorConfiguration = .init(style: .medium, scale: 1.15, color: .white)
-    button.loadingPresentationStyle = .replacesContent(.init(message: "Processing…", messageFont: .systemFont(ofSize: 14, weight: .medium), messageColor: .white))
+    button.loadingPresentationStyle = .replacesContent(.init(
+      message: FKUIKitI18n.string("fkuikit.button.loading"),
+      messageFont: .systemFont(ofSize: 14, weight: .medium),
+      messageColor: .white
+    ))
     button.loadingPreservesIntrinsicWidth = true
     button.heightAnchor.constraint(equalToConstant: 48).isActive = true
     button.widthAnchor.constraint(equalToConstant: 260).isActive = true

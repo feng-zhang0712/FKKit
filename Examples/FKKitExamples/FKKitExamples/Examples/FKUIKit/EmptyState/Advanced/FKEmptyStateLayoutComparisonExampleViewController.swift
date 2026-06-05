@@ -41,10 +41,9 @@ final class FKEmptyStateLayoutComparisonExampleViewController: UIViewController 
     fullPage.isButtonHidden = true
     fullPageContainer.fk_applyEmptyState(fullPage)
 
-    var inline = FKEmptyStateExampleFactory.makeBasicModel()
+    var inline = FKEmptyStateConfiguration.scenario(.noMessages)
     inline.context = .section
-    inline.title = "Inline section is empty"
-    inline.description = "Use compact copy in cards or dashboard sections."
+    inline.image = UIImage(systemName: "tray")
     inline.maxContentWidth = 250
     inline.imageSize = CGSize(width: 36, height: 36)
     inline.actions = FKEmptyStateActionSet()

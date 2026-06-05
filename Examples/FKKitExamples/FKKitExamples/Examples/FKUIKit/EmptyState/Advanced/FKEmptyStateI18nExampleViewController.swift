@@ -15,14 +15,15 @@ final class FKEmptyStateI18nExampleViewController: UIViewController {
     render()
   }
 
-  deinit {
-    MainActor.assumeIsolated {
-      fk_clearEmptyStateActionObservers()
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    if isMovingFromParent || isBeingDismissed {
+      FKI18nExampleSupport.syncWithDeviceLanguage()
     }
   }
 
   private func buildUI() {
-    localeSelector.selectedSegmentIndex = 0
+    localeSelector.selectedSegmentIndex = FKI18nManager.shared.currentLanguageCode == "zh-Hans" ? 1 : 0
     localeSelector.addTarget(self, action: #selector(render), for: .valueChanged)
     localeSelector.translatesAutoresizingMaskIntoConstraints = false
 
@@ -54,27 +55,9 @@ final class FKEmptyStateI18nExampleViewController: UIViewController {
     let code = localeSelector.selectedSegmentIndex == 0 ? "en" : "zh-Hans"
     FKI18nManager.shared.setLanguageCode(code)
 
-    let query = queryField.text?.isEmpty == false ? (queryField.text ?? "") : "wallet"
-    let copy = FKEmptyStateConfiguration.localizedCopy(for: .noResults, variables: ["query": query])
-
-    var model = FKEmptyStateConfiguration(phase: .empty, type: .noResults)
+    var model = FKEmptyStateConfiguration.scenario(.noSearchResult)
     model.image = UIImage(systemName: "magnifyingglass.circle")
-    model.title = copy.title
-    model.description = copy.description
-    model.actions = FKEmptyStateActionSet(
-      secondary: FKEmptyStateAction(
-        id: "clear",
-        title: FKUIKitI18n.string("fkuikit.empty.action.clearFilters"),
-        kind: .secondary
-      )
-    )
-    model.isButtonHidden = false
+    model.isButtonHidden = true
     container.fk_applyEmptyState(model)
-    fk_bindEmptyStateActions(from: container) { [weak self] action in
-      guard let self, action.id == "clear" else { return }
-      self.queryField.text = ""
-      self.fk_presentMessageAlert(title: "Updated", message: "The query has been cleared.")
-      self.render()
-    }
   }
 }

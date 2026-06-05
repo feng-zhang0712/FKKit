@@ -1,6 +1,6 @@
 import FKCoreKit
-import UIKit
 import FKUIKit
+import UIKit
 
 final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewController {
   private enum LocaleMode {
@@ -9,18 +9,31 @@ final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewCont
   }
 
   private var localeMode: LocaleMode = .english
-  private let localizedField = FKTextField.make(formatType: .email, placeholder: "Email")
+  private let localizedField = FKTextField.makeEmail()
+  private var languageObservation: FKI18nObservationToken?
 
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "I18N & Accessibility"
     build()
+    languageObservation = FKI18nManager.shared.observeLanguageChange { [weak self] _ in
+      Task { @MainActor in self?.applyLocale() }
+    }
+    applyLocale()
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    if isMovingFromParent || isBeingDismissed {
+      FKI18nExampleSupport.syncWithDeviceLanguage()
+    }
   }
 
   private func build() {
     addSection(title: "Locale Switch (EN / ZH)", note: "Uses FKI18nManager + FKUIKit bundled strings for accessories and announcements.")
     let localeControl = UISegmentedControl(items: ["English", "中文"])
-    localeControl.selectedSegmentIndex = 0
+    localeControl.selectedSegmentIndex = FKI18nManager.shared.currentLanguageCode == FKI18nRecommendedLanguages.simplifiedChinese ? 1 : 0
+    localeMode = localeControl.selectedSegmentIndex == 0 ? .english : .chinese
     localeControl.addAction(UIAction { [weak self] action in
       guard let self, let control = action.sender as? UISegmentedControl else { return }
       self.localeMode = (control.selectedSegmentIndex == 0) ? .english : .chinese
@@ -31,12 +44,11 @@ final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewCont
     var config = FKTextFieldConfiguration(inputRule: FKTextFieldInputRule(formatType: .email))
     config.inlineMessage.showsErrorMessage = true
     config.messages.helper = "Use a valid email address."
-    config.placeholder = "Email"
     localizedField.configure(config)
-    addField(title: "Localized field", field: localizedField, ruleHint: "Allowed: email characters. Labels and hints switch by locale.")
+    addField(title: "Localized field", field: localizedField, ruleHint: "Placeholder and accessories follow FKI18nManager.")
 
     addSection(title: "RTL Preview", note: "Forces right-to-left layout direction to verify prefix/suffix and text alignment behavior.")
-    let rtl = FKTextField.make(formatType: .phoneNumber, placeholder: "RTL Phone")
+    let rtl = FKTextField.makePhone()
     rtl.semanticContentAttribute = .forceRightToLeft
     rtl.textAlignment = .right
     addField(title: "RTL forced phone field", field: rtl, ruleHint: "Allowed: digits only. Layout is forced RTL.")
@@ -53,7 +65,7 @@ final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewCont
     let voButton = UIButton(type: .system)
     voButton.setTitle("Trigger VoiceOver announcement state", for: .normal)
     voButton.addAction(UIAction { [weak self] _ in
-      self?.localizedField.setError(message: self?.localeMode == .english ? "Invalid email format." : "邮箱格式错误。")
+      self?.localizedField.setError(message: FKUIKitI18n.string("fkuikit.textfield.validation.email"))
     }, for: .touchUpInside)
     stack.addArrangedSubview(voButton)
   }
@@ -65,14 +77,10 @@ final class FKTextFieldExampleI18nViewController: FKTextFieldExamplePageViewCont
     FKI18nManager.shared.setLanguageCode(code)
 
     var config = localizedField.configuration
-    switch localeMode {
-    case .english:
-      config.placeholder = "Email"
-      config.messages.helper = "Use a valid email address."
-    case .chinese:
-      config.placeholder = "邮箱"
-      config.messages.helper = "请输入有效邮箱地址。"
-    }
+    config.placeholder = FKUIKitI18n.string("fkuikit.textfield.placeholder.email")
+    config.messages.helper = localeMode == .english
+      ? "Use a valid email address."
+      : "请输入有效邮箱地址。"
     localizedField.configure(config)
     localizedField.setNeedsLayout()
   }

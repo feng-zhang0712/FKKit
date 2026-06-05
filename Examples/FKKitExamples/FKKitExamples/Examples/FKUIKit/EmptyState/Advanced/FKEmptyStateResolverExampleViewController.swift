@@ -1,8 +1,10 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
 final class FKEmptyStateResolverExampleViewController: UIViewController {
   private let container = UIView()
+  private var languageObservation: FKI18nObservationToken?
   private let loadingSwitch = UISwitch()
   private let offlineSwitch = UISwitch()
   private let permissionSwitch = UISwitch()
@@ -15,6 +17,9 @@ final class FKEmptyStateResolverExampleViewController: UIViewController {
     title = "State Resolver"
     view.backgroundColor = .systemBackground
     buildUI()
+    languageObservation = fk_observeEmptyStateLanguageRefresh { [weak self] in
+      self?.recompute()
+    }
     recompute()
   }
 
@@ -88,16 +93,40 @@ final class FKEmptyStateResolverExampleViewController: UIViewController {
     case .none:
       container.fk_hideEmptyState()
     case let .show(type):
-      render(type: type, input: input)
+      render(type: type)
     }
   }
 
-  private func render(type: FKEmptyStateType, input: FKEmptyStateInputs) {
-    var model = FKEmptyStateConfiguration(phase: type == .loading ? .loading : .empty, type: type)
+  private func configuration(for type: FKEmptyStateType) -> FKEmptyStateConfiguration {
+    switch type {
+    case .offline:
+      return FKEmptyStateConfiguration.scenario(.noNetwork)
+    case .noResults:
+      return FKEmptyStateConfiguration.scenario(.noSearchResult)
+    case .error:
+      return FKEmptyStateConfiguration.scenario(.loadFailed)
+    case .permissionDenied:
+      return FKEmptyStateConfiguration.scenario(.noPermission)
+    case .newUser:
+      return FKEmptyStateConfiguration.scenario(.notLoggedIn)
+    case .empty:
+      return FKEmptyStateConfiguration.scenario(.noMessages)
+    case .loading:
+      return FKEmptyStateConfiguration(phase: .loading, type: .loading)
+    case .notFound:
+      return FKEmptyStateConfiguration.scenario(.noMessages)
+    case .maintenance:
+      return FKEmptyStateConfiguration.customState(
+        identifier: "maintenance",
+        title: "Under maintenance",
+        description: "We're performing scheduled maintenance. Please try again later."
+      )
+    }
+  }
+
+  private func render(type: FKEmptyStateType) {
+    var model = configuration(for: type)
     model.image = UIImage(systemName: "rectangle.3.group")
-    let copy = FKEmptyStateConfiguration.localizedCopy(for: type, variables: ["query": input.searchQuery ?? ""])
-    model.title = copy.title
-    model.description = copy.description
     model.isButtonHidden = true
     if type == .error {
       model.phase = .error

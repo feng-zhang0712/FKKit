@@ -91,7 +91,7 @@ collectionView.fk_updateEmptyState(
 )
 ```
 
-### Resolver + bundled copy (semantic type → strings)
+### Resolver + scenario presets
 
 ```swift
 let input = FKEmptyStateInputs(dataLength: 0, isLoading: false, searchQuery: "note")
@@ -99,8 +99,8 @@ switch FKEmptyStateResolver.resolve(input) {
 case .none:
   view.fk_hideEmptyState()
 case .show(let type):
-  let copy = FKEmptyStateConfiguration.localizedCopy(for: type, variables: ["query": input.searchQuery ?? ""])
-  var config = FKEmptyStateConfiguration(phase: .empty, type: type, title: copy.title, description: copy.description)
+  var config = FKEmptyStateConfiguration.scenario(.noSearchResult)
+  config.type = type
   view.fk_applyEmptyState(config)
 }
 ```

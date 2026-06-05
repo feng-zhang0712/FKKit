@@ -16,6 +16,8 @@ enum FKI18nExampleSupport {
 
   /// Configures ``FKI18nManager/shared`` for FKI18n demos.
   static func configureAtLaunch() {
+    UserDefaults.standard.removeObject(forKey: FKI18nConfiguration().storageKey)
+
     FKI18nManager.shared.configure(
       FKI18nConfiguration(
         defaultLanguageCode: FKI18nRecommendedLanguages.english,
@@ -27,6 +29,20 @@ enum FKI18nExampleSupport {
         enforceSupportedLanguages: true
       )
     )
+    syncWithDeviceLanguage()
+  }
+
+  /// Aligns the shared manager with `Locale.preferredLanguages` (simulator / device Settings).
+  static func syncWithDeviceLanguage() {
+    let preferredLanguageCodes = FKI18nLocaleMatcher.uniqueLanguageCodes(
+      Locale.preferredLanguages + Bundle.main.preferredLocalizations
+    )
+    let code = FKI18nLocaleMatcher.bestSupportedLanguage(
+      preferredLanguageCodes: preferredLanguageCodes,
+      supportedLanguageCodes: supportedLanguageCodes,
+      fallback: FKI18nRecommendedLanguages.english
+    )
+    FKI18nManager.shared.setLanguageCode(code)
   }
 
   /// Container bundle hosting demo `.lproj` directories (copied to the app bundle root by Xcode).

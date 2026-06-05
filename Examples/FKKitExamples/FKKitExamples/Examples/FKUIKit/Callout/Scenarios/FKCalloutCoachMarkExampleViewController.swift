@@ -47,7 +47,6 @@ final class FKCalloutCoachMarkExampleViewController: FKCalloutExampleBaseViewCon
     let content = FKCalloutCoachMarkContent(
       title: "Tap to switch profiles",
       message: "Switch between your profiles for unique app experiences",
-      primaryActionTitle: "Got it",
       showsCloseButton: true
     )
     FKPopover.showCoachMark(

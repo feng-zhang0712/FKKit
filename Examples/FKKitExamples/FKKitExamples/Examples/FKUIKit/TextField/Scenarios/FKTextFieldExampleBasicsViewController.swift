@@ -9,6 +9,11 @@ final class FKTextFieldExampleBasicsViewController: FKTextFieldExamplePageViewCo
   }
 
   private func build() {
+    addSection(title: "Bundled Placeholders", note: "Uses FKTextField convenience factories with FKUIKit bundled placeholder strings.")
+    addField(title: "Email (bundled)", field: FKTextField.makeEmail(), ruleHint: "Placeholder from FKUIKitI18n.")
+    addField(title: "Phone (bundled)", field: FKTextField.makePhone(), ruleHint: "Placeholder from FKUIKitI18n.")
+    addField(title: "Password (bundled)", field: FKTextField.makePassword(), ruleHint: "Placeholder from FKUIKitI18n.")
+
     addSection(title: "Basic Text Input", note: "Verifies placeholder rendering, default value hydration, clear action, and reusable UIKit setup.")
     let basic = FKTextField.make(formatType: .alphaNumeric, placeholder: "Enter username")
     basic.fk_setText("DefaultValue123")

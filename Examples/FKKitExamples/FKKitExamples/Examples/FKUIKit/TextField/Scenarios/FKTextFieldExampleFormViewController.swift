@@ -14,8 +14,8 @@ final class FKTextFieldExampleFormViewController: FKTextFieldExamplePageViewCont
   private func build() {
     addSection(title: "Focus Chain + Return Submit", note: "Verifies next focus routing, return-key behavior, and real submit flow with first-error refocus.")
     let username = FKTextField.make(formatType: .alphaNumeric, placeholder: "Username")
-    let phone = FKTextField.makePhone(placeholder: "Phone")
-    let email = FKTextField.makeEmail(placeholder: "Email")
+    let phone = FKTextField.makePhone()
+    let email = FKTextField.makeEmail()
     let password = FKTextField.makePassword()
     fields = [username, phone, email, password]
 
