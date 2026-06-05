@@ -299,7 +299,7 @@ public struct FKTextFieldClearButtonConfiguration: @unchecked Sendable {
   public init(
     isEnabled: Bool = true,
     image: UIImage? = nil,
-    accessibilityLabel: String = "Clear text",
+    accessibilityLabel: String = FKUIKitI18n.string("fkuikit.textfield.clear_label"),
     resignsFirstResponderOnTap: Bool = false
   ) {
     self.isEnabled = isEnabled
@@ -320,7 +320,7 @@ public struct FKTextFieldPasswordToggleConfiguration: @unchecked Sendable {
     isEnabled: Bool = true,
     hiddenImage: UIImage? = nil,
     visibleImage: UIImage? = nil,
-    accessibilityLabel: String = "Toggle password visibility"
+    accessibilityLabel: String = FKUIKitI18n.string("fkuikit.textfield.toggle_password")
   ) {
     self.isEnabled = isEnabled
     self.hiddenImage = hiddenImage
@@ -422,8 +422,6 @@ public struct FKTextFieldConfiguration {
   public var validationPolicy: FKTextFieldValidationPolicy
   /// Accessibility behavior.
   public var accessibility: FKTextFieldAccessibilityConfiguration
-  /// Localization strings.
-  public var localization: FKTextFieldLocalization
   /// Motion policy.
   public var motion: FKTextFieldMotionConfiguration
   /// System text input traits (AutoFill, return key, capitalization, password rules).
@@ -453,7 +451,6 @@ public struct FKTextFieldConfiguration {
     accessories: FKTextFieldAccessoryConfiguration = FKTextFieldAccessoryConfiguration(),
     validationPolicy: FKTextFieldValidationPolicy = FKTextFieldValidationPolicy(),
     accessibility: FKTextFieldAccessibilityConfiguration = FKTextFieldAccessibilityConfiguration(),
-    localization: FKTextFieldLocalization = FKTextFieldLocalization(),
     motion: FKTextFieldMotionConfiguration = FKTextFieldMotionConfiguration(),
     textInputTraits: FKTextFieldTextInputTraitsConfiguration = FKTextFieldTextInputTraitsConfiguration(),
     messages: FKTextFieldMessages = FKTextFieldMessages(),
@@ -472,7 +469,6 @@ public struct FKTextFieldConfiguration {
     self.accessories = accessories
     self.validationPolicy = validationPolicy
     self.accessibility = accessibility
-    self.localization = localization
     self.motion = motion
     self.textInputTraits = textInputTraits
     self.messages = messages

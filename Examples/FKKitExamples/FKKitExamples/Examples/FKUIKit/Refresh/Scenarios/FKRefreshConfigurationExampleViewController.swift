@@ -50,26 +50,11 @@ final class FKRefreshConfigurationDemoViewController: UIViewController {
   }
 
   private func installControls() {
-    let texts = FKRefreshText(
-      pullToRefresh: "Pull down to refresh",
-      releaseToRefresh: "Release to refresh",
-      headerLoading: "Refreshing...",
-      headerFinished: "Refresh complete",
-      headerListEmpty: "No items",
-      headerFailed: "Refresh failed",
-      footerLoading: "Loading more...",
-      footerFinished: "Load complete",
-      footerNoMoreData: "No more data",
-      footerFailed: "Load failed",
-      footerTapToRetry: "Tap to retry"
-    )
-
     let cfg = FKRefreshConfiguration(
       triggerThreshold: 56,
       expandedHeight: 56,
       minimumLoadingVisibilityDuration: 0.45,
       tintColor: .systemBrown,
-      texts: texts,
       isSilentRefresh: silentSwitch.isOn,
       isHapticFeedbackEnabled: true
     )

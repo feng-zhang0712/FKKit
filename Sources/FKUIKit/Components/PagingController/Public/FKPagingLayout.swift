@@ -81,7 +81,7 @@ public struct FKPagingEmptyStateConfiguration: Equatable, Sendable {
   /// Centered message shown when ``FKPagingController/pageCount`` is `0`.
   public var message: String
 
-  public init(isEnabled: Bool = true, message: String = "No pages") {
+  public init(isEnabled: Bool = true, message: String = FKUIKitI18n.string("fkuikit.paging.no_pages")) {
     self.isEnabled = isEnabled
     self.message = message
   }

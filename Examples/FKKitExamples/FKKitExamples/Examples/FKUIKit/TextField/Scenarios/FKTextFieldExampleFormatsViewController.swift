@@ -10,8 +10,8 @@ final class FKTextFieldExampleFormatsViewController: FKTextFieldExamplePageViewC
 
   private func build() {
     addSection(title: "Common Types", note: "Verifies ready-to-use APIs for email, phone, password, numeric/decimal and OTP input.")
-    addField(title: "Email", field: FKTextField.makeEmail(placeholder: "name@example.com"), ruleHint: "Allowed: common email characters.")
-    addField(title: "Phone", field: FKTextField.makePhone(placeholder: "+86 138 0000 0000"), ruleHint: "Allowed: digits only. Display uses grouping.")
+    addField(title: "Email", field: FKTextField.makeEmail(), ruleHint: "Allowed: common email characters.")
+    addField(title: "Phone", field: FKTextField.makePhone(), ruleHint: "Allowed: digits only. Display uses grouping.")
     addField(title: "Password", field: FKTextField.makePassword(), ruleHint: "Allowed: password characters. Min/max and strength rules apply.")
     addField(title: "Numeric", field: FKTextField(inputRule: FKTextFieldInputRule(formatType: .numeric)), ruleHint: "Allowed: digits only.")
     addField(title: "Decimal amount", field: FKTextField(inputRule: FKTextFieldInputRule(formatType: .amount(maxIntegerDigits: 10, decimalDigits: 2))), ruleHint: "Allowed: digits and one decimal point.")

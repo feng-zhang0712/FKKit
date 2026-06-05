@@ -15,7 +15,7 @@ public struct FKCalloutCoachMarkContent: Sendable, Equatable {
   public init(
     title: String,
     message: String,
-    primaryActionTitle: String = "Got it",
+    primaryActionTitle: String = FKUIKitI18n.string("fkuikit.callout.got_it"),
     showsCloseButton: Bool = true
   ) {
     self.title = title

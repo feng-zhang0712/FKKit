@@ -5,7 +5,7 @@ UIKit overlay for **loading**, **empty**, **error**, and **custom** placeholders
 ## Requirements
 
 - Swift 6 / iOS 15+
-- `import FKUIKit` (includes resolver / i18n types from **`CoreLite/`**)
+- `import FKUIKit` (includes resolver types from **`CoreLite/`**)
 
 ## Layout
 
@@ -14,11 +14,11 @@ UIKit overlay for **loading**, **empty**, **error**, and **custom** placeholders
 | **`Public/`** | `FKEmptyStateView`, `FKEmptyStateConfiguration`, extensions, UIKit-only layout enums |
 | **`Internal/`** | Threading, host storage |
 | **`Extension/`** | `UIView`, `UIScrollView`, `UIViewController` conveniences |
-| **`CoreLite/`** | `FKEmptyStateType`, `FKEmptyStateInputs`, `FKEmptyStateResolver`, i18n + `FKEmptyStateFactory` (Foundation only, compiled into **`FKUIKit`**) |
+| **`CoreLite/`** | `FKEmptyStateType`, `FKEmptyStateInputs`, `FKEmptyStateResolver` (Foundation only, compiled into **`FKUIKit`**) |
 
 ## Source layout (`Sources/FKUIKit/Components/EmptyState/`)
 
-Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plus **`CoreLite/`** (Foundation-only resolver and i18n sources under this folder).
+Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plus **`CoreLite/`** (Foundation-only resolver sources under this folder).
 
 ### `Public/`
 
@@ -53,8 +53,6 @@ Foundation-only sources compiled as part of the **`FKUIKit`** target.
 | File | Role |
 |------|------|
 | `FKEmptyStateSemantic.swift` | `FKEmptyStateType`, `FKEmptyStateInputs`, `FKEmptyStateResolution`, `FKEmptyStateResolver` |
-| `FKEmptyStateI18n.swift` | Locale, keys, translator protocol, built-in dictionary, `{token}` interpolation |
-| `FKEmptyStateFactory.swift` | Localized title/description for each `FKEmptyStateType` |
 
 ## Global defaults (FKBadge-style)
 
@@ -93,7 +91,7 @@ collectionView.fk_updateEmptyState(
 )
 ```
 
-### Resolver + factory (semantic type → copy)
+### Resolver + scenario presets
 
 ```swift
 let input = FKEmptyStateInputs(dataLength: 0, isLoading: false, searchQuery: "note")
@@ -101,9 +99,8 @@ switch FKEmptyStateResolver.resolve(input) {
 case .none:
   view.fk_hideEmptyState()
 case .show(let type):
-  let factory = FKEmptyStateFactory(locale: .en)
-  let copy = factory.copy(for: type, variables: ["query": input.searchQuery ?? ""])
-  var config = FKEmptyStateConfiguration(phase: .empty, type: type, title: copy.title, description: copy.description)
+  var config = FKEmptyStateConfiguration.scenario(.noSearchResult)
+  config.type = type
   view.fk_applyEmptyState(config)
 }
 ```

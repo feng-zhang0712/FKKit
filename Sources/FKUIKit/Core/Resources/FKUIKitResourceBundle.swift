@@ -1,3 +1,4 @@
+import FKCoreKit
 import UIKit
 
 /// Resolves bundled FKUIKit assets (Symbol Image sets in ``Assets.xcassets``).
@@ -22,6 +23,18 @@ enum FKUIKitResourceBundle {
     }
     return Bundle(for: FKUIKitBundleToken.self)
     #endif
+  }
+
+  /// Resolves the best `.lproj` bundle for `languageCode` inside ``bundle``.
+  ///
+  /// - Parameter languageCode: BCP-47 language code such as `en` or `zh-Hans`.
+  /// - Returns: Language-specific bundle, or ``bundle`` when no match exists.
+  static func localizedBundle(for languageCode: String) -> Bundle {
+    FKI18nBundleResolver.bundle(
+      for: languageCode,
+      in: bundle,
+      fallbackLanguageCodes: [FKI18nRecommendedLanguages.english]
+    )
   }
 
   /// Loads a custom symbol image by asset name.

@@ -58,7 +58,7 @@ public final class FKAudioPlayerViewController: UIViewController {
     config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 28, weight: .regular)
     standaloneCloseButton.configuration = config
     standaloneCloseButton.tintColor = .secondaryLabel
-    standaloneCloseButton.accessibilityLabel = FKAudioPlayerStrings.close
+    standaloneCloseButton.accessibilityLabel = FKUIKitI18n.string("fkuikit.audio.close")
     standaloneCloseButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
     standaloneCloseButton.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(standaloneCloseButton)

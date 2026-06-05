@@ -175,16 +175,29 @@ enum FKSheetPresentationLayoutEngine {
     clampedContentHeightValue(height, environment: environment, appliesMinimumContentHeight: true)
   }
 
-  /// Measures the presented content height used by `.fitContent` and edge-pinned sheet layouts.
+  /// Measures the resolved shell (detent) height used by `.fitContent` and anchor layouts.
   ///
   /// - Parameter appliesLegacyFittingFloor: When `false`, skips the 180pt fitting fallback used only for
-  ///   historical detent defaults. Top-sheet bottom pinning passes `false` so shell growth does not force
-  ///   full-height content measurement.
+  ///   historical detent defaults.
   static func measuredContentHeight(
     for environment: Environment,
     appliesLegacyFittingFloor: Bool = true
   ) -> CGFloat {
     measuredFitContentHeight(environment: environment, appliesLegacyFittingFloor: appliesLegacyFittingFloor)
+  }
+
+  /// Height for the hosted presented view inside the content container (pure content, not shell/detent).
+  static func measuredHostedPresentedContentHeight(for environment: Environment) -> CGFloat {
+    let raw = measuredRawContentHeight(environment: environment, appliesLegacyFittingFloor: false)
+    guard environment.configuration.preferredContentSizeReporting == .contentOnly else {
+      return FKSheetPreferredContentSizingMath.hostedContentHeight(
+        fromShellHeight: raw,
+        configuration: environment.configuration,
+        layout: environment.configuration.layout,
+        containerSafeAreaInsets: environment.containerSafeAreaInsets
+      )
+    }
+    return raw
   }
 
   static func edgeFrame(in bounds: CGRect, edge: UIRectEdge) -> CGRect {
@@ -227,26 +240,73 @@ enum FKSheetPresentationLayoutEngine {
     environment: Environment,
     appliesLegacyFittingFloor: Bool = true
   ) -> CGFloat {
+    let contentHeight = measuredRawContentHeight(
+      environment: environment,
+      appliesLegacyFittingFloor: appliesLegacyFittingFloor
+    )
+    return resolvedShellHeight(fromContentHeight: contentHeight, environment: environment)
+  }
+
+  private static func measuredRawContentHeight(
+    environment: Environment,
+    appliesLegacyFittingFloor: Bool
+  ) -> CGFloat {
     let targetWidth = contentFittingWidth(for: environment)
     let preferred = environment.preferredContentSize.height
-    let minimumMeasured: CGFloat = appliesLegacyFittingFloor ? 180 : 44
+    let usesContentOnlyReporting = environment.configuration.preferredContentSizeReporting == .contentOnly
+    let minimumMeasured: CGFloat = {
+      if usesContentOnlyReporting { return 44 }
+      return appliesLegacyFittingFloor ? 180 : 44
+    }()
 
     switch environment.configuration.preferredContentSizePolicy {
     case .strict:
-      if preferred > 0 { return max(minimumMeasured, preferred) }
+      if preferred > 0 {
+        let reporting = environment.configuration.preferredContentSizeReporting
+        if usesContentOnlyReporting || reporting == .shellHeight {
+          return max(44, preferred)
+        }
+        return max(minimumMeasured, preferred)
+      }
     case .automatic:
       if preferred >= 44 { return preferred }
     case .ignore:
       break
     }
 
-    guard let view = environment.contentViewForFitting else { return appliesLegacyFittingFloor ? 360 : 44.0 }
+    guard let view = environment.contentViewForFitting else {
+      return usesContentOnlyReporting ? 44 : (appliesLegacyFittingFloor ? 360 : 44.0)
+    }
     let size = view.systemLayoutSizeFitting(
       CGSize(width: targetWidth, height: UIView.layoutFittingCompressedSize.height),
       withHorizontalFittingPriority: .required,
       verticalFittingPriority: .fittingSizeLevel
     )
     return max(minimumMeasured, size.height)
+  }
+
+  private static func resolvedShellHeight(
+    fromContentHeight contentHeight: CGFloat,
+    environment: Environment
+  ) -> CGFloat {
+    guard appliesContentOnlyShellConversion(environment) else {
+      return contentHeight
+    }
+    return environment.configuration.resolvedShellHeight(
+      fromContentHeight: contentHeight,
+      layout: environment.configuration.layout,
+      containerSafeAreaInsets: environment.containerSafeAreaInsets
+    )
+  }
+
+  private static func appliesContentOnlyShellConversion(_ environment: Environment) -> Bool {
+    guard environment.configuration.preferredContentSizeReporting == .contentOnly else { return false }
+    switch environment.configuration.layout {
+    case .bottomSheet, .topSheet:
+      return true
+    case .center, .anchor, .edge:
+      return false
+    }
   }
 
   /// Width used when measuring intrinsic content height (center fitted cards use card width, not screen width).

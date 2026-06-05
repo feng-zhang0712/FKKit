@@ -36,9 +36,9 @@ public struct FKExpandableTextConfiguration {
     public var hint: String
 
     public init(
-      expandLabel: String = "Expand text",
-      collapseLabel: String = "Collapse text",
-      hint: String = "Double-tap to toggle text expansion."
+      expandLabel: String = FKUIKitI18n.string("fkuikit.expandable_text.accessibility.expand"),
+      collapseLabel: String = FKUIKitI18n.string("fkuikit.expandable_text.accessibility.collapse"),
+      hint: String = FKUIKitI18n.string("fkuikit.expandable_text.accessibility.hint")
     ) {
       self.expandLabel = expandLabel
       self.collapseLabel = collapseLabel
@@ -62,14 +62,14 @@ public struct FKExpandableTextConfiguration {
   public init(
     truncationToken: NSAttributedString = NSAttributedString(string: "... "),
     expandActionText: NSAttributedString = NSAttributedString(
-      string: "Read more",
+      string: FKUIKitI18n.string("fkuikit.expandable_text.read_more"),
       attributes: [
         .foregroundColor: UIColor.systemBlue,
         .font: UIFont.preferredFont(forTextStyle: .body),
       ]
     ),
     collapseActionText: NSAttributedString = NSAttributedString(
-      string: "Collapse",
+      string: FKUIKitI18n.string("fkuikit.expandable_text.collapse"),
       attributes: [
         .foregroundColor: UIColor.systemBlue,
         .font: UIFont.preferredFont(forTextStyle: .body),

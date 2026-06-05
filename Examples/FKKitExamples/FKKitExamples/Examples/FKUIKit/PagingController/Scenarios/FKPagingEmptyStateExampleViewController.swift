@@ -1,17 +1,16 @@
-import UIKit
+import FKCoreKit
 import FKUIKit
+import UIKit
 
 /// ``FKPagingEmptyStateConfiguration`` when ``pageCount`` is zero.
 @MainActor
 final class FKPagingEmptyStateExampleViewController: UIViewController {
   private let pagingController: FKPagingController
+  private var languageObservation: FKI18nObservationToken?
 
   init() {
     var config = FKPagingConfiguration()
-    config.emptyStateConfiguration = FKPagingEmptyStateConfiguration(
-      isEnabled: true,
-      message: "No pages yet — tap Add below"
-    )
+    config.emptyStateConfiguration = FKPagingEmptyStateConfiguration(isEnabled: true)
     pagingController = FKPagingController(
       tabs: [],
       viewControllers: [],
@@ -30,6 +29,10 @@ final class FKPagingEmptyStateExampleViewController: UIViewController {
     title = "Empty state"
     view.backgroundColor = .systemBackground
     FKPagingDemoSupport.embedFullScreen(pagingController, in: self)
+    languageObservation = FKI18nManager.shared.observeLanguageChange { [weak self] _ in
+      Task { @MainActor in self?.refreshEmptyStateMessage() }
+    }
+    refreshEmptyStateMessage()
 
     let addButton = FKTabBarExampleSupport.actionButton("Add 3 pages") { [weak self] in
       guard let self else { return }
@@ -49,5 +52,11 @@ final class FKPagingEmptyStateExampleViewController: UIViewController {
       addButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
       addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
     ])
+  }
+
+  private func refreshEmptyStateMessage() {
+    var config = pagingController.configuration
+    config.emptyStateConfiguration.message = FKUIKitI18n.string("fkuikit.paging.no_pages")
+    pagingController.configuration = config
   }
 }

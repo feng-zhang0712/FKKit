@@ -17,20 +17,19 @@ public extension FKTextField {
     let configuration = FKTextFieldConfiguration(
       inputRule: rule,
       style: FKTextFieldManager.shared.defaultStyle,
-      localization: FKTextFieldManager.shared.defaultLocalization,
       placeholder: placeholder
     )
     return FKTextField(configuration: configuration)
   }
 
   /// Creates a preconfigured email field.
-  static func makeEmail(placeholder: String? = "Email") -> FKTextField {
+  static func makeEmail(placeholder: String? = FKUIKitI18n.string("fkuikit.textfield.placeholder.email")) -> FKTextField {
     make(formatType: .email, placeholder: placeholder)
   }
 
   /// Creates a preconfigured password field.
   static func makePassword(
-    placeholder: String? = "Password",
+    placeholder: String? = FKUIKitI18n.string("fkuikit.textfield.placeholder.password"),
     minLength: Int = 8,
     maxLength: Int = 20
   ) -> FKTextField {
@@ -43,7 +42,7 @@ public extension FKTextField {
   }
 
   /// Creates a preconfigured phone field.
-  static func makePhone(placeholder: String? = "Phone number") -> FKTextField {
+  static func makePhone(placeholder: String? = FKUIKitI18n.string("fkuikit.textfield.placeholder.phone")) -> FKTextField {
     make(formatType: .phoneNumber, placeholder: placeholder, maxLength: 11)
   }
 }

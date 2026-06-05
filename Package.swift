@@ -8,30 +8,30 @@ import PackageDescription
 ///
 /// SwiftPM treats every file under a target path as input; markdown docs must be excluded explicitly
 /// (globs such as `**/README.md` are not supported). When adding a component README under
-/// `Sources/FKCoreKit/<Module>/` or `Sources/FKUIKit/Components/…/`, append its directory here.
+/// `Sources/FKCoreKit/Components/<Module>/` or `Sources/FKUIKit/Components/…/`, append its directory here.
 private func readmeExcludes(moduleDirectories: [String]) -> [String] {
   moduleDirectories.sorted().map { "\($0)/README.md" }
 }
 
-/// Top-level FKCoreKit module docs (`Sources/FKCoreKit/<name>/README.md`).
+/// FKCoreKit component docs (`Sources/FKCoreKit/Components/<name>/README.md`).
 private let fkCoreKitModuleDocDirectories: [String] = [
-  "Async",
-  "BusinessKit",
-  "FileManager",
-  "Logger",
-  "Network",
-  "Permissions",
-  "Pluggable",
-  "Security",
-  "Storage",
-  "Utils",
+  "Components/Async",
+  "Components/BusinessKit",
+  "Components/FileManager",
+  "Components/I18n",
+  "Components/Logger",
+  "Components/Network",
+  "Components/Permissions",
+  "Components/Pluggable",
+  "Components/Security",
+  "Components/Storage",
+  "Components/Utils",
 ]
 
 /// FKUIKit component docs (`Sources/FKUIKit/Components/…/README.md`), including nested Player modules.
 private let fkUIKitComponentDocDirectories: [String] = [
   "Components/ActionSheet",
   "Components/Badge",
-  "Components/Base",
   "Components/BlurView",
   "Components/Button",
   "Components/Callout",
@@ -57,6 +57,7 @@ private let fkUIKitComponentDocDirectories: [String] = [
 
 let package = Package(
   name: "FKKit",
+  defaultLocalization: "en",
   platforms: [
     .iOS(.v15),
   ],
@@ -77,7 +78,10 @@ let package = Package(
     .target(
       name: "FKCoreKit",
       path: "Sources/FKCoreKit",
-      exclude: readmeExcludes(moduleDirectories: fkCoreKitModuleDocDirectories)
+      exclude: readmeExcludes(moduleDirectories: fkCoreKitModuleDocDirectories),
+      resources: [
+        .process("Resources"),
+      ]
     ),
     .testTarget(
       name: "FKCoreKitTests",

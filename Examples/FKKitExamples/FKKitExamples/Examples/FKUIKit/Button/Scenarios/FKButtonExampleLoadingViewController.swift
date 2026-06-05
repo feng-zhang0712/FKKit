@@ -48,7 +48,7 @@ final class FKButtonExampleLoadingViewController: FKButtonExampleScrollViewContr
       Task { @MainActor in
         let options = FKButton.ReplacedContentLoadingOptions(
           spacingAfterIndicator: 10,
-          message: "Processing...",
+          message: FKUIKitI18n.string("fkuikit.button.loading"),
           messageFont: .systemFont(ofSize: 14, weight: .medium),
           messageColor: .white
         )

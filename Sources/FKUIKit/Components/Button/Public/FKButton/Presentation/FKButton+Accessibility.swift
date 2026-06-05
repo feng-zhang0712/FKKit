@@ -38,10 +38,10 @@ extension FKButton {
     if isLoading {
       switch loadingPresentationStyle {
       case .overlay:
-        return "Loading"
+        return FKUIKitI18n.string("fkuikit.button.loading")
       case .replacesContent(let options):
         let trimmed = options.message?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return trimmed.isEmpty ? "Loading" : trimmed
+        return trimmed.isEmpty ? FKUIKitI18n.string("fkuikit.button.loading") : trimmed
       }
     }
 

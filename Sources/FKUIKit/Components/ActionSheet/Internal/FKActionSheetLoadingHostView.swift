@@ -203,7 +203,7 @@ final class FKActionSheetLoadingHostView: UIView {
       indicator.translatesAutoresizingMaskIntoConstraints = false
       indicator.color = content.activityIndicatorColor
       indicator.startAnimating()
-      indicator.accessibilityLabel = "Loading"
+      indicator.accessibilityLabel = FKUIKitI18n.string("fkuikit.common.loading")
       activityIndicator = indicator
       stack.addArrangedSubview(indicator)
     }
@@ -251,7 +251,7 @@ final class FKActionSheetLoadingHostView: UIView {
         guard let value, !value.isEmpty else { return nil }
         return value
       }
-      stack.accessibilityLabel = parts.isEmpty ? "Loading" : parts.joined(separator: ", ")
+      stack.accessibilityLabel = parts.isEmpty ? FKUIKitI18n.string("fkuikit.common.loading") : parts.joined(separator: ", ")
     }
 
     embeddedLoadingView = stack
@@ -275,7 +275,7 @@ final class FKActionSheetLoadingHostView: UIView {
 
     contentContainer.isAccessibilityElement = true
     contentContainer.accessibilityTraits = [.updatesFrequently]
-    contentContainer.accessibilityLabel = custom.accessibilityLabel ?? "Loading"
+    contentContainer.accessibilityLabel = custom.accessibilityLabel ?? FKUIKitI18n.string("fkuikit.common.loading")
 
     if let embeddedLoadingView, let update = custom.provider.update {
       update(context, embeddedLoadingView)

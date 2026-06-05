@@ -11,7 +11,7 @@ public final class FKMediaPhotoLibraryAssetResolver: FKMediaPhotoAssetResolver {
   public func resolveAsset(localIdentifier: String) async throws -> AVURLAsset {
     let assets = PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil)
     guard let asset = assets.firstObject else {
-      throw FKMediaError.invalidState("Photo asset not found: \(localIdentifier)")
+      throw FKMediaError.invalidState(FKUIKitI18n.format("fkuikit.media.error.photo_not_found", localIdentifier))
     }
     guard asset.mediaType == .video else {
       throw FKMediaError.unsupportedFormat(
@@ -41,7 +41,7 @@ public final class FKMediaPhotoLibraryAssetResolver: FKMediaPhotoAssetResolver {
           continuation.resume(
             throwing: FKMediaError.engineFailed(
               engine: .avFoundation,
-              message: "Photo asset is not exported as AVURLAsset"
+              message: FKUIKitI18n.string("fkuikit.media.error.photo_not_url_asset")
             )
           )
           return

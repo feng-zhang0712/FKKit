@@ -30,6 +30,8 @@ public struct FKSheetPresentationConfiguration: @unchecked Sendable {
   public var rotationHandling: RotationHandling
   /// Preferred content size policy.
   public var preferredContentSizePolicy: PreferredContentSizePolicy
+  /// Whether ``preferredContentSize`` height is shell (detent) or pure content for fit-content sizing.
+  public var preferredContentSizeReporting: FKPreferredContentSizeReporting
   /// Sheet behavior. For non-sheet layouts, a default sheet configuration is synthesized.
   ///
   /// The setter only applies when ``layout`` is `.bottomSheet` or `.topSheet`; otherwise use
@@ -100,6 +102,7 @@ public struct FKSheetPresentationConfiguration: @unchecked Sendable {
     keyboardAvoidance: KeyboardAvoidanceConfiguration = .init(),
     rotationHandling: RotationHandling = .relayoutAnimated,
     preferredContentSizePolicy: PreferredContentSizePolicy = .automatic,
+    preferredContentSizeReporting: FKPreferredContentSizeReporting = .shellHeight,
     animation: FKSheetAnimationConfiguration = .init(),
     contentInsets: NSDirectionalEdgeInsets = .zero,
     haptics: HapticsConfiguration = .init(),
@@ -119,6 +122,7 @@ public struct FKSheetPresentationConfiguration: @unchecked Sendable {
     self.keyboardAvoidance = keyboardAvoidance
     self.rotationHandling = rotationHandling
     self.preferredContentSizePolicy = preferredContentSizePolicy
+    self.preferredContentSizeReporting = preferredContentSizeReporting
     self.animation = animation
     self.contentInsets = contentInsets
     self.haptics = haptics

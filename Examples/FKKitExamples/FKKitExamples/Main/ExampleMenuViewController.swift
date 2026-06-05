@@ -29,11 +29,6 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKActionSheetExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          title: "Base",
-          subtitle: "Hub: FKBaseViewController, table/collection shells, composition, search",
-          make: { FKBaseExamplesHubViewController() }
-        ),
-        ExampleMenuItem(
           title: "Badge",
           subtitle: "Dot, numeric & text badges, anchors, animations, TabBarItem",
           make: { FKBadgeExamplesHubViewController() }
@@ -148,6 +143,11 @@ final class ExampleMenuViewController: UITableViewController {
           title: "FileManager",
           subtitle: "Sandbox/file ops, read/write, resumable download, upload, cache and ZIP APIs",
           make: { FKFileManagerExampleViewController() }
+        ),
+        ExampleMenuItem(
+          title: "FKI18n",
+          subtitle: "Language switching, bundle lookup, format variables, dictionary backend, observers, RTL, integration",
+          make: { FKI18nExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Logger",

@@ -36,7 +36,7 @@ Sources under `Sources/FKUIKit/Components/Refresh/`:
 | Area | Role |
 |------|------|
 | `Public/Control/` | `FKRefreshControl`, `FKRefreshKind` |
-| `Public/Models/` | `FKRefreshState`, `FKRefreshConfiguration`, `FKLoadMoreTriggerMode`, `FKRefreshText`, `FKRefreshPagination`, `FKRefreshActionContext`, `FKRefreshClock` |
+| `Public/Models/` | `FKRefreshState`, `FKRefreshConfiguration`, `FKRefreshStatusTextMode`, `FKRefreshNoMoreDataBehavior`, `FKLoadMoreTriggerMode`, `FKRefreshPagination`, `FKRefreshActionContext`, `FKRefreshClock` |
 | `Public/Policy/` | `FKRefreshPolicy`, concurrency and auto-fill types |
 | `Public/Callbacks/` | Async and context handler type aliases |
 | `Public/Protocols/` | `FKRefreshContentView`, `FKRefreshControlDelegate` |
@@ -177,7 +177,30 @@ The same overloads exist with a custom `contentView:` parameter when you impleme
 
 ### Texts and localization
 
-`FKDefaultRefreshContentView` reads copy from `FKRefreshText`. Override `FKRefreshConfiguration.texts` per screen or assign localized defaults in `FKRefreshSettings`.
+`FKDefaultRefreshContentView` resolves copy via ``FKUIKitI18n`` at display time. Set ``statusTextMode`` to `.indicatorOnly` to hide pull/release/loading labels; VoiceOver still announces bundled strings.
+
+### Indicator only (no status text)
+
+Set `statusTextMode` to `.indicatorOnly` to show only the arrow or spinner — no pull/release/loading/finished labels. VoiceOver still announces bundled strings.
+
+```swift
+var config = FKRefreshConfiguration()
+config.statusTextMode = .indicatorOnly
+config.finishedHoldDuration = 0  // optional: collapse without a terminal message
+tableView.fk_addPullToRefresh(configuration: config) { ... }
+```
+
+### Feed-style “no more data”
+
+Use `noMoreDataBehavior = .hideFooter` to hide the load-more control after `endRefreshingWithNoMoreData()` (common in infinite feeds). Call `fk_resetLoadMoreState()` or `resetFooterAfterPullToRefresh()` to show it again.
+
+```swift
+var footer = FKRefreshConfiguration()
+footer.statusTextMode = .indicatorOnly
+footer.noMoreDataBehavior = .hideFooter
+footer.loadMorePreloadOffset = 200
+tableView.fk_addLoadMore(configuration: footer) { ... }
+```
 
 ### Custom indicator
 
@@ -228,6 +251,7 @@ FKKitExamples `Examples/FKUIKit/Refresh/`:
 |--------|----------|
 | `Hub/` | Navigation hub listing all demos |
 | `Scenarios/` | Individual view controllers (table, collection, scroll view, policy, pagination, GIF, dots, hosted, configuration, environment, localization, …) |
+| `Inspired/` | Brand-style presets hub (`Hub/`), shared feed VC (`Support/`), preset bundles (`Presets/`) |
 | `SwiftUI/` | `FKRefreshSwiftUIBridge` hosting demo |
 | `Shared/` | `FKRefreshExampleCommon` helpers (simulated delays, state strings) |
 | `Support/` | Example-only views such as `FKDotsRefreshContentView` |
@@ -237,7 +261,7 @@ FKKitExamples `Examples/FKUIKit/Refresh/`:
 ### Core types
 
 - `FKRefreshControl`, `FKRefreshKind`, `FKRefreshState`
-- `FKRefreshConfiguration`, `FKLoadMoreTriggerMode`, `FKRefreshText`
+- `FKRefreshConfiguration`, `FKLoadMoreTriggerMode`
 - `FKRefreshPolicy`, `FKAutoFillPolicy`, `FKRefreshConcurrencyPolicy`, `FKRefreshTriggerSource`
 - `FKRefreshActionContext`
 - `FKRefreshContentView`, `FKRefreshControlDelegate`

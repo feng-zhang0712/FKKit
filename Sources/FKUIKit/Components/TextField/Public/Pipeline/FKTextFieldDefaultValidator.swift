@@ -21,68 +21,55 @@ public struct FKTextFieldDefaultValidator: FKTextFieldValidating {
     rule: FKTextFieldInputRule
   ) -> FKTextFieldValidationResult {
     if let minLength = rule.minLength, rawText.count < minLength, !rawText.isEmpty {
-      return .init(isValid: false, message: "Input is shorter than minimum length.")
+      return .init(isValid: false, message: FKUIKitI18n.string("fkuikit.textfield.validation.shorter_than_min"))
     }
     if let maxLength = rule.maxLength, rawText.count > maxLength {
-      // Hard guard for global max length constraints.
-      return .init(isValid: false, message: "Input exceeds max length.")
+      return .init(isValid: false, message: FKUIKitI18n.string("fkuikit.textfield.validation.too_long"))
     }
 
     switch rule.formatType {
     case .phoneNumber:
-      // Phone numbers: 11 digits (CN common format).
       let valid = rawText.count == 11
-      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : "Phone number must be 11 digits.")
+      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.phone_11_digits"))
     case .idCard:
-      // ID card: 15-digit numeric or 18-digit with checksum validation.
       let valid = validateIDCard(rawText)
-      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : "Invalid ID card format.")
+      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.id_card"))
     case .bankCard:
-      // Bank cards: allow common length range.
       let valid = (12 ... 24).contains(rawText.count)
-      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : "Bank card length is invalid.")
+      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.bank_card"))
     case let .verificationCode(length, _):
-      // Verification codes: fixed length required.
       let valid = rawText.count == length
-      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : "Verification code is incomplete.")
+      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.verification_code"))
     case let .password(minLength, _, validatesStrength):
-      // Password: minimum length, optional strength requirements.
       let lengthValid = rawText.count >= minLength
       if !lengthValid {
-        return .init(isValid: false, message: rawText.isEmpty ? nil : "Password is too short.")
+        return .init(isValid: false, message: rawText.isEmpty ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.password_short"))
       }
       if validatesStrength {
-        // Strength rule: at least one uppercase, one lowercase, one digit, and minimum 8 chars.
         let strong = rawText.range(of: "(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).{8,}", options: .regularExpression) != nil
-        return .init(isValid: strong, message: strong ? nil : "Password must include uppercase, lowercase and number.")
+        return .init(isValid: strong, message: strong ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.password_strength"))
       }
       return .valid
     case let .amount(_, decimalDigits):
-      // Amount: digits with optional fractional part up to the configured scale.
       let expression = "^\\d+(\\.\\d{0,\(max(0, decimalDigits))})?$"
       let valid = rawText.range(of: expression, options: .regularExpression) != nil
-      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : "Invalid amount format.")
+      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.amount"))
     case .email:
-      // Email: pragmatic regex for common addresses.
       let regex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
       let valid = rawText.range(of: regex, options: .regularExpression) != nil
-      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : "Invalid email address.")
+      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.email"))
     case .numeric:
-      // Numeric: digits only.
       let valid = rawText.allSatisfy(\.isNumber)
-      return .init(isValid: valid, message: valid ? nil : "Only numbers are allowed.")
+      return .init(isValid: valid, message: valid ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.numeric_only"))
     case .alphabetic:
-      // Alphabetic: letters only.
       let valid = rawText.allSatisfy(\.isLetter)
-      return .init(isValid: valid, message: valid ? nil : "Only letters are allowed.")
+      return .init(isValid: valid, message: valid ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.letters_only"))
     case .alphaNumeric:
-      // Alphanumeric: letters and digits only.
       let valid = rawText.allSatisfy { $0.isNumber || $0.isLetter }
-      return .init(isValid: valid, message: valid ? nil : "Only letters and numbers are allowed.")
+      return .init(isValid: valid, message: valid ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.alphanumeric_only"))
     case let .custom(regex, _, _, _):
-      // Custom: validate raw value matches the provided regex repeatedly.
       let valid = rawText.range(of: "^\(regex)*$", options: .regularExpression) != nil
-      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : "Invalid custom input.")
+      return .init(isValid: valid, message: valid || rawText.isEmpty ? nil : FKUIKitI18n.string("fkuikit.textfield.validation.custom"))
     }
   }
 }

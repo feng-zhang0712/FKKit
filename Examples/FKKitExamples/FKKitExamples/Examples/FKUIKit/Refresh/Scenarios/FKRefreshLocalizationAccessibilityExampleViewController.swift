@@ -1,3 +1,4 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
@@ -19,7 +20,7 @@ final class FKRefreshLocalizationAccessibilityDemoViewController: UIViewControll
 
   private lazy var localeControl: UISegmentedControl = {
     let control = UISegmentedControl(items: ["English", "Arabic"])
-    control.selectedSegmentIndex = 0
+    control.selectedSegmentIndex = FKI18nManager.shared.currentLanguageCode == FKI18nRecommendedLanguages.arabic ? 1 : 0
     control.addTarget(self, action: #selector(localeChanged), for: .valueChanged)
     return control
   }()
@@ -30,7 +31,7 @@ final class FKRefreshLocalizationAccessibilityDemoViewController: UIViewControll
     label.adjustsFontForContentSizeCategory = true
     label.numberOfLines = 0
     label.textColor = .secondaryLabel
-    label.text = "Goal: validate i18n strings + Dynamic Type + VoiceOver announcements."
+    label.text = "Goal: validate FKUIKit bundled strings + Dynamic Type + VoiceOver announcements."
     return label
   }()
 
@@ -56,11 +57,20 @@ final class FKRefreshLocalizationAccessibilityDemoViewController: UIViewControll
       tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
     ])
 
+    applyLocaleMode()
     installRefresh()
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    if isMovingFromParent || isBeingDismissed {
+      FKI18nExampleSupport.syncWithDeviceLanguage()
+    }
   }
 
   @objc
   private func localeChanged() {
+    applyLocaleMode()
     tableView.fk_pullToRefresh?.cancelCurrentAction(resetState: true)
     tableView.fk_loadMore?.cancelCurrentAction(resetState: true)
     tableView.fk_removeRefreshComponents()
@@ -68,13 +78,17 @@ final class FKRefreshLocalizationAccessibilityDemoViewController: UIViewControll
     tableView.setContentOffset(.zero, animated: false)
   }
 
+  private func applyLocaleMode() {
+    let mode = LocaleMode(rawValue: localeControl.selectedSegmentIndex) ?? .english
+    let code = mode == .arabic ? FKI18nRecommendedLanguages.arabic : FKI18nRecommendedLanguages.english
+    FKI18nManager.shared.setLanguageCode(code)
+    tableView.semanticContentAttribute = mode == .arabic ? .forceRightToLeft : .forceLeftToRight
+  }
+
   private func installRefresh() {
     var config = FKRefreshConfiguration()
-    config.texts = selectedTexts
     config.tintColor = .systemBlue
     config.loadMorePreloadOffset = 120
-
-    tableView.semanticContentAttribute = localeControl.selectedSegmentIndex == LocaleMode.arabic.rawValue ? .forceRightToLeft : .forceLeftToRight
 
     tableView.fk_addPullToRefresh(configuration: config) { [weak self] in
       FKRefreshExampleCommon.simulateRequest(delay: 0.8) {
@@ -99,40 +113,6 @@ final class FKRefreshLocalizationAccessibilityDemoViewController: UIViewControll
       }
     }
   }
-
-  private var selectedTexts: FKRefreshText {
-    let mode = LocaleMode(rawValue: localeControl.selectedSegmentIndex) ?? .english
-    switch mode {
-    case .english:
-      return FKRefreshText(
-        pullToRefresh: "Pull to refresh",
-        releaseToRefresh: "Release to refresh",
-        headerLoading: "Refreshing data…",
-        headerFinished: "Refresh completed",
-        headerListEmpty: "No content",
-        headerFailed: "Refresh failed",
-        footerLoading: "Loading more…",
-        footerFinished: "Loaded",
-        footerNoMoreData: "No more data",
-        footerFailed: "Load failed",
-        footerTapToRetry: "Tap retry"
-      )
-    case .arabic:
-      return FKRefreshText(
-        pullToRefresh: "اسحب للتحديث",
-        releaseToRefresh: "اترك للتحديث",
-        headerLoading: "جارٍ التحديث…",
-        headerFinished: "اكتمل التحديث",
-        headerListEmpty: "لا توجد بيانات",
-        headerFailed: "فشل التحديث",
-        footerLoading: "جارٍ تحميل المزيد…",
-        footerFinished: "تم التحميل",
-        footerNoMoreData: "لا مزيد من البيانات",
-        footerFailed: "فشل التحميل",
-        footerTapToRetry: "اضغط لإعادة المحاولة"
-      )
-    }
-  }
 }
 
 extension FKRefreshLocalizationAccessibilityDemoViewController: UITableViewDataSource {
@@ -149,4 +129,3 @@ extension FKRefreshLocalizationAccessibilityDemoViewController: UITableViewDataS
     return cell
   }
 }
-

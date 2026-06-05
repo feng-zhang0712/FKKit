@@ -347,7 +347,7 @@ public final class FKVideoPlayerView: UIView {
   private func mountRetryButton() -> UIButton {
     if let retryButton { return retryButton }
     let button = UIButton(type: .system)
-    button.setTitle(FKVideoPlayerStrings.retry, for: .normal)
+    button.setTitle(FKUIKitI18n.string("fkuikit.video.retry"), for: .normal)
     button.isHidden = true
     button.addTarget(self, action: #selector(retryTapped), for: .touchUpInside)
     retryButton = button
@@ -375,7 +375,7 @@ public final class FKVideoPlayerView: UIView {
     overlay.backgroundColor = UIColor.black.withAlphaComponent(0.92)
     overlay.translatesAutoresizingMaskIntoConstraints = false
     let captureLabel = UILabel()
-    captureLabel.text = FKVideoPlayerStrings.screenCaptureBlocked
+    captureLabel.text = FKUIKitI18n.string("fkuikit.video.screen_capture")
     captureLabel.textColor = .white
     captureLabel.textAlignment = .center
     captureLabel.numberOfLines = 0

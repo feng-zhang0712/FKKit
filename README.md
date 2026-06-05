@@ -32,7 +32,7 @@ It is built on Apple system frameworks and distributed via **Swift Package Manag
 
 The repository ships two library products:
 - **`FKCoreKit`** — infrastructure, utilities, and `Pluggable/` protocol contracts (networking, analytics, storage, routing, and related seams).
-- **`FKUIKit`** — reusable UIKit components, shared UI helpers under `Core/`, and screen foundations such as `Base`.
+- **`FKUIKit`** — reusable UIKit components and shared UI helpers under `Core/`.
 
 Each module targets a different layer of app development: from networking and storage to controls, overlays, and composite presentation flows.
 
@@ -58,22 +58,25 @@ FKKit/
 │  └─ FKCoreKitTests/
 ├─ Sources/
 │  ├─ FKCoreKit/
-│  │  ├─ Async/
-│  │  ├─ BusinessKit/
-│  │  ├─ Extension/
-│  │  ├─ FileManager/
-│  │  ├─ Logger/
-│  │  ├─ Network/
-│  │  ├─ Permissions/
-│  │  ├─ Pluggable/
-│  │  ├─ Security/
-│  │  ├─ Storage/
-│  │  └─ Utils/
+│  │  ├─ Components/
+│  │  │  ├─ Async/
+│  │  │  ├─ BusinessKit/
+│  │  │  ├─ Extension/
+│  │  │  ├─ FileManager/
+│  │  │  ├─ I18n/
+│  │  │  ├─ Logger/
+│  │  │  ├─ Network/
+│  │  │  ├─ Permissions/
+│  │  │  ├─ Pluggable/
+│  │  │  ├─ Security/
+│  │  │  ├─ Storage/
+│  │  │  └─ Utils/
+│  │  ├─ Core/
+│  │  └─ Resources/
 │  └─ FKUIKit/
 │     ├─ Components/
 │     │  ├─ ActionSheet/
 │     │  ├─ Badge/
-│     │  ├─ Base/
 │     │  ├─ BlurView/
 │     │  ├─ Button/
 │     │  ├─ Callout/
@@ -100,9 +103,9 @@ FKKit/
 ## Core Components
 
 ### FKCoreKit
-`FKCoreKit` provides foundational capabilities used across app layers:
+`FKCoreKit` provides foundational capabilities under `Components/` used across app layers:
 
-- `Pluggable`: protocol-only contracts for dependency injection (networking, analytics, storage, session, routing, logging, images, list cells). See [`Sources/FKCoreKit/Pluggable/README.md`](Sources/FKCoreKit/Pluggable/README.md).
+- `Pluggable`: protocol-only contracts for dependency injection (networking, analytics, storage, session, routing, logging, images, list cells). See [`Sources/FKCoreKit/Components/Pluggable/README.md`](Sources/FKCoreKit/Components/Pluggable/README.md).
 - `Network`: URLSession-based networking stack (request models, interceptors, caching, upload/download helpers).
 - `Storage`: multi-backend storage abstraction (UserDefaults, Keychain, file, memory) with Codable support.
 - `Logger`: structured logging, formatting, file persistence, and diagnostics helpers.
@@ -116,7 +119,7 @@ FKKit/
 
 ### FKCoreKit: Extension vs Utils
 
-Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: [`docs/EXTENSION_VS_UTILS.md`](docs/EXTENSION_VS_UTILS.md).
+Use **`Components/Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Components/Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: [`docs/EXTENSION_VS_UTILS.md`](docs/EXTENSION_VS_UTILS.md).
 
 ### FKUIKit
 `FKUIKit` contains reusable UIKit components for modern iOS interfaces. Each folder under `Components/` is a self-contained module; most ship a colocated **`README.md`** with layout maps, configuration defaults, and usage snippets. The list below is a high-level index only.
@@ -125,7 +128,6 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 |-----------|---------|
 | **ActionSheet** | HIG-oriented modal action sheet (`FKActionSheet`) with bottom/centered/popover presentation, selection, toggles, validation, and SwiftUI modifier — see [`ActionSheet/README.md`](Sources/FKUIKit/Components/ActionSheet/README.md). |
 | **Badge** | Flexible badge display for views, bar items, and tab items, with corner/center anchoring and customizable styles/animations. |
-| **Base** | Reusable base foundation for cells and view controllers — see [`Base/README.md`](Sources/FKUIKit/Components/Base/README.md). |
 | **BlurView** | High-performance blur component with system/custom pipelines, UIKit/SwiftUI adapters, image/view snapshot blur APIs, and IB/global-configuration support. |
 | **Button** | Configurable button system with style/content/loading behavior. |
 | **Callout** | Anchored tooltip/popover bubbles (`FKCallout`, `FKTooltip`, `FKPopover`) with beak placement and shared layout engine — see [`Callout/README.md`](Sources/FKUIKit/Components/Callout/README.md). |
@@ -163,7 +165,7 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.60.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.61.0")
 ],
 targets: [
   .target(
@@ -178,7 +180,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.60.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.61.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -187,8 +189,8 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.60.0'
-pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.60.0'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.61.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.61.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).
@@ -272,7 +274,7 @@ Please report security vulnerabilities through [GitHub private security advisori
   - change summary
   - test/verification notes
   - migration notes when APIs change
-- Tag stable releases with semantic versions (for example: `0.60.0`), then merge release work back into `develop`.
+- Tag stable releases with semantic versions (for example: `0.61.0`), then merge release work back into `develop`.
 
 ## License
 This repository is licensed under the MIT License.  

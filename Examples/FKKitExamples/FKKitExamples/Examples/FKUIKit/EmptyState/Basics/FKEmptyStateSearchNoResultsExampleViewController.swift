@@ -1,3 +1,4 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
@@ -6,19 +7,17 @@ final class FKEmptyStateSearchNoResultsExampleViewController: UIViewController {
   private let queryField = UITextField()
   private let filtersLabel = UILabel()
   private var activeFilters = 3
+  private var languageObservation: FKI18nObservationToken?
 
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "No Results"
     view.backgroundColor = .systemBackground
     buildUI()
-    render()
-  }
-
-  deinit {
-    MainActor.assumeIsolated {
-      fk_clearEmptyStateActionObservers()
+    languageObservation = fk_observeEmptyStateLanguageRefresh { [weak self] in
+      self?.render()
     }
+    render()
   }
 
   private func buildUI() {
@@ -55,23 +54,12 @@ final class FKEmptyStateSearchNoResultsExampleViewController: UIViewController {
   }
 
   private func render() {
-    let query = queryField.text?.isEmpty == false ? (queryField.text ?? "") : "camera"
+    let _ = queryField.text?.isEmpty == false ? (queryField.text ?? "") : "camera"
     filtersLabel.text = "Active filters: \(activeFilters)"
 
     var model = FKEmptyStateConfiguration.scenario(.noSearchResult)
     model.image = UIImage(systemName: "magnifyingglass")
-    model.title = "No results for \"\(query)\""
-    model.description = "Try broader keywords, or clear filters to widen your results."
-    model.actions = FKEmptyStateActionSet(
-      secondary: FKEmptyStateAction(id: "clear_filters", title: "Clear filters", kind: .secondary)
-    )
-    model.isButtonHidden = false
+    model.isButtonHidden = true
     container.fk_applyEmptyState(model)
-    fk_bindEmptyStateActions(from: container) { [weak self] action in
-      guard let self, action.id == "clear_filters" else { return }
-      self.activeFilters = 0
-      self.filtersLabel.text = "Active filters: 0"
-      self.fk_presentMessageAlert(title: "Filters Cleared", message: "Search is now running without filters.")
-    }
   }
 }

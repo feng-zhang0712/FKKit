@@ -155,7 +155,7 @@ public extension View {
     title: String?,
     message: String? = nil,
     actions: [FKActionSheetAction],
-    cancelTitle: String? = "Cancel",
+    cancelTitle: String? = FKUIKitI18n.string("fkuikit.common.cancel"),
     onDismiss: ((FKActionSheetDismissReason) -> Void)? = nil,
     onPresentFailure: ((Error) -> Void)? = nil
   ) -> some View {

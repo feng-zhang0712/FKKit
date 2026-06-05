@@ -1,9 +1,10 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
 final class FKEmptyStateI18nExampleViewController: UIViewController {
   private let container = UIView()
-  private let localeSelector = UISegmentedControl(items: ["en", "zh-CN"])
+  private let localeSelector = UISegmentedControl(items: ["en", "zh-Hans"])
   private let queryField = UITextField()
 
   override func viewDidLoad() {
@@ -14,14 +15,15 @@ final class FKEmptyStateI18nExampleViewController: UIViewController {
     render()
   }
 
-  deinit {
-    MainActor.assumeIsolated {
-      fk_clearEmptyStateActionObservers()
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    if isMovingFromParent || isBeingDismissed {
+      FKI18nExampleSupport.syncWithDeviceLanguage()
     }
   }
 
   private func buildUI() {
-    localeSelector.selectedSegmentIndex = 0
+    localeSelector.selectedSegmentIndex = FKI18nManager.shared.currentLanguageCode == "zh-Hans" ? 1 : 0
     localeSelector.addTarget(self, action: #selector(render), for: .valueChanged)
     localeSelector.translatesAutoresizingMaskIntoConstraints = false
 
@@ -50,30 +52,12 @@ final class FKEmptyStateI18nExampleViewController: UIViewController {
   }
 
   @objc private func render() {
-    let locale: FKEmptyStateLocale = localeSelector.selectedSegmentIndex == 0 ? .en : .zhCN
-    let factory = FKEmptyStateFactory(locale: locale)
-    let query = queryField.text?.isEmpty == false ? (queryField.text ?? "") : "wallet"
-    // Interpolation keeps runtime user input localized in-place (e.g. query text).
-    let copy = factory.copy(for: .noResults, variables: ["query": query])
+    let code = localeSelector.selectedSegmentIndex == 0 ? "en" : "zh-Hans"
+    FKI18nManager.shared.setLanguageCode(code)
 
-    var model = FKEmptyStateConfiguration(phase: .empty, type: .noResults)
+    var model = FKEmptyStateConfiguration.scenario(.noSearchResult)
     model.image = UIImage(systemName: "magnifyingglass.circle")
-    model.title = copy.title
-    model.description = copy.description
-    model.actions = FKEmptyStateActionSet(
-      secondary: FKEmptyStateAction(
-        id: "clear",
-        title: factory.actionTitle(FKEmptyStateI18nKey("empty.action.clearFilters")),
-        kind: .secondary
-      )
-    )
-    model.isButtonHidden = false
+    model.isButtonHidden = true
     container.fk_applyEmptyState(model)
-    fk_bindEmptyStateActions(from: container) { [weak self] action in
-      guard let self, action.id == "clear" else { return }
-      self.queryField.text = ""
-      self.fk_presentMessageAlert(title: "Updated", message: "The query has been cleared.")
-      self.render()
-    }
   }
 }

@@ -321,13 +321,13 @@ public final class FKRatingControl: UIControl {
     if let label = configuration.accessibility.customLabel, !label.isEmpty {
       accessibilityLabel = label
     } else {
-      accessibilityLabel = "Rating"
+      accessibilityLabel = FKUIKitI18n.string("fkuikit.rating.accessibility.label")
     }
 
     if let hint = configuration.accessibility.customHint, !hint.isEmpty {
       accessibilityHint = hint
     } else if configuration.interaction.mode == .interactive {
-      accessibilityHint = "Adjustable"
+      accessibilityHint = FKUIKitI18n.string("fkuikit.rating.accessibility.adjustable_hint")
     } else {
       accessibilityHint = nil
     }

@@ -13,7 +13,7 @@ final class FKRefreshGlobalSettingsDemoViewController: UIViewController {
     l.font = .preferredFont(forTextStyle: .footnote)
     l.textColor = .secondaryLabel
     l.numberOfLines = 0
-    l.text = "This screen sets FKRefreshSettings to orange + custom pull copy, then adds controls with configuration: nil."
+    l.text = "This screen sets FKRefreshSettings to orange tint, then adds controls with configuration: nil."
     l.translatesAutoresizingMaskIntoConstraints = false
     return l
   }()
@@ -36,10 +36,6 @@ final class FKRefreshGlobalSettingsDemoViewController: UIViewController {
 
     var global = FKRefreshConfiguration()
     global.tintColor = .systemOrange
-    var t = FKRefreshText.default
-    t.pullToRefresh = "[Global] Pull me"
-    t.footerLoading = "[Global] Loading…"
-    global.texts = t
     FKRefreshManager.shared.applyGlobalConfiguration(
       pullToRefresh: global,
       loadMore: global

@@ -1,15 +1,20 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
 final class FKEmptyStateLoadingTransitionExampleViewController: UIViewController {
   private let tableView = UITableView(frame: .zero, style: .insetGrouped)
   private let simulateButton = UIButton(type: .system)
+  private var languageObservation: FKI18nObservationToken?
 
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Loading -> Empty"
     view.backgroundColor = .systemBackground
     buildUI()
+    languageObservation = fk_observeEmptyStateLanguageRefresh { [weak self] in
+      self?.showLoading()
+    }
     showLoading()
   }
 
@@ -35,7 +40,11 @@ final class FKEmptyStateLoadingTransitionExampleViewController: UIViewController
 
   @objc private func showLoading() {
     let skeleton = makeSkeletonAccessory()
-    var model = FKEmptyStateConfiguration(phase: .loading, type: .loading, title: "Loading products...")
+    var model = FKEmptyStateConfiguration(
+      phase: .loading,
+      type: .loading,
+      title: FKUIKitI18n.string("fkuikit.common.loading")
+    )
     model.customAccessoryView = skeleton
     model.customAccessoryPlacement = .belowDescription
     model.hidesDescriptionForLoadingPhase = true
@@ -45,10 +54,7 @@ final class FKEmptyStateLoadingTransitionExampleViewController: UIViewController
       guard let self else { return }
       // Transition from loading to empty by reusing the same host view.
       // This mirrors production flow and avoids overlay teardown flicker.
-      var empty = FKEmptyStateExampleFactory.makeBasicModel()
-      empty.title = "No products found yet"
-      empty.description = "Loading finished, but there is still no available content."
-      self.tableView.fk_applyEmptyState(empty)
+      self.tableView.fk_applyEmptyState(FKEmptyStateExampleFactory.makeBasicModel())
     }
   }
 

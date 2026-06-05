@@ -67,8 +67,13 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
         ),
         Row(
           title: "Fit to content",
-          subtitle: "Dynamic content height changes with a max height safety cap.",
+          subtitle: "Shell vs content-only `preferredContentSize` reporting with a max height cap.",
           make: { SheetFitToContentExampleViewController() }
+        ),
+        Row(
+          title: "Action sheet style (content-only)",
+          subtitle: "Two actions + cancel; no manual grabber or safe-area padding on height.",
+          make: { SheetActionSheetStyleExampleViewController() }
         ),
         Row(
           title: "Grabber on/off",

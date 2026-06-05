@@ -13,7 +13,7 @@ public struct FKRatingAccessibilityConfiguration: Sendable, Equatable {
   public init(
     customLabel: String? = nil,
     customHint: String? = nil,
-    valueFormat: String = "%@ out of %@"
+    valueFormat: String = FKUIKitI18n.string("fkuikit.rating.accessibility.value_format")
   ) {
     self.customLabel = customLabel
     self.customHint = customHint

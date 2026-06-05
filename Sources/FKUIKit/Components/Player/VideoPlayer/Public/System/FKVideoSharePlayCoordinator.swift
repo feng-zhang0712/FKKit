@@ -18,7 +18,7 @@ public final class FKVideoSharePlayCoordinator: FKVideoSharePlayCoordinating {
 
   public func startSharePlay(for item: FKVideoItem) async throws {
     _ = item
-    throw FKMediaError.notImplemented(feature: "SharePlay / GroupActivities")
+    throw FKMediaError.notImplemented(feature: FKUIKitI18n.string("fkuikit.media.feature.share_play"))
   }
 
   public func endSharePlay() {

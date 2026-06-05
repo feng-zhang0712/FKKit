@@ -63,6 +63,20 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
         subtitle: "Goal: host arbitrary UIKit subtree. Params: FKHostedRefreshContentView. Expect: custom view follows state transitions.",
         factory: { FKRefreshHostedDemoViewController() }
       ),
+      DemoItem(
+        title: "Indicator only (spinner)",
+        subtitle: "Goal: hide all status text. Params: statusTextMode = .indicatorOnly. Expect: arrow/spinner centered without labels.",
+        factory: {
+          FKRefreshInspiredFeedExampleViewController(preset: FKRefreshAppStylePreset.indicatorOnly.bundle)
+        }
+      ),
+    ]),
+    DemoSection(title: "Inspired by popular apps", items: [
+      DemoItem(
+        title: "App-style simulations",
+        subtitle: "Goal: reproduce well-known pull/load UX (Twitter, Instagram, WeChat, TikTok, Reddit, Mail). Params: Inspired presets hub.",
+        factory: { FKRefreshInspiredExamplesHubViewController() }
+      ),
     ]),
     DemoSection(title: "Policy & state", items: [
       DemoItem(

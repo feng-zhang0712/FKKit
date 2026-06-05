@@ -1,8 +1,10 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
 final class FKExpandableTextExampleActionStyleViewController: FKExpandableTextExampleBaseViewController {
   private let label = UILabel()
+  private var languageObservation: FKI18nObservationToken?
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -24,7 +26,15 @@ final class FKExpandableTextExampleActionStyleViewController: FKExpandableTextEx
     ])
 
     contentStackView.addArrangedSubview(card)
+    languageObservation = FKI18nManager.shared.observeLanguageChange { [weak self] _ in
+      Task { @MainActor in self?.applyExpandableText() }
+    }
+    fk_expandableText_runWhenLaidOut { [weak self] in
+      self?.applyExpandableText()
+    }
+  }
 
+  private func applyExpandableText() {
     let configuration = FKExpandableTextConfiguration(
       truncationToken: NSAttributedString(
         string: "… ",
@@ -34,14 +44,14 @@ final class FKExpandableTextExampleActionStyleViewController: FKExpandableTextEx
         ]
       ),
       expandActionText: NSAttributedString(
-        string: "Read more",
+        string: FKUIKitI18n.string("fkuikit.expandable_text.read_more"),
         attributes: [
           .foregroundColor: UIColor.systemRed,
           .font: UIFont.systemFont(ofSize: 16, weight: .bold),
         ]
       ),
       collapseActionText: NSAttributedString(
-        string: "Collapse",
+        string: FKUIKitI18n.string("fkuikit.expandable_text.collapse"),
         attributes: [
           .foregroundColor: UIColor.systemGreen,
           .font: UIFont.systemFont(ofSize: 16, weight: .semibold),
@@ -51,8 +61,6 @@ final class FKExpandableTextExampleActionStyleViewController: FKExpandableTextEx
       buttonPlacement: .trailingBottom,
       interactionMode: .buttonOnly
     )
-    fk_expandableText_runWhenLaidOut {
-      label.fk_setExpandableText(FKExpandableTextExampleSupport.makeBodyParagraph(), configuration: configuration)
-    }
+    label.fk_setExpandableText(FKExpandableTextExampleSupport.makeBodyParagraph(), configuration: configuration)
   }
 }

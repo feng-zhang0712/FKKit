@@ -85,6 +85,11 @@ public final class FKRefreshControl: UIView {
 
   /// After an automatic bottom load fires, stays `false` until the user scrolls clearly above the trigger band (avoids failure → idle → immediate re-fire while dragging near the bottom).
   private var loadMoreAutoTriggerArmed = true
+  /// Set when ``FKRefreshNoMoreDataBehavior/hideFooter`` suppresses the footer until the next reset.
+  private var isSuppressedAfterNoMoreData = false
+  /// Persists ``UIScrollView/fk_setLoadMoreHidden(_:)`` across scroll-driven visibility updates.
+  private var isManuallyHidden = false
+  private var suppressFooterWorkItem: DispatchWorkItem?
 
   // MARK: - Init
 
@@ -146,6 +151,10 @@ public final class FKRefreshControl: UIView {
     startObserving()
     if kind == .loadMore {
       loadMoreAutoTriggerArmed = true
+      isSuppressedAfterNoMoreData = false
+      isManuallyHidden = false
+      suppressFooterWorkItem?.cancel()
+      suppressFooterWorkItem = nil
       updateFooterVisibility(for: scrollView)
     }
   }
@@ -164,9 +173,13 @@ public final class FKRefreshControl: UIView {
     stopObserving()
     pendingEndWorkItem?.cancel()
     pendingEndWorkItem = nil
+    suppressFooterWorkItem?.cancel()
+    suppressFooterWorkItem = nil
     asyncTask?.cancel()
     asyncTask = nil
     loadMoreAutoTriggerArmed = true
+    isSuppressedAfterNoMoreData = false
+    isManuallyHidden = false
     removeFromSuperview()
     scrollView = nil
   }
@@ -226,6 +239,11 @@ public final class FKRefreshControl: UIView {
   /// Cancels in-flight async work and optionally resets state to `.idle`.
   public func cancelCurrentAction(resetState: Bool = true) {
     ensureMain { self.cancelCurrentActionOnMain(resetState: resetState) }
+  }
+
+  /// Shows or hides the load-more control until changed again. No-op for pull-to-refresh headers.
+  public func setLoadMoreHidden(_ isHidden: Bool) {
+    ensureMain { self.setLoadMoreHiddenOnMain(isHidden) }
   }
 
   // MARK: - Main queue
@@ -334,6 +352,7 @@ public final class FKRefreshControl: UIView {
   }
 
   private func resetToIdleOnMain() {
+    isSuppressedAfterNoMoreData = false
     transition(to: .idle)
     if kind == .pullToRefresh {
       collapseScrollView(animated: false)
@@ -345,6 +364,7 @@ public final class FKRefreshControl: UIView {
 
   private func resetFooterAfterPullToRefreshOnMain() {
     guard kind == .loadMore else { return }
+    isSuppressedAfterNoMoreData = false
     loadMoreAutoTriggerArmed = true
     transition(to: .idle)
     if let scrollView {
@@ -361,6 +381,19 @@ public final class FKRefreshControl: UIView {
     transition(to: .loadingMore)
     markLoadingStart()
     fireAction(triggerSource: .retry)
+  }
+
+  private func setLoadMoreHiddenOnMain(_ isHidden: Bool) {
+    guard kind == .loadMore else { return }
+    isManuallyHidden = isHidden
+    if !isHidden {
+      isSuppressedAfterNoMoreData = false
+      suppressFooterWorkItem?.cancel()
+      suppressFooterWorkItem = nil
+    }
+    if let scrollView {
+      updateFooterVisibility(for: scrollView)
+    }
   }
 
   private func cancelCurrentActionOnMain(resetState: Bool) {
@@ -622,8 +655,28 @@ public final class FKRefreshControl: UIView {
   private func updateFooterVisibility(for scrollView: UIScrollView) {
     guard kind == .loadMore else { return }
     let hidden = isFooterHiddenForShortContent(scrollView)
+      || isSuppressedAfterNoMoreData
+      || isManuallyHidden
     isHidden = hidden
     isUserInteractionEnabled = !hidden
+  }
+
+  private func scheduleSuppressFooterAfterNoMoreData() {
+    suppressFooterWorkItem?.cancel()
+    let hold = configuration.finishedHoldDuration
+    let work = DispatchWorkItem { [weak self] in
+      guard let self, self.kind == .loadMore, self.state == .noMoreData else { return }
+      self.suppressFooterWorkItem = nil
+      self.isSuppressedAfterNoMoreData = true
+      if let scrollView = self.scrollView {
+        self.updateFooterVisibility(for: scrollView)
+      } else {
+        self.isHidden = true
+        self.isUserInteractionEnabled = false
+      }
+    }
+    suppressFooterWorkItem = work
+    DispatchQueue.main.asyncAfter(deadline: .now() + hold, execute: work)
   }
 
   private func panGestureStateChanged(_ gestureState: UIGestureRecognizer.State) {
@@ -666,11 +719,22 @@ public final class FKRefreshControl: UIView {
   }
 
   private func handleStateTransition(from previous: FKRefreshState, to current: FKRefreshState) {
+    if previous == .noMoreData, current != .noMoreData {
+      suppressFooterWorkItem?.cancel()
+      suppressFooterWorkItem = nil
+      isSuppressedAfterNoMoreData = false
+      if let scrollView {
+        updateFooterVisibility(for: scrollView)
+      }
+    }
     if (current == .triggered || current == .readyToRefresh) && (previous != .triggered && previous != .readyToRefresh) {
       hapticGenerator?.impactOccurred()
       hapticGenerator?.prepare()
     }
     contentView.refreshControl(self, didTransitionTo: current, from: previous)
+    if current == .noMoreData, configuration.noMoreDataBehavior == .hideFooter {
+      scheduleSuppressFooterAfterNoMoreData()
+    }
     announceAccessibilityStateIfNeeded(current)
     onStateChanged?(self, current)
     delegate?.refreshControl(self, didChange: current, from: previous)
@@ -678,17 +742,18 @@ public final class FKRefreshControl: UIView {
 
   private func announceAccessibilityStateIfNeeded(_ state: FKRefreshState) {
     guard UIAccessibility.isVoiceOverRunning else { return }
-    let text = configuration.texts
     let message: String?
     switch state {
     case .refreshing:
-      message = text.headerLoading
+      message = FKUIKitI18n.string("fkuikit.refresh.header.loading")
     case .loadingMore:
-      message = text.footerLoading
+      message = FKUIKitI18n.string("fkuikit.refresh.footer.loading")
     case .failed:
-      message = kind == .loadMore ? text.footerFailed : text.headerFailed
+      message = FKUIKitI18n.string(
+        kind == .loadMore ? "fkuikit.refresh.footer.failed" : "fkuikit.refresh.header.failed"
+      )
     case .noMoreData:
-      message = text.footerNoMoreData
+      message = FKUIKitI18n.string("fkuikit.refresh.footer.no_more")
     default:
       message = nil
     }

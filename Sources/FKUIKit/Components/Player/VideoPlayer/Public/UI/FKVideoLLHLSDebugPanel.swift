@@ -30,6 +30,12 @@ public final class FKVideoLLHLSDebugPanel: UIView {
     let latency = player.liveLatencySeconds.map { String(format: "%.1fs", $0) } ?? "—"
     let bufferEnd = player.bufferedTimeRanges.map(\.upperBound).max() ?? 0
     let state = "\(player.state)"
-    label.text = "LL-HLS Debug\nlatency: \(latency)\nbuffer: \(String(format: "%.1f", bufferEnd))s\nstate: \(state)"
+    let bufferText = String(format: "%.1f", bufferEnd)
+    label.text = [
+      FKUIKitI18n.string("fkuikit.video.debug.llhls.title"),
+      FKUIKitI18n.format("fkuikit.video.debug.llhls.latency", latency),
+      FKUIKitI18n.format("fkuikit.video.debug.llhls.buffer", bufferText),
+      FKUIKitI18n.format("fkuikit.video.debug.llhls.state", state),
+    ].joined(separator: "\n")
   }
 }

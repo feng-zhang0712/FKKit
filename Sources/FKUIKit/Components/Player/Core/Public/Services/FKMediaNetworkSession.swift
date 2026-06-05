@@ -45,12 +45,12 @@ public final class FKMediaNetworkSession: @unchecked Sendable {
       return asset
     case let .photoAsset(localIdentifier):
       guard let resolver = photoAssetResolver else {
-        throw FKMediaError.notImplemented(feature: "photoAsset resolver")
+        throw FKMediaError.notImplemented(feature: FKUIKitI18n.string("fkuikit.media.feature.photo_asset_resolver"))
       }
       return try await resolver.resolveAsset(localIdentifier: localIdentifier)
     case let .offline(downloadIdentifier):
       guard let url = offlineProvider?.playbackURL(forDownloadIdentifier: downloadIdentifier) else {
-        throw FKMediaError.invalidState("Offline asset not found for id: \(downloadIdentifier)")
+        throw FKMediaError.invalidState(FKUIKitI18n.format("fkuikit.media.error.offline_asset_not_found", downloadIdentifier))
       }
       let asset = makeAsset(url: url, headers: [:])
       if !url.isFileURL {
@@ -141,14 +141,14 @@ public final class FKMediaNetworkSession: @unchecked Sendable {
           if asset.isPlayable {
             continuation.resume()
           } else {
-            continuation.resume(throwing: FKMediaError.engineFailed(engine: .avFoundation, message: "Asset is not playable"))
+            continuation.resume(throwing: FKMediaError.engineFailed(engine: .avFoundation, message: FKUIKitI18n.string("fkuikit.media.error.not_playable")))
           }
         case .failed:
           continuation.resume(throwing: error ?? FKMediaError.networkUnavailable)
         case .cancelled:
           continuation.resume(throwing: FKMediaError.cancelled)
         default:
-          continuation.resume(throwing: FKMediaError.engineFailed(engine: .avFoundation, message: "Unknown asset load status"))
+          continuation.resume(throwing: FKMediaError.engineFailed(engine: .avFoundation, message: FKUIKitI18n.string("fkuikit.media.error.unknown_load_status")))
         }
       }
     }
@@ -167,7 +167,7 @@ public final class FKMediaNetworkSession: @unchecked Sendable {
       group.addTask { try await operation() }
       group.addTask {
         try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-        throw FKMediaError.engineFailed(engine: .avFoundation, message: "Asset load timed out")
+        throw FKMediaError.engineFailed(engine: .avFoundation, message: FKUIKitI18n.string("fkuikit.media.error.load_timeout"))
       }
       _ = try await group.next()
       group.cancelAll()

@@ -1,3 +1,4 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
@@ -22,34 +23,25 @@ enum FKEmptyStateExampleFactory {
     }
   }
 
+  /// Favorites empty preset — title, description, and primary action come from bundled FKUIKit strings.
   static func makeBasicModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.noFavorites)
     model.image = UIImage(systemName: "tray")
-    model.actions = FKEmptyStateActionSet(
-      primary: FKEmptyStateAction(id: "create", title: "Create item", kind: .primary)
-    )
     model.isButtonHidden = false
     return model
   }
 
+  /// Offline / no-network preset — uses ``FKEmptyStateScenario/noNetwork`` bundled copy.
   static func makeNoNetworkModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.noNetwork)
     model.image = UIImage(systemName: "wifi.exclamationmark")
-    model.actions = FKEmptyStateActionSet(
-      primary: FKEmptyStateAction(id: "check_network", title: "Check network", kind: .primary),
-      secondary: FKEmptyStateAction(id: "open_docs", title: "Open docs", kind: .secondary)
-    )
-    model.isButtonHidden = false
     return model
   }
 
+  /// Load-failed preset — uses ``FKEmptyStateScenario/loadFailed`` bundled copy.
   static func makeLoadFailedModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.loadFailed)
     model.image = UIImage(systemName: "exclamationmark.arrow.trianglehead.clockwise")
-    model.actions = FKEmptyStateActionSet(
-      primary: FKEmptyStateAction(id: "retry", title: "Retry", kind: .primary)
-    )
-    model.isButtonHidden = false
     return model
   }
 
@@ -82,10 +74,11 @@ enum FKEmptyStateExampleFactory {
     return model
   }
 
+  /// Long localized copy for full-page layout wrapping demos.
   static func makeLongTextModel() -> FKEmptyStateConfiguration {
-    var model = makeBasicModel()
-    model.title = "No content found in the selected workspace and organization scope"
-    model.description = "This state demonstrates long text wrapping behavior on compact widths. It should remain readable in portrait mode, split view mode, and with larger Dynamic Type settings."
+    var model = FKEmptyStateConfiguration.scenario(.noMessages)
+    model.image = UIImage(systemName: "tray.full")
+    model.isButtonHidden = true
     return model
   }
 
@@ -102,9 +95,17 @@ enum FKEmptyStateExampleFactory {
 }
 
 extension UIViewController {
+  /// Re-applies empty-state content when ``FKI18nManager`` language changes.
+  @discardableResult
+  func fk_observeEmptyStateLanguageRefresh(reload: @escaping @MainActor () -> Void) -> FKI18nObservationToken {
+    FKI18nManager.shared.observeLanguageChange { _ in
+      Task { @MainActor in reload() }
+    }
+  }
+
   func fk_presentMessageAlert(title: String, message: String) {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: "OK", style: .default))
+    alert.addAction(UIAlertAction(title: FKUIKitI18n.string("fkuikit.common.ok"), style: .default))
     present(alert, animated: true)
   }
 

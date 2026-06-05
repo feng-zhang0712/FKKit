@@ -105,6 +105,7 @@ import FKUIKit
 ```swift
 let content = UIViewController()
 content.view.backgroundColor = .systemBackground
+// Default: height is the shell (detent) height — includes grabber + safe-area padding when applicable.
 content.preferredContentSize = CGSize(width: 0, height: 320)
 
 var configuration = FKSheetPresentationConfiguration()
@@ -417,7 +418,7 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 - Center behavior: `center.size`, margins, interactive dismiss settings
 - Interaction: `dismissBehavior`, `backgroundInteraction`
 - Visuals: `cornerRadius`, `shadow`, `border`, `backdropStyle`, `contentInsets`
-- Adaptation: `safeAreaPolicy`, `keyboardAvoidance`, `rotationHandling`, `preferredContentSizePolicy`
+- Adaptation: `safeAreaPolicy`, `keyboardAvoidance`, `rotationHandling`, `preferredContentSizePolicy`, `preferredContentSizeReporting`
 - Motion: `animation` (`FKSheetAnimationPreset`, `customPropertyAnimator`, `customAnimatorProvider`)
 - Presenting chrome: `presentingViewEffect`
 - Accessibility/Haptics: `accessibility`, `haptics`
@@ -426,7 +427,7 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 
 - Keep all presentation operations on main actor (`present`, `dismiss`, `selectDetent`).
 - Prefer `.anchor` for in-page dropdown UX where anchor z-order and hierarchy attachment matter.
-- Use `preferredContentSize` on content controllers for predictable fit-content behavior.
+- Use `preferredContentSize` on content controllers for predictable fit-content behavior (see **Preferred content size reporting** below).
 - Use `callbackDelivery` to pick delegate, handlers, or both; default is `.handlersOnly`.
 - Prefer `applyingSheet` / `applyingCenter` over assigning `configuration.sheet` when layout may not be a sheet mode (the property setter is a no-op outside sheet layouts).
 - For deterministic no-motion UX, set `configuration.animation.preset = .none`.
@@ -449,7 +450,7 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 | `Internal/Host/Anchor/` | In-hierarchy anchor host and reposition |
 | `Internal/Appearance/` | Backdrop view chrome |
 | `Internal/Configuration/` | Internal configuration helpers (host routing predicate) |
-| `Internal/Support/` | Scroll tracking, view-controller lookup |
+| `Internal/Support/` | Grabber/sizing math, safe-area sizing fallback, scroll tracking, view-controller lookup |
 
 ## Internal Architecture
 
@@ -472,10 +473,58 @@ configuration.backgroundInteraction.showsBackdropWhenEnabled = true
 | Touch passthrough outside popup | No | Yes | Policy-based |
 | `rotationHandling` | Yes | Yes | Via anchor reposition |
 
+## Preferred content size reporting
+
+`preferredContentSizeReporting` applies to **bottom/top sheet** `.fitContent` sizing (center/anchor/edge are unchanged).
+
+| Mode | `preferredContentSize.height` means | Who adds grabber / safe area |
+|------|-------------------------------------|------------------------------|
+| `.shellHeight` (default) | Shell (detent) height | You — must match what the shell will be after layout |
+| `.contentOnly` | Pure hosted content height | FKSheet — via `resolvedShellHeight(fromContentHeight:layout:containerSafeAreaInsets:)` |
+
+### Recommended: action-style sheet with grabber
+
+Report only your buttons/stack height; keep `.contentRespectsSafeArea` (default) and the default grabber:
+
+```swift
+var configuration = FKSheetPresentationConfiguration.bottomSheetDefault
+configuration.sheet.detents = [.fitContent]
+configuration.preferredContentSizeReporting = .contentOnly
+configuration.preferredContentSizePolicy = .strict
+
+let content = ReportOptionsViewController() // sets preferredContentSize to stack height only
+FKSheetPresentationController.present(contentController: content, from: self, configuration: configuration)
+```
+
+FKSheet adds grabber inset (`grabberTopInset + grabberSize.height + 8`, default **21pt**) and bottom safe area when `safeAreaPolicy == .contentRespectsSafeArea`. Before the container has laid out, sizing may use the presenting `UIWindow` safe area as a fallback so the first `.fitContent` pass is not undersized.
+
+The historical 180pt fit-content floor does **not** apply to `.contentOnly` reporting — reported content heights below 180pt are honored (minimum 44pt). The same floor is skipped for `.shellHeight` + `.strict` because `preferredContentSize.height` is already a shell/detent value.
+
+### Debugging / manual sizing
+
+```swift
+let contentHeight: CGFloat = 100
+let shell = configuration.resolvedShellHeight(
+  fromContentHeight: contentHeight,
+  layout: configuration.layout,
+  containerSafeAreaInsets: view.safeAreaInsets
+)
+let grabber = configuration.grabberReservedInsets(for: configuration.layout)
+```
+
+### Migration from manual grabber math
+
+Existing apps keep default `.shellHeight` — no changes required. If you previously added grabber height (e.g. `+ 21`) and used `shellExtendsToScreenBottomEdge` only to make fit-content work, switch to `.contentOnly` with default `safeAreaPolicy` instead.
+
+### When to use `shellExtendsToScreenBottomEdge`
+
+Still use it when **inner** content (table/collection/scroll view) applies its own `contentInset` / `additionalSafeAreaInsets` for the home indicator and the shell should not inset `contentContainerView` by bottom safe area. `.contentOnly` does not add bottom safe to the shell for this policy — matching `layoutContentContainer()`.
+
 ## Notes
 
 - `rotationHandling` relayouts modal and overlay hosts when container bounds change (`.ignore` keeps the current frame).
 - `preferredContentSizePolicy` controls how `.fitContent` and center fitted sizing read `preferredContentSize`.
+- `preferredContentSizeReporting` (default `.shellHeight`) controls whether that height is shell or pure content for bottom/top `.fitContent` detents — see **Preferred content size reporting** above.
 - `anchor` layout uses anchor hosting and does not go through the modal `UIPresentationController` path.
 - Detent APIs are meaningful for sheet modes; non-sheet modes ignore detent switching.
 - `backgroundInteraction.isEnabled` is an advanced setting; enable only when passthrough behavior is intentional.

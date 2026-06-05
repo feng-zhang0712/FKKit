@@ -208,13 +208,15 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
     let targetFrame = frameOfPresentedViewInContainerView
     let applyLayout: () -> Void = {
       self.wrapperView.frame = targetFrame
-      self.layoutContentContainer()
-      self.applyContainerAppearance()
-      self.applyKeyboardAvoidance(in: containerView)
-      if !self.isCenterInteractivelyDragging {
-        self.updateBackdropForCurrentState()
+      UIView.performWithoutAnimation {
+        self.layoutContentContainer()
+        self.applyContainerAppearance()
+        self.applyKeyboardAvoidance(in: containerView)
+        if !self.isCenterInteractivelyDragging {
+          self.updateBackdropForCurrentState()
+        }
+        self.wrapperView.layoutIfNeeded()
       }
-      self.wrapperView.layoutIfNeeded()
     }
 
     // Keep fit-content updates close to system sheet behavior by animating size transitions.
