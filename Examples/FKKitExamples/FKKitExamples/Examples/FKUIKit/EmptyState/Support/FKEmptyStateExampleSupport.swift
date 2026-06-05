@@ -26,7 +26,7 @@ enum FKEmptyStateExampleFactory {
   /// Favorites empty preset — title, description, and primary action come from bundled FKUIKit strings.
   static func makeBasicModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.noFavorites)
-    model.image = UIImage(systemName: "tray")
+    model.context = .section
     model.isButtonHidden = false
     return model
   }
@@ -34,7 +34,21 @@ enum FKEmptyStateExampleFactory {
   /// Offline / no-network preset — uses ``FKEmptyStateScenario/noNetwork`` bundled copy.
   static func makeNoNetworkModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.noNetwork)
-    model.image = UIImage(systemName: "wifi.exclamationmark")
+    model.actions = FKEmptyStateActionSet(
+      primary: FKEmptyStateAction(id: "retry", title: model.buttonStyle.title ?? "Retry", kind: .primary),
+      secondary: FKEmptyStateAction(id: "docs", title: "Check network settings", kind: .secondary)
+    )
+    model.secondaryButtonStyle = FKEmptyStateButtonStyle(
+      title: nil,
+      titleColor: .secondaryLabel,
+      font: .systemFont(ofSize: 15, weight: .medium),
+      backgroundColor: .clear,
+      cornerRadius: 10,
+      contentInsets: UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16),
+      borderColor: .separator,
+      borderWidth: 1
+    )
+    model.isButtonHidden = false
     return model
   }
 

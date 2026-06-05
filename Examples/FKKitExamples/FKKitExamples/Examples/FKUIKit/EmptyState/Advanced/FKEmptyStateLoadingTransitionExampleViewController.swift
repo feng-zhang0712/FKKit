@@ -48,13 +48,13 @@ final class FKEmptyStateLoadingTransitionExampleViewController: UIViewController
     model.customAccessoryView = skeleton
     model.customAccessoryPlacement = .belowDescription
     model.hidesDescriptionForLoadingPhase = true
-    tableView.fk_applyEmptyState(model)
+    tableView.fk_applyEmptyState(model, animated: false)
 
     DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) { [weak self] in
       guard let self else { return }
-      // Transition from loading to empty by reusing the same host view.
-      // This mirrors production flow and avoids overlay teardown flicker.
-      self.tableView.fk_applyEmptyState(FKEmptyStateExampleFactory.makeBasicModel())
+      let empty = FKEmptyStateExampleFactory.makeBasicModel()
+      // In-place handoff: no content transition while the overlay stays visible.
+      self.tableView.fk_updateEmptyState(empty, animated: false)
     }
   }
 

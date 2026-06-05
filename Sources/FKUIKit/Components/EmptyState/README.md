@@ -25,6 +25,7 @@ Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plu
 | File | Role |
 |------|------|
 | `FKEmptyStatePhase.swift` | `.content` / `.loading` / `.empty` / `.error` / `.custom` |
+| `FKEmptyStateTransition.swift` | Content update animations for `apply(_:animated:)` |
 | `FKEmptyStateLayoutHints.swift` | `FKEmptyStateLayoutContext`, `Density`, `Axis` (hints carried on the configuration) |
 | `FKEmptyStateConfiguration.swift` | Main configuration struct, ``FKEmptyState`` namespace (`defaultConfiguration`, `configureDefault(_:)`), scenarios, fluent `with*` helpers |
 | `FKEmptyStateAction.swift` | `FKEmptyStateAction`, `FKEmptyStateActionSet`, `FKEmptyStateActionKind` |
@@ -37,12 +38,14 @@ Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plu
 |------|------|
 | `FKEmptyStateThreading.swift` | Main-thread precondition for public UI entry points |
 | `FKEmptyStateHostStorage.swift` | Associated-object keys, configuration box, scroll/refresh helpers |
+| `FKEmptyStateLayoutMetrics.swift` | Density-driven spacing and typography scaling |
+| `FKEmptyStateContextLayout.swift` | Context presets and resolved layout values |
 
 ### `Extension/`
 
 | File | Role |
 |------|------|
-| `UIView+FKEmptyState.swift` | `fk_applyEmptyState`, `fk_hideEmptyState`, `fk_setEmptyState`, visibility |
+| `UIView+FKEmptyState.swift` | `fk_applyEmptyState`, `fk_updateVisibleEmptyState`, `fk_hideEmptyState`, `fk_setEmptyState`, visibility |
 | `UIScrollView+FKEmptyState.swift` | `fk_updateEmptyState`, list helpers, auto short-content visibility |
 | `UIViewController+FKEmptyState.swift` | `fk_bindEmptyStateActions` / `fk_clearEmptyStateActionObservers` |
 
@@ -95,6 +98,17 @@ collectionView.fk_updateEmptyState(
 
 ```swift
 let input = FKEmptyStateInputs(dataLength: 0, isLoading: false, searchQuery: "note")
+let config = FKEmptyStateConfiguration.resolved(from: input)
+if config.phase == .content {
+  view.fk_hideEmptyState()
+} else {
+  view.fk_applyEmptyState(config)
+}
+```
+
+Legacy two-step resolution remains available:
+
+```swift
 switch FKEmptyStateResolver.resolve(input) {
 case .none:
   view.fk_hideEmptyState()
@@ -105,19 +119,31 @@ case .show(let type):
 }
 ```
 
+### Illustration & layout
+
+- `image`, `imageContentMode`, `imageTintColor`, `imageSize`, `imageAccessibilityLabel`
+- `context` tunes default image size, column width, insets, and alignment when properties remain at factory defaults
+- `density` scales spacing and typography (`compact` / `regular` / `comfortable`)
+- `axis`: `.vertical` (default) or `.horizontal` (illustration beside text)
+- `transition`: `.none` (default), `.crossDissolve`, `.fade`, `.scale`, `.slideUp` for in-place content updates
+- `buttonStyle` styles the primary action; `secondaryButtonStyle` / `tertiaryButtonStyle` override bordered and plain slots
+- `FKEmptyStateActionKind.link` renders an underlined text action; `isLoading` shows a button activity indicator (iOS 15+)
+
 ## API summary
 
 ### `UIView`
 
 - `fk_applyEmptyState(_:animated:actionHandler:viewTapHandler:)` — primary entry; `phase == .content` hides.
 - `fk_applyEmptyState(_:animated:actionHandler:)` — single trailing closure (preferred when no background tap handler).
+- `fk_updateVisibleEmptyState(_:animated:actionHandler:viewTapHandler:)` — in-place content update when overlay is already visible; falls back to `fk_applyEmptyState` otherwise.
 - `fk_setEmptyState(phase:…)` / `fk_setEmptyState(animated:configure:)` — template-based shortcuts.
 - `fk_hideEmptyState(animated:)`
 - `fk_emptyStateView`, `fk_emptyStateConfiguration`, `fk_isEmptyStateOverlayVisible`
+- `FKEmptyStatePresentable` — `fk_presentEmptyState` / `fk_dismissEmptyState` aliases for test seams and protocol-oriented hosts.
 
 ### `UIScrollView`
 
-- `fk_updateEmptyState(_:animated:)` — in-place content update.
+- `fk_updateEmptyState(_:animated:)` — in-place content update (delegates to `fk_updateVisibleEmptyState`).
 - `fk_updateEmptyState(itemCount:configuration:…)`, `fk_updateEmptyStateVisibility(isEmpty:configuration:…)`
 - `fk_refreshEmptyStateAutomatically(…)` when `automaticallyShowsWhenContentFits`.
 - `UITableView.fk_totalRowCount()`, `fk_updateEmptyStateForTable(configuration:…)`
@@ -141,7 +167,7 @@ case .show(let type):
 
 - **Phase vs type**: `FKEmptyStatePhase` drives layout (spinner vs buttons). `FKEmptyStateType` is semantic (offline, noResults, …) for i18n and analytics.
 - **Error phase**: A primary retry action is enforced when copy would otherwise leave users stuck.
-- **Reduce Motion**: Fade transitions respect `UIAccessibility.isReduceMotionEnabled`.
+- **Reduce Motion**: Content transitions and show/hide respect `UIAccessibility.isReduceMotionEnabled`.
 - **Prefer host**: `UIViewController.view` or the scroll view itself — not `UITableView.backgroundView`, so refresh controls stay usable.
 
 ## Examples
@@ -150,7 +176,7 @@ Under `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/EmptyState/`:
 
 - **`Support/`** — shared factory and view-controller helpers.
 - **`Basics/`** — empty, search miss, error/retry, offline, permission.
-- **`Advanced/`** — loading transition, layout comparison, custom illustration, dark mode, RTL, i18n, resolver.
+- **`Advanced/`** — loading transition, layout comparison, custom illustration, capabilities (density/axis/link), action styles & transitions, dark mode, RTL, i18n, resolver.
 
 Entry: `FKEmptyStateExamplesHubViewController`.
 

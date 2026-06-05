@@ -4,6 +4,31 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.62.0] - 2026-06-06
+
+### Added (FKUIKit — EmptyState)
+
+- **`FKEmptyStateTransition`** — `.none` (default), `.crossDissolve`, `.fade`, `.scale`, `.slideUp` for in-place content updates via `apply(_:animated:)`.
+- **Layout presets** — `FKEmptyStateLayoutContext`, density scaling (`FKEmptyStateLayoutMetrics`), and resolved layout (`FKEmptyStateContextLayout`) when callers leave factory defaults.
+- **Configuration** — `imageContentMode`, `imageTintColor`, `imageAccessibilityLabel`; `secondaryButtonStyle` / `tertiaryButtonStyle`; `FKEmptyStateConfiguration.resolved(from:)` and fluent `with*` helpers.
+- **`fk_updateVisibleEmptyState`** — update visible overlay content without replaying overlay fade-in; `UIScrollView.fk_updateEmptyState` delegates to the same behavior.
+- **Examples** — capabilities (density, axis, tint, link) and actions & transitions demos; expanded hub coverage.
+
+### Fixed (FKUIKit — EmptyState)
+
+- Legacy **`buttonStyle.title`** taps now emit correct action **title** and **id** in handlers and notifications.
+- **Link** vs **plain** tertiary chrome no longer leak underline or styling when toggling styles.
+- **`hidesImageForLoadingPhase`** now shows illustration during loading when set to `false`.
+- **Scale/slide** content transitions apply updates before animate-in; overlay fade-in no longer cancels content transitions on re-apply.
+
+### Changed (Examples)
+
+- Group several FKUIKit example hubs into sections (Blur, Button, Divider, ExpandableText, Skeleton, TextField, Toast) for easier navigation.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.62.0** (Git tag **`0.62.0`**).
+
 ## [0.61.0] - 2026-06-05
 
 ### Added (FKCoreKit — I18n)
@@ -2480,7 +2505,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.61.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.62.0...HEAD
+[0.62.0]: https://github.com/feng-zhang0712/FKKit/compare/0.61.0...0.62.0
 [0.61.0]: https://github.com/feng-zhang0712/FKKit/compare/0.60.0...0.61.0
 [0.60.0]: https://github.com/feng-zhang0712/FKKit/compare/0.59.1...0.60.0
 [0.59.1]: https://github.com/feng-zhang0712/FKKit/compare/0.59.0...0.59.1

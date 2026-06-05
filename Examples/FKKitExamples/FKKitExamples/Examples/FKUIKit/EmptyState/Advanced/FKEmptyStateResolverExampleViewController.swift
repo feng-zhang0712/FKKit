@@ -92,54 +92,14 @@ final class FKEmptyStateResolverExampleViewController: UIViewController {
     switch resolution {
     case .none:
       container.fk_hideEmptyState()
-    case let .show(type):
-      render(type: type)
+    case .show:
+      let model = FKEmptyStateConfiguration.resolved(from: input)
+      container.fk_applyEmptyState(model, actionHandler: { [weak self] _ in
+        self?.errorField.text = ""
+        self?.loadingSwitch.isOn = false
+        self?.fk_presentMessageAlert(title: "Retry", message: "Retry pressed. Error input has been cleared.")
+        self?.recompute()
+      })
     }
-  }
-
-  private func configuration(for type: FKEmptyStateType) -> FKEmptyStateConfiguration {
-    switch type {
-    case .offline:
-      return FKEmptyStateConfiguration.scenario(.noNetwork)
-    case .noResults:
-      return FKEmptyStateConfiguration.scenario(.noSearchResult)
-    case .error:
-      return FKEmptyStateConfiguration.scenario(.loadFailed)
-    case .permissionDenied:
-      return FKEmptyStateConfiguration.scenario(.noPermission)
-    case .newUser:
-      return FKEmptyStateConfiguration.scenario(.notLoggedIn)
-    case .empty:
-      return FKEmptyStateConfiguration.scenario(.noMessages)
-    case .loading:
-      return FKEmptyStateConfiguration(phase: .loading, type: .loading)
-    case .notFound:
-      return FKEmptyStateConfiguration.scenario(.noMessages)
-    case .maintenance:
-      return FKEmptyStateConfiguration.customState(
-        identifier: "maintenance",
-        title: "Under maintenance",
-        description: "We're performing scheduled maintenance. Please try again later."
-      )
-    }
-  }
-
-  private func render(type: FKEmptyStateType) {
-    var model = configuration(for: type)
-    model.image = UIImage(systemName: "rectangle.3.group")
-    model.isButtonHidden = true
-    if type == .error {
-      model.phase = .error
-      model.actions = FKEmptyStateActionSet(primary: FKEmptyStateAction(id: "retry", title: FKUIKitI18n.string("fkuikit.empty.action.retry"), kind: .primary))
-      model.isButtonHidden = false
-    }
-    container.fk_applyEmptyState(model, actionHandler: { [weak self] _ in
-      // Example retry behavior: clear error and recompute from controls,
-      // so users can see the resolver immediately move to the next valid state.
-      self?.errorField.text = ""
-      self?.loadingSwitch.isOn = false
-      self?.fk_presentMessageAlert(title: "Retry", message: "Retry pressed. Error input has been cleared.")
-      self?.recompute()
-    })
   }
 }

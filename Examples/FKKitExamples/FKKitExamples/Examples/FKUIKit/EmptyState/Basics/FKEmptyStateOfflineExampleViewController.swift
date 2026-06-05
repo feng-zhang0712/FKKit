@@ -20,9 +20,16 @@ final class FKEmptyStateOfflineExampleViewController: UIViewController {
   private func render() {
     let model = FKEmptyStateExampleFactory.makeNoNetworkModel()
     container.fk_applyEmptyState(model) { [weak self] action in
-      guard self != nil, action.id == "primary" else { return }
-      if let url = URL(string: UIApplication.openSettingsURLString) {
-        UIApplication.shared.open(url)
+      guard let self else { return }
+      switch action.id {
+      case "retry":
+        self.fk_presentMessageAlert(title: "Retry", message: "Retry tapped.")
+      case "docs":
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+          UIApplication.shared.open(url)
+        }
+      default:
+        break
       }
     }
   }
