@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 
 /// Entry table for focused FKDivider demos.
 final class FKDividerExamplesHubViewController: UITableViewController {
@@ -12,28 +11,28 @@ final class FKDividerExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.0.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.0.subtitle"),
+      title: "Basics & layout",
+      subtitle: "Horizontal, vertical, hairline, insets, thickness, color",
       controllerType: FKDividerExampleBasicsViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.1.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.1.subtitle"),
+      title: "Line styles & gradients",
+      subtitle: "Solid, dashed patterns, gradient strokes",
       controllerType: FKDividerExampleLineStyleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.2.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.2.subtitle"),
+      title: "Edges & defaults",
+      subtitle: "Pinned edges, global defaults, Interface Builder",
       controllerType: FKDividerExampleLayoutViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.3.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.3.subtitle"),
+      title: "Adaptive UI",
+      subtitle: "Dark mode and rotation",
       controllerType: FKDividerExampleAdaptiveViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.4.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.4.subtitle"),
+      title: "SwiftUI",
+      subtitle: "FKDividerView in a hosting controller",
       controllerType: FKDividerExampleSwiftUIViewController.self
     ),
   ]

@@ -1,6 +1,5 @@
 import FKUIKit
 import UIKit
-import FKCoreKit
 
 final class FKRefreshDefaultDemoViewController: UIViewController {
 
@@ -52,7 +51,7 @@ final class FKRefreshDefaultDemoViewController: UIViewController {
     let pull = makePanelButton(title: "Begin pull") { [weak self] in self?.triggerPull() }
     let more = makePanelButton(title: "Begin load more") { [weak self] in self?.triggerLoadMore() }
     let cancel = makePanelButton(title: "Cancel current action") { [weak self] in self?.cancelCurrentAction() }
-    let toggleFooter = makePanelButton(title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_refresh_scenarios_fkrefreshscro.toggle_footer_hidden.39b0d85cd3")) { [weak self] in self?.toggleFooterHidden() }
+    let toggleFooter = makePanelButton(title: "Toggle footer hidden") { [weak self] in self?.toggleFooterHidden() }
     let toggleHeader = makePanelButton(title: "Toggle header enabled") { [weak self] in self?.toggleHeaderEnabled() }
 
     let buttons = UIStackView(arrangedSubviews: [reset, pull, more, cancel, toggleFooter, toggleHeader])

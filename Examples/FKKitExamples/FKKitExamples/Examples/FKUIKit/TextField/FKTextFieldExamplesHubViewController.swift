@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 
 /// Entry table for FKTextField demos (mirrors ``FKBadgeExamplesHubViewController`` layout).
 final class FKTextFieldExamplesHubViewController: UITableViewController {
@@ -11,19 +10,19 @@ final class FKTextFieldExamplesHubViewController: UITableViewController {
   }
 
   private let rows: [Row] = [
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.0.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.0.subtitle"), controllerType: FKTextFieldExampleBasicsViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.1.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.1.subtitle"), controllerType: FKTextFieldExampleFormatsViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.2.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.2.subtitle"), controllerType: FKTextFieldExampleStatusGalleryViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.3.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.3.subtitle"), controllerType: FKTextFieldExampleValidationViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.4.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.4.subtitle"), controllerType: FKTextFieldExampleFormViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.5.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.5.subtitle"), controllerType: FKTextFieldExampleOtpCounterViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.6.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.6.subtitle"), controllerType: FKTextFieldExamplePasswordViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.7.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.7.subtitle"), controllerType: FKTextFieldExampleKeyboardViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.8.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.8.subtitle"), controllerType: FKTextFieldExampleI18nViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.9.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.9.subtitle"), controllerType: FKTextFieldExampleThemeViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.10.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.10.subtitle"), controllerType: FKTextFieldExampleIBViewController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.11.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.11.subtitle"), controllerType: FKTextFieldExampleSwiftUIHostController.self),
-    Row(title: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.12.title"), subtitle: FKExamplesI18n.string("examples.hub.fktextfieldexampleshubviewcontroller.12.subtitle"), controllerType: FKTextFieldExampleAdvancedCallbacksViewController.self),
+    Row(title: "Basics", subtitle: "Placeholder, default value, clear, disabled, read-only", controllerType: FKTextFieldExampleBasicsViewController.self),
+    Row(title: "Types & formatting", subtitle: "Email, phone, password, amounts, OTP, custom masks", controllerType: FKTextFieldExampleFormatsViewController.self),
+    Row(title: "Status gallery", subtitle: "Normal, focused, filled, error, success, disabled, read-only", controllerType: FKTextFieldExampleStatusGalleryViewController.self),
+    Row(title: "Validation", subtitle: "onChange / onBlur / onSubmit and async validation", controllerType: FKTextFieldExampleValidationViewController.self),
+    Row(title: "Form orchestration", subtitle: "Focus chain, submit, first-error focus", controllerType: FKTextFieldExampleFormViewController.self),
+    Row(title: "OTP & counter", subtitle: "FKTextField OTP, FKCodeTextField slots, FKCountTextView", controllerType: FKTextFieldExampleOtpCounterViewController.self),
+    Row(title: "Password", subtitle: "Visibility toggle and strength rules", controllerType: FKTextFieldExamplePasswordViewController.self),
+    Row(title: "Keyboard & scrolling", subtitle: "Keyboard inset adjustments", controllerType: FKTextFieldExampleKeyboardViewController.self),
+    Row(title: "I18N & accessibility", subtitle: "Locale strings, RTL, Dynamic Type, VoiceOver", controllerType: FKTextFieldExampleI18nViewController.self),
+    Row(title: "Theme tokens", subtitle: "Semantic colors and per-instance style overrides", controllerType: FKTextFieldExampleThemeViewController.self),
+    Row(title: "Interface Builder", subtitle: "Storyboard / XIB usage notes", controllerType: FKTextFieldExampleIBViewController.self),
+    Row(title: "SwiftUI", subtitle: "UIViewRepresentable bridge", controllerType: FKTextFieldExampleSwiftUIHostController.self),
+    Row(title: "Advanced callbacks", subtitle: "Combined callbacks, counter, shake, accessories", controllerType: FKTextFieldExampleAdvancedCallbacksViewController.self),
   ]
 
   convenience init() {

@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 import FKUIKit
 
 final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBaseViewController {
@@ -72,9 +71,9 @@ final class FKActionSheetExampleSelectionViewController: FKActionSheetExampleBas
     LongListTopic(id: UUID(), title: "Incidents"),
     LongListTopic(id: UUID(), title: "Compliance"),
     LongListTopic(id: UUID(), title: "Privacy"),
-    LongListTopic(id: UUID(), title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_scenarios_accessibility_.accessibility.d660049bc1")),
+    LongListTopic(id: UUID(), title: "Accessibility"),
     LongListTopic(id: UUID(), title: "Localization"),
-    LongListTopic(id: UUID(), title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_scenarios_performance_fk.performance.63c9045599")),
+    LongListTopic(id: UUID(), title: "Performance"),
     LongListTopic(id: UUID(), title: "Experiments"),
     LongListTopic(id: UUID(), title: "Beta features"),
     LongListTopic(id: UUID(), title: "Account settings"),

@@ -1,7 +1,6 @@
 import UIKit
-import FKCoreKit
 
-/// Entry table for all FKPluggable protocol contract demos under `FKCoreKit/Components/Pluggable`.
+/// Entry table for all FKPluggable protocol contract demos under `FKCoreKit/Pluggable`.
 final class FKPluggableExamplesHubViewController: UITableViewController {
 
   private struct Row {
@@ -12,63 +11,63 @@ final class FKPluggableExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.0.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.0.subtitle"),
+      title: "Core",
+      subtitle: "Contract version, observation tokens, app lifecycle observing",
       controllerType: FKPluggableCoreExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.1.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.1.subtitle"),
+      title: "Networking",
+      subtitle: "API client, interceptors, signing, credentials, token refresh, reachability",
       controllerType: FKPluggableNetworkingExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.2.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.2.subtitle"),
+      title: "Analytics",
+      subtitle: "Events, common parameters, uploader, tracking, flush",
       controllerType: FKPluggableAnalyticsExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.3.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.3.subtitle"),
+      title: "Storage",
+      subtitle: "FKKeyValueStoring, FKCodableStoring JSON helpers",
       controllerType: FKPluggableStorageExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.4.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.4.subtitle"),
+      title: "Session",
+      subtitle: "FKUserSessionProviding, authentication observers",
       controllerType: FKPluggableSessionExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.5.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.5.subtitle"),
+      title: "Configuration",
+      subtitle: "Environment, feature flags, remote config",
       controllerType: FKPluggableConfigurationExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.6.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.6.subtitle"),
+      title: "Localization",
+      subtitle: "FKLocalizing, FKTranslating with placeholders",
       controllerType: FKPluggableLocalizationExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.7.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.7.subtitle"),
+      title: "Routing",
+      subtitle: "Deeplink parsing, handler chain, FKDeeplinkRouting",
       controllerType: FKPluggableRoutingExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.8.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.8.subtitle"),
+      title: "Logging",
+      subtitle: "FKPluggableLogging levels and convenience helpers",
       controllerType: FKPluggableLoggingExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.9.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.9.subtitle"),
+      title: "Media",
+      subtitle: "FKImageLoading, FKImageCaching",
       controllerType: FKPluggableMediaExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.10.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.10.subtitle"),
+      title: "UIKit — List Cells",
+      subtitle: "FKCellReusable, table/collection configurables, register/dequeue helpers",
       controllerType: FKPluggableListCellExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.11.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkpluggableexampleshubviewcontroller.11.subtitle"),
+      title: "UIKit — Text Input",
+      subtitle: "FKTextFormatting, FKTextValidating, FKTextAsyncValidating",
       controllerType: FKPluggableTextInputExampleViewController.self
     ),
   ]

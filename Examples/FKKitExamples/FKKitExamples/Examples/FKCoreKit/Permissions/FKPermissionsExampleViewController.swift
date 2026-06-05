@@ -455,7 +455,7 @@ final class FKPermissionsExampleViewController: UIViewController {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
     alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
     alert.addAction(
-      UIAlertAction(title: FKExamplesI18n.string("examples.scenario.examples_fkcorekit_permissions_fkpermissionsexam.open_settings.134635e9a2"), style: .default) { _ in
+      UIAlertAction(title: "Open Settings", style: .default) { _ in
         _ = FKPermissions.shared.openAppSettings()
       }
     )

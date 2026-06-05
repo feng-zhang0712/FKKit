@@ -12,38 +12,38 @@ final class FKI18nExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.0.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.0.subtitle"),
+      title: "Language Switcher",
+      subtitle: "All 11 recommended locales — live greeting, RTL badge, persistence",
       controllerType: FKI18nLanguageSwitcherExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.1.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.1.subtitle"),
+      title: "Bundle Strings",
+      subtitle: "`.lproj` lookup via FKI18nConfiguration.bundle and FKI18nDemo.strings",
       controllerType: FKI18nBundleExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.2.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.2.subtitle"),
+      title: "Format & Variables",
+      subtitle: "{token} interpolation, String(format:), formatters, plural counts",
       controllerType: FKI18nFormatExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.3.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.3.subtitle"),
+      title: "Dictionary Backend",
+      subtitle: "FKI18nStaticDictionaryTranslator overlay before bundle lookup",
       controllerType: FKI18nDictionaryExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.4.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.4.subtitle"),
+      title: "Observers",
+      subtitle: "observeLanguageChange token + NotificationCenter broadcast",
       controllerType: FKI18nObserverExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.5.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.5.subtitle"),
+      title: "RTL Layout",
+      subtitle: "Arabic direction — semanticContentAttribute and leading/trailing",
       controllerType: FKI18nRTLExampleViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.6.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.6.subtitle"),
+      title: "Integration",
+      subtitle: "FKLocalizing protocol and FKBusinessI18nManager adapter",
       controllerType: FKI18nIntegrationExampleViewController.self
     ),
   ]

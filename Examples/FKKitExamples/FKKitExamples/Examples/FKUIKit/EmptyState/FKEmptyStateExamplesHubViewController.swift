@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 
 /// Index of EmptyState demos. Sources live under `Basics/`, `Advanced/`, and `Support/`.
 final class FKEmptyStateExamplesHubViewController: UITableViewController {
@@ -11,63 +10,63 @@ final class FKEmptyStateExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.0.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.0.subtitle"),
+      title: "Basic empty state",
+      subtitle: "Default copy, icon and a minimal action",
       make: { FKEmptyStateBasicExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.1.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.1.subtitle"),
+      title: "No results + clear filters",
+      subtitle: "Search query interpolation with clear filters action",
       make: { FKEmptyStateSearchNoResultsExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.2.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.2.subtitle"),
+      title: "Error + retry loading action",
+      subtitle: "Retry button enters loading state before resolving",
       make: { FKEmptyStateErrorRetryExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.3.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.3.subtitle"),
+      title: "Offline + open docs/check network",
+      subtitle: "Multi-actions for offline guidance and recovery",
       make: { FKEmptyStateOfflineExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.4.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.4.subtitle"),
+      title: "Permission denied + request access",
+      subtitle: "Permission copy, request access and contact admin",
       make: { FKEmptyStatePermissionDeniedExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.5.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.5.subtitle"),
+      title: "Loading placeholder -> empty",
+      subtitle: "Skeleton style placeholder and transition flow",
       make: { FKEmptyStateLoadingTransitionExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.6.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.6.subtitle"),
+      title: "Full page vs inline section",
+      subtitle: "Compare container layout strategies side-by-side",
       make: { FKEmptyStateLayoutComparisonExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.7.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.7.subtitle"),
+      title: "Custom icon/illustration (lazy)",
+      subtitle: "Lazy-load an accessory view and icon-only edge case",
       make: { FKEmptyStateCustomIllustrationExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.8.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.8.subtitle"),
+      title: "Dark mode + token override",
+      subtitle: "Theme override with custom color tokens",
       make: { FKEmptyStateDarkModeExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.9.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.9.subtitle"),
+      title: "RTL layout example",
+      subtitle: "Force RTL direction with Arabic copy",
       make: { FKEmptyStateRTLExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.10.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.10.subtitle"),
+      title: "i18n example (en + zh-CN)",
+      subtitle: "Factory-based localized copy with interpolation",
       make: { FKEmptyStateI18nExampleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.11.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkemptystateexampleshubviewcontroller.11.subtitle"),
+      title: "State resolver example",
+      subtitle: "Resolve semantic type from loading/offline/permission/data/query/error",
       make: { FKEmptyStateResolverExampleViewController() }
     ),
   ]

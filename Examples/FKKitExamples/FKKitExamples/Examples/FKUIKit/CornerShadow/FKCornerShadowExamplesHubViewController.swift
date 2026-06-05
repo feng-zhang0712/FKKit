@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 
 final class FKCornerShadowExamplesHubViewController: UITableViewController {
 
@@ -11,18 +10,18 @@ final class FKCornerShadowExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkcornershadowexampleshubviewcontroller.0.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkcornershadowexampleshubviewcontroller.0.subtitle"),
+      title: "Basics",
+      subtitle: "Corners, shadows, gradients, layout-driven updates, reset",
       controllerType: FKCornerShadowExampleBasicsViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkcornershadowexampleshubviewcontroller.1.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkcornershadowexampleshubviewcontroller.1.subtitle"),
+      title: "UIKit controls",
+      subtitle: "Button, label, image view",
       controllerType: FKCornerShadowExampleControlsViewController.self
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkcornershadowexampleshubviewcontroller.2.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkcornershadowexampleshubviewcontroller.2.subtitle"),
+      title: "Lists",
+      subtitle: "Table and collection cells with reuse-safe reset",
       controllerType: FKCornerShadowExampleListViewController.self
     ),
   ]

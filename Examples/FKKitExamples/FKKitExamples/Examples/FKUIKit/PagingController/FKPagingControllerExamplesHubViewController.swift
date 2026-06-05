@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 
 /// Index of `FKPagingController` scenarios grouped by integration topic.
 final class FKPagingControllerExamplesHubViewController: UITableViewController {
@@ -20,38 +19,38 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         title: "Tab bar placement",
         rows: [
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.0.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.0.subtitle"),
+            title: "Content area (top)",
+            subtitle: "tabBarPlacement .contentTop — strip inside pager view below nav bar (default).",
             make: { FKPagingContentTopPlacementExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.1.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.1.subtitle"),
+            title: "Navigation bar tabs",
+            subtitle: "tabBarPlacement .navigationBar — 18 mixed tab styles, half-height pager, inline config panel.",
             make: { FKPagingNavigationBarPlacementExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.2.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.2.subtitle"),
+            title: "External tab strip",
+            subtitle: "tabBarPlacement .external — host adds tabBar above pages; isTabBarExternallyManaged.",
             make: { FKPagingExternalTabBarPlacementExampleViewController() }
           ),
         ]
       ),
       SectionModel(
-        title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.0.title"),
+        title: "Basics",
         rows: [
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.3.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.3.subtitle"),
+            title: "Basics (eager)",
+            subtitle: "Two-way tab sync, nested list, Stress x20 queue test (non-animated bursts).",
             make: { FKPagingBasicsExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.4.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.4.subtitle"),
+            title: "Tab bar indicators",
+            subtitle: "tabConfiguration + FKTabBarCustomization for line, pill, and custom z-order.",
             make: { FKPagingTabBarIndicatorExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.5.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.5.subtitle"),
+            title: "Tab bar layout",
+            subtitle: "widthMode, selectionScrollPosition, contentAlignment via pagingController.tabBar.",
             make: { FKPagingTabBarLayoutExampleViewController() }
           ),
         ]
@@ -60,18 +59,18 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         title: "Layout & lifecycle",
         rows: [
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.6.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.6.subtitle"),
+            title: "Layout & spacing",
+            subtitle: "tabBarPlacement .contentBottom; interPageSpacing visible only while swiping.",
             make: { FKPagingLayoutSpacingExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.7.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.7.subtitle"),
+            title: "Empty state",
+            subtitle: "emptyStateConfiguration when pageCount is zero; populate via setContent.",
             make: { FKPagingEmptyStateExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.8.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.8.subtitle"),
+            title: "Reselect scroll to top",
+            subtitle: "reselectBehavior .scrollPageToTop when re-tapping the active tab.",
             make: { FKPagingReselectScrollToTopExampleViewController() }
           ),
         ]
@@ -80,48 +79,48 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         title: "Configuration & control",
         rows: [
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.9.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.9.subtitle"),
+            title: "Delegate & configuration",
+            subtitle: "Phases, progress, combined transition, gesture policy, nested scroll toggle.",
             make: { FKPagingDelegateConfigurationExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.10.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.10.subtitle"),
+            title: "Controlled gate",
+            subtitle: "pageSwitchGateScope tab / swipe / all, shouldSwitchTo veto, commit / cancel.",
             make: { FKPagingGateExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.11.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.11.subtitle"),
+            title: "ID selection",
+            subtitle: "setSelectedIndex(forItemID:), selectedItemID after tab reorder.",
             make: { FKPagingIDSelectionExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.12.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.12.subtitle"),
+            title: "Directional swipe",
+            subtitle: "allowsSwipePagingTo blocks forward swipe from a specific page.",
             make: { FKPagingSwipeDirectionExampleViewController() }
           ),
         ]
       ),
       SectionModel(
-        title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_pagingcontroller_scenarios_fkpa.dynamic_content.b3110431fe"),
+        title: "Dynamic content",
         rows: [
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.13.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.13.subtitle"),
+            title: "Dynamic setContent",
+            subtitle: "Toggle between 3 and 8 tabs to exercise reload + selection preservation.",
             make: { FKPagingDynamicContentExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.14.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.14.subtitle"),
+            title: "Sync visible tabs",
+            subtitle: "Runtime isHidden toggles realigned with setContent(tabs:viewControllers:).",
             make: { FKPagingSyncVisibleTabsExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.15.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.15.subtitle"),
+            title: "applyContentChanges",
+            subtitle: "Lazy incremental tab updates and invalidatePage without full setContent.",
             make: { FKPagingIncrementalChangesExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.16.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.16.subtitle"),
+            title: "Data source",
+            subtitle: "FKPagingEagerDataSource with reloadFromDataSource() add/remove pages.",
             make: { FKPagingDataSourceExampleViewController() }
           ),
         ]
@@ -130,8 +129,8 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         title: "Gestures",
         rows: [
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.17.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.17.subtitle"),
+            title: "Nested horizontal scroll",
+            subtitle: "preferNestedHorizontalScroll installs require(toFail:) on in-page carousels.",
             make: { FKPagingNestedHorizontalScrollExampleViewController() }
           ),
         ]
@@ -140,8 +139,8 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
         title: "Lazy loading",
         rows: [
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.18.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.18.subtitle"),
+            title: "Lazy pages (UIKit)",
+            subtitle: "Factory-driven pages, preload/retention, lifecycle log, invalidatePage(at:).",
             make: { FKPagingLazyPagesExampleViewController() }
           ),
         ]
@@ -151,21 +150,21 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
     #if canImport(SwiftUI)
     list.append(
       SectionModel(
-        title: FKExamplesI18n.string("examples.hub.fkdividerexampleshubviewcontroller.4.title"),
+        title: "SwiftUI",
         rows: [
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.19.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.19.subtitle"),
+            title: "SwiftUI representable",
+            subtitle: "Eager pages with $selectedIndex mirrored under the pager.",
             make: { FKPagingSwiftUIBridgeExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.20.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.20.subtitle"),
+            title: "SwiftUI lazy provider",
+            subtitle: "FKPagingControllerRepresentable with pageCount + factory closure binding.",
             make: { FKPagingLazySwiftUIExampleViewController() }
           ),
           RowModel(
-            title: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.21.title"),
-            subtitle: FKExamplesI18n.string("examples.hub.fkpagingcontrollerexampleshubviewcontroller.21.subtitle"),
+            title: "SwiftUI advanced",
+            subtitle: "$selectedItemID binding plus FKPagingControllerRepresentableCallbacks telemetry.",
             make: { FKPagingSwiftUIAdvancedExampleViewController() }
           ),
         ]

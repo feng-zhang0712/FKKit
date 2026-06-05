@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 import FKUIKit
 
 /// An index of `FKSheetPresentationController` examples, grouped by topic.
@@ -22,33 +21,33 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
       title: "Mode",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.0.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.0.subtitle"),
+          title: "Bottom sheet — Basics",
+          subtitle: "The simplest presentation with defaults and recommended usage notes.",
           make: { BottomSheetBasicsExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.1.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.1.subtitle"),
+          title: "Bottom sheet — Scrollable content",
+          subtitle: "Table, collection, or scroll view with automatic pan/scroll handoff.",
           make: { BottomSheetScrollableContentExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.2.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.2.subtitle"),
+          title: "Configuration presets",
+          subtitle: "`bottomSheetDefault`, `centerCard`, `passthroughOverlay`, and `applyingSheet`.",
           make: { ConfigurationPresetsExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.3.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.3.subtitle"),
+          title: "Top sheet — Basics",
+          subtitle: "A top-attached sheet and common use cases (e.g. drop-down trays).",
           make: { TopSheetBasicsExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.4.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.4.subtitle"),
+          title: "Center — Basics",
+          subtitle: "Fixed vs fitted sizing with max constraints for large screens.",
           make: { CenterModalBasicsExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.5.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.5.subtitle"),
+          title: "Edge layout",
+          subtitle: "Left/right/top/bottom edge-attached trays without detents.",
           make: { EdgeLayoutExampleViewController() }
         ),
       ]
@@ -57,108 +56,108 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
       title: "Sheet",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.6.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.6.subtitle"),
+          title: "Detents — Points",
+          subtitle: "Two fixed heights + programmatic detent switching via `selectDetent`.",
           make: { SheetDetentsPointsExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.7.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.7.subtitle"),
+          title: "Detents — Fraction",
+          subtitle: "Ratio-based detents that adapt across devices.",
           make: { SheetDetentsFractionExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.8.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.8.subtitle"),
+          title: "Fit to content",
+          subtitle: "Shell vs content-only `preferredContentSize` reporting with a max height cap.",
           make: { SheetFitToContentExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.9.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.9.subtitle"),
+          title: "Action sheet style (content-only)",
+          subtitle: "Two actions + cancel; no manual grabber or safe-area padding on height.",
           make: { SheetActionSheetStyleExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.10.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.10.subtitle"),
+          title: "Grabber on/off",
+          subtitle: "Toggle grabber and adjust its size/inset.",
           make: { SheetGrabberExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.11.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.11.subtitle"),
+          title: "Scroll tracking",
+          subtitle: "Table view scrolling + sheet dragging handoff without gesture fighting.",
           make: { SheetScrollTrackingExampleViewController() }
         ),
       ]
     ),
     Section(
-      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.2.title"),
+      title: "Interaction",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.12.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.12.subtitle"),
+          title: "Tap to dismiss on/off",
+          subtitle: "Why it’s on by default, and when you should disable it.",
           make: { TapToDismissExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.13.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.13.subtitle"),
+          title: "Swipe to dismiss on/off",
+          subtitle: "Compare thresholds and cancellation feel with live controls.",
           make: { SwipeToDismissExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.14.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.14.subtitle"),
+          title: "Cross-detent swipe dismiss",
+          subtitle: "`sheet.crossDetentSwipeDismissPolicy`: system-like single gesture vs strict-at-pan-start.",
           make: { CrossDetentSwipeDismissExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.15.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.15.subtitle"),
+          title: "Background interaction policy",
+          subtitle: "Allow or block touches to the presenting UI (powerful but risky).",
           make: { BackgroundInteractionPolicyExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.16.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.16.subtitle"),
+          title: "Zero-dim backdrop behavior",
+          subtitle: "When dim alpha is 0, choose dismissable/passthrough/disabled behavior.",
           make: { ZeroDimBackdropBehaviorExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.17.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.17.subtitle"),
+          title: "Interactive progress callback",
+          subtitle: "Use progress updates to drive UI (e.g. a progress label).",
           make: { InteractiveDismissProgressExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.18.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.18.subtitle"),
+          title: "Callback delivery",
+          subtitle: "Delegate-only vs handlers-only vs both lifecycle channels.",
           make: { CallbackDeliveryExampleViewController() }
         ),
       ]
     ),
     Section(
-      title: FKExamplesI18n.string("examples.hub.fkbuttonexampleshubviewcontroller.3.title"),
+      title: "Appearance",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.19.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.19.subtitle"),
+          title: "Corner radius / shadow / border",
+          subtitle: "Tune visuals with sliders and see results immediately.",
           make: { ContainerAppearanceTuningExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.20.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.20.subtitle"),
+          title: "Bottom sheet blur",
+          subtitle: "Apply blur on sheet container and tune dim/material/custom blur parameters.",
           make: { BottomSheetBlurExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.21.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.21.subtitle"),
+          title: "Top sheet blur",
+          subtitle: "Top sheet container blur with dim/material/backend/mode controls.",
           make: { TopSheetBlurExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.22.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.22.subtitle"),
+          title: "Center blur",
+          subtitle: "Center modal container blur with dim/material/backend/mode controls.",
           make: { CenterBlurExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.23.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.23.subtitle"),
+          title: "Anchor popup blur",
+          subtitle: "Anchor popup blur with dim/material/backend/mode and custom blur controls.",
           make: { AnchorBlurExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.24.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.24.subtitle"),
+          title: "Presenting view effect",
+          subtitle: "Scale the presenting hierarchy while content is visible.",
           make: { PresentingViewEffectExampleViewController() }
         ),
       ]
@@ -167,38 +166,38 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
       title: "Anchor",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.25.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.25.subtitle"),
+          title: "Top anchor popup",
+          subtitle: "Single anchor view at the top; tap it to present and tap again/mask to dismiss.",
           make: { AnchorTopSingleExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.26.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.26.subtitle"),
+          title: "Bottom anchor popup",
+          subtitle: "Single anchor view at the bottom; popup expands upward from the anchor.",
           make: { AnchorBottomSingleExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.27.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.27.subtitle"),
+          title: "Auto direction anchor popup",
+          subtitle: "Uses `.auto` direction to choose upward/downward expansion based on available space.",
           make: { AnchorAutoDirectionExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.28.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.28.subtitle"),
+          title: "Anchor content replacement",
+          subtitle: "Dismiss-then-present vs in-place content/height swap at the same anchor.",
           make: { AnchorContentReplacementExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.29.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.29.subtitle"),
+          title: "Navigation bar anchor popup",
+          subtitle: "Expands downward from the navigation bar bottom edge (typical title-bar menu pattern).",
           make: { AnchorNavigationBarExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.30.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.30.subtitle"),
+          title: "Screen top edge anchor popup",
+          subtitle: "Rect provider at the window top (`y = 0`); panel drops from the physical screen top.",
           make: { AnchorScreenTopEdgeExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.31.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.31.subtitle"),
+          title: "Screen bottom edge anchor popup",
+          subtitle: "Rect provider at the window bottom; panel grows upward from the physical screen bottom.",
           make: { AnchorScreenBottomEdgeExampleViewController() }
         ),
       ]
@@ -207,13 +206,13 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
       title: "Safe Area",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.32.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.32.subtitle"),
+          title: "contentRespectsSafeArea",
+          subtitle: "Container can touch screen edges; content insets handle safe area.",
           make: { SafeAreaContentRespectsSafeAreaExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.33.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.33.subtitle"),
+          title: "containerRespectsSafeArea",
+          subtitle: "Container itself stays away from safe area for card-like overlays.",
           make: { SafeAreaContainerRespectsSafeAreaExampleViewController() }
         ),
       ]
@@ -222,13 +221,13 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
       title: "Backdrop",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.34.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.34.subtitle"),
+          title: "Dim backdrop",
+          subtitle: "Adjust alpha with a slider and understand readability trade-offs.",
           make: { DimBackdropExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.35.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.35.subtitle"),
+          title: "Multi-stage backdrop",
+          subtitle: "Detent-aware dim intensity between minimum and maximum alpha.",
           make: { MultiStageBackdropExampleViewController() }
         ),
       ]
@@ -237,23 +236,23 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
       title: "Animation",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkprogressbarexampleshubviewcontroller.2.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.36.subtitle"),
+          title: "Preset gallery",
+          subtitle: "Switch presets (systemLike/spring/ease/fade/none) and compare motion.",
           make: { AnimationPresetGalleryExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.37.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.37.subtitle"),
+          title: "Custom timing",
+          subtitle: "When you need explicit duration/curve/spring tuning.",
           make: { CustomAnimationTimingExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.38.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.38.subtitle"),
+          title: "Custom animator provider",
+          subtitle: "Replace built-in transitions with `FKSheetPresentationAnimatorProviding`.",
           make: { CustomAnimatorProviderExampleViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.39.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.39.subtitle"),
+          title: "Reduce Motion aware",
+          subtitle: "Select gentler animation when Reduce Motion is enabled at runtime.",
           make: { ReduceMotionCompatibleAnimationExampleViewController() }
         ),
       ]
@@ -262,18 +261,18 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
       title: "Keyboard",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.40.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.40.subtitle"),
+          title: "Keyboard avoidance strategies",
+          subtitle: "Compare adjustContainer vs adjustContentInsets for form vs list content.",
           make: { KeyboardAvoidanceExampleViewController() }
         ),
       ]
     ),
     Section(
-      title: FKExamplesI18n.string("examples.hub.fkblurexampleshubviewcontroller.18.title"),
+      title: "Rotation",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.41.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fksheetpresentationcontrollerexampleshubviewcont.41.subtitle"),
+          title: "Rotation resilience",
+          subtitle: "Rotate the device: frames stay stable (especially important for anchors).",
           make: { RotationResilienceExampleViewController() }
         ),
       ]

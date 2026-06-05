@@ -1,7 +1,7 @@
 import FKCoreKit
 import UIKit
 
-/// Demonstrates networking pluggable contracts in `FKCoreKit/Components/Pluggable/Networking`.
+/// Demonstrates networking pluggable contracts in `FKCoreKit/Pluggable/Networking`.
 final class FKPluggableNetworkingExampleViewController: FKPluggableExampleBaseViewController {
 
   private let apiClient = DemoAPIClient()

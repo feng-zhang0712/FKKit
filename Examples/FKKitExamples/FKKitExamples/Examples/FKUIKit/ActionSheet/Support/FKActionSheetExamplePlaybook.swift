@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 import FKUIKit
 
 /// Shared presentation helpers for UIKit pages and the SwiftUI host.
@@ -534,7 +533,7 @@ enum FKActionSheetExamplePlaybook {
       sections: [
         FKActionSheetSection(actions: [
           FKActionSheetAction(title: "Delete", style: .destructive) { log("Delete") },
-          FKActionSheetAction(title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.archive.2621c6fd51")) { log("Archive") },
+          FKActionSheetAction(title: "Archive") { log("Archive") },
         ]),
       ],
       cancelAction: makeCancelAction(),

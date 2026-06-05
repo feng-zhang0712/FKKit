@@ -1,6 +1,5 @@
 import FKUIKit
 import UIKit
-import FKCoreKit
 
 /// Lists ``FKAudioPlayer`` example screens grouped by feature area.
 final class FKAudioPlayerExamplesHubViewController: UITableViewController {
@@ -26,135 +25,135 @@ final class FKAudioPlayerExamplesHubViewController: UITableViewController {
   }
 
   private lazy var sections: [DemoSection] = [
-    DemoSection(title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.0.title"), items: [
+    DemoSection(title: "Basics", items: [
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.0.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.0.subtitle"),
+        title: "Progressive MP3",
+        subtitle: "HTTPS file, artwork, default `FKAudioPlayerView` chrome.",
         factory: { FKAudioPlayerMP3ExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.1.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.1.subtitle"),
+        title: "HLS on demand",
+        subtitle: "Adaptive streaming in audio-only presentation mode.",
         factory: { FKAudioPlayerHLSExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.2.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.2.subtitle"),
+        title: "UIView embed helper",
+        subtitle: "`fk_embedAudioPlayer` constraints helper.",
         factory: { FKAudioPlayerEmbedHelperExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.3.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.3.subtitle"),
+        title: "Compact style",
+        subtitle: "`FKAudioPlayerViewStyle.compact` layout.",
         factory: { FKAudioPlayerCompactStyleExampleViewController() }
       ),
     ]),
     DemoSection(title: "Queue", items: [
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.4.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.4.subtitle"),
+        title: "Sequential queue",
+        subtitle: "`loadQueue`, next/previous, natural end-of-queue stop.",
         factory: { FKAudioPlayerSequentialQueueExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.5.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.5.subtitle"),
+        title: "Shuffle",
+        subtitle: "`FKAudioQueueMode.shuffle` random order.",
         factory: { FKAudioPlayerShuffleExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.6.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.6.subtitle"),
+        title: "Repeat modes",
+        subtitle: "Repeat one, repeat all, and coordinator playlist navigation.",
         factory: { FKAudioPlayerRepeatModesExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.7.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.7.subtitle"),
+        title: "Queue editing",
+        subtitle: "`insertNext`, `append`, and `remove(at:)`.",
         factory: { FKAudioPlayerQueueEditingExampleViewController() }
       ),
     ]),
     DemoSection(title: "Lyrics & podcast", items: [
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.8.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.8.subtitle"),
+        title: "Bundled LRC",
+        subtitle: "Loads `sample.lrc` from the example bundle.",
         factory: { FKAudioPlayerLRCLyricsExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.9.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.9.subtitle"),
+        title: "Plain lyrics text",
+        subtitle: "Inline `lyricsText` with timestamp parsing.",
         factory: { FKAudioPlayerPlainLyricsExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.10.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.10.subtitle"),
+        title: "Podcast chapters",
+        subtitle: "`FKAudioChapter` markers and `seekToChapter`.",
         factory: { FKAudioPlayerChaptersExampleViewController() }
       ),
     ]),
     DemoSection(title: "UI & chrome", items: [
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.11.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.11.subtitle"),
+        title: "Mini bar",
+        subtitle: "`FKAudioMiniBar` docked above the safe area.",
         factory: { FKAudioPlayerMiniBarExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.12.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.12.subtitle"),
+        title: "Now Playing page",
+        subtitle: "`FKAudioPlayerViewController` full-screen host.",
         factory: { FKAudioPlayerNowPlayingExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.13.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.13.subtitle"),
+        title: "SwiftUI bridge",
+        subtitle: "`FKAudioPlayerSwiftUIView` in UIHostingController.",
         factory: { FKAudioPlayerSwiftUIExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.14.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.14.subtitle"),
+        title: "Waveform",
+        subtitle: "Static peak waveform from a downloaded copy of the track URL (independent of AVPlayer).",
         factory: { FKAudioPlayerWaveformExampleViewController() }
       ),
     ]),
     DemoSection(title: "Tools", items: [
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.15.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.15.subtitle"),
+        title: "Sleep timer",
+        subtitle: "`setSleepTimer` pause/stop actions.",
         factory: { FKAudioPlayerSleepTimerExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.16.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.16.subtitle"),
+        title: "Stop after current",
+        subtitle: "`setStopAfterCurrentItem` on queue completion.",
         factory: { FKAudioPlayerStopAfterCurrentExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.17.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.17.subtitle"),
+        title: "Playground",
+        subtitle: "Cross-track fade, playback rate, and per-item rate memory.",
         factory: { FKAudioPlayerPlaygroundExampleViewController() }
       ),
     ]),
-    DemoSection(title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.6.title"), items: [
+    DemoSection(title: "Integration", items: [
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.18.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.18.subtitle"),
+        title: "Lock screen Now Playing",
+        subtitle: "Lock device to see system transport on the lock screen.",
         factory: { FKAudioPlayerLockScreenExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.19.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.19.subtitle"),
+        title: "Delegate event log",
+        subtitle: "All `FKAudioPlayerDelegate` callbacks.",
         factory: { FKAudioPlayerDelegateLogExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.20.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.20.subtitle"),
+        title: "Play history",
+        subtitle: "`FKAudioPlayHistoryStore` recent item IDs.",
         factory: { FKAudioPlayerHistoryExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.21.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.21.subtitle"),
+        title: "QoE snapshot",
+        subtitle: "`FKAudioQoEReporter` analytics plugin.",
         factory: { FKAudioPlayerQoEExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.22.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.22.subtitle"),
+        title: "Watch / Widget snapshot",
+        subtitle: "`FKAudioPlaybackSnapshot` from the player facade.",
         factory: { FKAudioPlayerWatchWidgetExampleViewController() }
       ),
       DemoItem(
-        title: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.23.title"),
-        subtitle: FKExamplesI18n.string("examples.hub.fkaudioplayerexampleshubviewcontroller.23.subtitle"),
+        title: "CarPlay coordinator",
+        subtitle: "Registers next/previous remote commands; `refreshMetadata()` only toggles Now Playing.",
         factory: { FKAudioPlayerCarPlayExampleViewController() }
       ),
     ]),

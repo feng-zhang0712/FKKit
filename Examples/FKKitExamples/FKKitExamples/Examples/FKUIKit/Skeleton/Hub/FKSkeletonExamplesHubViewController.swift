@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 
 /// Skeleton demo hub (`Examples/.../Skeleton/Hub`). Scenario view controllers live in `Scenarios/`; shared UI in `Support/`.
 final class FKSkeletonExamplesHubViewController: UITableViewController {
@@ -12,73 +11,73 @@ final class FKSkeletonExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.0.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.0.subtitle"),
+      title: "Overlay on UIView",
+      subtitle: "fk_showSkeleton / fk_hideSkeleton · safe area · blocksInteraction · fk_isShowingSkeleton",
       make: { FKSkeletonExampleOverlayViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.1.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.1.subtitle"),
+      title: "Auto skeleton & display options",
+      subtitle: "fk_showAutoSkeleton · FKSkeletonDisplayOptions · fk_isSkeletonExcluded · excludedViews",
       make: { FKSkeletonExampleAutoDisplayOptionsViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.2.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.2.subtitle"),
+      title: "Per-view overrides & convenience",
+      subtitle: "fk_skeletonShape · fk_skeletonConfigurationOverride · fk_showSkeletonLabel/Image/Button/TextField",
       make: { FKSkeletonExampleOverridesViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.3.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.3.subtitle"),
+      title: "Loading helpers",
+      subtitle: "fk_setSkeletonLoading · fk_withSkeletonLoading (token race)",
       make: { FKSkeletonExampleLoadingHelpersViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.4.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.4.subtitle"),
+      title: "FKSkeletonManager",
+      subtitle: "shared.show / hide on a host view (same pipeline as convenience APIs)",
       make: { FKSkeletonExampleManagerViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.5.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.5.subtitle"),
+      title: "Animation effects",
+      subtitle: "FKSkeletonAnimationMode · shimmer directions · pulse · breathing · live preview",
       make: { FKSkeletonExampleAnimationEffectsViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.6.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.6.subtitle"),
+      title: "Standalone FKSkeletonView",
+      subtitle: "animation modes · FKSkeletonStyle · shimmer directions · gradient · border · breathing",
       make: { FKSkeletonExampleStandaloneBlocksViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.7.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.7.subtitle"),
+      title: "FKSkeletonContainerView",
+      subtitle: "usesUnifiedShimmer · hide completion · refreshSkeletonAppearanceForCurrentTraits",
       make: { FKSkeletonExampleContainerViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.8.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.8.subtitle"),
+      title: "Presets",
+      subtitle: "listRow · card · textBlock · gridCell · FKSkeletonAvatarStyle",
       make: { FKSkeletonExamplePresetsViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.9.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.9.subtitle"),
+      title: "Global defaultConfiguration",
+      subtitle: "FKSkeleton.defaultConfiguration (restored when you leave this screen)",
       make: { FKSkeletonExampleGlobalDefaultsViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.10.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.10.subtitle"),
+      title: "UITableView · skeleton cell",
+      subtitle: "FKSkeletonTableViewCell + skeletonContainer",
       make: { FKSkeletonExampleTableSkeletonCellViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.11.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.11.subtitle"),
+      title: "UITableView · overlay on visible cells",
+      subtitle: "fk_showSkeletonOnVisibleCells / fk_hideSkeletonOnVisibleCells",
       make: { FKSkeletonExampleTableOverlayVisibleViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.12.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.12.subtitle"),
+      title: "UICollectionView · skeleton cell",
+      subtitle: "FKSkeletonCollectionViewCell",
       make: { FKSkeletonExampleCollectionSkeletonCellViewController() }
     ),
     Row(
-      title: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.13.title"),
-      subtitle: FKExamplesI18n.string("examples.hub.fkskeletonexampleshubviewcontroller.13.subtitle"),
+      title: "UICollectionView · auto on visible cells",
+      subtitle: "fk_showAutoSkeletonOnVisibleCells / fk_hideAutoSkeletonOnVisibleCells",
       make: { FKSkeletonExampleCollectionAutoVisibleViewController() }
     ),
   ]

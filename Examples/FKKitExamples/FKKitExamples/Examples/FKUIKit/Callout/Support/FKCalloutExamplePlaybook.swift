@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 import FKUIKit
 
 enum FKCalloutExamplePlaybook {
@@ -16,7 +15,7 @@ enum FKCalloutExamplePlaybook {
         FKCalloutMenuItem(title: "Duplicate", symbolName: "doc.on.doc", tintColor: .systemPurple),
       ]),
       FKCalloutMenuSection(items: [
-        FKCalloutMenuItem(title: FKExamplesI18n.string("examples.scenario.examples_fkuikit_tabbar_shared_fktabbarexamplesu.archive.2621c6fd51"), symbolName: "archivebox", tintColor: .systemPurple),
+        FKCalloutMenuItem(title: "Archive", symbolName: "archivebox", tintColor: .systemPurple),
         FKCalloutMenuItem(title: "Move", symbolName: "arrow.up.forward", tintColor: .systemPurple, isEnabled: false),
       ]),
       FKCalloutMenuSection(items: [

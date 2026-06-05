@@ -1,23 +1,16 @@
 import UIKit
-import FKCoreKit
 import FKUIKit
 
 fileprivate struct ExampleMenuItem {
-  let titleKey: String
-  let subtitleKey: String
+  let title: String
+  let subtitle: String
   let make: () -> UIViewController
-
-  var title: String { FKExamplesI18n.string(titleKey) }
-  var subtitle: String { FKExamplesI18n.string(subtitleKey) }
 }
 
 fileprivate struct KitEntry {
-  let titleKey: String
-  let subtitleKey: String
+  let title: String
+  let subtitle: String
   let items: [ExampleMenuItem]
-
-  var title: String { FKExamplesI18n.string(titleKey) }
-  var subtitle: String { FKExamplesI18n.string(subtitleKey) }
 }
 
 /// Two-level example index:
@@ -25,172 +18,170 @@ fileprivate struct KitEntry {
 /// - Level 2: examples under the selected target
 final class ExampleMenuViewController: UITableViewController {
 
-  private var observationToken: FKI18nObservationToken?
-
   private static let kitEntries: [KitEntry] = [
     KitEntry(
-      titleKey: "examples.menu.kit.fkuikit.title",
-      subtitleKey: "examples.menu.kit.fkuikit.subtitle",
+      title: "FKUIKit",
+      subtitle: "Foundational UI components and presentation infrastructure",
       items: [
         ExampleMenuItem(
-          titleKey: "examples.menu.item.actionsheet.title",
-          subtitleKey: "examples.menu.item.actionsheet.subtitle",
+          title: "ActionSheet",
+          subtitle: "Hub: basics, appearance, selection, custom rows, toggle, lifecycle, live updates, presentation, builder, SwiftUI",
           make: { FKActionSheetExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.badge.title",
-          subtitleKey: "examples.menu.item.badge.subtitle",
+          title: "Badge",
+          subtitle: "Dot, numeric & text badges, anchors, animations, TabBarItem",
           make: { FKBadgeExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.blurview.title",
-          subtitleKey: "examples.menu.item.blurview.subtitle",
+          title: "BlurView",
+          subtitle: "High-performance blur view examples (UIKit / SwiftUI / IB)",
           make: { FKBlurViewExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.button.title",
-          subtitleKey: "examples.menu.item.button.subtitle",
+          title: "Button",
+          subtitle: "Basics, layout, interaction, appearance, loading, global style & IB",
           make: { FKButtonExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.callout.title",
-          subtitleKey: "examples.menu.item.callout.subtitle",
+          title: "Callout",
+          subtitle: "Hub: FKTooltip, FKPopover, placements, menus, coach mark, FKCallout builder",
           make: { FKCalloutExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.cornershadow.title",
-          subtitleKey: "examples.menu.item.cornershadow.subtitle",
+          title: "CornerShadow",
+          subtitle: "Any-corner radius + high-performance shadow (path based)",
           make: { FKCornerShadowExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.divider.title",
-          subtitleKey: "examples.menu.item.divider.subtitle",
+          title: "Divider",
+          subtitle: "Hub: basics, line styles, edge pinning, defaults, SwiftUI",
           make: { FKDividerExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.emptystate.title",
-          subtitleKey: "examples.menu.item.emptystate.subtitle",
+          title: "EmptyState",
+          subtitle: "Hub: basics (empty/error/offline) and advanced (i18n, resolver, RTL)",
           make: { FKEmptyStateExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.expandabletext.title",
-          subtitleKey: "examples.menu.item.expandabletext.subtitle",
+          title: "ExpandableText",
+          subtitle: "Hub: UILabel / UITextView / SwiftUI (shared support + Examples/)",
           make: { FKExpandableTextExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.videoplayer.title",
-          subtitleKey: "examples.menu.item.videoplayer.subtitle",
+          title: "VideoPlayer",
+          subtitle: "Hub: VOD/HLS/live, playlist, subtitles, feed pool, offline, ads, QoE, SwiftUI",
           make: { FKVideoPlayerExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.audioplayer.title",
-          subtitleKey: "examples.menu.item.audioplayer.subtitle",
+          title: "AudioPlayer",
+          subtitle: "Hub: MP3/HLS, queue modes, lyrics, mini bar, sleep timer, history, QoE, SwiftUI",
           make: { FKAudioPlayerExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.pagingcontroller.title",
-          subtitleKey: "examples.menu.item.pagingcontroller.subtitle",
+          title: "PagingController",
+          subtitle: "FKTabBar ↔ UIPageViewController sync: lazy/SwiftUI/delegate, RTL & gestures (Public/Internal/Extension)",
           make: { FKPagingControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.sheetpresentationcontroller.title",
-          subtitleKey: "examples.menu.item.sheetpresentationcontroller.subtitle",
+          title: "SheetPresentationController",
+          subtitle: "Custom SheetPresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
           make: { FKSheetPresentationControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.progressbar.title",
-          subtitleKey: "examples.menu.item.progressbar.subtitle",
+          title: "ProgressBar",
+          subtitle: "Hub: interactive playground, preset gallery, delegate log, SwiftUI bridge, RTL & accessibility",
           make: { FKProgressBarExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.ratingcontrol.title",
-          subtitleKey: "examples.menu.item.ratingcontrol.subtitle",
+          title: "RatingControl",
+          subtitle: "Hub: interactive/read-only stars, icon presets, playground, delegate, SwiftUI, RTL & a11y",
           make: { FKRatingControlExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.refresh.title",
-          subtitleKey: "examples.menu.item.refresh.subtitle",
+          title: "Refresh",
+          subtitle: "Hub: default, GIF, hosted, delegate, settings, collection, scroll view, …",
           make: { FKRefreshExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.skeleton.title",
-          subtitleKey: "examples.menu.item.skeleton.subtitle",
+          title: "Skeleton",
+          subtitle: "Hub: overlay, auto, presets, container, lists, manager, global defaults",
           make: { FKSkeletonExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.tabbar.title",
-          subtitleKey: "examples.menu.item.tabbar.subtitle",
+          title: "TabBar",
+          subtitle: "Segmented tab bar with indicators, dynamic data, width policies, and a11y/i18n examples",
           make: { FKTabBarExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.textfield.title",
-          subtitleKey: "examples.menu.item.textfield.subtitle",
+          title: "TextField",
+          subtitle: "Formatted input, validation, style customization, callbacks, and global defaults",
           make: { FKTextFieldExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.toast.title",
-          subtitleKey: "examples.menu.item.toast.subtitle",
+          title: "Toast",
+          subtitle: "Global Toast/HUD/Snackbar hints with queueing, styles, positions, custom view, and SwiftUI support",
           make: { FKToastExamplesHubViewController() }
         ),
       ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),
     KitEntry(
-      titleKey: "examples.menu.kit.fkcorekit.title",
-      subtitleKey: "examples.menu.kit.fkcorekit.subtitle",
+      title: "FKCoreKit",
+      subtitle: "Core non-UI capabilities (networking, logging, utilities, etc.)",
       items: [
         ExampleMenuItem(
-          titleKey: "examples.menu.item.async.title",
-          subtitleKey: "examples.menu.item.async.subtitle",
+          title: "Async",
+          subtitle: "Main/background dispatch, delay cancel, debounce, throttle, groups, executors",
           make: { FKAsyncExampleViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.businesskit.title",
-          subtitleKey: "examples.menu.item.businesskit.subtitle",
+          title: "BusinessKit",
+          subtitle: "Version, tracking, i18n, lifecycle, deeplink, device info, business utils",
           make: { FKBusinessKitExampleViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.filemanager.title",
-          subtitleKey: "examples.menu.item.filemanager.subtitle",
+          title: "FileManager",
+          subtitle: "Sandbox/file ops, read/write, resumable download, upload, cache and ZIP APIs",
           make: { FKFileManagerExampleViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.i18n.title",
-          subtitleKey: "examples.menu.item.i18n.subtitle",
+          title: "FKI18n",
+          subtitle: "Language switching, bundle lookup, format variables, dictionary backend, observers, RTL, integration",
           make: { FKI18nExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.logger.title",
-          subtitleKey: "examples.menu.item.logger.subtitle",
+          title: "Logger",
+          subtitle: "5-level logs, config, file persistence, crash capture, export/clear",
           make: { FKLoggerExampleViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.network.title",
-          subtitleKey: "examples.menu.item.network.subtitle",
+          title: "Network",
+          subtitle: "GET/POST, async/await, upload/download, cache, cancel, parsing",
           make: { FKNetworkExampleViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.permissions.title",
-          subtitleKey: "examples.menu.item.permissions.subtitle",
+          title: "Permissions",
+          subtitle: "Unified permission status/query/request, batch, denied handling, settings jump",
           make: { FKPermissionsExampleViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.pluggable.title",
-          subtitleKey: "examples.menu.item.pluggable.subtitle",
+          title: "Pluggable",
+          subtitle: "Protocol contracts: networking, analytics, storage, session, routing, UIKit cells",
           make: { FKPluggableExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.security.title",
-          subtitleKey: "examples.menu.item.security.subtitle",
+          title: "Security",
+          subtitle: "Hash, AES, RSA, Base64/HEX/URL, HMAC, random, masking, wipe, anti-debug",
           make: { FKSecurityExampleViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.storage.title",
-          subtitleKey: "examples.menu.item.storage.subtitle",
+          title: "Storage",
+          subtitle: "UserDefaults, Keychain, file, memory cache, TTL, purge, async",
           make: { FKStorageExampleViewController() }
         ),
         ExampleMenuItem(
-          titleKey: "examples.menu.item.utils.title",
-          subtitleKey: "examples.menu.item.utils.subtitle",
+          title: "Utils",
+          subtitle: "Date, regex, number, string, device, UI, collection, image and common helpers",
           make: { FKUtilsExampleViewController() }
         ),
       ]
@@ -203,19 +194,9 @@ final class ExampleMenuViewController: UITableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    reloadLocalizedContent()
+    title = "FKKit Examples"
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
-    observationToken = FKI18nManager.shared.observeLanguageChange { [weak self] _ in
-      Task { @MainActor in
-        self?.reloadLocalizedContent()
-      }
-    }
-  }
-
-  private func reloadLocalizedContent() {
-    title = FKExamplesI18n.string("examples.app.title")
-    tableView.reloadData()
   }
 
   override func numberOfSections(in tableView: UITableView) -> Int { 1 }
@@ -247,7 +228,6 @@ final class ExampleMenuViewController: UITableViewController {
 private final class KitExamplesViewController: UITableViewController {
   private let screenTitle: String
   private let items: [ExampleMenuItem]
-  private var observationToken: FKI18nObservationToken?
 
   init(title: String, items: [ExampleMenuItem]) {
     self.screenTitle = title
@@ -265,11 +245,6 @@ private final class KitExamplesViewController: UITableViewController {
     title = screenTitle
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     tableView.cellLayoutMarginsFollowReadableWidth = true
-    observationToken = FKI18nManager.shared.observeLanguageChange { [weak self] _ in
-      Task { @MainActor in
-        self?.tableView.reloadData()
-      }
-    }
   }
 
   override func numberOfSections(in tableView: UITableView) -> Int { 1 }

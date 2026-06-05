@@ -1,5 +1,4 @@
 import UIKit
-import FKCoreKit
 
 /// Index of ``FKActionSheet`` examples, grouped by integration path.
 final class FKActionSheetExamplesHubViewController: UITableViewController {
@@ -19,18 +18,18 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
       title: "Getting started",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.0.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.0.subtitle"),
+          title: "Basics",
+          subtitle: "init, present, validate, retain instance",
           make: { FKActionSheetExampleBasicsViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.1.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.1.subtitle"),
+          title: "Presentation",
+          subtitle: "Bottom sheet, popover anchors, window scene, panel height",
           make: { FKActionSheetExamplePresentationViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.2.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.2.subtitle"),
+          title: "Centered card",
+          subtitle: "Floating card, backdrop, presets, scroll, destructive flows",
           make: { FKActionSheetExampleCenteredViewController() }
         ),
       ]
@@ -39,18 +38,18 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
       title: "Rows & appearance",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.3.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.3.subtitle"),
+          title: "Appearance & layout",
+          subtitle: "Presets, leading alignment, separators, section titles",
           make: { FKActionSheetExampleAppearanceViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.4.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.4.subtitle"),
+          title: "Symbols & row states",
+          subtitle: "Symbols, disabled/loading, stay-open, toggle rows",
           make: { FKActionSheetExampleSymbolsAndStatesViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.5.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.5.subtitle"),
+          title: "Custom header & rows",
+          subtitle: "Custom views, metadata, non-selectable banner row",
           make: { FKActionSheetExampleCustomContentViewController() }
         ),
       ]
@@ -59,43 +58,43 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
       title: "Selection & behavior",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.6.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.6.subtitle"),
+          title: "Long list & scroll",
+          subtitle: "Tall lists, selection memory, scroll-to-selection, indicator styles",
           make: { FKActionSheetExampleLongListViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.7.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.7.subtitle"),
+          title: "Single & multiple selection",
+          subtitle: "Scopes, max count, validation, keepsSheetPresentedOnSelection",
           make: { FKActionSheetExampleSelectionViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.8.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.8.subtitle"),
+          title: "Handlers & lifecycle",
+          subtitle: "Handler timing, haptics, hooks, dismiss reasons",
           make: { FKActionSheetExampleHandlersViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.9.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.9.subtitle"),
+          title: "Live updates",
+          subtitle: "reload, updateAction, dismiss, alreadyPresented guard",
           make: { FKActionSheetExampleLiveUpdatesViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.10.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.10.subtitle"),
+          title: "Loading content",
+          subtitle: "Deferred rows, finishLoading, setLoading retry, cancel while loading",
           make: { FKActionSheetExampleLoadingContentViewController() }
         ),
       ]
     ),
     Section(
-      title: FKExamplesI18n.string("examples.hub.fki18nexampleshubviewcontroller.6.title"),
+      title: "Integration",
       rows: [
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.11.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.11.subtitle"),
+          title: "Builder & alert migration",
+          subtitle: "FKActionSheetBuilder and UIAlertAction-style configuration",
           make: { FKActionSheetExampleBuilderViewController() }
         ),
         Row(
-          title: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.12.title"),
-          subtitle: FKExamplesI18n.string("examples.hub.fkactionsheetexampleshubviewcontroller.12.subtitle"),
+          title: "SwiftUI bridge",
+          subtitle: "View.fkActionSheet, popover anchors, loading via configuration binding",
           make: { FKActionSheetExampleSwiftUIViewController() }
         ),
       ]
