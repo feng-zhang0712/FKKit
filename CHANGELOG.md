@@ -4,6 +4,51 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.61.0] - 2026-06-05
+
+### Added (FKCoreKit — I18n)
+
+- **`FKI18nManager`**, **`FKI18nConfiguration`**, **`FKI18nLocaleMatcher`**, and **`FKCoreKitI18n`** — library-wide localization with bundled **`Localizable.strings`** in 11 languages.
+- **Examples**: FKI18n hub (bundle lookup, dictionary, format strings, language switcher, observer, RTL, integration).
+
+### Added (FKUIKit — I18n)
+
+- **`FKUIKitI18n`** and bundled **`Localizable.strings`** (11 languages) for default user-facing copy across UI components.
+- **`FKEmptyStateConfiguration/scenario(_:)`** presets wired to localized scenario keys.
+
+### Added (FKUIKit — Refresh)
+
+- **Indicator-only** presentation mode and inspired app-style **Examples**.
+
+### Added (FKUIKit — SheetPresentation)
+
+- **Content-only** **`preferredContentSize`** reporting for sheet sizing without chrome.
+
+### Changed (FKUIKit — I18n)
+
+- **Breaking:** remove **`FKEmptyStateConfiguration/localizedCopy(for:variables:)`** and unused type-based **`fkuikit.empty.*`** keys; use **`scenario(_:)`** or explicit copy instead.
+
+### Changed (FKUIKit — Base)
+
+- **Breaking:** remove **`FKBase*`** view controllers, reusable cells, composition helpers, and **Examples** coverage.
+
+### Changed (FKUIKit — I18n internals)
+
+- Remove wrapper layers; harden locale resolution against **`Locale.preferredLanguages`**.
+- Remove obsolete i18n generation scripts.
+
+### Changed (Examples)
+
+- Remove app-wide localization bundle for this release; align FKUIKit demos with bundled **`FKUIKitI18n`** / scenario defaults, observe language changes, and restore device locale after i18n demo screens.
+
+### Fixed (FKUIKit — Refresh)
+
+- Harden footer visibility and load-more hide semantics.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.61.0** (Git tag **`0.61.0`**).
+
 ## [0.60.0] - 2026-06-03
 
 ### Added (FKUIKit — PagingController)
@@ -2435,7 +2480,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.60.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.61.0...HEAD
+[0.61.0]: https://github.com/feng-zhang0712/FKKit/compare/0.60.0...0.61.0
 [0.60.0]: https://github.com/feng-zhang0712/FKKit/compare/0.59.1...0.60.0
 [0.59.1]: https://github.com/feng-zhang0712/FKKit/compare/0.59.0...0.59.1
 [0.59.0]: https://github.com/feng-zhang0712/FKKit/compare/0.58.0...0.59.0
