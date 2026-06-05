@@ -29,11 +29,6 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKActionSheetExamplesHubViewController() }
         ),
         ExampleMenuItem(
-          title: "Base",
-          subtitle: "Hub: FKBaseViewController, table/collection shells, composition, search",
-          make: { FKBaseExamplesHubViewController() }
-        ),
-        ExampleMenuItem(
           title: "Badge",
           subtitle: "Dot, numeric & text badges, anchors, animations, TabBarItem",
           make: { FKBadgeExamplesHubViewController() }

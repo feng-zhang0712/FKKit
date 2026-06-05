@@ -1,9 +1,9 @@
 Pod::Spec.new do |s|
   s.name = 'FKUIKit'
   s.version = '0.60.0'
-  s.summary = 'FKKit UIKit components: presentation, base controllers, toast, and more.'
+  s.summary = 'FKKit UIKit components: presentation, toast, and more.'
   s.description = <<-DESC
-    Reusable UIKit building blocks from FKKit (ActionSheet, Base,
+    Reusable UIKit building blocks from FKKit (ActionSheet,
     Badge, BlurView, Button, PresentationController, Refresh, TabBar, Toast, and more).
     Depends on FKCoreKit (same repository and tag).
   DESC

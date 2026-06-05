@@ -31,7 +31,6 @@ private let fkCoreKitModuleDocDirectories: [String] = [
 private let fkUIKitComponentDocDirectories: [String] = [
   "Components/ActionSheet",
   "Components/Badge",
-  "Components/Base",
   "Components/BlurView",
   "Components/Button",
   "Components/Callout",

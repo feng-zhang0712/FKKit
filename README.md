@@ -32,7 +32,7 @@ It is built on Apple system frameworks and distributed via **Swift Package Manag
 
 The repository ships two library products:
 - **`FKCoreKit`** — infrastructure, utilities, and `Pluggable/` protocol contracts (networking, analytics, storage, routing, and related seams).
-- **`FKUIKit`** — reusable UIKit components, shared UI helpers under `Core/`, and screen foundations such as `Base`.
+- **`FKUIKit`** — reusable UIKit components and shared UI helpers under `Core/`.
 
 Each module targets a different layer of app development: from networking and storage to controls, overlays, and composite presentation flows.
 
@@ -73,7 +73,6 @@ FKKit/
 │     ├─ Components/
 │     │  ├─ ActionSheet/
 │     │  ├─ Badge/
-│     │  ├─ Base/
 │     │  ├─ BlurView/
 │     │  ├─ Button/
 │     │  ├─ Callout/
@@ -125,7 +124,6 @@ Use **`Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Utils/
 |-----------|---------|
 | **ActionSheet** | HIG-oriented modal action sheet (`FKActionSheet`) with bottom/centered/popover presentation, selection, toggles, validation, and SwiftUI modifier — see [`ActionSheet/README.md`](Sources/FKUIKit/Components/ActionSheet/README.md). |
 | **Badge** | Flexible badge display for views, bar items, and tab items, with corner/center anchoring and customizable styles/animations. |
-| **Base** | Reusable base foundation for cells and view controllers — see [`Base/README.md`](Sources/FKUIKit/Components/Base/README.md). |
 | **BlurView** | High-performance blur component with system/custom pipelines, UIKit/SwiftUI adapters, image/view snapshot blur APIs, and IB/global-configuration support. |
 | **Button** | Configurable button system with style/content/loading behavior. |
 | **Callout** | Anchored tooltip/popover bubbles (`FKCallout`, `FKTooltip`, `FKPopover`) with beak placement and shared layout engine — see [`Callout/README.md`](Sources/FKUIKit/Components/Callout/README.md). |
