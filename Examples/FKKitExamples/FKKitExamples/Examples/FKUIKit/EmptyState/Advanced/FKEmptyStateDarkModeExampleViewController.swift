@@ -46,11 +46,11 @@ final class FKEmptyStateDarkModeExampleViewController: UIViewController {
   private func applyTheme() {
     overrideUserInterfaceStyle = themeToggle.isOn ? .dark : .light
     var model = FKEmptyStateExampleFactory.makeBasicModel()
-    model.titleColor = themeToggle.isOn ? .white : .black
-    model.descriptionColor = themeToggle.isOn ? .lightGray : .darkGray
-    model.backgroundColor = themeToggle.isOn ? UIColor(red: 0.10, green: 0.10, blue: 0.14, alpha: 1) : .systemBackground
-    model.buttonStyle.backgroundColor = themeToggle.isOn ? .systemTeal : .systemBlue
-    model.gradientColors = themeToggle.isOn ? [UIColor.black, UIColor(red: 0.15, green: 0.15, blue: 0.22, alpha: 1)] : []
+    model.appearance.typography.titleColor = themeToggle.isOn ? .white : .black
+    model.appearance.typography.descriptionColor = themeToggle.isOn ? .lightGray : .darkGray
+    model.appearance.background.color = themeToggle.isOn ? UIColor(red: 0.10, green: 0.10, blue: 0.14, alpha: 1) : .systemBackground
+    model.appearance.buttons.primary.backgroundColor = themeToggle.isOn ? .systemTeal : .systemBlue
+    model.appearance.background.gradientColors = themeToggle.isOn ? [UIColor.black, UIColor(red: 0.15, green: 0.15, blue: 0.22, alpha: 1)] : []
     container.fk_applyEmptyState(model) { [weak self] _ in
       self?.fk_presentMessageAlert(title: "Token Action", message: "Primary action works in both light and dark themes.")
     }

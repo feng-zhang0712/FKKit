@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The renderer intentionally maps slots (`primary/secondary/tertiary`) to visual styles.
 /// `kind` communicates product intent for analytics and business rules, while slot position
-/// controls appearance to keep backward compatibility with older one-button integrations.
+/// controls appearance.
 ///
 /// - Tip: Route user interactions by `FKEmptyStateAction.id` (stable key) and treat `kind` as a
 ///   presentation hint (primary/secondary/tertiary).
@@ -70,5 +70,23 @@ public struct FKEmptyStateActionSet: Equatable, Sendable {
   /// Keep this order stable so analytics and UI tests can reason about index-based snapshots.
   public var all: [FKEmptyStateAction] {
     [primary, secondary, tertiary].compactMap { $0 }
+  }
+
+  /// `true` when no actions are configured.
+  public var isEmpty: Bool {
+    all.isEmpty
+  }
+}
+
+public extension FKEmptyStateActionSet {
+  /// Creates a set with a single primary action.
+  static func primary(
+    _ title: String,
+    id: String = "primary",
+    kind: FKEmptyStateActionKind = .primary
+  ) -> FKEmptyStateActionSet {
+    FKEmptyStateActionSet(
+      primary: FKEmptyStateAction(id: id, title: title, kind: kind)
+    )
   }
 }

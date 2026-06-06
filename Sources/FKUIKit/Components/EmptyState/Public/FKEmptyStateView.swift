@@ -17,12 +17,12 @@ public protocol FKEmptyStateViewDelegate: AnyObject {
 ///
 /// Prefer adding to `UIViewController.view` or a `UIScrollView` subview — **not** `UITableView.backgroundView`, so refresh controls remain visible above table backgrounds.
 ///
-/// Touch handling: the view fills the host bounds and intercepts touches; `UIGestureRecognizerDelegate` avoids stealing taps from `UIControl` subclasses (e.g. the action button). Optional dimming uses `blockingOverlayAlpha`.
+/// Touch handling: the view fills the host bounds and intercepts touches; `UIGestureRecognizerDelegate` avoids stealing taps from `UIControl` subclasses (e.g. the action button). Optional dimming uses `appearance.background.blockingOverlayAlpha`.
 ///
 /// Accessibility notes:
 /// - The overlay does not set `accessibilityViewIsModal` by default to avoid trapping focus in
 ///   complex screens. Instead, it posts a VoiceOver announcement on state changes when
-///   `FKEmptyStateConfiguration.announcesStateChanges` is enabled.
+///   `FKEmptyStateConfiguration.presentation.announcesStateChanges` is enabled.
 /// - Title is marked as `.header` to improve navigation in VoiceOver rotor.
 public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
@@ -32,8 +32,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   public weak var delegate: FKEmptyStateViewDelegate?
   /// Closure invoked when any action button is tapped (primary / secondary / tertiary).
   ///
-  /// Use `action.id` as a stable routing key. The built-in renderer auto-generates a primary
-  /// action with id `"primary"` when you only set the legacy `buttonStyle.title`.
+  /// Use `action.id` as a stable routing key.
   public var actionHandler: ((FKEmptyStateAction) -> Void)?
   /// Closure invoked when users tap the placeholder background area.
   public var viewTapHandler: FKVoidHandler?
@@ -42,16 +41,16 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   // MARK: Private (subviews & state)
 
-  /// Full-bleed dimming layer between gradient and content (`blockingOverlayAlpha`).
+  /// Full-bleed dimming layer between gradient and content (`appearance.background.blockingOverlayAlpha`).
   private let blockingDimmingView = UIView()
   /// Horizontal + vertical centering container for the stack (respects safe area & keyboard).
   private let containerView = UIView()
   /// Vertical stack for illustration, text, spinner, and button.
   private let stackView = UIStackView()
-  /// Illustration + text row used when ``FKEmptyStateConfiguration/axis`` is `.horizontal`.
+  /// Illustration + text row used when ``FKEmptyStateLayoutConfiguration/axis`` is `.horizontal`.
   private let horizontalRowStack = UIStackView()
   private let horizontalTextStack = UIStackView()
-  /// Hosts `configuration.customAccessoryView` when provided.
+  /// Hosts ``FKEmptyStateContentConfiguration/customAccessory`` when provided.
   private let customAccessoryContainer = UIView()
   private let imageView = UIImageView()
   private let titleLabel = UILabel()
@@ -102,12 +101,12 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   ///
   /// - Parameters:
   ///   - configuration: New configuration; `phase == .content` is a no-op visually (caller should hide the overlay).
-  ///   - animated: Runs ``FKEmptyStateConfiguration/transition`` when `true` (Reduce Motion applies updates instantly).
+  ///   - animated: Runs ``FKEmptyStatePresentationConfiguration/transition`` when `true` (Reduce Motion applies updates instantly).
   public func apply(_ configuration: FKEmptyStateConfiguration, animated: Bool = false) {
     fk_emptyStateAssertMainThread()
     self.configuration = configuration
     let updates = { self.updateUI(with: configuration) }
-    if animated, !UIAccessibility.isReduceMotionEnabled, configuration.transition != .none {
+    if animated, !UIAccessibility.isReduceMotionEnabled, configuration.presentation.transition != .none {
       performContentTransition(configuration: configuration, updates: updates)
     } else {
       updates()
@@ -123,8 +122,8 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   private func performContentTransition(configuration: FKEmptyStateConfiguration, updates: @escaping () -> Void) {
     prepareContainerForTransition()
-    let duration = configuration.fadeDuration
-    switch configuration.transition {
+    let duration = configuration.presentation.fadeDuration
+    switch configuration.presentation.transition {
     case .none:
       updates()
     case .crossDissolve:
@@ -309,12 +308,12 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   private func updateUI(with model: FKEmptyStateConfiguration) {
     let resolved = FKEmptyStateResolvedLayout(configuration: model)
-    let metrics = FKEmptyStateLayoutMetrics(density: model.density)
+    let metrics = FKEmptyStateLayoutMetrics(density: model.layout.density)
 
-    backgroundColor = model.backgroundColor
+    backgroundColor = model.appearance.background.color
     updateGradient(with: model)
 
-    blockingDimmingView.backgroundColor = UIColor.black.withAlphaComponent(model.blockingOverlayAlpha)
+    blockingDimmingView.backgroundColor = UIColor.black.withAlphaComponent(model.appearance.background.blockingOverlayAlpha)
 
     stackView.spacing = metrics.spacing(from: resolved.verticalSpacing)
     actionsStack.spacing = metrics.spacing(from: resolved.verticalSpacing)
@@ -330,11 +329,11 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
     // Recreate the activity indicator only when style changes.
     // This avoids unnecessary view churn while still supporting dynamic style switching.
-    if appliedIndicatorStyle != model.activityIndicatorStyle {
+    if appliedIndicatorStyle != model.appearance.loading.style {
       loadingIndicator.removeFromSuperview()
-      loadingIndicator = UIActivityIndicatorView(style: model.activityIndicatorStyle)
+      loadingIndicator = UIActivityIndicatorView(style: model.appearance.loading.style)
       loadingIndicator.hidesWhenStopped = true
-      appliedIndicatorStyle = model.activityIndicatorStyle
+      appliedIndicatorStyle = model.appearance.loading.style
     }
 
     syncCustomAccessoryIfNeeded(model: model)
@@ -342,16 +341,16 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     applyImagePresentation(model: model)
     applyImageConstraints(imageSize: resolved.imageSize)
 
-    titleLabel.textColor = model.titleColor
-    titleLabel.font = metrics.titleFont(from: model.titleFont)
-    descriptionLabel.textColor = model.descriptionColor
-    descriptionLabel.font = metrics.descriptionFont(from: model.descriptionFont)
-    titleLabel.textAlignment = model.textAlignment
-    descriptionLabel.textAlignment = model.textAlignment
+    titleLabel.textColor = model.appearance.typography.titleColor
+    titleLabel.font = metrics.titleFont(from: model.appearance.typography.titleFont)
+    descriptionLabel.textColor = model.appearance.typography.descriptionColor
+    descriptionLabel.font = metrics.descriptionFont(from: model.appearance.typography.descriptionFont)
+    titleLabel.textAlignment = model.appearance.typography.textAlignment
+    descriptionLabel.textAlignment = model.appearance.typography.textAlignment
 
     // Allow forcing layout direction for QA/preview (e.g. RTL verification).
     // When unset, the view follows system direction.
-    if let forced = model.forcedLayoutDirection {
+    if let forced = model.layout.forcedLayoutDirection {
       semanticContentAttribute = (forced == .rightToLeft) ? .forceRightToLeft : .forceLeftToRight
     } else {
       semanticContentAttribute = .unspecified
@@ -363,14 +362,14 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     case .loading:
       applyLoadingPhase(model: model)
     case .empty, .error, .custom:
-      applyContentPhase(model: model)
+      applyContentPhase(model: model, resolved: resolved)
     }
 
     // Background tap dismisses keyboard when enabled; `viewTapHandler` can register independently.
     // The gesture recognizer will not steal taps from buttons/controls due to `gestureRecognizer(_:shouldReceive:)`.
-    keyboardDismissTap.isEnabled = model.supportsTapToDismissKeyboard || viewTapHandler != nil
+    keyboardDismissTap.isEnabled = model.presentation.supportsTapToDismissKeyboard || viewTapHandler != nil
     // Keyboard-aware positioning is implemented via `keyboardLayoutGuide` when enabled.
-    keyboardBottomConstraint?.isActive = model.adjustsPositionForKeyboard
+    keyboardBottomConstraint?.isActive = model.presentation.adjustsPositionForKeyboard
     updateContentPosition(resolved: resolved, model: model)
 
     applySlots(model: model)
@@ -381,21 +380,21 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   // MARK: Loading layout
 
   private func applyLoadingPhase(model: FKEmptyStateConfiguration) {
-    let message = model.loadingMessage ?? model.title
+    let message = model.content.loadingMessage ?? model.content.title
     titleLabel.text = message
-    titleLabel.isHidden = model.isTitleHidden || message?.isEmpty != false
-    let showDesc = !model.hidesDescriptionForLoadingPhase && !(model.description?.isEmpty ?? true)
-    descriptionLabel.text = model.description
-    descriptionLabel.isHidden = model.isDescriptionHidden || !showDesc
+    titleLabel.isHidden = message?.isEmpty != false
+    let showDesc = !model.presentation.loadingBehavior.hidesDescription && !(model.content.description?.isEmpty ?? true)
+    descriptionLabel.text = model.content.description
+    descriptionLabel.isHidden = !showDesc
 
-    if model.hidesImageForLoadingPhase {
+    if model.presentation.loadingBehavior.hidesImage {
       imageView.isHidden = true
       customAccessoryContainer.isHidden = true
     } else {
       applyImageVisibility(model: model)
     }
 
-    loadingIndicator.color = model.loadingTintColor
+    loadingIndicator.color = model.appearance.loading.tintColor
     loadingIndicator.startAnimating()
 
     actionsStack.isHidden = true
@@ -403,13 +402,13 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     rebuildStack(orderedViews: loadingBlocks(model: model))
   }
 
-  /// Stack order for the loading phase; respects ``FKEmptyStateConfiguration/hidesImageForLoadingPhase``.
+  /// Stack order for the loading phase; respects ``FKEmptyStateLoadingBehavior/hidesImage``.
   private func loadingBlocks(model: FKEmptyStateConfiguration) -> [UIView] {
     detachLabelsFromHorizontalRow()
     horizontalRowStack.isHidden = true
 
     let tail: [UIView] = [loadingIndicator, titleLabel, descriptionLabel, footerSlotContainer]
-    guard !model.hidesImageForLoadingPhase else {
+    guard !model.presentation.loadingBehavior.hidesImage else {
       imageView.isHidden = true
       customAccessoryContainer.isHidden = true
       return [headerSlotContainer, mediaSlotContainer] + tail
@@ -418,7 +417,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     applyImageVisibility(model: model)
     let imageBlock = imageView
     let customBlock = customAccessoryContainer
-    switch model.customAccessoryPlacement {
+    switch customAccessoryPlacement(for: model) {
     case .replaceImage:
       return [headerSlotContainer, mediaSlotContainer, customBlock, contentSlotContainer] + tail
     case .aboveImage:
@@ -442,38 +441,38 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   // MARK: Empty / error layout
 
-  private func applyContentPhase(model: FKEmptyStateConfiguration) {
+  private func applyContentPhase(model: FKEmptyStateConfiguration, resolved: FKEmptyStateResolvedLayout) {
     loadingIndicator.stopAnimating()
 
-    titleLabel.text = model.title
-    titleLabel.isHidden = model.isTitleHidden || model.title?.isEmpty != false
+    titleLabel.text = model.content.title
+    titleLabel.isHidden = model.content.title?.isEmpty != false
 
-    descriptionLabel.text = model.description
-    descriptionLabel.isHidden = model.isDescriptionHidden || model.description?.isEmpty != false
+    descriptionLabel.text = model.content.description
+    descriptionLabel.isHidden = model.content.description?.isEmpty != false
 
     applyImageVisibility(model: model)
 
     applyActions(model: model)
 
-    if model.axis == .horizontal {
-      rebuildStack(orderedViews: horizontalContentBlocks(model: model))
+    if model.layout.axis == .horizontal {
+      rebuildStack(orderedViews: horizontalContentBlocks(model: model, resolved: resolved))
     } else {
       rebuildStack(orderedViews: contentBlocks(model: model))
     }
   }
 
   /// Builds stack order for horizontal axis (illustration beside title/description).
-  private func horizontalContentBlocks(model: FKEmptyStateConfiguration) -> [UIView] {
-    prepareHorizontalRow(model: model)
+  private func horizontalContentBlocks(model: FKEmptyStateConfiguration, resolved: FKEmptyStateResolvedLayout) -> [UIView] {
+    prepareHorizontalRow(model: model, resolved: resolved)
     var blocks: [UIView] = [headerSlotContainer, mediaSlotContainer]
 
-    if model.customAccessoryPlacement == .aboveImage, !customAccessoryContainer.isHidden {
+    if customAccessoryPlacement(for: model) == .aboveImage, !customAccessoryContainer.isHidden {
       blocks.append(customAccessoryContainer)
     }
 
     blocks.append(horizontalRowStack)
 
-    switch model.customAccessoryPlacement {
+    switch customAccessoryPlacement(for: model) {
     case .belowImage, .belowDescription:
       if !customAccessoryContainer.isHidden {
         blocks.append(customAccessoryContainer)
@@ -491,11 +490,11 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     return blocks
   }
 
-  private func prepareHorizontalRow(model: FKEmptyStateConfiguration) {
+  private func prepareHorizontalRow(model: FKEmptyStateConfiguration, resolved: FKEmptyStateResolvedLayout) {
     detachLabelsFromHorizontalRow()
 
-    let metrics = FKEmptyStateLayoutMetrics(density: model.density)
-    horizontalTextStack.spacing = metrics.spacing(from: model.verticalSpacing)
+    let metrics = FKEmptyStateLayoutMetrics(density: model.layout.density)
+    horizontalTextStack.spacing = metrics.spacing(from: resolved.verticalSpacing)
     horizontalTextStack.addArrangedSubview(titleLabel)
     horizontalTextStack.addArrangedSubview(descriptionLabel)
 
@@ -508,13 +507,13 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     horizontalRowStack.spacing = metrics.horizontalRowSpacing(from: 16)
     horizontalRowStack.isHidden = false
 
-    let textAlignment = model.textAlignment
+    let textAlignment = model.appearance.typography.textAlignment
     titleLabel.textAlignment = textAlignment == .center ? .natural : textAlignment
     descriptionLabel.textAlignment = textAlignment == .center ? .natural : textAlignment
     horizontalTextStack.alignment = textAlignment == .center ? .center : .leading
 
     let illustration: UIView? = {
-      switch model.customAccessoryPlacement {
+      switch customAccessoryPlacement(for: model) {
       case .replaceImage where !customAccessoryContainer.isHidden:
         return customAccessoryContainer
       default:
@@ -535,23 +534,36 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   }
 
   private func applyImagePresentation(model: FKEmptyStateConfiguration) {
-    imageView.contentMode = model.imageContentMode
-    if let tint = model.imageTintColor {
+    guard let imageContent = model.content.image else {
+      imageView.image = nil
+      imageView.tintColor = nil
+      return
+    }
+    imageView.contentMode = imageContent.contentMode
+    if let tint = imageContent.tintColor {
       imageView.tintColor = tint
-      imageView.image = model.image?.withRenderingMode(.alwaysTemplate)
+      imageView.image = imageContent.image.withRenderingMode(.alwaysTemplate)
     } else {
       imageView.tintColor = nil
-      imageView.image = model.image
+      imageView.image = imageContent.image
     }
   }
 
-  /// Builds stack order for empty/error based on `customAccessoryPlacement`.
+  private func customAccessoryPlacement(for model: FKEmptyStateConfiguration) -> FKEmptyStateCustomPlacement {
+    model.content.customAccessory?.placement ?? .belowImage
+  }
+
+  private func customAccessoryView(for model: FKEmptyStateConfiguration) -> UIView? {
+    model.content.customAccessory?.view
+  }
+
+  /// Builds stack order for empty/error based on custom accessory placement.
   private func contentBlocks(model: FKEmptyStateConfiguration) -> [UIView] {
     detachLabelsFromHorizontalRow()
     horizontalRowStack.isHidden = true
     let imageBlock = imageView
     let customBlock = customAccessoryContainer
-    switch model.customAccessoryPlacement {
+    switch customAccessoryPlacement(for: model) {
     case .replaceImage:
       return [
         headerSlotContainer,
@@ -623,11 +635,11 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   }
 
   private func syncCustomAccessoryIfNeeded(model: FKEmptyStateConfiguration) {
-    if model.customAccessoryView == nil {
+    if customAccessoryView(for: model) == nil {
       setCustomAccessoryView(nil)
       return
     }
-    if let provided = model.customAccessoryView, provided.superview !== customAccessoryContainer {
+    if let provided = customAccessoryView(for: model), provided.superview !== customAccessoryContainer {
       setCustomAccessoryView(provided)
     }
   }
@@ -651,15 +663,16 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   }
 
   private func updateGradient(with model: FKEmptyStateConfiguration) {
-    guard !model.gradientColors.isEmpty else {
+    let background = model.appearance.background
+    guard !background.gradientColors.isEmpty else {
       gradientLayer?.removeFromSuperlayer()
       gradientLayer = nil
       return
     }
     let layer = gradientLayer ?? CAGradientLayer()
-    layer.colors = model.gradientColors.map(\.cgColor)
-    layer.startPoint = model.gradientStartPoint
-    layer.endPoint = model.gradientEndPoint
+    layer.colors = background.gradientColors.map(\.cgColor)
+    layer.startPoint = background.gradientStartPoint
+    layer.endPoint = background.gradientEndPoint
     layer.frame = bounds
     if layer.superlayer == nil {
       self.layer.insertSublayer(layer, at: 0)
@@ -667,7 +680,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     gradientLayer = layer
   }
 
-  /// Clears legacy titles, attributed titles, and `UIButton.Configuration` before applying a new chrome.
+  /// Clears prior button titles, attributed titles, and `UIButton.Configuration` before applying new chrome.
   private func resetButtonPresentation(_ button: UIButton) {
     button.configuration = nil
     for state: UIControl.State in [.normal, .highlighted, .disabled, .selected, .focused] {
@@ -733,9 +746,9 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   }
 
   private func applyImageVisibility(model: FKEmptyStateConfiguration) {
-    let imageHiddenFlag = model.isImageHidden || model.image == nil
-    let customMissing = model.customAccessoryView == nil && customAccessoryContainer.subviews.isEmpty
-    switch model.customAccessoryPlacement {
+    let imageHiddenFlag = model.content.image == nil
+    let customMissing = customAccessoryView(for: model) == nil && customAccessoryContainer.subviews.isEmpty
+    switch customAccessoryPlacement(for: model) {
     case .replaceImage:
       imageView.isHidden = true
       customAccessoryContainer.isHidden = customMissing
@@ -761,7 +774,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     action: FKEmptyStateAction
   ) {
     if action.kind == .link {
-      let linkStyle = model.resolvedTertiaryButtonStyle()
+      let linkStyle = model.appearance.buttons.resolvedTertiary()
       if action.isLoading {
         var config = UIButton.Configuration.plain()
         config.title = action.title
@@ -784,11 +797,11 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
     switch action.kind {
     case .primary:
-      applyPrimaryButtonStyle(style: model.buttonStyle, title: action.title, button: button)
+      applyPrimaryButtonStyle(style: model.appearance.buttons.primary, title: action.title, button: button)
     case .secondary:
-      applySecondaryButtonStyle(style: model.resolvedSecondaryButtonStyle(), title: action.title, button: button)
+      applySecondaryButtonStyle(style: model.appearance.buttons.resolvedSecondary(), title: action.title, button: button)
     case .tertiary:
-      applyTertiaryButtonStyle(style: model.resolvedTertiaryButtonStyle(), title: action.title, button: button)
+      applyTertiaryButtonStyle(style: model.appearance.buttons.resolvedTertiary(), title: action.title, button: button)
     case .link:
       break
     }
@@ -850,17 +863,16 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     button.configuration = cfg
   }
 
-  /// Resolves legacy `buttonStyle.title` and error retry fallbacks into concrete actions.
+  /// Injects a default retry action for ``FKEmptyStatePhase/error`` when none is configured.
   private func resolvedActions(for model: FKEmptyStateConfiguration) -> FKEmptyStateActionSet {
     var actions = model.actions
-    var legacyPrimaryTitle = model.buttonStyle.title
     if model.phase == .error,
-       (actions.primary?.title.isEmpty ?? true),
-       (legacyPrimaryTitle?.isEmpty ?? true) {
-      legacyPrimaryTitle = FKEmptyStateConfiguration.defaultRetryButtonTitle
-    }
-    if actions.primary == nil, let title = legacyPrimaryTitle, !title.isEmpty {
-      actions.primary = FKEmptyStateAction(id: "primary", title: title, kind: .primary)
+       actions.primary == nil || actions.primary?.title.isEmpty == true {
+      actions.primary = FKEmptyStateAction(
+        id: "retry",
+        title: FKEmptyStateConfiguration.defaultRetryButtonTitle,
+        kind: .primary
+      )
     }
     return actions
   }
@@ -886,16 +898,15 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
       actionsStack.addArrangedSubview(tertiaryButton)
     }
 
-    let shouldHide = actionsStack.arrangedSubviews.isEmpty || model.isButtonHidden
-    actionsStack.isHidden = shouldHide && model.phase != .error
+    actionsStack.isHidden = actionsStack.arrangedSubviews.isEmpty
   }
 
   private func applySlots(model: FKEmptyStateConfiguration) {
-    replaceSlot(in: headerSlotContainer, with: model.headerSlot)
-    replaceSlot(in: mediaSlotContainer, with: model.mediaSlot)
-    replaceSlot(in: contentSlotContainer, with: model.contentSlot)
-    replaceSlot(in: actionsSlotContainer, with: model.actionsSlot)
-    replaceSlot(in: footerSlotContainer, with: model.footerSlot)
+    replaceSlot(in: headerSlotContainer, with: model.slots.header)
+    replaceSlot(in: mediaSlotContainer, with: model.slots.media)
+    replaceSlot(in: contentSlotContainer, with: model.slots.content)
+    replaceSlot(in: actionsSlotContainer, with: model.slots.actions)
+    replaceSlot(in: footerSlotContainer, with: model.slots.footer)
   }
 
   private func replaceSlot(in container: UIView, with view: UIView?) {
@@ -915,7 +926,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     isAccessibilityElement = false
     accessibilityViewIsModal = false
 
-    if let label = model.imageAccessibilityLabel, !label.isEmpty, !imageView.isHidden {
+    if let label = model.content.image?.accessibilityLabel, !label.isEmpty, !imageView.isHidden {
       imageView.isAccessibilityElement = true
       imageView.accessibilityLabel = label
       imageView.accessibilityTraits = .image
@@ -934,10 +945,10 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   private func announcementLines(for model: FKEmptyStateConfiguration) -> (primary: String, secondary: String) {
     switch model.phase {
     case .loading:
-      let primary = (model.loadingMessage ?? model.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-      let showDesc = !model.hidesDescriptionForLoadingPhase && !(model.description?.isEmpty ?? true)
+      let primary = (model.content.loadingMessage ?? model.content.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+      let showDesc = !model.presentation.loadingBehavior.hidesDescription && !(model.content.description?.isEmpty ?? true)
       let secondary: String
-      if showDesc, let d = model.description {
+      if showDesc, let d = model.content.description {
         secondary = d.trimmingCharacters(in: .whitespacesAndNewlines)
       } else {
         secondary = ""
@@ -946,14 +957,14 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     case .content:
       return ("", "")
     case .empty, .error, .custom:
-      let primary = (model.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-      let secondary = (model.description ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+      let primary = (model.content.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+      let secondary = (model.content.description ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
       return (primary, secondary)
     }
   }
 
   private func announceIfNeeded(model: FKEmptyStateConfiguration) {
-    guard model.announcesStateChanges else { return }
+    guard model.presentation.announcesStateChanges else { return }
     guard !isHidden, alpha > 0.01 else { return }
     guard UIAccessibility.isVoiceOverRunning else { return }
     guard model.phase != .content else { return }
@@ -977,12 +988,12 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     switch resolved.contentAlignment {
     case .center:
       containerCenterYConstraint?.isActive = true
-      containerCenterYConstraint?.constant = model.verticalOffset
+      containerCenterYConstraint?.constant = model.layout.verticalOffset
       containerTopConstraint?.isActive = false
     case .top:
       containerCenterYConstraint?.isActive = false
       containerTopConstraint?.isActive = true
-      containerTopConstraint?.constant = model.verticalOffset
+      containerTopConstraint?.constant = model.layout.verticalOffset
     }
   }
 
@@ -1003,8 +1014,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   // MARK: Actions
 
   @objc private func handlePrimaryTap() {
-    let action = resolvedActions(for: configuration).primary
-      ?? FKEmptyStateAction(id: "primary", title: configuration.buttonStyle.title ?? "", kind: .primary)
+    guard let action = resolvedActions(for: configuration).primary else { return }
     emitAction(action)
   }
 
@@ -1036,7 +1046,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   }
 
   @objc private func handleBackgroundTap() {
-    if configuration.supportsTapToDismissKeyboard {
+    if configuration.presentation.supportsTapToDismissKeyboard {
       endEditing(true)
     }
     viewTapHandler?()

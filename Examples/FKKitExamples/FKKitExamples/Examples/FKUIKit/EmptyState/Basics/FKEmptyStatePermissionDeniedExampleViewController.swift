@@ -19,7 +19,7 @@ final class FKEmptyStatePermissionDeniedExampleViewController: UIViewController 
 
   private func render() {
     var model = FKEmptyStateConfiguration.scenario(.noPermission)
-    model.image = UIImage(systemName: "lock.shield")
+    model.content.setImage(UIImage(systemName: "lock.shield"))
     container.fk_applyEmptyState(model) { [weak self] _ in
       self?.fk_presentMessageAlert(title: "Permission", message: "Primary action tapped.")
     }
