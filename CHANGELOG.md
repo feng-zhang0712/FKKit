@@ -4,6 +4,21 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.63.0] - 2026-06-07
+
+### Fixed (FKUIKit — EmptyState)
+
+- Apply button **font**, **corner radius**, **border**, and tertiary **background** through `UIButton.Configuration` (iOS 15+); legacy `titleLabel` / `layer` assignments no longer silently fail.
+- Honor **`contentInsets`** by constraining content to **`layoutMarginsGuide`** (horizontal padding and top alignment).
+- Sync **`actionsStack.spacing`** with resolved **`verticalSpacing`** / density.
+- Decouple **`viewTapHandler`** from **`supportsTapToDismissKeyboard`** (background tap handler works without keyboard dismiss).
+- **`skipsLoadingWhileRefreshing`** now detects **`UIScrollView/fk_pullToRefresh`** in addition to `UIRefreshControl`.
+- **Link** actions show a distinct disabled appearance; loading state no longer replaces styled buttons with a bare configuration.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.63.0** (Git tag **`0.63.0`**).
+
 ## [0.62.0] - 2026-06-06
 
 ### Added (FKUIKit — EmptyState)
@@ -2505,7 +2520,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.62.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.63.0...HEAD
+[0.63.0]: https://github.com/feng-zhang0712/FKKit/compare/0.62.0...0.63.0
 [0.62.0]: https://github.com/feng-zhang0712/FKKit/compare/0.61.0...0.62.0
 [0.61.0]: https://github.com/feng-zhang0712/FKKit/compare/0.60.0...0.61.0
 [0.60.0]: https://github.com/feng-zhang0712/FKKit/compare/0.59.1...0.60.0
