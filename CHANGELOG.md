@@ -4,6 +4,50 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.64.0] - 2026-06-07
+
+### Changed (FKUIKit — EmptyState)
+
+- **Breaking:** **`FKEmptyStateConfiguration`** is now an aggregate of layered sub-configurations under **`Public/Configuration/`** (`content`, `layout`, `appearance`, `actions`, `presentation`, `slots`) instead of a single flat struct with ~50 top-level properties.
+- **Breaking:** layout overrides (`maxContentWidth`, `contentInsets`, `verticalSpacing`, `contentAlignment`, …) are **`Optional`** on **`FKEmptyStateLayoutConfiguration`**; `nil` follows **`layout.context`** presets (previously compared against factory defaults).
+- **Breaking:** visibility flags **`isImageHidden`**, **`isTitleHidden`**, **`isDescriptionHidden`**, and **`isButtonHidden`** are removed — use `nil` content fields or an empty **`actions`** set.
+- **Breaking:** **`FKEmptyStateButtonStyle.title`**, **`presentation.hidesActions`**, and **`withButtonTitle(_:)`** are removed — button copy lives on **`FKEmptyStateAction`**, chrome on **`appearance.buttons.*`**.
+- **Breaking:** **`customAccessoryView`** / **`customAccessoryPlacement`** move to **`content.customAccessory`** (`FKEmptyStateCustomAccessory`).
+- **Breaking:** global defaults split into **`FKEmptyState.defaultAppearance`**, **`defaultLayout`**, **`defaultPresentation`**, **`defaultActions`**, plus **`configureAppearance(_:)`** / **`configureLayout(_:)`** / **`configurePresentation(_:)`** ( **`configureDefault(_:)`** syncs all four).
+
+### Fixed (FKUIKit — EmptyState)
+
+- **`FKEmptyState.configureDefault(_:)`** now persists **`defaultActions`** alongside appearance, layout, and presentation.
+- **`withImageTintColor(_:)`** no longer creates an empty illustration when none is configured.
+- Stale doc comments updated for nested configuration paths (`loadingBehavior.skipsWhileRefreshing`, `appearance.background.blockingOverlayAlpha`).
+
+### Added (FKUIKit — EmptyState)
+
+- **`FKEmptyStateImageContent`**, **`FKEmptyStateCustomAccessory`**, and convenience **`FKEmptyStateConfiguration(image:title:description:primaryActionTitle:)`**.
+- **`FKEmptyStateActionSet.primary(_:id:kind:)`**, **`FKEmptyStateActionSet.isEmpty`**, **`withPrimaryAction(_:id:kind:)`**, **`updatingActions(_:)`**, and **`updatingContent` / `updatingLayout` / `updatingAppearance` / `updatingPresentation`**.
+
+### Migration (FKUIKit — EmptyState)
+
+| Before (≤ 0.62) | After |
+|-----------------|-------|
+| `config.title` | `config.content.title` |
+| `config.image` / `imageTintColor` | `config.content.image` or `config.withImage(_:)` |
+| `config.customAccessoryView` | `config.content.customAccessory?.view` |
+| `config.context` | `config.layout.context` |
+| `config.maxContentWidth = 320` | `config.layout.maxContentWidth = 320` (or omit for context preset) |
+| `config.buttonStyle.title = "Retry"` | `config.actions = .primary("Retry", id: "retry")` |
+| `config.isButtonHidden = true` | `config.actions = FKEmptyStateActionSet()` |
+| `config.withButtonTitle("Go")` | `config.withPrimaryAction("Go")` |
+| `FKEmptyState.defaultConfiguration.titleFont = …` | `FKEmptyState.configureAppearance { $0.typography.titleFont = … }` |
+| `config.fadeDuration` / `config.transition` | `config.presentation.fadeDuration` / `config.presentation.transition` |
+| `config.hidesImageForLoadingPhase` | `config.presentation.loadingBehavior.hidesImage` |
+
+Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators customizing copy should mutate **`content`** and **`actions`**, not button-style titles.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.64.0** (Git tag **`0.64.0`**).
+
 ## [0.63.0] - 2026-06-07
 
 ### Fixed (FKUIKit — EmptyState)
@@ -2520,7 +2564,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.63.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.64.0...HEAD
+[0.64.0]: https://github.com/feng-zhang0712/FKKit/compare/0.63.0...0.64.0
 [0.63.0]: https://github.com/feng-zhang0712/FKKit/compare/0.62.0...0.63.0
 [0.62.0]: https://github.com/feng-zhang0712/FKKit/compare/0.61.0...0.62.0
 [0.61.0]: https://github.com/feng-zhang0712/FKKit/compare/0.60.0...0.61.0

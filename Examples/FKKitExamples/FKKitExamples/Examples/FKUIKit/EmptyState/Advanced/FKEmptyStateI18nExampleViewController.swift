@@ -56,8 +56,8 @@ final class FKEmptyStateI18nExampleViewController: UIViewController {
     FKI18nManager.shared.setLanguageCode(code)
 
     var model = FKEmptyStateConfiguration.scenario(.noSearchResult)
-    model.image = UIImage(systemName: "magnifyingglass.circle")
-    model.isButtonHidden = true
+    model.content.setImage(UIImage(systemName: "magnifyingglass.circle"))
+    model.actions = FKEmptyStateActionSet()
     container.fk_applyEmptyState(model)
   }
 }

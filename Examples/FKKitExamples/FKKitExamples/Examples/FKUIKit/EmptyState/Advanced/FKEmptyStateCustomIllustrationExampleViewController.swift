@@ -41,7 +41,7 @@ final class FKEmptyStateCustomIllustrationExampleViewController: UIViewControlle
 
   private func renderLazyIllustration() {
     var model = FKEmptyStateExampleFactory.makeBasicModel()
-    model.customAccessoryPlacement = .replaceImage
+    model.content.customAccessory = FKEmptyStateCustomAccessory(placement: .replaceImage)
     container.fk_applyEmptyState(model) { [weak self] _ in
       self?.fk_presentMessageAlert(title: "Action", message: "Primary action tapped from custom illustration example.")
     }
@@ -50,7 +50,7 @@ final class FKEmptyStateCustomIllustrationExampleViewController: UIViewControlle
       guard let self else { return }
       let orb = self.makeOrbIllustration()
       var loaded = model
-      loaded.customAccessoryView = orb
+      loaded.content.customAccessory = FKEmptyStateCustomAccessory(view: orb, placement: .replaceImage)
       self.container.fk_applyEmptyState(loaded, animated: true) { [weak self] _ in
         self?.fk_presentMessageAlert(title: "Action", message: "Primary action tapped after lazy illustration load.")
       }

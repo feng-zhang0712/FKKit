@@ -59,7 +59,7 @@ public extension UIView {
 
     view.actionHandler = actionHandler
     view.viewTapHandler = viewTapHandler
-    let contentAnimated = animated && configuration.transition != .none
+    let contentAnimated = animated && configuration.presentation.transition != .none
     view.apply(configuration, animated: contentAnimated)
     fk_emptyStateApplyScrollInteraction(host: self, configuration: configuration)
     bringSubviewToFront(view)
@@ -68,7 +68,7 @@ public extension UIView {
   /// Applies or hides the empty-state overlay from `configuration`.
   ///
   /// - When `configuration.phase == .content`, hides the overlay (same as `fk_hideEmptyState`).
-  /// - On `UIScrollView`, if `phase == .loading` and `skipsLoadingWhileRefreshing` is `true` while `refreshControl?.isRefreshing`, skips showing the loading overlay.
+  /// - On `UIScrollView`, if `phase == .loading` and `presentation.loadingBehavior.skipsWhileRefreshing` is `true` while `refreshControl?.isRefreshing`, skips showing the loading overlay.
   /// - Creates the `FKEmptyStateView` once; subsequent calls update `isHidden` / `alpha` only.
   ///
   /// - Parameters:
@@ -120,7 +120,7 @@ public extension UIView {
     if shouldAnimateOverlayPresentation {
       view.alpha = 0
       view.isHidden = false
-      UIView.animate(withDuration: configuration.fadeDuration, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState], animations: display)
+      UIView.animate(withDuration: configuration.presentation.fadeDuration, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState], animations: display)
     } else {
       display()
     }
@@ -200,7 +200,7 @@ public extension UIView {
   func fk_hideEmptyState(animated: Bool = true) {
     fk_emptyStateAssertMainThread()
     guard let view = fk_emptyStateView else { return }
-    let duration = fk_emptyStateConfiguration?.fadeDuration ?? 0.25
+    let duration = fk_emptyStateConfiguration?.presentation.fadeDuration ?? 0.25
     let hideBlock = { view.alpha = 0 }
     let completion: (Bool) -> Void = { _ in
       view.isHidden = true

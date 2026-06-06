@@ -1,14 +1,6 @@
 import UIKit
 
-/// Factory defaults used to detect explicit layout overrides on ``FKEmptyStateConfiguration``.
-enum FKEmptyStateConfigurationDefaults {
-  static let maxContentWidth: CGFloat = 320
-  static let verticalSpacing: CGFloat = 10
-  static let contentInsets = UIEdgeInsets(top: 24, left: 20, bottom: 24, right: 20)
-  static let contentAlignment = FKEmptyStateContentAlignment.center
-}
-
-/// Context-driven layout presets; applied when callers leave matching properties at factory defaults.
+/// Context-driven layout presets; applied when callers leave matching layout properties `nil`.
 enum FKEmptyStateContextLayout {
   struct Preset {
     var imageSize: CGSize
@@ -32,7 +24,7 @@ enum FKEmptyStateContextLayout {
       return Preset(
         imageSize: CGSize(width: 80, height: 80),
         maxContentWidth: 320,
-        contentInsets: FKEmptyStateConfigurationDefaults.contentInsets,
+        contentInsets: UIEdgeInsets(top: 24, left: 20, bottom: 24, right: 20),
         verticalSpacing: 12,
         contentAlignment: .center
       )
@@ -97,35 +89,21 @@ struct FKEmptyStateResolvedLayout {
   let contentAlignment: FKEmptyStateContentAlignment
 
   init(configuration: FKEmptyStateConfiguration) {
-    let preset = FKEmptyStateContextLayout.preset(for: configuration.context)
-    let metrics = FKEmptyStateLayoutMetrics(density: configuration.density)
+    let layout = configuration.layout
+    let preset = FKEmptyStateContextLayout.preset(for: layout.context)
+    let metrics = FKEmptyStateLayoutMetrics(density: layout.density)
 
-    if let explicit = configuration.imageSize {
+    if let explicit = layout.imageSize {
       imageSize = explicit
-    } else if configuration.image != nil, !configuration.isImageHidden {
+    } else if configuration.content.image != nil {
       imageSize = metrics.imageSize(from: preset.imageSize)
     } else {
       imageSize = nil
     }
 
-    maxContentWidth = configuration.maxContentWidth == FKEmptyStateConfigurationDefaults.maxContentWidth
-      ? preset.maxContentWidth
-      : configuration.maxContentWidth
-
-    contentInsets = Self.insetsMatch(configuration.contentInsets, FKEmptyStateConfigurationDefaults.contentInsets)
-      ? preset.contentInsets
-      : configuration.contentInsets
-
-    verticalSpacing = configuration.verticalSpacing == FKEmptyStateConfigurationDefaults.verticalSpacing
-      ? preset.verticalSpacing
-      : configuration.verticalSpacing
-
-    contentAlignment = configuration.contentAlignment == FKEmptyStateConfigurationDefaults.contentAlignment
-      ? preset.contentAlignment
-      : configuration.contentAlignment
-  }
-
-  private static func insetsMatch(_ lhs: UIEdgeInsets, _ rhs: UIEdgeInsets) -> Bool {
-    lhs.top == rhs.top && lhs.left == rhs.left && lhs.bottom == rhs.bottom && lhs.right == rhs.right
+    maxContentWidth = layout.maxContentWidth ?? preset.maxContentWidth
+    contentInsets = layout.contentInsets ?? preset.contentInsets
+    verticalSpacing = layout.verticalSpacing ?? preset.verticalSpacing
+    contentAlignment = layout.contentAlignment ?? preset.contentAlignment
   }
 }

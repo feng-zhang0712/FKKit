@@ -133,7 +133,7 @@ Use **`Components/Extension/`** for receiver-oriented helpers (`value.fk_*`). Us
 | **Callout** | Anchored tooltip/popover bubbles (`FKCallout`, `FKTooltip`, `FKPopover`) with beak placement and shared layout engine — see [`Callout/README.md`](Sources/FKUIKit/Components/Callout/README.md). |
 | **CornerShadow** | Rounded-rect masks, borders, gradient fill/stroke, and explicit-path shadows (`Public` / `Internal` / `Extension`) — see [`CornerShadow/README.md`](Sources/FKUIKit/Components/CornerShadow/README.md). |
 | **Divider** | Hairline separator (`FKDivider` / `FKDividerView`); dashed and gradient strokes; `FKDivider.defaultConfiguration`. |
-| **EmptyState** | Loading/empty/error overlay (`Public` / `Internal` / `Extension` / `CoreLite` resolver + i18n) — see [`EmptyState/README.md`](Sources/FKUIKit/Components/EmptyState/README.md). |
+| **EmptyState** | Loading/empty/error overlay — layered **`FKEmptyStateConfiguration`** (`content` / `layout` / `appearance` / `actions` / `presentation` / `slots`; see migration in [`EmptyState/README.md`](Sources/FKUIKit/Components/EmptyState/README.md)) |
 | **ExpandableText** | Long attributed text expand/collapse for `UILabel` / `UITextView` plus SwiftUI `FKExpandableTextView`; `FKExpandableText.defaultConfiguration` and layout cache. |
 | **PagingController** | **`FKPagingController`** coordinates swipe paging between child view controllers and **`FKTabBar`** selection/progress — see [`PagingController/README.md`](Sources/FKUIKit/Components/PagingController/README.md). |
 | **Player** | Shared media playback kernel (`FKMediaPlaybackCoordinator`) plus **`FKVideoPlayer`** and **`FKAudioPlayer`** facades (PiP, subtitles, queues, Now Playing) — see [`Player/Core/README.md`](Sources/FKUIKit/Components/Player/Core/README.md). |
@@ -165,7 +165,7 @@ Use **`Components/Extension/`** for receiver-oriented helpers (`value.fk_*`). Us
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.63.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.64.0")
 ],
 targets: [
   .target(
@@ -180,7 +180,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.63.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.64.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -189,8 +189,8 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.63.0'
-pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.63.0'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.64.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.64.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).
@@ -274,7 +274,7 @@ Please report security vulnerabilities through [GitHub private security advisori
   - change summary
   - test/verification notes
   - migration notes when APIs change
-- Tag stable releases with semantic versions (for example: `0.63.0`), then merge release work back into `develop`.
+- Tag stable releases with semantic versions (for example: `0.64.0`), then merge release work back into `develop`.
 
 ## License
 This repository is licensed under the MIT License.  

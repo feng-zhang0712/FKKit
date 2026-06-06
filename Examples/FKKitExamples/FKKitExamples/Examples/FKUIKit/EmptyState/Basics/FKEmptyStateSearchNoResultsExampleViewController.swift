@@ -58,8 +58,8 @@ final class FKEmptyStateSearchNoResultsExampleViewController: UIViewController {
     filtersLabel.text = "Active filters: \(activeFilters)"
 
     var model = FKEmptyStateConfiguration.scenario(.noSearchResult)
-    model.image = UIImage(systemName: "magnifyingglass")
-    model.isButtonHidden = true
+    model.content.setImage(UIImage(systemName: "magnifyingglass"))
+    model.actions = FKEmptyStateActionSet()
     container.fk_applyEmptyState(model)
   }
 }
