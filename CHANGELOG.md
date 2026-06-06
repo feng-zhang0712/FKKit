@@ -4,6 +4,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.64.0] - 2026-06-07
+
 ### Changed (FKUIKit — EmptyState)
 
 - **Breaking:** **`FKEmptyStateConfiguration`** is now an aggregate of layered sub-configurations under **`Public/Configuration/`** (`content`, `layout`, `appearance`, `actions`, `presentation`, `slots`) instead of a single flat struct with ~50 top-level properties.
@@ -41,6 +43,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 | `config.hidesImageForLoadingPhase` | `config.presentation.loadingBehavior.hidesImage` |
 
 Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators customizing copy should mutate **`content`** and **`actions`**, not button-style titles.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.64.0** (Git tag **`0.64.0`**).
 
 ## [0.63.0] - 2026-06-07
 
@@ -2558,7 +2564,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.63.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.64.0...HEAD
+[0.64.0]: https://github.com/feng-zhang0712/FKKit/compare/0.63.0...0.64.0
 [0.63.0]: https://github.com/feng-zhang0712/FKKit/compare/0.62.0...0.63.0
 [0.62.0]: https://github.com/feng-zhang0712/FKKit/compare/0.61.0...0.62.0
 [0.61.0]: https://github.com/feng-zhang0712/FKKit/compare/0.60.0...0.61.0
