@@ -60,7 +60,7 @@ public struct FKEmptyStateButtonStyle {
   public var font: UIFont
   /// Fill color for filled button style.
   public var backgroundColor: UIColor
-  /// Corner radius applied to the button layer.
+  /// Corner radius applied through `UIButton.Configuration` background (iOS 15+).
   public var cornerRadius: CGFloat
   /// Padding inside the button around the title.
   public var contentInsets: UIEdgeInsets
@@ -171,7 +171,7 @@ public struct FKEmptyStateConfiguration {
 
   /// Vertical spacing between stack subviews.
   public var verticalSpacing: CGFloat
-  /// Applied via `directionalLayoutMargins` on the overlay root.
+  /// Padding around the content column; applied via `directionalLayoutMargins` and `layoutMarginsGuide` constraints.
   public var contentInsets: UIEdgeInsets
   /// Max width of the centered content column.
   public var maxContentWidth: CGFloat
@@ -212,7 +212,7 @@ public struct FKEmptyStateConfiguration {
   /// Suppresses description text during loading when you want spinner + title only.
   public var hidesDescriptionForLoadingPhase: Bool
 
-  /// Skips loading overlay while `UIRefreshControl.isRefreshing` (avoid duplicate spinners).
+  /// Skips loading overlay while pull-to-refresh runs (`UIRefreshControl` or ``UIScrollView/fk_pullToRefresh``).
   public var skipsLoadingWhileRefreshing: Bool
 
   /// Pins content above the keyboard using `keyboardLayoutGuide` when `true`.
