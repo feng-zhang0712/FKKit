@@ -45,9 +45,8 @@ final class FKEmptyStateLoadingTransitionExampleViewController: UIViewController
       type: .loading,
       title: FKUIKitI18n.string("fkuikit.common.loading")
     )
-    model.customAccessoryView = skeleton
-    model.customAccessoryPlacement = .belowDescription
-    model.hidesDescriptionForLoadingPhase = true
+    model.content.customAccessory = FKEmptyStateCustomAccessory(view: skeleton, placement: .belowDescription)
+    model.presentation.loadingBehavior.hidesDescription = true
     tableView.fk_applyEmptyState(model, animated: false)
 
     DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) { [weak self] in

@@ -7,7 +7,7 @@ public extension UIScrollView {
   /// Updates the existing overlay’s content without tearing down the view.
   ///
   /// Falls back to ``fk_applyEmptyState(_:animated:actionHandler:viewTapHandler:)`` when no overlay is visible.
-  /// Content transitions run only when `animated` is `true` and ``FKEmptyStateConfiguration/transition`` is not `.none`.
+  /// Content transitions run only when `animated` is `true` and ``FKEmptyStatePresentationConfiguration/transition`` is not `.none`.
   func fk_updateEmptyState(_ model: FKEmptyStateConfiguration, animated: Bool = true) {
     fk_updateVisibleEmptyState(model, animated: animated)
   }
@@ -40,13 +40,13 @@ public extension UIScrollView {
   ///
   /// Edge cases:
   /// - Uses `adjustedContentInset` and bounds height; safe area and refresh controls are accounted for.
-  /// - Will only run when `fk_emptyStateConfiguration.automaticallyShowsWhenContentFits == true`.
+  /// - Will only run when `fk_emptyStateConfiguration.presentation.automaticallyShowsWhenContentFits == true`.
   func fk_refreshEmptyStateAutomatically(
     actionHandler: ((FKEmptyStateAction) -> Void)? = nil,
     viewTapHandler: FKVoidHandler? = nil
   ) {
     fk_emptyStateAssertMainThread()
-    guard var model = fk_emptyStateConfiguration, model.automaticallyShowsWhenContentFits else { return }
+    guard var model = fk_emptyStateConfiguration, model.presentation.automaticallyShowsWhenContentFits else { return }
     let visibleHeight = bounds.height - adjustedContentInset.top - adjustedContentInset.bottom
     let shouldShow = contentSize.height <= max(0, visibleHeight)
     if shouldShow, model.phase == .content {

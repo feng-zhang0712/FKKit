@@ -10,7 +10,7 @@ import Foundation
 public enum FKEmptyStatePhase: Equatable, Sendable {
   /// Normal business UI — overlay hidden (`fk_hideEmptyState` or `phase == .content`).
   case content
-  /// Spinner + optional copy (initial load). Prefer hiding this while pull-to-refresh runs (`skipsLoadingWhileRefreshing`).
+  /// Spinner + optional copy (initial load). Prefer hiding this while pull-to-refresh runs (`presentation.loadingBehavior.skipsWhileRefreshing`).
   case loading
   /// Empty list / no search hits — image + copy + optional primary button.
   case empty

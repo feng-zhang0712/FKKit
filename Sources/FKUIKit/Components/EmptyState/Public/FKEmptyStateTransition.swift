@@ -2,7 +2,7 @@ import Foundation
 
 /// Content update animation used by ``FKEmptyStateView/apply(_:animated:)`` and in-place overlay updates.
 ///
-/// Show/hide fade timing still uses ``FKEmptyStateConfiguration/fadeDuration`` on host extensions.
+/// Show/hide fade timing still uses ``FKEmptyStatePresentationConfiguration/fadeDuration`` on host extensions.
 /// Respects Reduce Motion (updates apply without animation).
 public enum FKEmptyStateTransition: Equatable, Sendable {
   /// Applies content updates instantly (default).

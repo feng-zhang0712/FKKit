@@ -11,7 +11,7 @@ UIKit overlay for **loading**, **empty**, **error**, and **custom** placeholders
 
 | Layer | Contents |
 |--------|----------|
-| **`Public/`** | `FKEmptyStateView`, `FKEmptyStateConfiguration`, extensions, UIKit-only layout enums |
+| **`Public/`** | `FKEmptyStateView`, `FKEmptyStateConfiguration`, `Public/Configuration/` sub-configs, extensions |
 | **`Internal/`** | Threading, host storage |
 | **`Extension/`** | `UIView`, `UIScrollView`, `UIViewController` conveniences |
 | **`CoreLite/`** | `FKEmptyStateType`, `FKEmptyStateInputs`, `FKEmptyStateResolver` (Foundation only, compiled into **`FKUIKit`**) |
@@ -26,11 +26,24 @@ Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plu
 |------|------|
 | `FKEmptyStatePhase.swift` | `.content` / `.loading` / `.empty` / `.error` / `.custom` |
 | `FKEmptyStateTransition.swift` | Content update animations for `apply(_:animated:)` |
-| `FKEmptyStateLayoutHints.swift` | `FKEmptyStateLayoutContext`, `Density`, `Axis` (hints carried on the configuration) |
-| `FKEmptyStateConfiguration.swift` | Main configuration struct, ``FKEmptyState`` namespace (`defaultConfiguration`, `configureDefault(_:)`), scenarios, fluent `with*` helpers |
+| `FKEmptyStateLayoutHints.swift` | `FKEmptyStateLayoutContext`, `Density`, `Axis` (hints carried on ``FKEmptyStateLayoutConfiguration``) |
+| `FKEmptyStateConfiguration.swift` | Aggregate configuration, ``FKEmptyState`` namespace, scenarios, fluent `with*` / `updating*` helpers |
+| `Configuration/` | Layered sub-configurations (content, layout, appearance, presentation, slots) |
 | `FKEmptyStateAction.swift` | `FKEmptyStateAction`, `FKEmptyStateActionSet`, `FKEmptyStateActionKind` |
 | `FKEmptyStateView.swift` | Overlay view, delegate, notifications |
 | `FKEmptyStatePresentable.swift` | `UIView` conformance for presentation abstraction |
+
+### `Public/Configuration/`
+
+| File | Role |
+|------|------|
+| `FKEmptyStateContentConfiguration.swift` | Copy, `FKEmptyStateImageContent`, `FKEmptyStateCustomAccessory` |
+| `FKEmptyStateLayoutConfiguration.swift` | Context, density, axis, optional layout overrides |
+| `FKEmptyStateAppearanceConfiguration.swift` | Typography, buttons, background, loading chrome |
+| `FKEmptyStatePresentationConfiguration.swift` | Transitions, scroll/keyboard behavior, loading rules |
+| `FKEmptyStateSlotConfiguration.swift` | Header/media/content/actions/footer slots |
+| `FKEmptyStateButtonStyle.swift` | Button chrome + `FKEmptyStateButtonAppearance` |
+| `FKEmptyStateLayoutEnums.swift` | `FKEmptyStateCustomPlacement`, `FKEmptyStateContentAlignment` |
 
 ### `Internal/`
 
@@ -62,9 +75,11 @@ Foundation-only sources compiled as part of the **`FKUIKit`** target.
 Set once at launch:
 
 ```swift
-FKEmptyState.defaultConfiguration.titleFont = .systemFont(ofSize: 20, weight: .semibold)
-// or
-FKEmptyState.configureDefault { $0.buttonStyle.cornerRadius = 12 }
+FKEmptyState.configureAppearance { $0.typography.titleFont = .systemFont(ofSize: 20, weight: .semibold) }
+FKEmptyState.configureLayout { $0.context = .section }
+FKEmptyState.configurePresentation { $0.loadingBehavior.skipsWhileRefreshing = false }
+// or mutate the aggregate defaults in one pass:
+FKEmptyState.configureDefault { $0.appearance.buttons.primary.cornerRadius = 12 }
 ```
 
 ## Quick start
@@ -78,6 +93,15 @@ config.phase = .empty
 view.fk_applyEmptyState(config) { action in
   if action.id == "retry" { reload() }
 }
+
+// Minimal custom empty state
+let custom = FKEmptyStateConfiguration(
+  phase: .empty,
+  image: UIImage(systemName: "tray"),
+  title: "No items",
+  description: "Pull to refresh.",
+  primaryActionTitle: "Refresh"
+)
 
 view.fk_hideEmptyState()
 // or
@@ -106,7 +130,7 @@ if config.phase == .content {
 }
 ```
 
-Legacy two-step resolution remains available:
+Two-step resolution (when you need the semantic type before building configuration):
 
 ```swift
 switch FKEmptyStateResolver.resolve(input) {
@@ -121,13 +145,53 @@ case .show(let type):
 
 ### Illustration & layout
 
-- `image`, `imageContentMode`, `imageTintColor`, `imageSize`, `imageAccessibilityLabel`
-- `context` tunes default image size, column width, insets, and alignment when properties remain at factory defaults
-- `density` scales spacing and typography (`compact` / `regular` / `comfortable`)
-- `axis`: `.vertical` (default) or `.horizontal` (illustration beside text)
-- `transition`: `.none` (default), `.crossDissolve`, `.fade`, `.scale`, `.slideUp` for in-place content updates
-- `buttonStyle` styles the primary action; `secondaryButtonStyle` / `tertiaryButtonStyle` override bordered and plain slots
+- `content.image` (`FKEmptyStateImageContent`), `content.customAccessory`, `content.title` / `description`
+- `layout.context` tunes default image size, column width, insets, and alignment when override properties are `nil`
+- `layout.density` scales spacing and typography (`compact` / `regular` / `comfortable`)
+- `layout.axis`: `.vertical` (default) or `.horizontal` (illustration beside text)
+- `presentation.transition`: `.none` (default), `.crossDissolve`, `.fade`, `.scale`, `.slideUp` for in-place content updates
+- `actions` — primary / secondary / tertiary payloads; empty set hides buttons
+- `appearance.buttons.primary` styles the primary chrome; `appearance.buttons.secondary` / `tertiary` override bordered and plain slots
 - `FKEmptyStateActionKind.link` renders an underlined text action; `isLoading` shows a button activity indicator (iOS 15+)
+
+### Actions
+
+Configure button **copy** on `actions` and **chrome** on `appearance.buttons`:
+
+```swift
+var config = FKEmptyStateConfiguration.scenario(.noFavorites)
+config.actions.secondary = FKEmptyStateAction(
+  id: "learn",
+  title: "Learn more",
+  kind: .link
+)
+config.appearance.buttons.primary.backgroundColor = .systemIndigo
+
+// Or build from scratch
+config.actions = .primary("Refresh", id: "retry")
+config.withPrimaryAction(nil) // remove primary
+```
+
+## Migration from ≤ 0.62
+
+`FKEmptyStateConfiguration` used to expose ~50 flat properties. Upgrade paths:
+
+| Legacy | Replacement |
+|--------|-------------|
+| `config.title` | `config.content.title` |
+| `config.image` / `imageTintColor` | `config.content.image` or `withImage(_:)` / `withImageTintColor(_:)` |
+| `config.customAccessoryView` | `config.content.customAccessory = FKEmptyStateCustomAccessory(view:placement:)` |
+| `config.context`, `maxContentWidth`, … | `config.layout.*` (`nil` override → context preset) |
+| `config.titleColor`, `titleFont`, … | `config.appearance.typography.*` |
+| `config.buttonStyle` / `secondaryButtonStyle` | `config.appearance.buttons.primary` / `.secondary` (chrome only) |
+| `config.buttonStyle.title = "Retry"` | `config.actions = .primary("Retry", id: "retry")` |
+| `config.isButtonHidden = true` | `config.actions = FKEmptyStateActionSet()` |
+| `config.withButtonTitle(_:)` | `config.withPrimaryAction(_:)` |
+| `config.isTitleHidden = true` | `config.content.title = nil` |
+| `config.fadeDuration`, `transition` | `config.presentation.*` |
+| `FKEmptyState.defaultConfiguration.titleFont = …` | `FKEmptyState.configureAppearance { $0.typography.titleFont = … }` |
+
+Full release notes: root [`CHANGELOG.md`](../../../../CHANGELOG.md) **`[Unreleased]`** section.
 
 ## API summary
 
@@ -145,7 +209,7 @@ case .show(let type):
 
 - `fk_updateEmptyState(_:animated:)` — in-place content update (delegates to `fk_updateVisibleEmptyState`).
 - `fk_updateEmptyState(itemCount:configuration:…)`, `fk_updateEmptyStateVisibility(isEmpty:configuration:…)`
-- `fk_refreshEmptyStateAutomatically(…)` when `automaticallyShowsWhenContentFits`.
+- `fk_refreshEmptyStateAutomatically(…)` when `presentation.automaticallyShowsWhenContentFits`.
 - `UITableView.fk_totalRowCount()`, `fk_updateEmptyStateForTable(configuration:…)`
 - `UICollectionView.fk_totalItemCount()`
 

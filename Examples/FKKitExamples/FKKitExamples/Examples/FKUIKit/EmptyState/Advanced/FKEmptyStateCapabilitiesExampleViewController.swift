@@ -40,21 +40,20 @@ final class FKEmptyStateCapabilitiesExampleViewController: UIViewController {
 
   private func render(mode: Int) {
     var model = FKEmptyStateConfiguration.scenario(.noFavorites)
-    model.imageTintColor = .systemIndigo
-    model.imageAccessibilityLabel = "Empty favorites illustration"
+    model.content.image?.tintColor = .systemIndigo
+    model.content.image?.accessibilityLabel = "Empty favorites illustration"
     model.actions = FKEmptyStateActionSet(
       primary: FKEmptyStateAction(id: "browse", title: "Browse catalog", kind: .primary),
       tertiary: FKEmptyStateAction(id: "learn", title: "Learn how favorites work", kind: .link)
     )
-    model.isButtonHidden = false
 
     switch mode {
     case 1:
-      model.axis = .horizontal
-      model.maxContentWidth = 420
+      model.layout.axis = .horizontal
+      model.layout.maxContentWidth = 420
     case 2:
-      model.density = .compact
-      model.imageSize = CGSize(width: 40, height: 40)
+      model.layout.density = .compact
+      model.layout.imageSize = CGSize(width: 40, height: 40)
     default:
       break
     }

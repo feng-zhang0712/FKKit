@@ -14,13 +14,13 @@ final class FKEmptyStateRTLExampleViewController: UIViewController {
 
   private func render() {
     var model = FKEmptyStateExampleFactory.makeBasicModel()
-    model.title = "لا توجد بيانات بعد"
-    model.description = "قم بإنشاء عنصر جديد لبدء الاستخدام."
+    model.content.title = "لا توجد بيانات بعد"
+    model.content.description = "قم بإنشاء عنصر جديد لبدء الاستخدام."
     model.actions = FKEmptyStateActionSet(
       primary: FKEmptyStateAction(id: "create", title: "إنشاء عنصر", kind: .primary)
     )
-    model.forcedLayoutDirection = .rightToLeft
-    model.textAlignment = .right
+    model.layout.forcedLayoutDirection = .rightToLeft
+    model.appearance.typography.textAlignment = .right
     container.fk_applyEmptyState(model) { [weak self] _ in
       self?.fk_presentMessageAlert(title: "تم", message: "تم تنفيذ الإجراء الأساسي بنجاح.")
     }

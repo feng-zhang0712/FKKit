@@ -35,19 +35,17 @@ final class FKEmptyStateLayoutComparisonExampleViewController: UIViewController 
 
   private func render() {
     var fullPage = FKEmptyStateExampleFactory.makeLongTextModel()
-    fullPage.context = .fullPage
-    fullPage.contentInsets = UIEdgeInsets(top: 16, left: 24, bottom: 16, right: 24)
+    fullPage.layout.context = .fullPage
+    fullPage.layout.contentInsets = UIEdgeInsets(top: 16, left: 24, bottom: 16, right: 24)
     fullPage.actions = FKEmptyStateActionSet()
-    fullPage.isButtonHidden = true
     fullPageContainer.fk_applyEmptyState(fullPage)
 
     var inline = FKEmptyStateConfiguration.scenario(.noMessages)
-    inline.context = .section
-    inline.image = UIImage(systemName: "tray")
-    inline.maxContentWidth = 250
-    inline.imageSize = CGSize(width: 36, height: 36)
+    inline.layout.context = .section
+    inline.content.setImage(UIImage(systemName: "tray"))
+    inline.layout.maxContentWidth = 250
+    inline.layout.imageSize = CGSize(width: 36, height: 36)
     inline.actions = FKEmptyStateActionSet()
-    inline.isButtonHidden = true
     sectionContainer.fk_applyEmptyState(inline)
   }
 }

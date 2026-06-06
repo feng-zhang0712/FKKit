@@ -37,7 +37,7 @@ final class FKEmptyStateActionsAndTransitionsExampleViewController: UIViewContro
     hintLabel.textColor = .secondaryLabel
     hintLabel.numberOfLines = 0
     hintLabel.text =
-      "Primary/secondary styles come from buttonStyle and secondaryButtonStyle. Plain vs Link toggles tertiary chrome. Changing the transition segment or tapping Replay previews the selected animation."
+      "Primary/secondary styles come from appearance.buttons. Plain vs Link toggles tertiary chrome. Changing the transition segment or tapping Replay previews the selected animation."
 
     container.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(transitionControl)
@@ -88,7 +88,7 @@ final class FKEmptyStateActionsAndTransitionsExampleViewController: UIViewContro
 
   private func applyEmptyState(animated: Bool) {
     var model = makeModel()
-    model.transition = selectedTransition()
+    model.presentation.transition = selectedTransition()
     container.fk_updateVisibleEmptyState(model, animated: animated) { [weak self] action in
       self?.fk_presentMessageAlert(
         title: "Action",
@@ -109,20 +109,17 @@ final class FKEmptyStateActionsAndTransitionsExampleViewController: UIViewContro
 
   private func makeModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.noFavorites)
-    model.context = .section
-    model.fadeDuration = 0.45
-    model.isButtonHidden = false
+    model.layout.context = .section
+    model.presentation.fadeDuration = 0.45
 
-    model.buttonStyle = FKEmptyStateButtonStyle(
-      title: nil,
+    model.appearance.buttons.primary = FKEmptyStateButtonStyle(
       titleColor: .white,
       font: .systemFont(ofSize: 15, weight: .semibold),
       backgroundColor: .systemBlue,
       cornerRadius: 12,
       contentInsets: UIEdgeInsets(top: 11, left: 18, bottom: 11, right: 18)
     )
-    model.secondaryButtonStyle = FKEmptyStateButtonStyle(
-      title: nil,
+    model.appearance.buttons.secondary = FKEmptyStateButtonStyle(
       titleColor: .systemBlue,
       font: .systemFont(ofSize: 15, weight: .medium),
       backgroundColor: .clear,
@@ -134,8 +131,7 @@ final class FKEmptyStateActionsAndTransitionsExampleViewController: UIViewContro
 
     let tertiaryAction: FKEmptyStateAction
     if tertiaryStyleControl.selectedSegmentIndex == 1 {
-      model.tertiaryButtonStyle = FKEmptyStateButtonStyle(
-        title: nil,
+      model.appearance.buttons.tertiary = FKEmptyStateButtonStyle(
         titleColor: .systemBlue,
         font: .systemFont(ofSize: 15, weight: .regular),
         backgroundColor: .clear,
@@ -144,8 +140,7 @@ final class FKEmptyStateActionsAndTransitionsExampleViewController: UIViewContro
       )
       tertiaryAction = FKEmptyStateAction(id: "learn", title: "Learn how favorites work", kind: .link)
     } else {
-      model.tertiaryButtonStyle = FKEmptyStateButtonStyle(
-        title: nil,
+      model.appearance.buttons.tertiary = FKEmptyStateButtonStyle(
         titleColor: .secondaryLabel,
         font: .systemFont(ofSize: 15, weight: .regular),
         backgroundColor: .clear,
@@ -163,13 +158,17 @@ final class FKEmptyStateActionsAndTransitionsExampleViewController: UIViewContro
 
     let symbolConfig = UIImage.SymbolConfiguration(pointSize: 44, weight: .medium)
     if usesAlternateCopy {
-      model.title = "Nothing here yet"
-      model.description = "Pull to refresh or tap Browse catalog to load items."
-      model.image = UIImage(systemName: "tray", withConfiguration: symbolConfig)
-      model.imageTintColor = .systemOrange
+      model.content.title = "Nothing here yet"
+      model.content.description = "Pull to refresh or tap Browse catalog to load items."
+      model.content.image = FKEmptyStateImageContent(
+        image: UIImage(systemName: "tray", withConfiguration: symbolConfig) ?? UIImage(),
+        tintColor: .systemOrange
+      )
     } else {
-      model.image = UIImage(systemName: "heart.slash", withConfiguration: symbolConfig)
-      model.imageTintColor = .systemBlue
+      model.content.image = FKEmptyStateImageContent(
+        image: UIImage(systemName: "heart.slash", withConfiguration: symbolConfig) ?? UIImage(),
+        tintColor: .systemBlue
+      )
     }
 
     return model

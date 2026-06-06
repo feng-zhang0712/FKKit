@@ -4,16 +4,13 @@ import UIKit
 
 enum FKEmptyStateExampleFactory {
   static func configureGlobalStyleIfNeeded() {
-    FKEmptyState.configureDefault { config in
-      config.backgroundColor = .systemBackground
-      config.titleColor = .label
-      config.descriptionColor = .secondaryLabel
-      config.titleFont = .systemFont(ofSize: 20, weight: .semibold)
-      config.descriptionFont = .systemFont(ofSize: 15, weight: .regular)
-      config.verticalSpacing = 12
-      config.contentInsets = UIEdgeInsets(top: 24, left: 20, bottom: 24, right: 20)
-      config.buttonStyle = FKEmptyStateButtonStyle(
-        title: nil,
+    FKEmptyState.configureAppearance { appearance in
+      appearance.background.color = .systemBackground
+      appearance.typography.titleColor = .label
+      appearance.typography.descriptionColor = .secondaryLabel
+      appearance.typography.titleFont = .systemFont(ofSize: 20, weight: .semibold)
+      appearance.typography.descriptionFont = .systemFont(ofSize: 15, weight: .regular)
+      appearance.buttons.primary = FKEmptyStateButtonStyle(
         titleColor: .white,
         font: .systemFont(ofSize: 15, weight: .semibold),
         backgroundColor: .systemBlue,
@@ -21,25 +18,28 @@ enum FKEmptyStateExampleFactory {
         contentInsets: UIEdgeInsets(top: 11, left: 18, bottom: 11, right: 18)
       )
     }
+    FKEmptyState.configureLayout { layout in
+      layout.verticalSpacing = 12
+      layout.contentInsets = UIEdgeInsets(top: 24, left: 20, bottom: 24, right: 20)
+    }
   }
 
   /// Favorites empty preset — title, description, and primary action come from bundled FKUIKit strings.
   static func makeBasicModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.noFavorites)
-    model.context = .section
-    model.isButtonHidden = false
+    model.layout.context = .section
     return model
   }
 
   /// Offline / no-network preset — uses ``FKEmptyStateScenario/noNetwork`` bundled copy.
   static func makeNoNetworkModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.noNetwork)
+    let retryTitle = model.actions.primary?.title ?? "Retry"
     model.actions = FKEmptyStateActionSet(
-      primary: FKEmptyStateAction(id: "retry", title: model.buttonStyle.title ?? "Retry", kind: .primary),
+      primary: FKEmptyStateAction(id: "retry", title: retryTitle, kind: .primary),
       secondary: FKEmptyStateAction(id: "docs", title: "Check network settings", kind: .secondary)
     )
-    model.secondaryButtonStyle = FKEmptyStateButtonStyle(
-      title: nil,
+    model.appearance.buttons.secondary = FKEmptyStateButtonStyle(
       titleColor: .secondaryLabel,
       font: .systemFont(ofSize: 15, weight: .medium),
       backgroundColor: .clear,
@@ -48,14 +48,13 @@ enum FKEmptyStateExampleFactory {
       borderColor: .separator,
       borderWidth: 1
     )
-    model.isButtonHidden = false
     return model
   }
 
   /// Load-failed preset — uses ``FKEmptyStateScenario/loadFailed`` bundled copy.
   static func makeLoadFailedModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.loadFailed)
-    model.image = UIImage(systemName: "exclamationmark.arrow.trianglehead.clockwise")
+    model.content.setImage(UIImage(systemName: "exclamationmark.arrow.trianglehead.clockwise"))
     return model
   }
 
@@ -65,12 +64,11 @@ enum FKEmptyStateExampleFactory {
       image: UIImage(systemName: "shippingbox"),
       title: "No Items Yet",
       description: "Create your first item and it will appear here.",
-      buttonStyle: FKEmptyStateButtonStyle(title: "Create Item"),
-      isButtonHidden: false
+      primaryActionTitle: "Create Item"
     )
-    model.titleColor = .systemIndigo
-    model.descriptionColor = .systemGray
-    model.buttonStyle.backgroundColor = .systemIndigo
+    model.appearance.typography.titleColor = .systemIndigo
+    model.appearance.typography.descriptionColor = .systemGray
+    model.appearance.buttons.primary.backgroundColor = .systemIndigo
     return model
   }
 
@@ -81,30 +79,28 @@ enum FKEmptyStateExampleFactory {
       description: "We are upgrading the service. Please try again later.",
       buttonTitle: "Refresh Status"
     )
-    model.image = UIImage(systemName: "wrench.and.screwdriver")
-    model.isButtonHidden = false
-    model.contentAlignment = .top
-    model.verticalOffset = 40
+    model.content.setImage(UIImage(systemName: "wrench.and.screwdriver"))
+    model.layout.contentAlignment = .top
+    model.layout.verticalOffset = 40
     return model
   }
 
   /// Long localized copy for full-page layout wrapping demos.
   static func makeLongTextModel() -> FKEmptyStateConfiguration {
     var model = FKEmptyStateConfiguration.scenario(.noMessages)
-    model.image = UIImage(systemName: "tray.full")
-    model.isButtonHidden = true
+    model.content.setImage(UIImage(systemName: "tray.full"))
+    model.actions = FKEmptyStateActionSet()
     return model
   }
 
   static func makeIconOnlyModel() -> FKEmptyStateConfiguration {
-    var model = FKEmptyStateConfiguration()
-    model.phase = .empty
-    model.type = .empty
-    model.image = UIImage(systemName: "sparkles")
-    model.isTitleHidden = true
-    model.isDescriptionHidden = true
-    model.isButtonHidden = true
-    return model
+    FKEmptyStateConfiguration(
+      phase: .empty,
+      type: .empty,
+      image: UIImage(systemName: "sparkles"),
+      title: nil,
+      description: nil
+    )
   }
 }
 

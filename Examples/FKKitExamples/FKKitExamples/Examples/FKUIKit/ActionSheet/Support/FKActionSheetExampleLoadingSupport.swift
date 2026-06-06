@@ -59,16 +59,16 @@ enum FKActionSheetExampleLoadingSupport {
     host.translatesAutoresizingMaskIntoConstraints = false
 
     var configuration = FKEmptyStateConfiguration(phase: .error, type: .error)
-    configuration.title = title
-    configuration.description = message
-    configuration.image = UIImage(systemName: "exclamationmark.triangle")
-    configuration.imageSize = CGSize(width: 40, height: 40)
-    configuration.buttonStyle.title = retryTitle
-    configuration.blockingOverlayAlpha = 0
-    configuration.announcesStateChanges = false
-    configuration.contentAlignment = .center
-    configuration.titleColor = context.appearance.headerTitleColor
-    configuration.descriptionColor = context.appearance.headerMessageColor
+    configuration.content.title = title
+    configuration.content.description = message
+    configuration.content.image = FKEmptyStateImageContent(image: UIImage(systemName: "exclamationmark.triangle") ?? UIImage())
+    configuration.layout.imageSize = CGSize(width: 40, height: 40)
+    configuration.actions = .primary(retryTitle, id: "primary")
+    configuration.appearance.background.blockingOverlayAlpha = 0
+    configuration.presentation.announcesStateChanges = false
+    configuration.layout.contentAlignment = .center
+    configuration.appearance.typography.titleColor = context.appearance.headerTitleColor
+    configuration.appearance.typography.descriptionColor = context.appearance.headerMessageColor
 
     // FKEmptyStateView starts hidden (alpha = 0); fk_applyEmptyState reveals it like other demos.
     host.fk_applyEmptyState(configuration, animated: false) { action in
