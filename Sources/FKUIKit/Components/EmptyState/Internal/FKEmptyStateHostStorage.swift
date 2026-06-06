@@ -21,7 +21,14 @@ final class FKEmptyStateConfigurationBox {
 func fk_emptyStateShouldSkipLoadingBecauseOfRefresh(host: UIView, configuration: FKEmptyStateConfiguration) -> Bool {
   guard let scroll = host as? UIScrollView else { return false }
   guard configuration.phase == .loading, configuration.skipsLoadingWhileRefreshing else { return false }
-  return scroll.refreshControl?.isRefreshing == true
+  if scroll.refreshControl?.isRefreshing == true { return true }
+  guard let pull = scroll.fk_pullToRefresh else { return false }
+  switch pull.state {
+  case .refreshing, .loadingMore, .triggered, .readyToRefresh, .pulling:
+    return true
+  case .idle, .finished, .listEmpty, .failed, .noMoreData:
+    return false
+  }
 }
 
 /// Applies ``FKEmptyStateConfiguration/keepScrollEnabled`` when the host is a `UIScrollView`.

@@ -271,7 +271,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     centerY.isActive = true
     containerCenterYConstraint = centerY
 
-    let topConstraint = containerView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor)
+    let topConstraint = containerView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor)
     topConstraint.priority = UILayoutPriority(500)
     topConstraint.isActive = false
     containerTopConstraint = topConstraint
@@ -283,8 +283,8 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
       blockingDimmingView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
       containerView.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor),
-      containerView.leadingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.leadingAnchor),
-      containerView.trailingAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor),
+      containerView.leadingAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.leadingAnchor),
+      containerView.trailingAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.trailingAnchor),
 
       stackView.topAnchor.constraint(equalTo: containerView.topAnchor),
       stackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
@@ -317,6 +317,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     blockingDimmingView.backgroundColor = UIColor.black.withAlphaComponent(model.blockingOverlayAlpha)
 
     stackView.spacing = metrics.spacing(from: resolved.verticalSpacing)
+    actionsStack.spacing = metrics.spacing(from: resolved.verticalSpacing)
     containerMaxWidthConstraint?.constant = resolved.maxContentWidth
 
     let insets = resolved.contentInsets
@@ -365,9 +366,9 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
       applyContentPhase(model: model)
     }
 
-    // Background tap optionally dismisses keyboard; the gesture recognizer will not steal taps
-    // from buttons/controls due to `gestureRecognizer(_:shouldReceive:)`.
-    keyboardDismissTap.isEnabled = model.supportsTapToDismissKeyboard
+    // Background tap dismisses keyboard when enabled; `viewTapHandler` can register independently.
+    // The gesture recognizer will not steal taps from buttons/controls due to `gestureRecognizer(_:shouldReceive:)`.
+    keyboardDismissTap.isEnabled = model.supportsTapToDismissKeyboard || viewTapHandler != nil
     // Keyboard-aware positioning is implemented via `keyboardLayoutGuide` when enabled.
     keyboardBottomConstraint?.isActive = model.adjustsPositionForKeyboard
     updateContentPosition(resolved: resolved, model: model)
@@ -679,21 +680,56 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     button.contentEdgeInsets = .zero
   }
 
-  private func applyLinkButtonStyle(style: FKEmptyStateButtonStyle, button: UIButton, title: String?) {
+  /// Applies ``FKEmptyStateButtonStyle/font`` through `UIButton.Configuration` (setting `titleLabel?.font` is ignored on iOS 15+).
+  private func applyConfigurationTypography(_ style: FKEmptyStateButtonStyle, to configuration: inout UIButton.Configuration) {
+    let font = style.font
+    configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+      var outgoing = incoming
+      outgoing.font = font
+      return outgoing
+    }
+  }
+
+  /// Applies corner radius and optional border through configuration background (layer properties do not affect configuration chrome).
+  private func applyConfigurationChrome(_ style: FKEmptyStateButtonStyle, to configuration: inout UIButton.Configuration) {
+    configuration.cornerStyle = .fixed
+    configuration.background.cornerRadius = style.cornerRadius
+    if style.borderWidth > 0, let borderColor = style.borderColor {
+      configuration.background.strokeColor = borderColor
+      configuration.background.strokeWidth = style.borderWidth
+    }
+  }
+
+  private func applyLinkButtonStyle(
+    style: FKEmptyStateButtonStyle,
+    button: UIButton,
+    title: String?,
+    isEnabled: Bool
+  ) {
     resetButtonPresentation(button)
     let linkColor = style.titleColor
     let font = style.font
     button.contentEdgeInsets = style.contentInsets
-    guard let title else { return }
-    let attributes: [NSAttributedString.Key: Any] = [
+    guard let title else {
+      button.isEnabled = isEnabled
+      return
+    }
+    let normalAttributes: [NSAttributedString.Key: Any] = [
       .font: font,
       .foregroundColor: linkColor,
       .underlineStyle: NSUnderlineStyle.single.rawValue,
     ]
-    let attributed = NSAttributedString(string: title, attributes: attributes)
-    for state: UIControl.State in [.normal, .highlighted, .disabled, .selected] {
-      button.setAttributedTitle(attributed, for: state)
-    }
+    let disabledColor = linkColor.withAlphaComponent(0.35)
+    let disabledAttributes: [NSAttributedString.Key: Any] = [
+      .font: font,
+      .foregroundColor: disabledColor,
+      .underlineStyle: NSUnderlineStyle.single.rawValue,
+    ]
+    button.setAttributedTitle(NSAttributedString(string: title, attributes: normalAttributes), for: .normal)
+    button.setAttributedTitle(NSAttributedString(string: title, attributes: normalAttributes), for: .highlighted)
+    button.setAttributedTitle(NSAttributedString(string: title, attributes: normalAttributes), for: .selected)
+    button.setAttributedTitle(NSAttributedString(string: title, attributes: disabledAttributes), for: .disabled)
+    button.isEnabled = isEnabled
   }
 
   private func applyImageVisibility(model: FKEmptyStateConfiguration) {
@@ -711,18 +747,12 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   private func applyButtonLoadingState(_ button: UIButton, action: FKEmptyStateAction) {
     button.isEnabled = action.isEnabled && !action.isLoading
-    if var config = button.configuration {
-      config.showsActivityIndicator = action.isLoading
-      if action.isLoading {
-        config.title = action.title
-      }
-      button.configuration = config
-    } else if action.isLoading {
-      var config = UIButton.Configuration.plain()
+    guard var config = button.configuration else { return }
+    config.showsActivityIndicator = action.isLoading
+    if action.isLoading {
       config.title = action.title
-      config.showsActivityIndicator = true
-      button.configuration = config
     }
+    button.configuration = config
   }
 
   private func applyActionStyle(
@@ -737,10 +767,16 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
         config.title = action.title
         config.baseForegroundColor = linkStyle.titleColor
         config.showsActivityIndicator = true
+        applyConfigurationTypography(linkStyle, to: &config)
         button.configuration = config
         button.setAttributedTitle(nil, for: .normal)
       } else {
-        applyLinkButtonStyle(style: linkStyle, button: button, title: action.title)
+        applyLinkButtonStyle(
+          style: linkStyle,
+          button: button,
+          title: action.title,
+          isEnabled: action.isEnabled && !action.isLoading
+        )
       }
       button.isEnabled = action.isEnabled && !action.isLoading
       return
@@ -766,20 +802,16 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     buttonConfig.title = title
     buttonConfig.baseBackgroundColor = style.backgroundColor
     buttonConfig.baseForegroundColor = style.titleColor
-    buttonConfig.cornerStyle = .fixed
     buttonConfig.contentInsets = NSDirectionalEdgeInsets(
       top: style.contentInsets.top,
       leading: style.contentInsets.left,
       bottom: style.contentInsets.bottom,
       trailing: style.contentInsets.right
     )
+    applyConfigurationTypography(style, to: &buttonConfig)
+    applyConfigurationChrome(style, to: &buttonConfig)
     button.configuration = buttonConfig
     button.setTitle(nil, for: .normal)
-    button.titleLabel?.font = style.font
-    button.layer.cornerRadius = style.cornerRadius
-    button.layer.masksToBounds = true
-    button.layer.borderWidth = style.borderWidth
-    button.layer.borderColor = style.borderColor?.cgColor
   }
 
   private func applySecondaryButtonStyle(style: FKEmptyStateButtonStyle, title: String?, button: UIButton) {
@@ -787,20 +819,16 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     var cfg = UIButton.Configuration.bordered()
     cfg.title = title
     cfg.baseForegroundColor = style.titleColor
-    cfg.background.strokeColor = style.borderColor
-    cfg.background.strokeWidth = style.borderWidth
-    cfg.cornerStyle = .fixed
     cfg.contentInsets = NSDirectionalEdgeInsets(
       top: style.contentInsets.top,
       leading: style.contentInsets.left,
       bottom: style.contentInsets.bottom,
       trailing: style.contentInsets.right
     )
+    applyConfigurationTypography(style, to: &cfg)
+    applyConfigurationChrome(style, to: &cfg)
     button.configuration = cfg
     button.setTitle(nil, for: .normal)
-    button.titleLabel?.font = style.font
-    button.layer.cornerRadius = style.cornerRadius
-    button.layer.masksToBounds = true
   }
 
   private func applyTertiaryButtonStyle(style: FKEmptyStateButtonStyle, title: String?, button: UIButton) {
@@ -814,12 +842,12 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
       bottom: style.contentInsets.bottom,
       trailing: style.contentInsets.right
     )
+    applyConfigurationTypography(style, to: &cfg)
+    applyConfigurationChrome(style, to: &cfg)
+    if style.backgroundColor != .clear {
+      cfg.background.backgroundColor = style.backgroundColor
+    }
     button.configuration = cfg
-    button.titleLabel?.font = style.font
-    button.backgroundColor = style.backgroundColor
-    button.layer.borderWidth = style.borderWidth
-    button.layer.borderColor = style.borderColor?.cgColor
-    button.layer.cornerRadius = style.cornerRadius
   }
 
   /// Resolves legacy `buttonStyle.title` and error retry fallbacks into concrete actions.
@@ -954,7 +982,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     case .top:
       containerCenterYConstraint?.isActive = false
       containerTopConstraint?.isActive = true
-      containerTopConstraint?.constant = resolved.contentInsets.top + model.verticalOffset
+      containerTopConstraint?.constant = model.verticalOffset
     }
   }
 
@@ -1008,7 +1036,9 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   }
 
   @objc private func handleBackgroundTap() {
-    endEditing(true)
+    if configuration.supportsTapToDismissKeyboard {
+      endEditing(true)
+    }
     viewTapHandler?()
   }
 }
