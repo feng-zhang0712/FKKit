@@ -1034,7 +1034,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     actionHandler?(action)
     delegate?.emptyStateView(self, didTap: action)
     NotificationCenter.default.post(
-      name: .fkEmptyStateActionInvoked,
+      name: .fk_emptyStateActionInvoked,
       object: self,
       userInfo: [
         FKEmptyStateNotificationKeys.id: action.id,
@@ -1054,10 +1054,10 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 }
 
 public extension Notification.Name {
-  static let fkEmptyStateActionInvoked = Notification.Name("fk.emptyState.actionInvoked")
+  static let fk_emptyStateActionInvoked = Notification.Name("fk.emptyState.actionInvoked")
 }
 
-/// Keys used by the `.fkEmptyStateActionInvoked` notification userInfo payload.
+/// Keys used by the `.fk_emptyStateActionInvoked` notification userInfo payload.
 ///
 /// This is a lightweight interop channel for hosts that prefer NotificationCenter routing
 /// (e.g. multiple actions handled by a coordinator without wiring closures).

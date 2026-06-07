@@ -107,8 +107,8 @@ Module layout:
   - `Executor/`
     - `AsyncExecutors.swift`: serial and concurrent executors
 - `Internal` — non-public helpers only (`AsyncPackageInternal.swift`; public default coordination label: `FKAsync.Configuration.defaultCoordinationQueueLabel`)
-- `Extension` — `DispatchQueue` conveniences
-  - `DispatchQueue+FKAsync.swift`: utility extensions for shorter scheduling calls
+
+`DispatchQueue` scheduling helpers (`fk_async`, `fk_asyncAfter`, `fk_asyncOnMain`, `fk_runOnMain`) live in `Components/Extension/Foundation/DispatchQueue.swift`.
 
 Design principles:
 

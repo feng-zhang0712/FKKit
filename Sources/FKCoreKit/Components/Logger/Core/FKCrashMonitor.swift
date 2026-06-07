@@ -4,7 +4,7 @@ import Foundation
 import Darwin
 #endif
 
-private func fkUncaughtExceptionHandler(_ exception: NSException) {
+private func fk_uncaughtExceptionHandler(_ exception: NSException) {
   FKCrashMonitor.handleUncaughtException(exception)
 }
 
@@ -20,7 +20,7 @@ public final class FKCrashMonitor: @unchecked Sendable {
   public static func install(logger: FKLogger) {
     guard !isInstalled else { return }
     self.logger = logger
-    NSSetUncaughtExceptionHandler(fkUncaughtExceptionHandler)
+    NSSetUncaughtExceptionHandler(fk_uncaughtExceptionHandler)
     handledSignals.forEach { signalCode in
       signal(signalCode, Self.signalHandler)
     }

@@ -94,7 +94,7 @@ final class FKActionSheetExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "SwiftUI bridge",
-          subtitle: "View.fkActionSheet, popover anchors, loading via configuration binding",
+          subtitle: "View.fk_actionSheet, popover anchors, loading via configuration binding",
           make: { FKActionSheetExampleSwiftUIViewController() }
         ),
       ]

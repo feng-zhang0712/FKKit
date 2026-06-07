@@ -16,7 +16,7 @@ HIG-oriented action sheet for UIKit apps. The sheet is a modal `UIViewController
 | `Internal/FKActionSheet+Layout.swift` | Bottom / centered / popover panel constraints and sizing |
 | `Public/Configuration/` | Appearance, presentation, haptics, selection |
 | `Public/Model/` | Actions, sections, header, toggle, dismiss reasons, validation errors, lifecycle hooks, loading content |
-| `Public/SwiftUI/FKActionSheetModifier.swift` | `View.fkActionSheet` modifier |
+| `Public/SwiftUI/FKActionSheetModifier.swift` | `View.fk_actionSheet` modifier |
 | `Extension/` | Builder, handlers, toggle, SF Symbol, alert migration, selection scope |
 | `Internal/FKActionSheetTransitioningDelegate.swift` | Custom modal presentation delegate |
 | `Internal/FKActionSheetAnimator.swift` | Bottom/centered transition animations |
@@ -203,7 +203,7 @@ Scrollable height is capped by `min(screenHeight × maximumFitContentHeightFract
 ## SwiftUI
 
 ```swift
-.fkActionSheet(
+.fk_actionSheet(
   isPresented: $showSheet,
   configuration: config,
   popoverSourceView: anchorView,

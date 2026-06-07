@@ -59,17 +59,17 @@ public extension FKCodableStoring {
   ///
   /// Prefer this overload (or ``FKKeyValueStoring/set(_:forKey:)``) when persisting already-encoded payloads.
   func set(_ data: Data, forKey key: String) throws {
-    try fkSetKeyValueData(self, data, forKey: key)
+    try fk_setKeyValueData(self, data, forKey: key)
   }
 
   /// Encodes using ``FKPluggableJSONCodec`` and persists the result.
   func set<T: Encodable & Sendable>(_ value: T, forKey key: String) throws {
     if let raw = value as? Data {
-      try fkSetKeyValueData(self, raw, forKey: key)
+      try fk_setKeyValueData(self, raw, forKey: key)
       return
     }
     let data = try FKPluggableJSONCodec.encode(value)
-    try fkSetKeyValueData(self, data, forKey: key)
+    try fk_setKeyValueData(self, data, forKey: key)
   }
 }
 
@@ -78,6 +78,6 @@ public extension FKCodableStoring {
 /// Calls ``FKKeyValueStoring/set(_:forKey:)`` without resolving to ``FKCodableStoring/set(_:forKey:)``.
 ///
 /// `Data` is `Encodable`, so `set(encodedData, forKey:)` otherwise binds to the generic helper and recurses forever.
-private func fkSetKeyValueData(_ storage: FKKeyValueStoring, _ data: Data?, forKey key: String) throws {
+private func fk_setKeyValueData(_ storage: FKKeyValueStoring, _ data: Data?, forKey key: String) throws {
   try storage.set(data, forKey: key)
 }

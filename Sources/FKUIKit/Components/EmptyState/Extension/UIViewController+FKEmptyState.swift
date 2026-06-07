@@ -13,7 +13,7 @@ private final class FKEmptyStateActionHandlerBox: @unchecked Sendable {
 // MARK: - NotificationCenter routing
 
 public extension UIViewController {
-  /// Observes ``Notification/fkEmptyStateActionInvoked`` from `hostView.fk_emptyStateView` and forwards taps to `handler`.
+  /// Observes ``Notification/fk_emptyStateActionInvoked`` from `hostView.fk_emptyStateView` and forwards taps to `handler`.
   ///
   /// Removes any observer previously registered via this API on the same view controller (avoids duplicate callbacks when re-applying models).
   ///
@@ -26,7 +26,7 @@ public extension UIViewController {
     guard let source = hostView.fk_emptyStateView else { return }
     let handlerBox = FKEmptyStateActionHandlerBox(handler)
     let token = NotificationCenter.default.addObserver(
-      forName: .fkEmptyStateActionInvoked,
+      forName: .fk_emptyStateActionInvoked,
       object: source,
       queue: .main
     ) { note in

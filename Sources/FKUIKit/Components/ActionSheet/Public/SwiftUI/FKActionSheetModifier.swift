@@ -129,7 +129,7 @@ private struct FKActionSheetPresenterRepresentable: UIViewControllerRepresentabl
 
 public extension View {
   /// Presents an action sheet bound to `isPresented`.
-  func fkActionSheet(
+  func fk_actionSheet(
     isPresented: Binding<Bool>,
     configuration: FKActionSheetConfiguration,
     popoverSourceView: UIView? = nil,
@@ -150,7 +150,7 @@ public extension View {
   }
 
   /// Presents an action sheet built from alert-style parameters.
-  func fkActionSheet(
+  func fk_actionSheet(
     isPresented: Binding<Bool>,
     title: String?,
     message: String? = nil,
@@ -159,7 +159,7 @@ public extension View {
     onDismiss: ((FKActionSheetDismissReason) -> Void)? = nil,
     onPresentFailure: ((Error) -> Void)? = nil
   ) -> some View {
-    fkActionSheet(
+    fk_actionSheet(
       isPresented: isPresented,
       configuration: FKActionSheetConfiguration(
         alertTitle: title,

@@ -11,7 +11,7 @@ enum FKBadgeHierarchyObserver {
     didInstall = true
 
     let original = #selector(UIView.didMoveToSuperview)
-    let swizzled = #selector(UIView.fkbadge_didMoveToSuperview)
+    let swizzled = #selector(UIView.fk_badge_didMoveToSuperview)
 
     guard
       let methodA = class_getInstanceMethod(UIView.self, original),
@@ -23,8 +23,8 @@ enum FKBadgeHierarchyObserver {
 }
 
 extension UIView {
-  @objc func fkbadge_didMoveToSuperview() {
-    fkbadge_didMoveToSuperview()
+  @objc func fk_badge_didMoveToSuperview() {
+    fk_badge_didMoveToSuperview()
     FKBadgeController.handleTargetViewMoved(self)
   }
 }
