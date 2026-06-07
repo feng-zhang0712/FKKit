@@ -27,7 +27,7 @@ extension FKTabBarCollectionCoordinator: UICollectionViewDataSource {
     cell.onTap = { [weak host, weak cell] button in
       guard let host else { return }
       guard let cell, let actualIndexPath = collectionView.indexPath(for: cell) else { return }
-      guard let item = host.visibleItems[safe: actualIndexPath.item] else { return }
+      guard let item = host.visibleItems[fk_safe: actualIndexPath.item] else { return }
       host.customization?.animateInteraction(on: button, phase: .tap, item: item)
       host.setSelectedIndex(actualIndexPath.item, animated: true, reason: .userTap)
     }
@@ -36,7 +36,7 @@ extension FKTabBarCollectionCoordinator: UICollectionViewDataSource {
       guard host.isLongPressEnabled else { return }
       guard let cell, let actualIndexPath = collectionView.indexPath(for: cell) else { return }
       let index = actualIndexPath.item
-      guard let item = host.visibleItems[safe: index] else { return }
+      guard let item = host.visibleItems[fk_safe: index] else { return }
       guard item.isEnabled else { return }
       host.customization?.animateInteraction(on: button, phase: .longPress, item: item)
       host.onLongPress?(item, index)
@@ -50,7 +50,7 @@ extension FKTabBarCollectionCoordinator: UICollectionViewDataSource {
 
 extension FKTabBarCollectionCoordinator: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
-    host?.visibleItems[safe: indexPath.item]?.isEnabled ?? false
+    host?.visibleItems[fk_safe: indexPath.item]?.isEnabled ?? false
   }
 }
 

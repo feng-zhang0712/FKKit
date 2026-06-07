@@ -15,6 +15,11 @@ public extension Data {
   var fk_byteCountDescription: String {
     ByteCountFormatter.string(fromByteCount: Int64(count), countStyle: .file)
   }
+
+  /// UTF-8 decoded text when the bytes represent valid UTF-8; otherwise `nil`.
+  var fk_utf8String: String? {
+    String(data: self, encoding: .utf8)
+  }
 }
 
 public extension Data {

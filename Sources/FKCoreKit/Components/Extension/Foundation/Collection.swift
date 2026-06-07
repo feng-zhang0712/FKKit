@@ -10,7 +10,9 @@ public extension Collection {
 public extension Collection where Element: Equatable {
   /// Returns the number of occurrences of `element`.
   func fk_count(of element: Element) -> Int {
-    filter { $0 == element }.count
+    reduce(0) { partial, current in
+      current == element ? partial + 1 : partial
+    }
   }
 }
 

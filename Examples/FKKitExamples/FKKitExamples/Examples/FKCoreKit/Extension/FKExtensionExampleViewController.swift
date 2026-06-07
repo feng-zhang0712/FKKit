@@ -1,15 +1,8 @@
 import UIKit
 import FKCoreKit
 
-/// End-to-end interactive demo for FKUtils.
-///
-/// This sample is copy-ready for production projects:
-/// - Uses only static FKUtils APIs
-/// - Includes defensive checks and error-tolerant handling
-/// - Demonstrates main-thread-safe UI updates
-final class FKUtilsExampleViewController: UIViewController {
-  // MARK: - UI
-
+/// Interactive demo for FKCoreKit `Extension` APIs (`fk_*` helpers and toolbox types).
+final class FKExtensionExampleViewController: UIViewController {
   private let scrollView = UIScrollView()
   private let stackView = UIStackView()
   private let outputView = UITextView()
@@ -18,13 +11,11 @@ final class FKUtilsExampleViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "FKUtils"
+    title = "Extension"
     view.backgroundColor = .systemBackground
     buildLayout()
-    appendOutput("FKUtils demo initialized.")
+    appendOutput("Extension demo initialized.")
   }
-
-  // MARK: - Layout
 
   private func buildLayout() {
     scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -50,14 +41,13 @@ final class FKUtilsExampleViewController: UIViewController {
 
     let actions: [(String, Selector)] = [
       ("1) Date: Format + Timestamp + Relative", #selector(demoDateUtilities)),
-      ("2) Regex: Phone/Email/ID/Password", #selector(demoRegexUtilities)),
+      ("2) String: Validation + Mask + Encoding", #selector(demoStringUtilities)),
       ("3) Number: Grouping + Decimal Ops", #selector(demoNumberUtilities)),
-      ("4) String: Trim + Mask + Encoding", #selector(demoStringUtilities)),
-      ("5) Device: Model + App + Disk", #selector(demoDeviceUtilities)),
-      ("6) UI: Hex + Adaptation + Main Thread", #selector(demoUIUtilities)),
-      ("7) Collection: Safe Access + JSON", #selector(demoCollectionUtilities)),
-      ("8) Image: Compress + Convert + Rounded", #selector(demoImageUtilities)),
-      ("9) Common: Jump + Vibration + Null Check", #selector(demoCommonUtilities)),
+      ("4) Device + Bundle metadata", #selector(demoDeviceUtilities)),
+      ("5) UI: Hex + Adaptation + Snapshot", #selector(demoUIUtilities)),
+      ("6) Collection: Safe Access + JSON", #selector(demoCollectionUtilities)),
+      ("7) Image: Compress + Convert + Rounded", #selector(demoImageUtilities)),
+      ("8) FileManager + App actions", #selector(demoCommonUtilities)),
       ("Clear Output", #selector(clearOutput)),
     ]
 
@@ -104,18 +94,15 @@ final class FKUtilsExampleViewController: UIViewController {
     ])
   }
 
-  // MARK: - 1) Date
-
-  /// Demonstrates date formatting, timestamp conversion, and relative time.
   @objc private func demoDateUtilities() {
     let now = Date()
-    let standard = FKUtils.DateTime.string(from: now, format: "yyyy-MM-dd HH:mm:ss")
-    let timestamp = FKUtils.DateTime.timestamp(from: now)
-    let restored = FKUtils.DateTime.date(fromTimestamp: timestamp)
-    let restoredText = FKUtils.DateTime.string(from: restored, format: "yyyy-MM-dd HH:mm:ss")
-    let twoHoursAgo = FKUtils.DateTime.add(DateComponents(hour: -2), to: now) ?? now
-    let relative = FKUtils.DateTime.relativeDescription(for: twoHoursAgo, reference: now)
-    let isValid = FKUtils.DateTime.isValidDate("2026-04-20", format: "yyyy-MM-dd")
+    let standard = now.fk_formatted("yyyy-MM-dd HH:mm:ss")
+    let timestamp = now.fk_unixTimestamp
+    let restored = Date(fk_unixTimestamp: timestamp)
+    let restoredText = restored.fk_formatted("yyyy-MM-dd HH:mm:ss")
+    let twoHoursAgo = now.fk_byAdding(DateComponents(hour: -2)) ?? now
+    let relative = twoHoursAgo.fk_relativeDescription(reference: now)
+    let isValid = "2026-04-20".fk_isValidDate(format: "yyyy-MM-dd")
 
     appendOutput("Date string: \(standard)")
     appendOutput("Timestamp: \(timestamp)")
@@ -124,100 +111,64 @@ final class FKUtilsExampleViewController: UIViewController {
     appendOutput("Date validation: \(isValid)")
   }
 
-  // MARK: - 2) Regex
+  @objc private func demoStringUtilities() {
+    appendOutput("Phone valid: \("13800138000".fk_isValidPhone)")
+    appendOutput("Email valid: \("dev@example.com".fk_isValidEmail)")
+    appendOutput("ID valid: \("110101199001011234".fk_isValidIDCard)")
+    appendOutput("Strong password: \("Aa@12345".fk_isStrongPassword)")
 
-  /// Demonstrates high-frequency regex validation scenarios.
-  @objc private func demoRegexUtilities() {
-    appendOutput("Phone valid: \(FKUtils.Regex.isValidPhone("13800138000"))")
-    appendOutput("Email valid: \(FKUtils.Regex.isValidEmail("dev@example.com"))")
-    appendOutput("ID valid: \(FKUtils.Regex.isValidIDCard("110101199001011234"))")
-    appendOutput("Strong password: \(FKUtils.Regex.isStrongPassword("Aa@12345"))")
-
-    let extracted = FKUtils.Regex.extract("IDs: A-10 B-20", pattern: #"[A-Z]-\d+"#)
+    let extracted = "IDs: A-10 B-20".fk_extractMatches(pattern: #"[A-Z]-\d+"#)
     appendOutput("Extracted groups: \(extracted)")
+
+    let trimmed = "  hello Extension \n".fk_trimmed
+    appendOutput("Trimmed: \(trimmed)")
+    appendOutput("Masked phone: \("13800138000".fk_maskedPhone())")
+    appendOutput("Masked email: \("john.doe@example.com".fk_maskedEmail())")
+    appendOutput("Base64 decoded: \("Extension".fk_base64EncodedString.fk_base64DecodedString ?? "failed")")
+    appendOutput("HTML unescaped: \("<title>FK</title>".fk_htmlEscaped.fk_htmlUnescaped)")
   }
 
-  // MARK: - 3) Number
-
-  /// Demonstrates amount formatting and decimal processing.
   @objc private func demoNumberUtilities() {
     let amount = Decimal(string: "1234567.8912") ?? 0
-    let grouped = FKUtils.Number.formatAmount(amount, minimumFractionDigits: 2, maximumFractionDigits: 2)
-    let rounded = FKUtils.Number.rounded(amount, scale: 2)
-    let truncated = FKUtils.Number.truncated(amount, scale: 2)
-    let percent = FKUtils.Number.formatPercent(0.1265, fractionDigits: 2)
-
-    appendOutput("Grouped amount: \(grouped)")
-    appendOutput("Rounded: \(rounded)")
-    appendOutput("Truncated: \(truncated)")
-    appendOutput("Percent: \(percent)")
+    appendOutput("Grouped amount: \(amount.fk_formattedAmount())")
+    appendOutput("Rounded: \(amount.fk_rounded(scale: 2))")
+    appendOutput("Truncated: \(amount.fk_truncated(scale: 2))")
+    appendOutput("Percent: \(0.1265.fk_formattedPercent())")
   }
 
-  // MARK: - 4) String
-
-  /// Demonstrates string trimming, masking, and encoding utilities.
-  @objc private func demoStringUtilities() {
-    let trimmed = FKUtils.String.trim("  hello FKUtils \n")
-    let maskedPhone = FKUtils.String.maskPhone("13800138000")
-    let maskedEmail = FKUtils.String.maskEmail("john.doe@example.com")
-    let encoded = FKUtils.String.base64Encode("FKUtils")
-    let decoded = FKUtils.String.base64Decode(encoded) ?? "decode failed"
-    let escaped = FKUtils.String.htmlEscape("<title>FK</title>")
-    let unescaped = FKUtils.String.htmlUnescape(escaped)
-
-    appendOutput("Trimmed: \(trimmed)")
-    appendOutput("Masked phone: \(maskedPhone)")
-    appendOutput("Masked email: \(maskedEmail)")
-    appendOutput("Base64 decoded: \(decoded)")
-    appendOutput("HTML unescaped: \(unescaped)")
-  }
-
-  // MARK: - 5) Device
-
-  /// Demonstrates device/app metadata and disk status acquisition.
   @objc private func demoDeviceUtilities() {
-    let model = FKUtils.Device.modelIdentifier()
-    let appVersion = FKUtils.Device.appVersion()
-    let build = FKUtils.Device.appBuild()
-    let disk = FKUtils.Device.diskSpace()
+    let model = FKDeviceInfo.modelIdentifier()
+    let appVersion = Bundle.main.fk_shortVersionString
+    let build = Bundle.main.fk_buildVersionString
+    let disk = FKDeviceInfo.diskSpace()
 
     appendOutput("Device model: \(model)")
     appendOutput("App version/build: \(appVersion) (\(build))")
     appendOutput("Disk free/total: \(disk.free) / \(disk.total)")
 
-    FKUtils.Device.networkStatus { [weak self] status in
+    FKDeviceInfo.networkStatus { [weak self] status in
       self?.appendOutput("Network status: \(status)")
     }
   }
 
-  // MARK: - 6) UI
-
-  /// Demonstrates color conversion, adaptive UI, and main-thread-only mutations.
-  ///
-  /// - Note: `FKUtils.UI.runOnMain` takes a `@Sendable` closure and must not capture UIKit views.
-  ///   This selector runs on the main thread; update views directly here. From a background queue,
-  ///   use `Task { @MainActor in … }` (or schedule only `@Sendable` work through `runOnMain`).
+  @MainActor
   @objc private func demoUIUtilities() {
-    let color = FKUtils.UI.color(hex: "#3366FF")
-    let hex = FKUtils.UI.hex(from: color)
-    let adaptiveFont = FKUtils.UI.adaptiveFont(size: 16, weight: .medium)
+    let color = UIColor(fk_hexString: "#3366FF") ?? .systemBlue
+    let hex = color.fk_hexString ?? "n/a"
+    let adaptiveFont = UIFont.fk_adaptiveSystemFont(size: 16, weight: .medium)
 
     sampleCardView.backgroundColor = color
     sampleCardView.layer.sublayers?.removeAll(where: { $0 is CAGradientLayer })
-    _ = FKUtils.UI.addGradient(to: sampleCardView, colors: [color.withAlphaComponent(0.7), .systemPurple])
-    FKUtils.UI.applyShadow(to: sampleCardView)
+    _ = sampleCardView.fk_addGradient(colors: [color.withAlphaComponent(0.7), .systemPurple])
+    sampleCardView.fk_applyShadow()
 
     outputView.font = adaptiveFont
-    let screenshot = FKUtils.UI.screenshot(of: sampleCardView)
-    demoImageView.image = screenshot
+    demoImageView.image = sampleCardView.fk_snapshotImage(afterScreenUpdates: true)
     appendOutput("Color hex round-trip: \(hex)")
     appendOutput("Adaptive font size: \(adaptiveFont.pointSize)")
-    appendOutput("Main-thread screenshot updated.")
+    appendOutput("Main-thread snapshot updated.")
   }
 
-  // MARK: - 7) Collection
-
-  /// Demonstrates safe collection usage and JSON conversion.
   @objc private func demoCollectionUtilities() {
     struct DemoUser: Decodable {
       let id: Int
@@ -225,12 +176,12 @@ final class FKUtilsExampleViewController: UIViewController {
     }
 
     let values = [1, 2, 2, 3, 3, 4]
-    let unique = FKUtils.Collection.unique(values)
-    let safeValue = values[safe: 99]
+    let unique = values.fk_uniqued
+    let safeValue = values[fk_safe: 99]
 
     let payload: [String: Any] = ["id": 7, "name": "FK"]
-    let json = FKUtils.Collection.jsonString(from: payload) ?? "{}"
-    let user = FKUtils.Collection.decode(DemoUser.self, from: payload)
+    let json = payload.fk_jsonString() ?? "{}"
+    let user = payload.fk_decodeJSON(DemoUser.self)
 
     appendOutput("Unique values: \(unique)")
     appendOutput("Safe array access at 99: \(String(describing: safeValue))")
@@ -238,82 +189,67 @@ final class FKUtilsExampleViewController: UIViewController {
     appendOutput("Decoded user: \(String(describing: user?.name))")
   }
 
-  // MARK: - 8) Image
-
-  /// Demonstrates image compression, conversion, and rounded-corner rendering.
   @objc private func demoImageUtilities() {
-    // Generate a deterministic image to keep this demo self-contained.
-    let raw = FKUtils.Image.solidColor(.systemOrange, size: CGSize(width: 120, height: 120))
-    let rounded = FKUtils.Image.rounded(raw, radius: 20)
+    let raw = UIImage.fk_solidColor(.systemOrange, size: CGSize(width: 120, height: 120))
+    let rounded = raw.fk_roundingCorners(20)
     demoImageView.image = rounded
 
-    let compressedBytes = FKUtils.Image.compress(rounded, maxBytes: 12 * 1024)?.count ?? 0
-    let base64 = FKUtils.Image.base64(from: rounded, compressionQuality: 0.8) ?? ""
-    let restored = FKUtils.Image.image(fromBase64: base64)
+    let compressedBytes = rounded.fk_jpegData(maxBytes: 12 * 1024)?.count ?? 0
+    let base64 = rounded.fk_jpegBase64String(compressionQuality: 0.8) ?? ""
+    let restored = base64.isEmpty ? nil : UIImage.fk_image(fromBase64JPEG: base64)
 
     appendOutput("Compressed bytes: \(compressedBytes)")
     appendOutput("Base64 length: \(base64.count)")
     appendOutput("Restored image success: \(restored != nil)")
   }
 
-  // MARK: - 9) Common
-
-  /// Demonstrates app jump APIs, vibration, and null-safe checks.
   @objc private func demoCommonUtilities() {
-    let docs = FKUtils.Common.documentsDirectory().path
-    let nilCheck = FKUtils.Common.isNilOrEmpty("   ")
-    let intValue = FKUtils.Common.toInt("42") ?? -1
-    let safeResult = FKUtils.Common.safe { try riskyDivision(10, by: 0) }
+    let docs = FileManager.fk_documentsDirectory.path
+    let nilCheck = FKValueParsing.isNilOrEmpty("   ")
+    let intValue = FKValueParsing.int(from: "42") ?? -1
+    let safeResult = FKValueParsing.catching { try riskyDivision(10, by: 0) }
 
     appendOutput("Documents path: \(docs)")
     appendOutput("Nil or empty check: \(nilCheck)")
     appendOutput("String->Int conversion: \(intValue)")
     appendOutput("Safe execution result: \(safeResult)")
 
-    // Vibration is side-effect only; suitable for user-triggered interaction.
-    FKUtils.Common.vibrate()
+    UIApplication.fk_vibrate()
 
-    // Keep external jumps opt-in and explicit in demos.
     let alert = UIAlertController(
       title: "Open System Settings?",
-      message: "This demonstrates FKUtils.Common.openSettings().",
+      message: "This demonstrates UIApplication.fk_openAppSettings().",
       preferredStyle: .alert
     )
     alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
     alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
-      FKUtils.Common.openSettings()
+      UIApplication.fk_openAppSettings()
     }))
     present(alert, animated: true)
   }
-
-  // MARK: - Helpers
 
   @objc private func clearOutput() {
     outputView.text = ""
     appendOutput("Output cleared.")
   }
 
-  /// Appends one log line on screen in a thread-safe way.
   private nonisolated func appendOutput(_ message: String) {
     Task { @MainActor [weak self] in
       guard let self else { return }
-      let line = "[\(DateFormatter.fkDemo.string(from: Date()))] \(message)\n"
+      let line = "[\(Self.demoTimeFormatter.string(from: Date()))] \(message)\n"
       self.outputView.text.append(line)
       let range = NSRange(location: max(self.outputView.text.count - 1, 0), length: 1)
       self.outputView.scrollRangeToVisible(range)
     }
   }
 
-  /// A throwable function used to demonstrate FKUtils.Common.safe.
   private func riskyDivision(_ lhs: Int, by rhs: Int) throws -> Int {
     enum DivisionError: Error { case divideByZero }
     guard rhs != 0 else { throw DivisionError.divideByZero }
     return lhs / rhs
   }
-}
 
-private extension DateFormatter {
-  static let fkDemo: DateFormatter = {
+  private static let demoTimeFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "HH:mm:ss"
     return formatter

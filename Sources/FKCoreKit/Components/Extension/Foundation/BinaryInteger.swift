@@ -10,4 +10,9 @@ public extension BinaryInteger {
   var fk_isOdd: Bool {
     !fk_isEven
   }
+
+  /// Human-readable byte size (1024-based), e.g. `"1.2 MB"`.
+  var fk_byteCountDescription: String {
+    ByteCountFormatter.string(fromByteCount: Int64(self), countStyle: .file)
+  }
 }

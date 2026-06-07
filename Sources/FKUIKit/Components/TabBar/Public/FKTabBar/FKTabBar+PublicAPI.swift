@@ -174,7 +174,7 @@ extension FKTabBar {
       return
     }
 
-    let previousID = visibleItems[safe: selectedIndex]?.id
+    let previousID = visibleItems[fk_safe: selectedIndex]?.id
     itemsStorage = allItems
 
     let targetIndex = FKTabBarIndexSynchronizer.resolveTargetIndex(
@@ -300,7 +300,7 @@ extension FKTabBar {
     case .none:
       return
     case .reselected(let idx):
-      guard let item = visibleItems[safe: idx] else { return }
+      guard let item = visibleItems[fk_safe: idx] else { return }
       emitReselectIfNeeded(index: idx, item: item, notify: notify)
       if reason == .userTap, tapEventTriggerBehavior == .always {
         emitDidSelectIfNeeded(index: idx, item: item, reason: reason, notify: notify)
@@ -309,7 +309,7 @@ extension FKTabBar {
       return
     case .selected(_, let to):
       let previous = snapshot.selectedIndex
-      guard let item = visibleItems[safe: to], item.isEnabled else { return }
+      guard let item = visibleItems[fk_safe: to], item.isEnabled else { return }
       guard shouldAllowSelection(index: to, item: item, reason: reason) else { return }
       if reason == .userTap, selectionControlMode == .controlled {
         onSelectionRequest?(item, to)

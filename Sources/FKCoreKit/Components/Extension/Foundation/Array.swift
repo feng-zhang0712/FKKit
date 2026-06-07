@@ -25,6 +25,13 @@ public extension Array where Element: Hashable {
 }
 
 public extension Array {
+  /// Returns elements sorted by `keyPath`.
+  func fk_sorted<T: Comparable>(by keyPath: KeyPath<Element, T>, ascending: Bool = true) -> [Element] {
+    sorted { lhs, rhs in
+      ascending ? lhs[keyPath: keyPath] < rhs[keyPath: keyPath] : lhs[keyPath: keyPath] > rhs[keyPath: keyPath]
+    }
+  }
+
   /// Rotates elements left by `positions` (default 1).
   func fk_rotatedLeft(by positions: Int = 1) -> [Element] {
     guard !isEmpty, positions != 0 else { return self }

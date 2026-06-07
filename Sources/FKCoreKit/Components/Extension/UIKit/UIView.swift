@@ -7,6 +7,11 @@ public extension UIView {
     views.forEach(addSubview)
   }
 
+  /// Removes every direct subview from the receiver.
+  func fk_removeAllSubviews() {
+    subviews.forEach { $0.removeFromSuperview() }
+  }
+
   /// Walks the responder chain and returns the first `UIViewController`, if any.
   var fk_nearestViewController: UIViewController? {
     sequence(first: self as UIResponder?, next: { $0?.next }).first { $0 is UIViewController } as? UIViewController
@@ -36,21 +41,12 @@ public extension UIView {
     }
   }
 
-  /// Applies corner radius; optionally limits rounding to specific corners (iOS 11+).
+  /// Applies corner radius; optionally limits rounding to specific corners.
   func fk_applyCornerRadius(_ radius: CGFloat, maskedCorners: CACornerMask? = nil) {
     layer.cornerRadius = radius
     layer.masksToBounds = true
-    if let maskedCorners, #available(iOS 11.0, *) {
+    if let maskedCorners {
       layer.maskedCorners = maskedCorners
-    }
-  }
-
-  /// Removes all arranged subviews from a `UIStackView` receiver.
-  func fk_removeAllArrangedSubviewsIfStackView() {
-    guard let stack = self as? UIStackView else { return }
-    stack.arrangedSubviews.forEach {
-      stack.removeArrangedSubview($0)
-      $0.removeFromSuperview()
     }
   }
 }

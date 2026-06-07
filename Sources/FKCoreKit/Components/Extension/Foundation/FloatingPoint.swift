@@ -17,4 +17,11 @@ public extension BinaryFloatingPoint {
   static func fk_lerp(_ a: Self, _ b: Self, t: Self) -> Self {
     a + (b - a) * t
   }
+
+  /// Rounds to the given number of decimal places using standard rounding.
+  func fk_rounded(toDecimalPlaces places: Int) -> Self {
+    guard places >= 0 else { return self }
+    let factor = Self(pow(10.0, Double(places)))
+    return (self * factor).rounded() / factor
+  }
 }

@@ -61,6 +61,24 @@ public extension UIColor {
     guard getRed(&r, green: &g, blue: &b, alpha: &a) else { return nil }
     return (r, g, b, a)
   }
+
+  /// Hex string in `#RRGGBB` form when RGB components are available.
+  var fk_hexString: String? {
+    guard let components = fk_rgbaComponents else { return nil }
+    return String(
+      format: "#%02X%02X%02X",
+      Int(components.red * 255),
+      Int(components.green * 255),
+      Int(components.blue * 255)
+    )
+  }
+
+  /// Creates a dynamic color that switches between `light` and `dark` by interface style.
+  static func fk_dynamic(light: UIColor, dark: UIColor) -> UIColor {
+    UIColor { trait in
+      trait.userInterfaceStyle == .dark ? dark : light
+    }
+  }
 }
 
 #endif

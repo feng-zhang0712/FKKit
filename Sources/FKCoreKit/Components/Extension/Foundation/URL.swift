@@ -50,6 +50,12 @@ public extension URL {
     (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
   }
 
+  /// `true` when the URL scheme is `http` or `https` (case-insensitive).
+  var fk_isHTTPOrHTTPS: Bool {
+    guard let scheme = scheme?.lowercased() else { return false }
+    return scheme == "http" || scheme == "https"
+  }
+
   /// File size in bytes when available (file URLs only).
   var fk_fileSizeInBytes: Int64? {
     guard isFileURL else { return nil }

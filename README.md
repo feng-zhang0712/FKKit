@@ -114,12 +114,9 @@ FKKit/
 - `FileManager`: file I/O, directory utilities, and transfer-oriented helpers.
 - `Async`: concurrency utilities (queues, cancellable task wrappers, debounce/throttle helpers).
 - `BusinessKit`: app/business infrastructure (version, deeplink, lifecycle, analytics, i18n helpers).
-- `Extension`: cross-cutting `public` extensions for **Foundation**, **CoreGraphics**, and **UIKit** (UIKit files use `#if canImport(UIKit)`); members use an `fk_` prefix to reduce name clashes with app and SDK code.
-- `Utils`: high-frequency utility APIs for date/string/number/device/UI/collection/common operations.
+- `Extension`: cross-cutting `public` extensions for **Foundation**, **CoreGraphics**, and **UIKit**, plus small toolbox types (`FKDeviceInfo`, `FKValueParsing`). Members use an `fk_` prefix to reduce name clashes with app and SDK code.
 
-### FKCoreKit: Extension vs Utils
-
-Use **`Components/Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Components/Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: [`docs/EXTENSION_VS_UTILS.md`](docs/EXTENSION_VS_UTILS.md).
+See [`Sources/FKCoreKit/Components/Extension/README.md`](Sources/FKCoreKit/Components/Extension/README.md) for layout and usage.
 
 ### FKUIKit
 `FKUIKit` contains reusable UIKit components for modern iOS interfaces. Each folder under `Components/` is a self-contained module; most ship a colocated **`README.md`** with layout maps, configuration defaults, and usage snippets. The list below is a high-level index only.
@@ -165,7 +162,7 @@ Use **`Components/Extension/`** for receiver-oriented helpers (`value.fk_*`). Us
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.64.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.65.0")
 ],
 targets: [
   .target(
@@ -180,7 +177,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.64.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.65.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -189,8 +186,8 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.64.0'
-pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.64.0'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.65.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.65.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).
@@ -226,7 +223,7 @@ Example quick integrations:
 
 ```swift
 // FKCoreKit
-let isEmail = FKUtils.Regex.isValidEmail("dev@example.com")
+let isEmail = "dev@example.com".fk_isValidEmail
 let trimmed = "  hello  ".fk_trimmed
 
 // FKUIKit
@@ -274,7 +271,7 @@ Please report security vulnerabilities through [GitHub private security advisori
   - change summary
   - test/verification notes
   - migration notes when APIs change
-- Tag stable releases with semantic versions (for example: `0.64.0`), then merge release work back into `develop`.
+- Tag stable releases with semantic versions (for example: `0.65.0`), then merge release work back into `develop`.
 
 ## License
 This repository is licensed under the MIT License.  

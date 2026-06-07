@@ -26,6 +26,17 @@ public extension UIFont {
     guard let descriptor = fontDescriptor.withSymbolicTraits(traits) else { return self }
     return UIFont(descriptor: descriptor, size: pointSize)
   }
+
+  /// Returns a system font scaled by the main screen width relative to `baselineWidth`.
+  @MainActor
+  static func fk_adaptiveSystemFont(
+    size: CGFloat,
+    weight: UIFont.Weight = .regular,
+    baselineWidth: CGFloat = 375
+  ) -> UIFont {
+    let scale = UIScreen.main.bounds.width / baselineWidth
+    return UIFont.systemFont(ofSize: Swift.max(8, size * scale), weight: weight)
+  }
 }
 
 #endif
