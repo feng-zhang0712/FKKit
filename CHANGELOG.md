@@ -4,6 +4,28 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.66.0] - 2026-06-07
+
+### Changed (FKCoreKit & FKUIKit — API naming)
+
+- **Breaking:** SwiftUI **`View.fkActionSheet`** renamed to **`View.fk_actionSheet`**.
+- **Breaking:** **`Notification.Name.fkEmptyStateActionInvoked`** renamed to **`.fk_emptyStateActionInvoked`**.
+
+### Changed (FKCoreKit — Extension consolidation)
+
+- **`String.fk_md5`** moved from Network to **`Components/Extension/Foundation/String+Hashing.swift`** (now **public**).
+- **`DispatchQueue`** scheduling helpers (`fk_async`, `fk_asyncAfter`, `fk_asyncOnMain`, `fk_runOnMain`) moved from Async to **`Extension/Foundation/DispatchQueue.swift`**.
+- **`UIView.fk_shake`** moved from FKTextField to **`Extension/UIKit/UIView+Animation.swift`**.
+
+### Removed / deduplicated
+
+- Removed FKUIKit **`Array[safe:]`** duplicate — use **`Collection[fk_safe:]`** from Extension.
+- Removed internal **`fk_firstViewController`**; Sheet anchor host uses **`UIView.fk_nearestViewController`**.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.66.0** (Git tag **`0.66.0`**).
+
 ## [0.65.0] - 2026-06-07
 
 ### Changed (FKCoreKit — Extension)
@@ -2581,7 +2603,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.65.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...HEAD
+[0.66.0]: https://github.com/feng-zhang0712/FKKit/compare/0.65.0...0.66.0
 [0.65.0]: https://github.com/feng-zhang0712/FKKit/compare/0.64.0...0.65.0
 [0.64.0]: https://github.com/feng-zhang0712/FKKit/compare/0.63.0...0.64.0
 [0.63.0]: https://github.com/feng-zhang0712/FKKit/compare/0.62.0...0.63.0
