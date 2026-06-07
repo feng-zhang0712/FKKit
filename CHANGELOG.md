@@ -4,6 +4,17 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Changed (FKCoreKit — Extension)
+
+- **Breaking:** Removed **`Components/Utils/`** and the entire **`FKUtils.*`** namespace. All utilities now live under **`Components/Extension/`** as **`fk_*`** receiver extensions plus small toolbox types (`FKDeviceInfo`, `FKValueParsing`).
+- **Breaking:** `Array[safe:]` replaced by **`Collection[fk_safe:]`** (TabBar / PagingController updated).
+- **Breaking:** Provider registration renamed to **`FKDateFormatting.register(provider:)`** and **`FKRegexMatching.register(provider:)`** (`FKDateFormattingProviding`, `FKRegexMatchingProviding`).
+- Added **`Sources/FKCoreKit/Components/Extension/README.md`**; migration table in **`docs/EXTENSION_VS_UTILS.md`**.
+- Examples: **`FKUtilsExampleViewController`** replaced by **`FKExtensionExampleViewController`**.
+- **Breaking:** Removed stdlib-duplicated helpers: `Result.fk_map` / `fk_mapError` / `fk_get`, `Optional.fk_isNil` / `fk_isSome`, `Date.fk_isAfter` / `fk_isBefore`, `Dictionary.fk_merge` / `fk_merging`, `Data.fk_base64EncodedString`, `UIView.fk_removeAllArrangedSubviewsIfStackView()`.
+- **Changed:** `UIImage.fk_roundingCorners` now returns non-optional `UIImage`; image processing APIs consolidated into `UIImage.swift`.
+- **Changed:** `Collection.fk_count(of:)` avoids allocating a filtered array.
+
 ## [0.64.0] - 2026-06-07
 
 ### Changed (FKUIKit — EmptyState)

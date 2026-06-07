@@ -88,7 +88,7 @@ extension FKTabBar {
     let titlePresentation = resolvedTitlePresentation(layout: layout)
     let measurementBounds = collectionMeasurementBounds()
     cachedItemSizes = visibleItems.indices.map { index in
-      guard let item = visibleItems[safe: index] else {
+      guard let item = visibleItems[fk_safe: index] else {
         return CGSize(width: 44, height: max(FKTabBarLayoutMetrics.minimumBarHeight(for: layout), layout.minimumItemHeight))
       }
       return FKTabBarItemWidthStrategy.sizeForItem(

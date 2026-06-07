@@ -134,13 +134,13 @@ public final class FKTabBar: UIView {
       selectedIndex: snapshot.selectedIndex,
       previousIndex: snapshot.previousIndex,
       phase: snapshot.phase,
-      selectedItemID: visibleItems[safe: snapshot.selectedIndex]?.id
+      selectedItemID: visibleItems[fk_safe: snapshot.selectedIndex]?.id
     )
   }
 
   /// Stable identifier of the currently selected visible tab; `nil` when the strip is empty.
   public var selectedItemID: String? {
-    visibleItems[safe: selectedIndex]?.id
+    visibleItems[fk_safe: selectedIndex]?.id
   }
 
   /// Fired during interactive progress updates from ``setSelectionProgress(from:to:progress:)``.

@@ -114,12 +114,9 @@ FKKit/
 - `FileManager`: file I/O, directory utilities, and transfer-oriented helpers.
 - `Async`: concurrency utilities (queues, cancellable task wrappers, debounce/throttle helpers).
 - `BusinessKit`: app/business infrastructure (version, deeplink, lifecycle, analytics, i18n helpers).
-- `Extension`: cross-cutting `public` extensions for **Foundation**, **CoreGraphics**, and **UIKit** (UIKit files use `#if canImport(UIKit)`); members use an `fk_` prefix to reduce name clashes with app and SDK code.
-- `Utils`: high-frequency utility APIs for date/string/number/device/UI/collection/common operations.
+- `Extension`: cross-cutting `public` extensions for **Foundation**, **CoreGraphics**, and **UIKit**, plus small toolbox types (`FKDeviceInfo`, `FKValueParsing`). Members use an `fk_` prefix to reduce name clashes with app and SDK code.
 
-### FKCoreKit: Extension vs Utils
-
-Use **`Components/Extension/`** for receiver-oriented helpers (`value.fk_*`). Use **`Components/Utils/`** (`FKUtils.*` static namespaces) for toolbox-style or multi-argument operations that are not naturally expressed as a single-type extension. Avoid introducing **new** duplicate semantics across both layers; legacy overlap is documented and may be consolidated on a major version. Full policy: [`docs/EXTENSION_VS_UTILS.md`](docs/EXTENSION_VS_UTILS.md).
+See [`Sources/FKCoreKit/Components/Extension/README.md`](Sources/FKCoreKit/Components/Extension/README.md) for layout and usage.
 
 ### FKUIKit
 `FKUIKit` contains reusable UIKit components for modern iOS interfaces. Each folder under `Components/` is a self-contained module; most ship a colocated **`README.md`** with layout maps, configuration defaults, and usage snippets. The list below is a high-level index only.
@@ -226,7 +223,7 @@ Example quick integrations:
 
 ```swift
 // FKCoreKit
-let isEmail = FKUtils.Regex.isValidEmail("dev@example.com")
+let isEmail = "dev@example.com".fk_isValidEmail
 let trimmed = "  hello  ".fk_trimmed
 
 // FKUIKit

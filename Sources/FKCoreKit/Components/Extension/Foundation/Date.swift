@@ -26,6 +26,22 @@ public extension Date {
     calendar.date(byAdding: components, to: self)
   }
 
+  /// Adds calendar components and returns a new date.
+  func fk_adding(
+    days: Int = 0,
+    hours: Int = 0,
+    minutes: Int = 0,
+    seconds: Int = 0,
+    calendar: Calendar = .current
+  ) -> Date? {
+    var components = DateComponents()
+    components.day = days
+    components.hour = hours
+    components.minute = minutes
+    components.second = seconds
+    return calendar.date(byAdding: components, to: self)
+  }
+
   /// ISO-8601 formatted string in UTC (`yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX`).
   func fk_iso8601UTCString(fractionalSeconds: Bool = true) -> String {
     let formatter = ISO8601DateFormatter()
@@ -39,18 +55,23 @@ public extension Date {
 }
 
 public extension Date {
-  /// Returns `true` when this date is strictly after `other`.
-  func fk_isAfter(_ other: Date) -> Bool {
-    self > other
-  }
-
-  /// Returns `true` when this date is strictly before `other`.
-  func fk_isBefore(_ other: Date) -> Bool {
-    self < other
-  }
-
   /// Returns `true` when this date is between `start` and `end` inclusively.
   func fk_isBetween(_ start: Date, and end: Date) -> Bool {
     self >= start && self <= end
+  }
+
+  /// Returns `true` when this date falls on the same calendar day as `other`.
+  func fk_isSameDay(as other: Date, calendar: Calendar = .current) -> Bool {
+    calendar.isDate(self, inSameDayAs: other)
+  }
+
+  /// Returns `true` when this date is today in the given calendar.
+  func fk_isToday(calendar: Calendar = .current) -> Bool {
+    calendar.isDateInToday(self)
+  }
+
+  /// Returns `true` when this date is yesterday in the given calendar.
+  func fk_isYesterday(calendar: Calendar = .current) -> Bool {
+    calendar.isDateInYesterday(self)
   }
 }

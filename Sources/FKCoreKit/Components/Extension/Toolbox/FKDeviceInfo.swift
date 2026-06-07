@@ -1,14 +1,14 @@
-import Foundation
 import Darwin
+import Foundation
 import Network
 
 #if canImport(UIKit)
 import UIKit
 #endif
 
-/// Static device and app information helpers.
-public enum FKUtilsDevice {
-  /// Returns device model identifier (e.g. `iPhone15,2`).
+/// Device, runtime, and app metadata helpers without a natural single receiver type.
+public enum FKDeviceInfo {
+  /// Returns device model identifier (for example `iPhone15,2`).
   public static func modelIdentifier() -> String {
     var systemInfo = utsname()
     uname(&systemInfo)
@@ -53,7 +53,7 @@ public enum FKUtilsDevice {
     return CGSize(width: size.width * scale, height: size.height * scale)
   }
 
-  /// Returns current battery level from 0 to 1.
+  /// Returns current battery level from 0 to 1, or `-1` when unavailable.
   public static func batteryLevel() -> Float {
     #if canImport(UIKit)
     FKMainActorUIKitBridge.batteryLevel()
@@ -62,8 +62,8 @@ public enum FKUtilsDevice {
     #endif
   }
 
-  /// Returns current battery state.
-  public static func batteryState() -> String {
+  /// Returns localized battery state description.
+  public static func batteryStateDescription() -> String {
     #if canImport(UIKit)
     switch FKMainActorUIKitBridge.batteryStateDescription() {
     case "unknown": return FKI18n.string("fkcore.utils.battery.state.unknown")
@@ -77,10 +77,10 @@ public enum FKUtilsDevice {
     #endif
   }
 
-  /// Returns latest network reachability status asynchronously.
+  /// Returns localized network reachability status asynchronously (one-shot callback).
   public static func networkStatus(completion: @escaping @Sendable (String) -> Void) {
     let monitor = NWPathMonitor()
-    let queue = DispatchQueue(label: "com.fk.utils.network")
+    let queue = DispatchQueue(label: "com.fkkit.device.network")
     monitor.pathUpdateHandler = { path in
       let value: String
       if path.status != .satisfied {
@@ -140,29 +140,8 @@ public enum FKUtilsDevice {
     return (used, free, total)
   }
 
-  /// Returns app semantic version.
-  public static func appVersion() -> String {
-    Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
-  }
-
-  /// Returns app build number.
-  public static func appBuild() -> String {
-    Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
-  }
-
-  /// Returns app bundle identifier.
-  public static func bundleIdentifier() -> String {
-    Bundle.main.bundleIdentifier ?? ""
-  }
-
-  /// Returns app display name.
-  public static func appName() -> String {
-    let info = Bundle.main.infoDictionary
-    return (info?["CFBundleDisplayName"] as? String) ?? (info?["CFBundleName"] as? String) ?? ""
-  }
-
-  /// Returns a stable vendor identifier when available.
-  public static func safeDeviceIdentifier() -> String {
+  /// Returns a stable vendor identifier when available; not a permanent global device ID.
+  public static func vendorIdentifier() -> String {
     #if canImport(UIKit)
     FKMainActorUIKitBridge.identifierForVendorUUIDString()
     #else

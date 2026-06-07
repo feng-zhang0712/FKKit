@@ -25,7 +25,7 @@ private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/Pluggable",
   "Components/Security",
   "Components/Storage",
-  "Components/Utils",
+  "Components/Extension",
 ]
 
 /// FKUIKit component docs (`Sources/FKUIKit/Components/…/README.md`), including nested Player modules.

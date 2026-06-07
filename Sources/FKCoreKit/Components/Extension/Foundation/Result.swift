@@ -20,24 +20,4 @@ public extension Result {
       return error
     }
   }
-
-  /// Maps success using `transform`.
-  func fk_map<NewSuccess>(_ transform: (Success) throws -> NewSuccess) rethrows -> Result<NewSuccess, Failure> {
-    switch self {
-    case let .success(value):
-      return .success(try transform(value))
-    case let .failure(error):
-      return .failure(error)
-    }
-  }
-
-  /// Maps failure using `transform`.
-  func fk_mapError<NewFailure>(_ transform: (Failure) throws -> NewFailure) rethrows -> Result<Success, NewFailure> {
-    switch self {
-    case let .success(value):
-      return .success(value)
-    case let .failure(error):
-      return .failure(try transform(error))
-    }
-  }
 }

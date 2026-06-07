@@ -12,6 +12,16 @@ public extension String {
   var fk_isBlank: Bool {
     fk_trimmed.isEmpty
   }
+
+  /// Returns `nil` when the string is empty.
+  var fk_nilIfEmpty: String? {
+    isEmpty ? nil : self
+  }
+
+  /// Returns `nil` when the string is blank after trimming whitespace and newlines.
+  var fk_nilIfBlank: String? {
+    fk_isBlank ? nil : self
+  }
 }
 
 // MARK: - Substrings & ranges
@@ -56,20 +66,30 @@ public extension String {
   var fk_base64DecodedData: Data? {
     Data(base64Encoded: self)
   }
+
+  /// UTF-8 text decoded from a Base64 string; otherwise `nil`.
+  var fk_base64DecodedString: String? {
+    guard let data = fk_base64DecodedData else { return nil }
+    return String(data: data, encoding: .utf8)
+  }
+
+  /// Base64 representation of the UTF-8 bytes.
+  var fk_base64EncodedString: String {
+    fk_utf8Data.base64EncodedString()
+  }
 }
 
 // MARK: - Validation helpers
 
 public extension String {
-  /// Simple email shape check (not a full RFC validator).
-  var fk_looksLikeEmail: Bool {
-    let pattern = #"^\S+@\S+\.\S+$"#
-    return range(of: pattern, options: .regularExpression) != nil
-  }
-
   /// `true` when every character is ASCII digit.
   var fk_isNumericDigitsOnly: Bool {
     !isEmpty && unicodeScalars.allSatisfy { CharacterSet.decimalDigits.contains($0) }
+  }
+
+  /// Case-insensitive containment check using the current locale.
+  func fk_containsCaseInsensitive(_ other: String) -> Bool {
+    range(of: other, options: [.caseInsensitive, .diacriticInsensitive]) != nil
   }
 }
 

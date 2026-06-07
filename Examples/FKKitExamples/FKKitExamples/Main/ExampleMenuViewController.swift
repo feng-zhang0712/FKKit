@@ -180,9 +180,9 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKStorageExampleViewController() }
         ),
         ExampleMenuItem(
-          title: "Utils",
-          subtitle: "Date, regex, number, string, device, UI, collection, image and common helpers",
-          make: { FKUtilsExampleViewController() }
+          title: "Extension",
+          subtitle: "fk_* helpers for Foundation, UIKit, device info, validation, and formatting",
+          make: { FKExtensionExampleViewController() }
         ),
       ]
     ),

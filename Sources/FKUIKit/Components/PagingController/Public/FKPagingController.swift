@@ -791,7 +791,7 @@ private extension FKPagingController {
     delegate?.pagingController(self, didSettleAt: index)
     publishDisplayedPage(at: index)
     if UIAccessibility.isVoiceOverRunning {
-      let currentItem = tabBar.visibleItems[safe: index]
+      let currentItem = tabBar.visibleItems[fk_safe: index]
       UIAccessibility.post(notification: .announcement, argument: currentItem?.accessibilityLabel ?? currentItem?.titleText ?? "\(index + 1)")
     }
     notifyPhase()

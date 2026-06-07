@@ -3,13 +3,11 @@ import QuartzCore
 import UIKit
 
 public extension CALayer {
-  /// Applies a continuous corner curve when available (iOS 13+), otherwise sets `cornerRadius` only.
+  /// Applies a continuous corner curve when available, otherwise sets `cornerRadius` only.
   func fk_applyContinuousCornerRadius(_ radius: CGFloat) {
     cornerRadius = radius
     masksToBounds = true
-    if #available(iOS 13.0, *) {
-      cornerCurve = .continuous
-    }
+    cornerCurve = .continuous
   }
 
   /// Adds a simple shadow without affecting the layer's `cornerRadius` path (uses separate shadow path when `rect` is provided).

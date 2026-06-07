@@ -1,7 +1,7 @@
 #if canImport(UIKit)
 import UIKit
 
-/// Bridges nonisolated FKCoreKit helpers to MainActor-isolated `UIDevice` / `UIScreen` APIs without marking broad protocols `@MainActor`.
+/// Bridges nonisolated FKCoreKit helpers to MainActor-isolated `UIDevice` / `UIScreen` APIs.
 enum FKMainActorUIKitBridge {
   nonisolated static func systemVersion() -> String {
     executeOnMain { UIDevice.current.systemVersion }
