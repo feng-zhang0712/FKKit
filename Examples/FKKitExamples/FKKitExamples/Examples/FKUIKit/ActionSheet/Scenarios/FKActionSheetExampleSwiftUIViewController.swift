@@ -109,10 +109,10 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
       .padding(16)
     }
     .background(Color(uiColor: .systemGroupedBackground))
-    .fkActionSheet(
+    .fk_actionSheet(
       isPresented: $showBasics,
       title: "SwiftUI Sheet",
-      message: "Presented via View.fkActionSheet",
+      message: "Presented via View.fk_actionSheet",
       actions: [
         FKActionSheetAction(title: "Confirm") {
           FKActionSheetExamplePlaybook.log("SwiftUI confirm")
@@ -125,21 +125,21 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
         statusMessage = "Present failed: \(error)"
       }
     )
-    .fkActionSheet(
+    .fk_actionSheet(
       isPresented: $showToggle,
       configuration: toggleConfiguration,
       onDismiss: { reason in
         statusMessage = "Toggle dismissed: \(String(describing: reason))"
       }
     )
-    .fkActionSheet(
+    .fk_actionSheet(
       isPresented: $showCentered,
       configuration: centeredConfiguration,
       onDismiss: { reason in
         statusMessage = "Centered dismissed: \(String(describing: reason))"
       }
     )
-    .fkActionSheet(
+    .fk_actionSheet(
       isPresented: $showLoading,
       configuration: loadingConfiguration,
       onDismiss: { reason in
@@ -149,7 +149,7 @@ private struct FKActionSheetSwiftUIExampleSurface: View {
         statusMessage = "Loading present failed: \(error)"
       }
     )
-    .fkActionSheet(
+    .fk_actionSheet(
       isPresented: $showPopover,
       configuration: popoverConfiguration,
       popoverSourceView: popoverAnchor,

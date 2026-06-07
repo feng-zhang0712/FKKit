@@ -450,15 +450,15 @@ public final class FKProgressBar: UIControl {
   }
 
   private func refreshTouchHapticWiring() {
-    removeTarget(self, action: #selector(fkProgressBarTouchDownHaptic), for: .touchDown)
-    removeTarget(self, action: #selector(fkProgressBarTouchUpHaptic), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragOutside])
+    removeTarget(self, action: #selector(fk_progressBarTouchDownHaptic), for: .touchDown)
+    removeTarget(self, action: #selector(fk_progressBarTouchUpHaptic), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragOutside])
     guard configuration.interaction.interactionMode == .button else { return }
     guard configuration.interaction.touchHaptic != .none else { return }
-    addTarget(self, action: #selector(fkProgressBarTouchDownHaptic), for: .touchDown)
-    addTarget(self, action: #selector(fkProgressBarTouchUpHaptic), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragOutside])
+    addTarget(self, action: #selector(fk_progressBarTouchDownHaptic), for: .touchDown)
+    addTarget(self, action: #selector(fk_progressBarTouchUpHaptic), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragOutside])
   }
 
-  @objc private func fkProgressBarTouchDownHaptic() {
+  @objc private func fk_progressBarTouchDownHaptic() {
     switch configuration.interaction.touchHaptic {
     case .none:
       break
@@ -469,7 +469,7 @@ public final class FKProgressBar: UIControl {
     }
   }
 
-  @objc private func fkProgressBarTouchUpHaptic() {}
+  @objc private func fk_progressBarTouchUpHaptic() {}
 
   private func updateTouchAppearance() {
     let mode = configuration.interaction.interactionMode

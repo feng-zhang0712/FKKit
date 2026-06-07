@@ -220,12 +220,12 @@ Full release notes: root [`CHANGELOG.md`](../../../../CHANGELOG.md) **`[Unreleas
 
 ### `UIViewController`
 
-- `fk_bindEmptyStateActions(from:handler:)` — observe `.fkEmptyStateActionInvoked` for a host’s overlay.
+- `fk_bindEmptyStateActions(from:handler:)` — observe `.fk_emptyStateActionInvoked` for a host’s overlay.
 - `fk_clearEmptyStateActionObservers()`
 
 ### Notifications
 
-- `Notification.Name.fkEmptyStateActionInvoked` — `userInfo` keys: `FKEmptyStateNotificationKeys.id`, `.kind`, `.title`, `.payload`.
+- `Notification.Name.fk_emptyStateActionInvoked` — `userInfo` keys: `FKEmptyStateNotificationKeys.id`, `.kind`, `.title`, `.payload`.
 
 ## Design notes
 
