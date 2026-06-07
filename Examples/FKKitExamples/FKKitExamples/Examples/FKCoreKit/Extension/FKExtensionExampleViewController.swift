@@ -126,6 +126,7 @@ final class FKExtensionExampleViewController: UIViewController {
     appendOutput("Masked email: \("john.doe@example.com".fk_maskedEmail())")
     appendOutput("Base64 decoded: \("Extension".fk_base64EncodedString.fk_base64DecodedString ?? "failed")")
     appendOutput("HTML unescaped: \("<title>FK</title>".fk_htmlEscaped.fk_htmlUnescaped)")
+    appendOutput("MD5: \("cache-key-demo".fk_md5)")
   }
 
   @objc private func demoNumberUtilities() {
@@ -161,11 +162,13 @@ final class FKExtensionExampleViewController: UIViewController {
     sampleCardView.layer.sublayers?.removeAll(where: { $0 is CAGradientLayer })
     _ = sampleCardView.fk_addGradient(colors: [color.withAlphaComponent(0.7), .systemPurple])
     sampleCardView.fk_applyShadow()
+    sampleCardView.fk_shake(amplitude: 6, shakes: 3, duration: 0.3)
 
     outputView.font = adaptiveFont
     demoImageView.image = sampleCardView.fk_snapshotImage(afterScreenUpdates: true)
     appendOutput("Color hex round-trip: \(hex)")
     appendOutput("Adaptive font size: \(adaptiveFont.pointSize)")
+    appendOutput("Shake animation triggered on sample card.")
     appendOutput("Main-thread snapshot updated.")
   }
 

@@ -9,7 +9,7 @@ Production-oriented formatted text input on UIKit: filtering, raw vs display val
 
 ## Source layout
 
-Same layering as **`Badge`**: **`Public`** (exported surface), **`Internal`** (helpers), **`Extension`** (UIKit additions). Root: `Sources/FKUIKit/Components/TextField/`.
+Same layering as **`Badge`**: **`Public`** (exported surface) and **`Internal`** (helpers). Root: `Sources/FKUIKit/Components/TextField/`.
 
 `Public/` is split by responsibility:
 
@@ -76,11 +76,7 @@ Same layering as **`Badge`**: **`Public`** (exported surface), **`Internal`** (h
 |------|------|
 | `FKTextFieldStringParsing.swift` | String sanitizing/grouping helpers for formatters |
 
-### `Extension/`
-
-| File | Role |
-|------|------|
-| `UIView+FKTextFieldShake.swift` | `UIView.fk_shake(...)` validation feedback |
+Validation shake feedback uses `UIView.fk_shake(...)` from `FKCoreKit/Components/Extension/UIKit/UIView+Animation.swift`.
 
 ## API principles
 

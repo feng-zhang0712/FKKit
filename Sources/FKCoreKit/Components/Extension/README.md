@@ -6,7 +6,7 @@ Cross-cutting Swift extensions and small toolbox types for everyday iOS developm
 
 | Folder | Responsibility |
 |--------|----------------|
-| `Foundation/` | Extensions on `String`, `Date`, `Array`, `Dictionary`, `FileManager`, numbers, JSON helpers, etc. |
+| `Foundation/` | Extensions on `String`, `Date`, `Array`, `Dictionary`, `FileManager`, `DispatchQueue`, numbers, JSON helpers, etc. |
 | `CoreGraphics/` | Extensions on `CGFloat`, `CGPoint`, `CGSize`, `CGRect`. |
 | `UIKit/` | Extensions on UIKit types (`UIView`, `UIColor`, `UIImage`, `UIApplication`, …). Files use `#if canImport(UIKit)`. |
 | `Internal/` | Shared implementation (MainActor bridge, cached date formatting, regex engine). Not application-facing entry points. |
@@ -21,6 +21,7 @@ import FKCoreKit
 let emailOK = "dev@example.com".fk_isValidEmail
 let label = now.fk_formatted("yyyy-MM-dd")
 let chunk = values.fk_chunked(into: 3)
+let cacheKey = requestKey.fk_md5
 let color = UIColor(fk_hexString: "#3366FF")
 
 // Safe collection access
@@ -29,6 +30,11 @@ let item = items[fk_safe: index]
 // Toolbox types
 let model = FKDeviceInfo.modelIdentifier()
 let docs = FileManager.fk_documentsDirectory
+
+DispatchQueue.fk_runOnMain { /* UI update */ }
+
+// Validation feedback
+invalidField.fk_shake(amplitude: 8, shakes: 3)
 ```
 
 ## Provider customization

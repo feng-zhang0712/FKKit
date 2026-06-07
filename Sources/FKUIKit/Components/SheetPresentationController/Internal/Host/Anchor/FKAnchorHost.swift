@@ -340,12 +340,12 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
       let host = findHostView(for: sourceView)
       hostView = host
       directAnchorChild = findDirectChild(of: host, containing: sourceView)
-      if host.fk_firstViewController == nil {
+      if host.fk_nearestViewController == nil {
         // We still allow presentation in Release by falling back to the caller-provided parent.
         // This keeps the anchor-host path safe and avoids crashes even in unusual view hierarchies.
         assertionFailure("FKAnchorHost: Failed to resolve parentViewController from hostView responder chain. Falling back to the presenting view controller as containment parent.")
       }
-      parentViewController = host.fk_firstViewController ?? fallbackParent
+      parentViewController = host.fk_nearestViewController ?? fallbackParent
     case let .inProvidedContainer(box):
       hostView = box.object
       if case let .view(anchorBox) = anchorConfiguration.anchor.source {
@@ -358,10 +358,10 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
       } else {
         directAnchorChild = nil
       }
-      if hostView?.fk_firstViewController == nil {
+      if hostView?.fk_nearestViewController == nil {
         assertionFailure("FKAnchorHost: Provided host container does not have a parent view controller in responder chain. Falling back to the presenting view controller as containment parent.")
       }
-      parentViewController = hostView?.fk_firstViewController ?? fallbackParent
+      parentViewController = hostView?.fk_nearestViewController ?? fallbackParent
     case .inWindowLevel:
       let win = presentingViewController?.view.window ?? UIApplication.shared.connectedScenes
         .compactMap { ($0 as? UIWindowScene)?.keyWindow }
@@ -384,7 +384,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
     if let window = sourceView.window {
       return window
     }
-    if let vc = sourceView.fk_firstViewController {
+    if let vc = sourceView.fk_nearestViewController {
       return vc.view
     }
     return sourceView

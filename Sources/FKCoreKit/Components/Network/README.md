@@ -65,8 +65,9 @@ Module layout (`Sources/FKCoreKit/Components/Network`):
 - `Config`: global runtime configuration and environments
 - `Model`: HTTP definitions, cache policies, endpoint and error models
 - `Tool`: cache, logger, deduplicator, reachability, service helpers
-- `Extension`: utility extensions (for example MD5)
 - `Examples`: ready-to-use sample code
+
+> String hashing helpers such as `fk_md5` live in `Components/Extension/Foundation/` for reuse across modules.
 
 Request flow:
 
