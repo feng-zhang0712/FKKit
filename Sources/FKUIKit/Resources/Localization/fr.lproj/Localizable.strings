@@ -68,6 +68,10 @@
 "fkuikit.expandable_text.accessibility.hint" = "Double appui pour basculer l'expansion.";
 "fkuikit.expandable_text.collapse" = "Réduire";
 "fkuikit.expandable_text.read_more" = "Lire la suite";
+"fkuikit.image.action.retry" = "Réessayer";
+"fkuikit.image.error.decode" = "Cette image n'a pas pu être affichée.";
+"fkuikit.image.error.network" = "Impossible de charger l'image.";
+"fkuikit.image.error.offline" = "Aucune connexion réseau.";
 "fkuikit.media.delivery.dash" = "DASH";
 "fkuikit.media.delivery.file" = "fichier";
 "fkuikit.media.delivery.hls_live" = "HLS direct";

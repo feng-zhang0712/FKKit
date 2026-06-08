@@ -68,6 +68,10 @@
 "fkuikit.expandable_text.accessibility.hint" = "Double-tap to toggle text expansion.";
 "fkuikit.expandable_text.collapse" = "Collapse";
 "fkuikit.expandable_text.read_more" = "Read more";
+"fkuikit.image.action.retry" = "Retry";
+"fkuikit.image.error.decode" = "This image could not be displayed.";
+"fkuikit.image.error.network" = "Unable to load image.";
+"fkuikit.image.error.offline" = "No network connection.";
 "fkuikit.media.delivery.dash" = "DASH";
 "fkuikit.media.delivery.file" = "file";
 "fkuikit.media.delivery.hls_live" = "HLS live";

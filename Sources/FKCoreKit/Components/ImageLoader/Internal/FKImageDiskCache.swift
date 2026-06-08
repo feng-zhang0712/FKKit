@@ -219,9 +219,8 @@ final class FKImageDiskCache: @unchecked Sendable {
     }
     cancelScheduledPersistLocked()
     let work = DispatchWorkItem { [weak self] in
-      self?.queue.sync {
-        self?.flushIndexIfDirtyLocked(force: true)
-      }
+      // Already running on `queue` via asyncAfter — do not re-enter with queue.sync.
+      self?.flushIndexIfDirtyLocked(force: true)
     }
     persistWorkItem = work
     queue.asyncAfter(deadline: .now() + persistDelay, execute: work)

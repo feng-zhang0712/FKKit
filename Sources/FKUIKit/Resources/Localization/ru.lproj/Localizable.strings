@@ -68,6 +68,10 @@
 "fkuikit.expandable_text.accessibility.hint" = "Дважды нажмите для переключения.";
 "fkuikit.expandable_text.collapse" = "Свернуть";
 "fkuikit.expandable_text.read_more" = "Читать далее";
+"fkuikit.image.action.retry" = "Повторить";
+"fkuikit.image.error.decode" = "Не удалось отобразить это изображение.";
+"fkuikit.image.error.network" = "Не удалось загрузить изображение.";
+"fkuikit.image.error.offline" = "Нет сетевого подключения.";
 "fkuikit.media.delivery.dash" = "DASH";
 "fkuikit.media.delivery.file" = "файл";
 "fkuikit.media.delivery.hls_live" = "HLS эфир";

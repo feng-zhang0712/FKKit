@@ -68,6 +68,10 @@
 "fkuikit.expandable_text.accessibility.hint" = "اضغط مرتين للتبديل.";
 "fkuikit.expandable_text.collapse" = "طي";
 "fkuikit.expandable_text.read_more" = "اقرأ المزيد";
+"fkuikit.image.action.retry" = "إعادة المحاولة";
+"fkuikit.image.error.decode" = "تعذر عرض هذه الصورة.";
+"fkuikit.image.error.network" = "تعذر تحميل الصورة.";
+"fkuikit.image.error.offline" = "لا يوجد اتصال بالشبكة.";
 "fkuikit.media.delivery.dash" = "DASH";
 "fkuikit.media.delivery.file" = "ملف";
 "fkuikit.media.delivery.hls_live" = "HLS مباشر";

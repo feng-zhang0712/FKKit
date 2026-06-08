@@ -120,4 +120,14 @@ Memory warnings call ``clearMemoryCache()`` automatically.
 
 - Pluggable contracts: `Components/Pluggable/Media/FKImageLoading.swift`
 - UIImage helpers: `Components/Extension/UIKit/UIImage.swift`
-- UI binding (separate component): `FKImageView` in FKUIKit (future)
+- UI binding: [FKImageView](../../FKUIKit/Components/ImageView/README.md) in FKUIKit
+
+## Examples (FKKitExamples)
+
+Loader scenarios live under **FKUIKit → ImageView** alongside `FKImageView` demos (`Examples/FKKitExamples/Examples/FKUIKit/ImageView/Scenarios/Loader/`):
+
+- **Async load & result** — `loadImage`, `loadImageResult`, `returnsSourceData`, Task cancellation
+- **Cache policies** — `default`, `reloadIgnoringCache`, `cacheOnly`, `excludesFromDiskCache`
+- **Prefetch API** — `prefetch(_:)`, `prefetch(urls:)`, `cancelPrefetch`
+- **Cache inspector** — `cachedImage`, `store`, `removeImage`, `removeAllImages`, `trimMemoryCache`, `cacheStatistics`
+- **Configuration & events** — `apply(_:)`, `onEvent`, `flushDiskCacheIndex`

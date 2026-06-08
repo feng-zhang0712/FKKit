@@ -68,6 +68,10 @@
 "fkuikit.expandable_text.accessibility.hint" = "双击以切换文本展开。";
 "fkuikit.expandable_text.collapse" = "收起";
 "fkuikit.expandable_text.read_more" = "展开";
+"fkuikit.image.action.retry" = "重试";
+"fkuikit.image.error.decode" = "无法显示此图片。";
+"fkuikit.image.error.network" = "无法加载图片。";
+"fkuikit.image.error.offline" = "无网络连接。";
 "fkuikit.media.delivery.dash" = "DASH";
 "fkuikit.media.delivery.file" = "文件";
 "fkuikit.media.delivery.hls_live" = "HLS 直播";
