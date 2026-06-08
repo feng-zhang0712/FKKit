@@ -84,6 +84,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKImageViewExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "ListKit",
+          subtitle: "Hub: diffable table/collection, refresh, presets, swipe, custom cells, mutations",
+          make: { FKListKitExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "PagingController",
           subtitle: "FKTabBar ↔ UIPageViewController sync: lazy/SwiftUI/delegate, RTL & gestures (Public/Internal/Extension)",
           make: { FKPagingControllerExamplesHubViewController() }

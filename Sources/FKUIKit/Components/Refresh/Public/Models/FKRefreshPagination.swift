@@ -17,4 +17,7 @@ public struct FKRefreshPagination: Equatable, Sendable {
   public mutating func advance() {
     page += 1
   }
+
+  /// Page index to request on the next load-more fetch (`page` is the last loaded page).
+  public var nextPage: Int { page + 1 }
 }
