@@ -19,6 +19,7 @@ private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/BusinessKit",
   "Components/FileManager",
   "Components/I18n",
+  "Components/ImageLoader",
   "Components/Logger",
   "Components/Network",
   "Components/Permissions",
