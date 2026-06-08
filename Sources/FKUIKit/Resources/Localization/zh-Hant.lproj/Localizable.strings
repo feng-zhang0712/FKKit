@@ -105,6 +105,9 @@
 "fkuikit.media.feature.photo_asset_resolver" = "photoAsset 解析器";
 "fkuikit.media.feature.share_play" = "SharePlay / GroupActivities";
 "fkuikit.paging.no_pages" = "無頁面";
+"fkuikit.carousel.accessibility.position" = "Slide %lld of %lld";
+"fkuikit.carousel.accessibility.slide" = "Slide";
+"fkuikit.carousel.indicator.fraction" = "%lld / %lld";
 "fkuikit.progressbar.a11y_buffer" = "%1$@ 進度，%2$@ 已緩衝";
 "fkuikit.progressbar.a11y_percent" = "%lld%%";
 "fkuikit.progressbar.in_progress" = "進行中";

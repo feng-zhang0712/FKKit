@@ -105,6 +105,9 @@
 "fkuikit.media.feature.photo_asset_resolver" = "محلل photoAsset";
 "fkuikit.media.feature.share_play" = "SharePlay / GroupActivities";
 "fkuikit.paging.no_pages" = "لا توجد صفحات";
+"fkuikit.carousel.accessibility.position" = "Slide %lld of %lld";
+"fkuikit.carousel.accessibility.slide" = "Slide";
+"fkuikit.carousel.indicator.fraction" = "%lld / %lld";
 "fkuikit.progressbar.a11y_buffer" = "%1$@ تقدم، %2$@ مخزن مؤقتًا";
 "fkuikit.progressbar.a11y_percent" = "%lld بالمئة";
 "fkuikit.progressbar.in_progress" = "قيد التقدم";

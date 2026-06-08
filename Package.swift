@@ -35,6 +35,7 @@ private let fkUIKitComponentDocDirectories: [String] = [
   "Components/Badge",
   "Components/BlurView",
   "Components/Button",
+  "Components/Carousel",
   "Components/Callout",
   "Components/CornerShadow",
   "Components/Divider",

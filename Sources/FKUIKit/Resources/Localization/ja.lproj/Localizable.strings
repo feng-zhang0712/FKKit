@@ -105,6 +105,9 @@
 "fkuikit.media.feature.photo_asset_resolver" = "photoAsset リゾルバ";
 "fkuikit.media.feature.share_play" = "SharePlay / GroupActivities";
 "fkuikit.paging.no_pages" = "ページがありません";
+"fkuikit.carousel.accessibility.position" = "Slide %lld of %lld";
+"fkuikit.carousel.accessibility.slide" = "Slide";
+"fkuikit.carousel.indicator.fraction" = "%lld / %lld";
 "fkuikit.progressbar.a11y_buffer" = "%1$@ 進捗、%2$@ バッファ済み";
 "fkuikit.progressbar.a11y_percent" = "%lld パーセント";
 "fkuikit.progressbar.in_progress" = "進行中";

@@ -105,6 +105,9 @@
 "fkuikit.media.feature.photo_asset_resolver" = "photoAsset 리졸버";
 "fkuikit.media.feature.share_play" = "SharePlay / GroupActivities";
 "fkuikit.paging.no_pages" = "페이지 없음";
+"fkuikit.carousel.accessibility.position" = "Slide %lld of %lld";
+"fkuikit.carousel.accessibility.slide" = "Slide";
+"fkuikit.carousel.indicator.fraction" = "%lld / %lld";
 "fkuikit.progressbar.a11y_buffer" = "%1$@ 진행, %2$@ 버퍼됨";
 "fkuikit.progressbar.a11y_percent" = "%lld%%";
 "fkuikit.progressbar.in_progress" = "진행 중";

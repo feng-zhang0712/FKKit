@@ -49,6 +49,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKCalloutExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "Carousel",
+          subtitle: "Hub: FKImageBanner heroes, FKCarousel layouts, indicators, auto-scroll, SwiftUI, RTL",
+          make: { FKCarouselExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "CornerShadow",
           subtitle: "Any-corner radius + high-performance shadow (path based)",
           make: { FKCornerShadowExamplesHubViewController() }

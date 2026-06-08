@@ -105,6 +105,9 @@
 "fkuikit.media.feature.photo_asset_resolver" = "résolveur photoAsset";
 "fkuikit.media.feature.share_play" = "SharePlay / GroupActivities";
 "fkuikit.paging.no_pages" = "Aucune page";
+"fkuikit.carousel.accessibility.position" = "Slide %lld of %lld";
+"fkuikit.carousel.accessibility.slide" = "Slide";
+"fkuikit.carousel.indicator.fraction" = "%lld / %lld";
 "fkuikit.progressbar.a11y_buffer" = "%1$@ de progression, %2$@ en mémoire tampon";
 "fkuikit.progressbar.a11y_percent" = "%lld pour cent";
 "fkuikit.progressbar.in_progress" = "En cours";
