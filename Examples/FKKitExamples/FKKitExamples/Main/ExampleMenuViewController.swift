@@ -128,6 +128,11 @@ final class ExampleMenuViewController: UITableViewController {
           subtitle: "Global Toast/HUD/Snackbar hints with queueing, styles, positions, custom view, and SwiftUI support",
           make: { FKToastExamplesHubViewController() }
         ),
+        ExampleMenuItem(
+          title: "WebView",
+          subtitle: "Hub: HTTPS load, chrome, progress, errors, policy, JS bridge, OAuth, SwiftUI, sheet, ephemeral store",
+          make: { FKWebViewExamplesHubViewController() }
+        ),
       ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),
     KitEntry(

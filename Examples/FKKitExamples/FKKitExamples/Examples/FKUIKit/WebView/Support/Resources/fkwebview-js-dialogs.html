@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JS Dialogs</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; padding: 24px; }
+    button { display: block; margin: 12px 0; font-size: 1rem; padding: 10px 14px; }
+    #status { margin-top: 16px; font-size: 0.9rem; color: #666; }
+  </style>
+</head>
+<body>
+  <h1>JavaScript dialogs</h1>
+  <button type="button" id="btn-alert">Alert</button>
+  <button type="button" id="btn-confirm">Confirm</button>
+  <button type="button" id="btn-prompt">Prompt</button>
+  <p id="status">Tap a button to trigger alert / confirm / prompt.</p>
+  <script>
+    function setStatus(text) {
+      document.getElementById('status').textContent = text;
+    }
+
+    document.getElementById('btn-alert').addEventListener('click', function () {
+      alert('Hello from the page');
+      setStatus('Alert dismissed');
+    });
+
+    document.getElementById('btn-confirm').addEventListener('click', function () {
+      if (confirm('Proceed?')) {
+        alert('Confirmed');
+        setStatus('Confirm: OK');
+      } else {
+        setStatus('Confirm: cancel');
+      }
+    });
+
+    document.getElementById('btn-prompt').addEventListener('click', function () {
+      var name = prompt('Your name?', '');
+      if (name) {
+        alert('Hi ' + name);
+        setStatus('Prompt: ' + name);
+      } else {
+        setStatus('Prompt Cancel');
+      }
+    });
+  </script>
+</body>
+</html>

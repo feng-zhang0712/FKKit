@@ -53,6 +53,7 @@ private let fkUIKitComponentDocDirectories: [String] = [
   "Components/TabBar",
   "Components/TextField",
   "Components/Toast",
+  "Components/WebView",
 ]
 
 // MARK: - Package
