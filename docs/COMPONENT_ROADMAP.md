@@ -13,6 +13,7 @@ Planning document for upcoming FKKit version iterations: new component integrati
 
 - [Purpose](#purpose)
 - [Scope & Constraints](#scope--constraints)
+- [Component Source Layout Policy](#component-source-layout-policy)
 - [Analysis Methodology](#analysis-methodology)
 - [Current Capability Inventory](#current-capability-inventory)
 - [Gap Summary](#gap-summary)
@@ -60,6 +61,22 @@ This document is **planning only**. Implementation order may shift based on comm
 | **Examples** | Every new public capability demonstrated in `FKKitExamples` (hub + one scenario per major feature). |
 | **Tests** | Not required by default unless explicitly requested; CI compile verify is mandatory. |
 | **Breaking changes** | Follow semver; document in `CHANGELOG.md`; bump `FKPluggable.contractVersion` when protocol contracts change. |
+
+---
+
+## Component Source Layout Policy
+
+Component design documents under `docs/` (for example `FKImageLoader-FKImageView_DESIGN.md`) include **proposed** source trees—often using `Public/`, `Internal/`, and `Extension/` folders. Those trees illustrate one reasonable organization. They are **recommendations**, not binding templates.
+
+When implementing or shipping a component:
+
+1. **Adapt the layout** to the component’s complexity and domain. Small widgets may use a flatter tree; large stacks may group by feature, layer, or API area (mirror neighbors such as `Button`, `Refresh`, or `Pluggable/` rather than copying a design doc verbatim).
+2. **Do not treat** `Public/` / `Internal/` / `Extension/` as mandatory. Use them only when they improve clarity; FKKit does not enforce a single folder scheme across all components.
+3. **Document the chosen layout** in the component `README.md` (folder → responsibility table or tree). That README is the normative reference for integrators.
+4. **Preserve discoverability:** public API easy to find; implementation details non-public (`internal` / `private`).
+5. **Follow FKKit quality bar:** English `///` on public members, `Sendable`/`Equatable` configs where appropriate, `@MainActor` for UIKit work, reuse existing `FKCoreKit` / `FKUIKit` helpers, `Package.swift` `exclude:` for README paths under `Sources/`.
+
+The [Per-Component Delivery Checklist](#per-component-delivery-checklist) item *“Directory layout documented in component README”* is the enforceable gate—not literal match to a design document tree.
 
 ---
 
@@ -684,7 +701,7 @@ Each phase should:
 Copy for every new component PR:
 
 - [ ] Module placement correct (`FKCoreKit` vs `FKUIKit`)
-- [ ] Directory layout documented in component `README.md` (folder → responsibility table)
+- [ ] Directory layout documented in component `README.md` (folder → responsibility table); design-doc trees are advisory only ([Component Source Layout Policy](#component-source-layout-policy))
 - [ ] All public types have English `///` doc comments
 - [ ] Configuration structs are `Sendable` / `Equatable` where appropriate
 - [ ] UI types marked `@MainActor` where touching UIKit
