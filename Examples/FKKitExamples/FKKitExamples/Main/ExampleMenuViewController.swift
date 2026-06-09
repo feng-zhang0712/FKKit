@@ -155,6 +155,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKAsyncExampleViewController() }
         ),
         ExampleMenuItem(
+          title: "BiometricAuth",
+          subtitle: "Hub: capability, policies, reuse window, cancellation, mock, Keychain unlock pattern",
+          make: { FKBiometricAuthExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "BusinessKit",
           subtitle: "Version, tracking, i18n, lifecycle, deeplink, device info, business utils",
           make: { FKBusinessKitExampleViewController() }
