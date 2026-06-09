@@ -128,6 +128,17 @@ extension FKContainerSheetPresentationController {
     let velocity = pan.velocity(in: containerView)
     guard abs(velocity.y) >= abs(velocity.x) else { return false }
 
+    if case .center(_) = configuration.layout {
+      return FKSheetPresentationSheetInteractionContext.shouldCenterPanDismissBegin(
+        recognizer: pan,
+        wrapperView: wrapperView,
+        contentContainerFrame: contentContainerView.frame,
+        trackedScrollView: resolvedTrackedScrollView(),
+        hostedContentView: hostedPresentedView,
+        verticalVelocity: velocity.y
+      )
+    }
+
     guard let trackedScrollView = resolvedTrackedScrollView(),
           let environment = sheetInteractionEnvironment(in: containerView) else { return true }
 

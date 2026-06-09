@@ -1,6 +1,11 @@
 /* FKUIKit localization — fr */
 
 "fkuikit.actionsheet.destructive_hint" = "Cette action est irréversible.";
+"fkuikit.alert.confirmation_disabled" = "Confirmation requise avant de continuer.";
+"fkuikit.alert.confirmation_enabled" = "Confirmation activée.";
+"fkuikit.alert.destructive_hint" = "Cette action est irréversible.";
+"fkuikit.alert.destructive_requires_confirmation" = "Activez d'abord l'interrupteur de confirmation.";
+"fkuikit.alert.dangerous_checkbox_default" = "Je comprends que cette action est irréversible.";
 "fkuikit.actionsheet.error.already_presented" = "La feuille est déjà affichée.";
 "fkuikit.actionsheet.error.empty_loading" = "Activez l'indicateur ou fournissez un texte.";
 "fkuikit.actionsheet.error.multiple_cancel" = "Une seule action d'annulation.";

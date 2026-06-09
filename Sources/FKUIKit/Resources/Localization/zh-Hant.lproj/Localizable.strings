@@ -1,6 +1,11 @@
 /* FKUIKit localization — zh-Hant */
 
 "fkuikit.actionsheet.destructive_hint" = "此操作無法撤銷。";
+"fkuikit.alert.confirmation_disabled" = "請先確認後再繼續。";
+"fkuikit.alert.confirmation_enabled" = "已確認，可以繼續。";
+"fkuikit.alert.destructive_hint" = "此操作無法撤銷。";
+"fkuikit.alert.destructive_requires_confirmation" = "請先開啟確認開關。";
+"fkuikit.alert.dangerous_checkbox_default" = "我了解此操作無法撤銷。";
 "fkuikit.actionsheet.error.already_presented" = "操作表已在展示中。";
 "fkuikit.actionsheet.error.empty_loading" = "請啟用活動指示器或提供載入標題/訊息。";
 "fkuikit.actionsheet.error.multiple_cancel" = "只允許一個取消操作。";

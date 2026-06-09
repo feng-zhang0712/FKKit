@@ -24,6 +24,11 @@ final class ExampleMenuViewController: UITableViewController {
       subtitle: "Foundational UI components and presentation infrastructure",
       items: [
         ExampleMenuItem(
+          title: "Alert",
+          subtitle: "Hub: centered confirm, text input, queue/dedup, dangerous actions, presentation policy, SwiftUI",
+          make: { FKAlertExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "ActionSheet",
           subtitle: "Hub: basics, appearance, selection, custom rows, toggle, lifecycle, live updates, presentation, builder, SwiftUI",
           make: { FKActionSheetExamplesHubViewController() }

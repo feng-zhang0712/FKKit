@@ -86,7 +86,14 @@ extension FKContainerSheetPresentationController {
         self.performInteractiveDismiss(velocityY: velocityY, completionFraction: 1)
       },
       dismissProgressThreshold: { [weak self] in self?.configuration.center.dismissProgressThreshold ?? 0.5 },
-      dismissVelocityThreshold: { [weak self] in self?.configuration.center.dismissVelocityThreshold ?? 900 }
+      dismissVelocityThreshold: { [weak self] in self?.configuration.center.dismissVelocityThreshold ?? 900 },
+      trackedScrollView: { [weak self] in self?.resolvedTrackedScrollView() },
+      shouldDeferToScrollView: { [weak self] translationY in
+        FKSheetPresentationSheetInteractionContext.shouldCenterPanDeferToScrollView(
+          trackedScrollView: self?.resolvedTrackedScrollView(),
+          translationY: translationY
+        )
+      }
     )
   }
 }

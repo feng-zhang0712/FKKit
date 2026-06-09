@@ -390,6 +390,67 @@ enum FKSheetPresentationInteractionEngine {
     }
   }
 
+  /// Whether a center-card dismiss pan should begin for the current touch.
+  ///
+  /// When a scroll view is tracked, swipe-to-dismiss is limited to downward drags on that scroller at its top edge.
+  /// Otherwise dismissal drags are allowed on non-interactive chrome only (not buttons or text inputs).
+  static func shouldCenterPanDismissBegin(
+    recognizer: UIPanGestureRecognizer,
+    wrapperView: UIView,
+    contentContainerFrame: CGRect,
+    trackedScrollView: UIScrollView?,
+    hostedContentView: UIView?,
+    verticalVelocity: CGFloat
+  ) -> Bool {
+    if let trackedScrollView,
+       !trackedScrollView.isHidden,
+       trackedScrollView.alpha > 0.01,
+       !trackedScrollView.bounds.isEmpty {
+      let touchInWrapper = recognizer.location(in: wrapperView)
+      guard contentContainerFrame.contains(touchInWrapper) else { return true }
+
+      let touchInScroll = recognizer.location(in: trackedScrollView)
+      guard touchIsInsideScrollView(trackedScrollView, location: touchInScroll) else { return false }
+
+      return shouldCenterPanDismissBegin(
+        scrollView: trackedScrollView,
+        verticalVelocity: verticalVelocity
+      )
+    }
+
+    guard let hostedContentView else { return true }
+    return !touchIsOnInteractiveControl(recognizer: recognizer, in: hostedContentView)
+  }
+
+  /// Whether a center-card dismiss pan should begin for a touch on the tracked scroll view.
+  ///
+  /// Swipe-to-dismiss is allowed only when the scroll view is at its top edge; upward drags stay with scrolling.
+  static func shouldCenterPanDismissBegin(
+    scrollView: UIScrollView,
+    verticalVelocity: CGFloat
+  ) -> Bool {
+    guard isScrollViewAtTopEdge(scrollView) else { return false }
+    if verticalVelocity < -100 { return false }
+    return true
+  }
+
+  /// Whether an active center-card dismiss pan should defer to the tracked scroll view.
+  ///
+  /// Upward drags and any pan while the scroll view is not pinned to its top edge belong to scrolling.
+  /// Downward drags at the top edge may transfer to interactive dismiss.
+  static func shouldCenterPanDeferToScrollView(
+    scrollView: UIScrollView,
+    translationY: CGFloat
+  ) -> Bool {
+    if translationY < 0 { return true }
+    if !isScrollViewAtTopEdge(scrollView) { return true }
+    return translationY <= 0
+  }
+
+  static func isScrollViewAtTopEdge(_ scrollView: UIScrollView) -> Bool {
+    scrollView.contentOffset.y <= -scrollView.adjustedContentInset.top + 0.5
+  }
+
   /// Whether scroll handoff should be skipped for the current pan (touch on sheet chrome / grabber band).
   static func shouldBypassScrollHandoffForPan(
     touchLocationInWrapper: CGPoint,
@@ -403,6 +464,19 @@ enum FKSheetPresentationInteractionEngine {
 
   private static func touchIsInsideScrollView(_ scrollView: UIScrollView, location: CGPoint) -> Bool {
     scrollView.bounds.contains(location)
+  }
+
+  private static func touchIsOnInteractiveControl(
+    recognizer: UIPanGestureRecognizer,
+    in rootView: UIView
+  ) -> Bool {
+    let location = recognizer.location(in: rootView)
+    var view = rootView.hitTest(location, with: nil)
+    while let current = view, current !== rootView {
+      if current is UIControl { return true }
+      view = current.superview
+    }
+    return false
   }
 
   // MARK: - Private

@@ -120,7 +120,14 @@ extension FKOverlayPresentationViewController {
         self?.performInteractiveDismiss(velocityY: velocityY)
       },
       dismissProgressThreshold: { [weak self] in self?.configuration.center.dismissProgressThreshold ?? 0.5 },
-      dismissVelocityThreshold: { [weak self] in self?.configuration.center.dismissVelocityThreshold ?? 900 }
+      dismissVelocityThreshold: { [weak self] in self?.configuration.center.dismissVelocityThreshold ?? 900 },
+      trackedScrollView: { [weak self] in self?.resolvedTrackedScrollView() },
+      shouldDeferToScrollView: { [weak self] translationY in
+        FKSheetPresentationSheetInteractionContext.shouldCenterPanDeferToScrollView(
+          trackedScrollView: self?.resolvedTrackedScrollView(),
+          translationY: translationY
+        )
+      }
     )
   }
 
@@ -179,6 +186,17 @@ extension FKOverlayPresentationViewController {
     guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return true }
     let velocity = pan.velocity(in: view)
     guard abs(velocity.y) >= abs(velocity.x) else { return false }
+
+    if case .center(_) = configuration.layout {
+      return FKSheetPresentationSheetInteractionContext.shouldCenterPanDismissBegin(
+        recognizer: pan,
+        wrapperView: wrapperView,
+        contentContainerFrame: contentContainerView.frame,
+        trackedScrollView: resolvedTrackedScrollView(),
+        hostedContentView: children.first?.view,
+        verticalVelocity: velocity.y
+      )
+    }
 
     guard let trackedScrollView = resolvedTrackedScrollView(),
           let environment = sheetInteractionEnvironment() else { return true }

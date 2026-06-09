@@ -33,6 +33,7 @@ private let fkCoreKitModuleDocDirectories: [String] = [
 /// FKUIKit component docs (`Sources/FKUIKit/Components/…/README.md`), including nested Player modules.
 private let fkUIKitComponentDocDirectories: [String] = [
   "Components/ActionSheet",
+  "Components/Alert",
   "Components/Badge",
   "Components/BlurView",
   "Components/Button",

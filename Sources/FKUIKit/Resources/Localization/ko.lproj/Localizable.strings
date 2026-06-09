@@ -1,6 +1,11 @@
 /* FKUIKit localization — ko */
 
 "fkuikit.actionsheet.destructive_hint" = "이 작업은 취소할 수 없습니다.";
+"fkuikit.alert.confirmation_disabled" = "계속하려면 확인이 필요합니다.";
+"fkuikit.alert.confirmation_enabled" = "확인되었습니다.";
+"fkuikit.alert.destructive_hint" = "이 작업은 취소할 수 없습니다.";
+"fkuikit.alert.destructive_requires_confirmation" = "먼저 확인 스위치를 켜 주세요.";
+"fkuikit.alert.dangerous_checkbox_default" = "취소할 수 없음을 이해합니다.";
 "fkuikit.actionsheet.error.already_presented" = "시트가 이미 표시 중입니다.";
 "fkuikit.actionsheet.error.empty_loading" = "인디케이터를 켜거나 로딩 텍스트를 제공하세요.";
 "fkuikit.actionsheet.error.multiple_cancel" = "취소 작업은 하나만 허용됩니다.";

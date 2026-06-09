@@ -1,6 +1,11 @@
 /* FKUIKit localization — en */
 
 "fkuikit.actionsheet.destructive_hint" = "This action cannot be undone.";
+"fkuikit.alert.confirmation_disabled" = "Confirmation required before continuing.";
+"fkuikit.alert.confirmation_enabled" = "Confirmation enabled.";
+"fkuikit.alert.destructive_hint" = "This action cannot be undone.";
+"fkuikit.alert.destructive_requires_confirmation" = "Enable the confirmation switch first.";
+"fkuikit.alert.dangerous_checkbox_default" = "I understand this cannot be undone.";
 "fkuikit.actionsheet.error.already_presented" = "This action sheet is already presented.";
 "fkuikit.actionsheet.error.empty_loading" = "Enable the activity indicator or provide loading title or message text.";
 "fkuikit.actionsheet.error.multiple_cancel" = "Only one cancel action is allowed.";
