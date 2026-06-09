@@ -42,6 +42,9 @@
 "fkuikit.common.cancelled" = "تم الإلغاء";
 "fkuikit.common.loading" = "جارٍ التحميل…";
 "fkuikit.common.ok" = "موافق";
+"fkuikit.search.clear_label" = "مسح النص";
+"fkuikit.search.cleared" = "تم مسح البحث";
+"fkuikit.search.loading_finished" = "اكتمل البحث";
 "fkuikit.empty.action.retry" = "إعادة المحاولة";
 "fkuikit.empty.noResults.title" = "لا توجد نتائج";
 "fkuikit.empty.permissionDenied.description" = "ليس لديك إذن.";

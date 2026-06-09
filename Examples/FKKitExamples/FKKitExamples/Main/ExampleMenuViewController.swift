@@ -99,6 +99,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKPagingControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "SearchBar",
+          subtitle: "Hub: FKSearchBar & FKSearchField — debounce, nav/inline, loading, cancel, table+empty, SwiftUI",
+          make: { FKSearchExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "SheetPresentationController",
           subtitle: "Custom SheetPresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
           make: { FKSheetPresentationControllerExamplesHubViewController() }

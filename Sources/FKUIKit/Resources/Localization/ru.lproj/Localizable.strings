@@ -42,6 +42,9 @@
 "fkuikit.common.cancelled" = "Отменено";
 "fkuikit.common.loading" = "Загрузка…";
 "fkuikit.common.ok" = "OK";
+"fkuikit.search.clear_label" = "Очистить текст";
+"fkuikit.search.cleared" = "Поиск очищен";
+"fkuikit.search.loading_finished" = "Поиск завершен";
 "fkuikit.empty.action.retry" = "Повторить";
 "fkuikit.empty.noResults.title" = "Нет результатов";
 "fkuikit.empty.permissionDenied.description" = "Нет разрешения.";

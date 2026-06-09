@@ -42,6 +42,9 @@
 "fkuikit.common.cancelled" = "취소됨";
 "fkuikit.common.loading" = "로딩 중…";
 "fkuikit.common.ok" = "확인";
+"fkuikit.search.clear_label" = "텍스트 지우기";
+"fkuikit.search.cleared" = "검색 지움";
+"fkuikit.search.loading_finished" = "검색 완료";
 "fkuikit.empty.action.retry" = "다시 시도";
 "fkuikit.empty.noResults.title" = "결과 없음";
 "fkuikit.empty.permissionDenied.description" = "이 콘텐츠를 볼 권한이 없습니다.";

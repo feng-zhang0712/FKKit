@@ -42,6 +42,9 @@
 "fkuikit.common.cancelled" = "Annulé";
 "fkuikit.common.loading" = "Chargement…";
 "fkuikit.common.ok" = "OK";
+"fkuikit.search.clear_label" = "Effacer le texte";
+"fkuikit.search.cleared" = "Recherche effacée";
+"fkuikit.search.loading_finished" = "Recherche terminée";
 "fkuikit.empty.action.retry" = "Réessayer";
 "fkuikit.empty.noResults.title" = "Aucun résultat";
 "fkuikit.empty.permissionDenied.description" = "Vous n'avez pas la permission.";

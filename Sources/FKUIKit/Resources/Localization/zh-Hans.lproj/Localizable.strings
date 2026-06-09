@@ -42,6 +42,9 @@
 "fkuikit.common.cancelled" = "已取消";
 "fkuikit.common.loading" = "加载中…";
 "fkuikit.common.ok" = "确定";
+"fkuikit.search.clear_label" = "清除文字";
+"fkuikit.search.cleared" = "已清除搜索";
+"fkuikit.search.loading_finished" = "搜索完成";
 "fkuikit.empty.action.retry" = "重试";
 "fkuikit.empty.noResults.title" = "未找到结果";
 "fkuikit.empty.permissionDenied.description" = "你没有权限查看此内容。";
