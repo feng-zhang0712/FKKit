@@ -49,6 +49,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKCalloutExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "Carousel",
+          subtitle: "Hub: FKImageBanner heroes, FKCarousel layouts, indicators, auto-scroll, SwiftUI, RTL",
+          make: { FKCarouselExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "CornerShadow",
           subtitle: "Any-corner radius + high-performance shadow (path based)",
           make: { FKCornerShadowExamplesHubViewController() }
@@ -69,6 +74,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKExpandableTextExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "FlowVisualization",
+          subtitle: "Hub: FKStepIndicator & FKTimeline — checkout, logistics, layouts, states, SwiftUI, RTL",
+          make: { FKFlowVisualizationExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "VideoPlayer",
           subtitle: "Hub: VOD/HLS/live, playlist, subtitles, feed pool, offline, ads, QoE, SwiftUI",
           make: { FKVideoPlayerExamplesHubViewController() }
@@ -79,9 +89,24 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKAudioPlayerExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "ImageView",
+          subtitle: "Hub: FKImageView (profiles, placeholders, chrome, reuse, SwiftUI) + FKImageLoader",
+          make: { FKImageViewExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "PhotoPicker",
+          subtitle: "Hub: library/camera pick, presets, multi-select, delivery, video, permissions, SwiftUI",
+          make: { FKPhotoPickerExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "PagingController",
           subtitle: "FKTabBar ↔ UIPageViewController sync: lazy/SwiftUI/delegate, RTL & gestures (Public/Internal/Extension)",
           make: { FKPagingControllerExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "SearchBar",
+          subtitle: "Hub: FKSearchBar & FKSearchField — debounce, nav/inline, loading, cancel, table+empty, SwiftUI",
+          make: { FKSearchExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "SheetPresentationController",
@@ -123,6 +148,11 @@ final class ExampleMenuViewController: UITableViewController {
           subtitle: "Global Toast/HUD/Snackbar hints with queueing, styles, positions, custom view, and SwiftUI support",
           make: { FKToastExamplesHubViewController() }
         ),
+        ExampleMenuItem(
+          title: "WebView",
+          subtitle: "Hub: HTTPS load, chrome, progress, errors, policy, JS bridge, OAuth, SwiftUI, sheet, ephemeral store",
+          make: { FKWebViewExamplesHubViewController() }
+        ),
       ].sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
     ),
     KitEntry(
@@ -133,6 +163,11 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Async",
           subtitle: "Main/background dispatch, delay cancel, debounce, throttle, groups, executors",
           make: { FKAsyncExampleViewController() }
+        ),
+        ExampleMenuItem(
+          title: "BiometricAuth",
+          subtitle: "Hub: capability, policies, reuse window, cancellation, mock, Keychain unlock pattern",
+          make: { FKBiometricAuthExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "BusinessKit",

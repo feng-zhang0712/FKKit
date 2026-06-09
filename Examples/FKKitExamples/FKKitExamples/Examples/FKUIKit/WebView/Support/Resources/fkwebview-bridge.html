@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JavaScript Bridge</title>
+  <style>
+    :root { --accent: #007aff; --card: #f2f2f7; }
+    body { font-family: -apple-system, sans-serif; padding: 16px; line-height: 1.45; margin: 0; }
+    h1 { font-size: 1.35rem; margin: 0 0 8px; }
+    h2 { font-size: 0.95rem; margin: 20px 0 8px; color: #333; }
+    p, .hint { font-size: 0.85rem; color: #666; margin: 0 0 8px; }
+    button {
+      display: block; width: 100%; box-sizing: border-box;
+      font-size: 0.95rem; padding: 10px 12px; margin: 6px 0;
+      border: none; border-radius: 10px; background: var(--card); text-align: left;
+    }
+    button.primary { background: var(--accent); color: #fff; text-align: center; }
+    code { font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>JavaScript Bridge</h1>
+  <p class="hint">JS → native via <code>webkit.messageHandlers</code>. Native → JS via <code>evaluateJavaScript</code> calling <code>FKBridge.onNativeEvent</code>.</p>
+
+  <h2>JS → Native (fkDemo)</h2>
+  <button type="button" class="primary" onclick="sendPing()">Ping (simple JSON)</button>
+  <button type="button" onclick="submitOrder()">Submit order (nested JSON)</button>
+  <button type="button" onclick="requestProfile()">Request profile (native replies)</button>
+
+  <h2>JS → Native (fkAnalytics)</h2>
+  <button type="button" onclick="trackPageView()">Track page view (second handler)</button>
+
+  <h2>Native → JS (live state)</h2>
+  <p id="native-state" class="hint">Waiting for native push…</p>
+
+  <h2>Page log</h2>
+  <pre id="log" style="font-size:0.8rem;white-space:pre-wrap;background:var(--card);padding:10px;border-radius:8px;margin:0;">Ready.</pre>
+
+  <script>
+    window.FKBridge = {
+      onNativeEvent: function(payload) {
+        appendLog('← native: ' + JSON.stringify(payload));
+        if (payload.type === 'theme' || payload.type === 'profile' || payload.type === 'ready') {
+          renderNativeState(payload);
+        }
+        if (payload.type === 'profileResponse' && payload.requestId) {
+          document.getElementById('native-state').textContent =
+            'Profile for ' + payload.requestId + ': ' + JSON.stringify(payload.profile);
+        }
+      }
+    };
+
+    function sendPing() {
+      postDemo({ action: 'ping', ts: Date.now() });
+    }
+
+    function submitOrder() {
+      postDemo({
+        action: 'submitOrder',
+        requestId: 'ord-' + Date.now(),
+        order: {
+          id: 'SKU-42',
+          quantity: 2,
+          tags: ['demo', 'hybrid'],
+          meta: { currency: 'USD', total: 19.98 }
+        }
+      });
+    }
+
+    function requestProfile() {
+      var requestId = 'req-' + Date.now();
+      appendLog('→ getProfile requestId=' + requestId);
+      postDemo({ action: 'getProfile', requestId: requestId });
+    }
+
+    function trackPageView() {
+      window.webkit.messageHandlers.fkAnalytics.postMessage({
+        event: 'page_view',
+        screen: 'javascript_bridge',
+        properties: { referrer: 'fkkit_examples', scrollDepth: 0 }
+      });
+    }
+
+    function postDemo(body) {
+      appendLog('→ fkDemo: ' + JSON.stringify(body));
+      window.webkit.messageHandlers.fkDemo.postMessage(body);
+    }
+
+    function appendLog(line) {
+      var el = document.getElementById('log');
+      el.textContent += '\n' + line;
+    }
+
+    function renderNativeState(payload) {
+      var el = document.getElementById('native-state');
+      if (payload.type === 'theme') {
+        el.textContent = 'Theme: ' + payload.value + ' (pushed at ' + new Date(payload.timestamp * 1000).toLocaleTimeString() + ')';
+        document.documentElement.style.setProperty('--accent', payload.value === 'dark' ? '#0a84ff' : '#007aff');
+      } else if (payload.type === 'profile') {
+        el.textContent = 'Signed in as ' + payload.profile.displayName + ' (' + payload.profile.tier + ')';
+      } else if (payload.type === 'ready') {
+        el.textContent = 'Bridge ready · platform ' + payload.platform;
+      }
+    }
+  </script>
+</body>
+</html>
