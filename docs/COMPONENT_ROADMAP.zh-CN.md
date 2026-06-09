@@ -5,7 +5,6 @@
 **状态：** 草案（活文档，分支 `docs/component-roadmap`）  
 **代码库审阅基准：** `develop` 基线  
 **读者：** 维护者、贡献者，以及规划跨版本接入的集成方。  
-**English version:** [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md)
 
 ---
 
@@ -210,7 +209,7 @@ public enum FKImageViewState: Equatable { case idle, loading, success, failure }
 - SwiftUI 封装（`FKImageViewRepresentable`）。
 
 
-**详细设计需求：** [FKImageLoader-FKImageView_DESIGN.zh-CN.md](FKImageLoader-FKImageView_DESIGN.zh-CN.md) · [English](FKImageLoader-FKImageView_DESIGN.md)
+**详细设计需求：** [FKImageLoader-FKImageView_DESIGN.zh-CN.md](FKImageLoader-FKImageView_DESIGN.zh-CN.md)
 
 ---
 
@@ -256,7 +255,7 @@ public enum FKImageViewState: Equatable { case idle, loading, success, failure }
 - 错误态 + 重试按钮。
 
 
-**详细设计需求：** [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md) · [English](FKListKit_DESIGN.md)
+**详细设计需求：** [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md)
 
 ---
 
@@ -296,7 +295,7 @@ public struct FKSearchBarCallbacks: @unchecked Sendable { ... } // textChanged, 
 - 嵌入导航栏 vs 内容区行内。
 
 
-**详细设计需求：** [FKSearchBar-FKSearchField_DESIGN.zh-CN.md](FKSearchBar-FKSearchField_DESIGN.zh-CN.md) · [English](FKSearchBar-FKSearchField_DESIGN.md)
+**详细设计需求：** [FKSearchBar-FKSearchField_DESIGN.zh-CN.md](FKSearchBar-FKSearchField_DESIGN.zh-CN.md)
 
 ---
 
@@ -337,7 +336,7 @@ public struct FKSearchBarCallbacks: @unchecked Sendable { ... } // textChanged, 
 - 与 ActionSheet Toggle 行对比（文档说明选用场景）。
 
 
-**详细设计需求：** [FKFormControls_DESIGN.zh-CN.md](FKFormControls_DESIGN.zh-CN.md) · [English](FKFormControls_DESIGN.md)
+**详细设计需求：** [FKFormControls_DESIGN.zh-CN.md](FKFormControls_DESIGN.zh-CN.md)
 
 ---
 
@@ -369,7 +368,7 @@ public struct FKSearchBarCallbacks: @unchecked Sendable { ... } // textChanged, 
 - 堆叠 Alert / 按 ID 去重。
 
 
-**详细设计需求：** [FKAlert_DESIGN.zh-CN.md](FKAlert_DESIGN.zh-CN.md) · [English](FKAlert_DESIGN.md)
+**详细设计需求：** [FKAlert_DESIGN.zh-CN.md](FKAlert_DESIGN.zh-CN.md)
 
 ---
 
@@ -412,7 +411,7 @@ public struct FKWebViewNavigationPolicy: Sendable { ... }
 - 错误与重试。
 
 
-**详细设计需求：** [FKWebView_DESIGN.zh-CN.md](FKWebView_DESIGN.zh-CN.md) · [English](FKWebView_DESIGN.md)
+**详细设计需求：** [FKWebView_DESIGN.zh-CN.md](FKWebView_DESIGN.zh-CN.md)
 
 ---
 
@@ -448,7 +447,7 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 - 用户取消与锁定处理。
 
 
-**详细设计需求：** [FKBiometricAuth_DESIGN.zh-CN.md](FKBiometricAuth_DESIGN.zh-CN.md) · [English](FKBiometricAuth_DESIGN.md)
+**详细设计需求：** [FKBiometricAuth_DESIGN.zh-CN.md](FKBiometricAuth_DESIGN.zh-CN.md)
 
 ---
 
@@ -469,21 +468,21 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 筛选与元数据的可选/只读标签。支持前置图标、移除按钮、组内最大选中数。
 
 
-**详细设计需求：** [FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md) §9–11 · [English](FKSmallComponents_DESIGN.md)
+**详细设计需求：** [FKChip-FKTag-FKChipGroup_DESIGN.zh-CN.md](FKChip-FKTag-FKChipGroup_DESIGN.zh-CN.md)；umbrella：[FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md)
 
 ### 2.3 FKAvatar
 
 圆形/圆角矩形头像；首字母占位；可选在线状态角标（`FKBadge`）；通过 `FKImageView` 加载；点击回调。
 
 
-**详细设计需求：** [FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md) §7–8 · [English](FKSmallComponents_DESIGN.md)
+**详细设计需求：** [FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.zh-CN.md](FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.zh-CN.md)；umbrella：[FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md)
 
 ### 2.4 FKCarousel / FKImageBanner
 
 横向分页轮播；页码指示器；自动滚动策略；可选无限循环；页面使用 `FKImageView`。
 
 
-**详细设计需求：** [FKCarousel-FKImageBanner_DESIGN.zh-CN.md](FKCarousel-FKImageBanner_DESIGN.zh-CN.md) · [English](FKCarousel-FKImageBanner_DESIGN.md)
+**详细设计需求：** [FKCarousel-FKImageBanner_DESIGN.zh-CN.md](FKCarousel-FKImageBanner_DESIGN.zh-CN.md)
 
 ### 2.5 FKDatePicker / FKPicker
 
@@ -498,14 +497,14 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 `UIImagePickerController` / `PHPicker` 封装；`FKPermissions` 预检；选择数量限制；压缩选项；回调 `UIImage` 或文件 URL。
 
 
-**详细设计需求：** [FKPhotoPicker_DESIGN.zh-CN.md](FKPhotoPicker_DESIGN.zh-CN.md) · [English](FKPhotoPicker_DESIGN.md)
+**详细设计需求：** [FKPhotoPicker_DESIGN.zh-CN.md](FKPhotoPicker_DESIGN.zh-CN.md)
 
 ### 2.7 FKStepIndicator / FKTimeline
 
 横向步骤进度（结账）与纵向时间线（物流、审计）。支持已完成/当前/待完成状态与自定义图标。
 
 
-**详细设计需求：** [FKStepIndicator-FKTimeline_DESIGN.zh-CN.md](FKStepIndicator-FKTimeline_DESIGN.zh-CN.md) · [English](FKStepIndicator-FKTimeline_DESIGN.md)
+**详细设计需求：** [FKStepIndicator-FKTimeline_DESIGN.zh-CN.md](FKStepIndicator-FKTimeline_DESIGN.zh-CN.md)
 
 ### 2.8 FKKeyboardToolbar
 
@@ -534,6 +533,8 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 |------|------|------|
 | **FKQRCode** | FKCoreKit + FKUIKit | 生成（`CIFilter`）+ 扫描 UI（`AVFoundation`），相机权限走 `FKPermissions`。 |
 | **FKMarquee** | FKUIKit | 公告滚动文字；尊重「减少动态效果」。 |
+
+**详细设计需求：** [FKMarqueeLabel_DESIGN.zh-CN.md](FKMarqueeLabel_DESIGN.zh-CN.md)
 | **FKAccordion** | FKUIKit | FAQ/设置折叠面板；单/多段展开。 |
 | **FKShareSheet** | FKUIKit | 基于 `UIActivityViewController` + `FKFileManager` 分享辅助的统一分享入口。 |
 | **FKTheme** | FKUIKit Core | 设计令牌：颜色角色、字阶、间距；深色模式与 Dynamic Type。 |
@@ -583,6 +584,8 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 ---
 
 ## 勿重复造轮子 — 复用对照表
+
+**强制原则：** 所有新组件（含 FKUIKit UI 控件）在实现前**必须先检索** `Sources/FKCoreKit` — 包括 `Components/Extension/`、`Components/Utils/`、`Components/Pluggable/`、`Components/Async/`、`Components/I18n/` 等。**优先调用已有 API**；**禁止**在组件目录内重复实现同等辅助逻辑。若某能力适合多组件复用但 Core 尚未提供，应**在 FKCoreKit 补充**后再在 UI 层使用，而非复制粘贴。各组件设计文档均含「FKCoreKit 复用要求（强制）」章节。
 
 启动新组件前，先查现有覆盖：
 
@@ -804,14 +807,12 @@ SwiftUI Bridge 应保持轻薄；业务逻辑留在 UIKit 类型中。
 |------|------|------|
 | 2026-06-08 | `docs/component-roadmap` | 基于代码库缺口分析的初版路线图（`develop` 基线）。 |
 | 2026-06-08 | `docs/component-roadmap` | 新增中文版 `COMPONENT_ROADMAP.zh-CN.md`。 |
+| 2026-06-10 | 移除英文文档引用；小组件拆分为模块级设计文档；强化 FKCoreKit 复用强制说明 |
 
 ---
 
 ## 相关文档
 
-- [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) — 英文版路线图
-- [RELEASING.md](RELEASING.md) — 版本号与 Tag 检查清单
-- [EXTENSION_VS_UTILS.md](EXTENSION_VS_UTILS.md) — Extension 目录政策
 - [根目录 README.md](../README.md) — 已交付组件索引
 - [Pluggable README](../Sources/FKCoreKit/Components/Pluggable/README.md) — 依赖注入契约
 - [Network README](../Sources/FKCoreKit/Components/Network/README.md) — 网络模块路线图条目

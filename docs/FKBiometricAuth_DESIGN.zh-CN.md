@@ -5,7 +5,6 @@ FKKit **`FKBiometricAuth`** 的实现指导文档：面向生产的 **`LocalAuth
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
 **路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §1.7  
-**English version:** [FKBiometricAuth_DESIGN.md](FKBiometricAuth_DESIGN.md)
 
 ---
 
@@ -174,6 +173,20 @@ Keychain 绑定机密（`SecAccessControl`）的协调见 §13。
 | 错误类型 | `FKBiometricError` | `FKSecurityError` | `FKStorageError` |
 
 仅在 BiometricAuth 源文件中 `import LocalAuthentication`；**不**依赖 UIKit。
+
+### 5.1 FKCoreKit 复用要求（强制）
+
+本模块**位于 FKCoreKit**；实现时必须复用同模块已有能力，**禁止**重复造轮子：
+
+| 能力 | 必须使用（FKCoreKit） | 禁止 |
+|------|----------------------|------|
+| 安全/密钥 | **`FKSecurity`**、`FKStorage`/Keychain | 平行 Keychain 封装 |
+| 错误映射 | 统一 **`FKBiometricError`** | 泄漏原始 LAError 到公开 API |
+| 并发 | **`FKAsync`** / structured concurrency | 无隔离的 GCD |
+| 本地化 | **`FKI18n`**（`localizedReason` 由宿主传入，键表在 Core） | — |
+| Pluggable | **`FKBiometricAuthenticating`** | 第二套 DI 协议 |
+
+**不得** import FKUIKit；UI 提示由 LocalAuthentication 系统 UI 或宿主负责。
 
 ---
 
@@ -734,7 +747,6 @@ Hub 与 `FKSecurity` 示例并列。
 
 ## 相关文档
 
-- [FKBiometricAuth_DESIGN.md](FKBiometricAuth_DESIGN.md) — 英文版
 - [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md)
 - [FKSecurity README](../Sources/FKCoreKit/Components/Security/README.md)
 - [FKStorage README](../Sources/FKCoreKit/Components/Storage/README.md)
