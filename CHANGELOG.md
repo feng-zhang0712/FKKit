@@ -4,6 +4,60 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.67.0] - 2026-06-09
+
+### Added (FKCoreKit — ImageLoader)
+
+- **`FKImageLoader`** — production default stack for **`FKImageLoading`** and **`FKImageCaching`**: memory and disk caching, coalesced loads, downsampling, prefetch, conditional GET, and configurable **`URLSession`**, logging, and cache statistics.
+
+### Added (FKCoreKit — BiometricAuth)
+
+- **`FKBiometricAuth`** — LocalAuthentication wrapper with typed policies, capability probing, **`LAError`** mapping, session-aware cancellation, and mock/pluggable support.
+- **Examples**: grouped FKKitExamples scenarios (live auth, configuration, Keychain gate, simulator recovery).
+
+### Added (FKCoreKit — PhotoPicker)
+
+- **`FKPhotoPicker`** — PHPicker and **`UIImagePickerController`** flows with compression, permissions, multi-select, SwiftUI bridge, localized errors, and full Examples coverage.
+
+### Added (FKUIKit — ImageView)
+
+- **`FKImageView`** — layered configuration, reuse-safe loading, placeholders, failure/retry, profiles, and SwiftUI bridge.
+- **`FKImageLoadRequest.resolvedCacheKey`** exposed for integrator cache keys.
+- **Examples**: hub scenarios for **`FKImageView`** and **`FKImageLoader`**.
+
+### Added (FKUIKit — WebView)
+
+- **`FKWebView`** — production-oriented **`WKWebView`** wrapper with policy-driven navigation, progress/chrome, JavaScript bridge, and error recovery.
+- **Examples**: hub scenarios with bundled HTML demos and localized empty-state strings.
+
+### Added (FKUIKit — Carousel)
+
+- **`FKCarousel`** — generic **`UICollectionView`** pager with layered configuration, indicators, auto-scroll, infinite loop, overlays, Dynamic Type height expansion, haptics, and SwiftUI representables.
+- **`FKImageBanner`** — image-first banner facade built on **`FKCarousel`**.
+
+### Added (FKUIKit — Search)
+
+- **`FKSearchBar`** and **`FKSearchField`** — UITextField-based search controls with debounced query callbacks, clear/cancel policies, loading state, navigation hosting, SwiftUI bridges, and lazy accessory chrome.
+
+### Added (FKUIKit — FlowVisualization)
+
+- **`FKStepIndicator`** — horizontal step progress for checkout, onboarding, and wizard flows.
+- **`FKTimeline`** — vertical event timeline for logistics, audit, and activity feeds.
+- Shared flow models (**`FKFlowStepItem`**, **`FKFlowStepState`**, **`FKFlowStepIcon`**) with layered Sendable configuration, presets, and SwiftUI bridges.
+
+### Added (Documentation)
+
+- **`docs/COMPONENT_ROADMAP.md`** and bilingual implementation design specs for planned components.
+- Clarify that per-component **`Public/` / `Internal/`** directory trees in design docs are recommendations, not mandatory layout.
+
+### Fixed (FKCoreKit — ImageLoader)
+
+- **`FKImageDiskCache`** index persist deadlock during concurrent writes.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.67.0** (Git tag **`0.67.0`**).
+
 ## [0.66.0] - 2026-06-07
 
 ### Changed (FKCoreKit & FKUIKit — API naming)
@@ -2603,7 +2657,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.67.0...HEAD
+[0.67.0]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...0.67.0
 [0.66.0]: https://github.com/feng-zhang0712/FKKit/compare/0.65.0...0.66.0
 [0.65.0]: https://github.com/feng-zhang0712/FKKit/compare/0.64.0...0.65.0
 [0.64.0]: https://github.com/feng-zhang0712/FKKit/compare/0.63.0...0.64.0
