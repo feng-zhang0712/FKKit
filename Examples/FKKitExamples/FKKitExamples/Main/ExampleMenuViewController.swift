@@ -74,6 +74,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKExpandableTextExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "FlowVisualization",
+          subtitle: "Hub: FKStepIndicator & FKTimeline — checkout, logistics, layouts, states, SwiftUI, RTL",
+          make: { FKFlowVisualizationExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "VideoPlayer",
           subtitle: "Hub: VOD/HLS/live, playlist, subtitles, feed pool, offline, ads, QoE, SwiftUI",
           make: { FKVideoPlayerExamplesHubViewController() }

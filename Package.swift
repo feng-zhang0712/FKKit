@@ -42,6 +42,7 @@ private let fkUIKitComponentDocDirectories: [String] = [
   "Components/Divider",
   "Components/EmptyState",
   "Components/ExpandableText",
+  "Components/FlowVisualization",
   "Components/ImageView",
   "Components/PagingController",
   "Components/PhotoPicker",
