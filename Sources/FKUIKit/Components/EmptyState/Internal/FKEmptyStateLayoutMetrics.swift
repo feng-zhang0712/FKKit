@@ -1,6 +1,9 @@
 import UIKit
 
-/// Derives spacing and typography scale from ``FKEmptyStateDensity`` without replacing explicit configuration values.
+/// Derives spacing and typography scale from ``FKEmptyStateDensity``.
+///
+/// ``spacing(from:)`` scales the fallback ``FKEmptyStateLayoutConfiguration/verticalSpacing`` preset.
+/// Explicit ``FKEmptyStateSpacingConfiguration`` values are applied as-is and are not passed through this helper.
 struct FKEmptyStateLayoutMetrics {
   let density: FKEmptyStateDensity
 
@@ -17,6 +20,11 @@ struct FKEmptyStateLayoutMetrics {
     case .comfortable:
       return base * 1.25
     }
+  }
+
+  /// Resolves a segment override or the density-scaled fallback spacing.
+  func segmentSpacing(_ explicit: CGFloat?, fallback: CGFloat) -> CGFloat {
+    explicit ?? spacing(from: fallback)
   }
 
   func titleFont(from base: UIFont) -> UIFont {

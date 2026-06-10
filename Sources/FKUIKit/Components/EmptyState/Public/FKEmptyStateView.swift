@@ -373,6 +373,8 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     updateContentPosition(resolved: resolved, model: model)
 
     applySlots(model: model)
+    refreshSlotContainerVisibility()
+    applySegmentSpacing(model: model, resolved: resolved)
     applyAccessibility(model: model)
     announceIfNeeded(model: model)
   }
@@ -705,8 +707,13 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   /// Applies corner radius and optional border through configuration background (layer properties do not affect configuration chrome).
   private func applyConfigurationChrome(_ style: FKEmptyStateButtonStyle, to configuration: inout UIButton.Configuration) {
-    configuration.cornerStyle = .fixed
-    configuration.background.cornerRadius = style.cornerRadius
+    switch style.cornerStyle {
+    case .capsule:
+      configuration.cornerStyle = .capsule
+    case .fixed(let radius):
+      configuration.cornerStyle = .fixed
+      configuration.background.cornerRadius = radius
+    }
     if style.borderWidth > 0, let borderColor = style.borderColor {
       configuration.background.strokeColor = borderColor
       configuration.background.strokeWidth = style.borderWidth
@@ -907,6 +914,68 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     replaceSlot(in: contentSlotContainer, with: model.slots.content)
     replaceSlot(in: actionsSlotContainer, with: model.slots.actions)
     replaceSlot(in: footerSlotContainer, with: model.slots.footer)
+  }
+
+  /// Updates slot container visibility after slot content is applied (`rebuildStack` runs earlier with empty slots).
+  private func refreshSlotContainerVisibility() {
+    for container in [
+      headerSlotContainer,
+      mediaSlotContainer,
+      contentSlotContainer,
+      actionsSlotContainer,
+      footerSlotContainer,
+    ] {
+      container.isHidden = container.subviews.isEmpty
+    }
+  }
+
+  /// Applies per-segment stack spacing; explicit values skip density scaling (see ``FKEmptyStateSpacingConfiguration``).
+  private func applySegmentSpacing(model: FKEmptyStateConfiguration, resolved: FKEmptyStateResolvedLayout) {
+    let metrics = FKEmptyStateLayoutMetrics(density: model.layout.density)
+    let fallback = resolved.verticalSpacing
+    let segments = model.layout.segmentSpacing
+
+    func spacing(_ explicit: CGFloat?) -> CGFloat {
+      metrics.segmentSpacing(explicit, fallback: fallback)
+    }
+
+    if model.layout.axis == .horizontal {
+      if !titleLabel.isHidden {
+        horizontalTextStack.setCustomSpacing(spacing(segments.afterTitle), after: titleLabel)
+      }
+      if !descriptionLabel.isHidden {
+        horizontalTextStack.setCustomSpacing(spacing(segments.afterDescription), after: descriptionLabel)
+      }
+      if !horizontalRowStack.isHidden, stackView.arrangedSubviews.contains(horizontalRowStack) {
+        stackView.setCustomSpacing(spacing(segments.afterImage), after: horizontalRowStack)
+      }
+    } else {
+      if let imageAnchor = imageSpacingAnchor() {
+        stackView.setCustomSpacing(spacing(segments.afterImage), after: imageAnchor)
+      }
+      if !titleLabel.isHidden, stackView.arrangedSubviews.contains(titleLabel) {
+        stackView.setCustomSpacing(spacing(segments.afterTitle), after: titleLabel)
+      }
+      if !descriptionLabel.isHidden, stackView.arrangedSubviews.contains(descriptionLabel) {
+        stackView.setCustomSpacing(spacing(segments.afterDescription), after: descriptionLabel)
+      }
+    }
+
+    if !actionsSlotContainer.isHidden, stackView.arrangedSubviews.contains(actionsSlotContainer) {
+      stackView.setCustomSpacing(spacing(segments.afterActionsSlot), after: actionsSlotContainer)
+    }
+  }
+
+  /// Last visible arranged subview before the title block; used for ``FKEmptyStateSpacingConfiguration/afterImage``.
+  private func imageSpacingAnchor() -> UIView? {
+    let arranged = stackView.arrangedSubviews
+    guard let titleIndex = arranged.firstIndex(where: { $0 === titleLabel }) else { return nil }
+    guard titleIndex > 0 else { return nil }
+    for index in stride(from: titleIndex - 1, through: 0, by: -1) {
+      let candidate = arranged[index]
+      if !candidate.isHidden { return candidate }
+    }
+    return nil
   }
 
   private func replaceSlot(in container: UIView, with view: UIView?) {
