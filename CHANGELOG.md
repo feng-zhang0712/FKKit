@@ -4,6 +4,41 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.68.0] - 2026-06-10
+
+### Added (FKUIKit — Widgets)
+
+- **`FKAvatar`**, **`FKAvatarGroup`**, and **`FKPresenceIndicator`** — configuration-driven avatars with initials, remote loading, group overlap, and presence dots.
+- **`FKChip`** and **`FKChipGroup`** — selectable and removable tag chips with layout presets and SwiftUI bridges.
+- **`FKCopyChip`** — copy-to-clipboard chip with feedback states and localized copy.
+- **`FKIconView`** — templated icon container with badge attachment points and size presets.
+- **`FKMarqueeLabel`** — horizontal marquee text with pause-on-tap, accessibility, and Dynamic Type support.
+- **`FKStatusPill`** — compact status badges (semantic colors, pulse, icons) for lists and headers.
+- **Examples**: full hub coverage under `Examples/FKUIKit/Widgets/`.
+
+### Added (FKUIKit — EmptyState)
+
+- **`FKEmptyStateSpacingConfiguration`** — per-block vertical spacing (`afterImage`, `afterTitle`, `afterDescription`, `afterActionsSlot`) via `UIStackView.setCustomSpacing(_:after:)`.
+- **`FKEmptyStateButtonCornerStyle`** — `.capsule` and `.fixed(radius:)` for true pill-shaped action buttons.
+- **Examples**: interactive layout playground with live sliders and switches for spacing, size, position, and button chrome.
+
+### Fixed (FKUIKit — EmptyState)
+
+- Slot containers (`header`, `media`, `content`, `actions`, `footer`) no longer stay hidden after `applySlots` fills them.
+
+### Changed (FKUIKit — EmptyState)
+
+- Explicit **`segmentSpacing`** values are not scaled by **`density`**; only fallback **`verticalSpacing`** is density-scaled.
+- Slot and spacing documentation clarifies that slots are for custom content, not invisible spacers.
+
+### Added (Documentation)
+
+- Consolidate Widgets implementation design specs to zh-CN-only module documents under `docs/`.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.68.0** (Git tag **`0.68.0`**).
+
 ## [0.67.0] - 2026-06-09
 
 ### Added (FKCoreKit — ImageLoader)
@@ -2657,7 +2692,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.67.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...HEAD
+[0.68.0]: https://github.com/feng-zhang0712/FKKit/compare/0.67.0...0.68.0
 [0.67.0]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...0.67.0
 [0.66.0]: https://github.com/feng-zhang0712/FKKit/compare/0.65.0...0.66.0
 [0.65.0]: https://github.com/feng-zhang0712/FKKit/compare/0.64.0...0.65.0
