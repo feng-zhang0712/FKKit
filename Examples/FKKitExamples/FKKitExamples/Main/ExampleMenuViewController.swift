@@ -24,6 +24,11 @@ final class ExampleMenuViewController: UITableViewController {
       subtitle: "Foundational UI components and presentation infrastructure",
       items: [
         ExampleMenuItem(
+          title: "Avatar",
+          subtitle: "Hub: FKAvatar, FKAvatarGroup, FKPresenceIndicator — sizes, initials, URL, reuse, presence, badge, SwiftUI",
+          make: { FKAvatarExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "ActionSheet",
           subtitle: "Hub: basics, appearance, selection, custom rows, toggle, lifecycle, live updates, presentation, builder, SwiftUI",
           make: { FKActionSheetExamplesHubViewController() }
@@ -52,6 +57,31 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Carousel",
           subtitle: "Hub: FKImageBanner heroes, FKCarousel layouts, indicators, auto-scroll, SwiftUI, RTL",
           make: { FKCarouselExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "Chip",
+          subtitle: "Hub: FKChip, FKTag, FKChipGroup — modes, filter bar, input tokens, variants, flow, SwiftUI",
+          make: { FKChipExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "CopyChip",
+          subtitle: "Hub: FKCopyChip — order ID truncation, toast/haptic/silent feedback, callbacks, SwiftUI",
+          make: { FKCopyChipExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "IconView",
+          subtitle: "Hub: FKIconView — sizes, backgrounds, symbol/image, badge, list row, WidgetIcon, SwiftUI",
+          make: { FKIconViewExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "Marquee",
+          subtitle: "Hub: FKMarqueeLabel — ticker scroll, fade, drag/pause, Reduce Motion, RTL, SwiftUI",
+          make: { FKMarqueeLabelExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "StatusPill",
+          subtitle: "Hub: FKStatusPill — workflow styles, dot, custom enum, sizes, Tag combo, SwiftUI",
+          make: { FKStatusPillExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "CornerShadow",

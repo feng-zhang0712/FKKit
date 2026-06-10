@@ -449,7 +449,7 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 ### Added (FKUIKit — ActionSheet)
 
 - **`FKActionSheet`**: presentable **`UIViewController`** with bottom sheet, centered card, and popover styles; configuration-driven sections, headers, and actions; lifecycle hooks; **`reload`** / **`updateAction`** for live updates; validation with user-facing messages.
-- **Selection**: single- and multi-select modes, scroll-to-selection on present, bundled Material symbol checkmarks (`check`, `radio_button_checked`, `radio_button_unchecked`) via **`FKUIKit`** resource bundle.
+- **Selection**: single- and multi-select modes, scroll-to-selection on present, bundled Material symbol checkmarks (`check`, `radio_checked`, `radio_unchecked`) via **`FKUIKit`** resource bundle.
 - **SwiftUI**: bridge and builder helpers; **`FKActionSheet+Symbol`** action presets.
 - **Examples**: ActionSheet hub and scenario catalog under **`Examples/FKKitExamples/.../ActionSheet/`**.
 

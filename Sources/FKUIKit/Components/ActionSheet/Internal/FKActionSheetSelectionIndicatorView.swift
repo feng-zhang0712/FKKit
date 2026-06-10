@@ -51,7 +51,7 @@ final class FKActionSheetSelectionIndicatorView: UIView {
       imageView.image = Self.symbolImage(named: .check)
     case .radio(let isSelected):
       imageView.image = Self.symbolImage(
-        named: isSelected ? .radioButtonChecked : .radioButtonUnchecked
+        named: isSelected ? .radioChecked : .radioUnchecked
       )
     }
     imageView.tintColor = tintColor
