@@ -9,7 +9,7 @@ public final class FKBadgeController: NSObject {
   public var configuration: FKBadgeConfiguration {
     didSet {
       perform {
-        self.applyConfigurationToBadge()
+        self.badgeView.configuration = self.configuration
         self.applyResolvedContent(animated: false)
       }
     }
@@ -93,7 +93,6 @@ public final class FKBadgeController: NSObject {
     badgeView.translatesAutoresizingMaskIntoConstraints = false
     badgeView.configuration = configuration
     FKBadgeRegistry.shared.register(self)
-    applyConfigurationToBadge()
     applyResolvedContent(animated: false)
   }
 
@@ -260,10 +259,6 @@ public final class FKBadgeController: NSObject {
     }
   }
 
-  private func applyConfigurationToBadge() {
-    badgeView.configuration = configuration
-  }
-
   private func applyResolvedContent(animated: Bool, entranceAnimation: FKBadgeAnimation = .none) {
     let wasHidden = badgeView.isHidden || badgeView.alpha < 0.01
     let (mode, shouldShow) = resolve()
@@ -404,13 +399,14 @@ public final class FKBadgeController: NSObject {
 
     case .blink(let minA, let maxA, let duration):
       badgeView.alpha = maxA
-      UIView.animate(
-        withDuration: duration,
-        delay: 0,
-        options: [.repeat, .autoreverse, .allowUserInteraction, .curveEaseInOut]
-      ) {
-        self.badgeView.alpha = minA
-      }
+      let blink = CABasicAnimation(keyPath: "opacity")
+      blink.fromValue = maxA
+      blink.toValue = minA
+      blink.duration = duration
+      blink.autoreverses = true
+      blink.repeatCount = .greatestFiniteMagnitude
+      blink.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+      badgeView.layer.add(blink, forKey: "fkbadge_blink")
 
     case .pulse(let scale, let duration):
       let pulse = CABasicAnimation(keyPath: "transform.scale")

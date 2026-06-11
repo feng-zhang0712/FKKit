@@ -6,6 +6,6 @@ public enum FKBadgeVisibilityPolicy: Sendable, Equatable {
   case automatic
   /// Always hidden regardless of content.
   case forcedHidden
-  /// Always visible when there is drawable content (dot / text). Count 0 still hides unless you show a dot or text explicitly.
+  /// Always visible when drawable content is set. A numeric payload of `0` renders `"0"`; empty payload (`.clear`) still hides.
   case forcedVisible
 }
