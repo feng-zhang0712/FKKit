@@ -3,8 +3,8 @@ import UIKit
 /// Hosts integrator-built custom row content with optional fixed height.
 @MainActor
 final class FKActionSheetCustomRowCell: UITableViewCell {
-  private let hostView = UIView()
-  private var hostHeightConstraint: NSLayoutConstraint?
+  static let defaultReuseIdentifier = "FKActionSheetCustomRow"
+  private var contentHeightConstraint: NSLayoutConstraint?
   private var embeddedView: UIView?
   private var centerConstraints: [NSLayoutConstraint] = []
   private var leadingConstraints: [NSLayoutConstraint] = []
@@ -14,15 +14,6 @@ final class FKActionSheetCustomRowCell: UITableViewCell {
     selectionStyle = .default
     backgroundColor = .clear
     contentView.backgroundColor = .clear
-
-    hostView.translatesAutoresizingMaskIntoConstraints = false
-    contentView.addSubview(hostView)
-    NSLayoutConstraint.activate([
-      hostView.topAnchor.constraint(equalTo: contentView.topAnchor),
-      hostView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      hostView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      hostView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-    ])
   }
 
   @available(*, unavailable)
@@ -51,12 +42,12 @@ final class FKActionSheetCustomRowCell: UITableViewCell {
     accessibilityTraits = customRow.isSelectable ? .button : .staticText
 
     if let preferredHeight = customRow.preferredHeight {
-      hostHeightConstraint?.isActive = false
-      hostHeightConstraint = hostView.heightAnchor.constraint(equalToConstant: preferredHeight)
-      hostHeightConstraint?.isActive = true
+      contentHeightConstraint?.isActive = false
+      contentHeightConstraint = contentView.heightAnchor.constraint(equalToConstant: preferredHeight)
+      contentHeightConstraint?.isActive = true
     } else {
-      hostHeightConstraint?.isActive = false
-      hostHeightConstraint = nil
+      contentHeightConstraint?.isActive = false
+      contentHeightConstraint = nil
     }
 
     if let embeddedView, let update = customRow.provider.update {
@@ -64,10 +55,14 @@ final class FKActionSheetCustomRowCell: UITableViewCell {
       applyEmbeddedLayout(alignment: appearance.rowAlignment, to: embeddedView)
     } else {
       embeddedView?.removeFromSuperview()
+      NSLayoutConstraint.deactivate(centerConstraints + leadingConstraints)
+      centerConstraints = []
+      leadingConstraints = []
+
       let built = customRow.provider.build(context)
       embeddedView = built
       built.translatesAutoresizingMaskIntoConstraints = false
-      hostView.addSubview(built)
+      contentView.addSubview(built)
       applyEmbeddedLayout(alignment: appearance.rowAlignment, to: built)
     }
   }
@@ -81,20 +76,26 @@ final class FKActionSheetCustomRowCell: UITableViewCell {
     switch alignment {
     case .center:
       centerConstraints = [
-        view.topAnchor.constraint(greaterThanOrEqualTo: hostView.topAnchor, constant: 10),
-        view.bottomAnchor.constraint(lessThanOrEqualTo: hostView.bottomAnchor, constant: -10),
-        view.centerYAnchor.constraint(equalTo: hostView.centerYAnchor),
-        view.leadingAnchor.constraint(greaterThanOrEqualTo: hostView.leadingAnchor, constant: horizontalPadding),
-        view.trailingAnchor.constraint(lessThanOrEqualTo: hostView.trailingAnchor, constant: -horizontalPadding),
-        view.centerXAnchor.constraint(equalTo: hostView.centerXAnchor),
+        view.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 10),
+        view.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -10),
+        view.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        view.leadingAnchor.constraint(
+          greaterThanOrEqualTo: contentView.leadingAnchor,
+          constant: horizontalPadding
+        ),
+        view.trailingAnchor.constraint(
+          lessThanOrEqualTo: contentView.trailingAnchor,
+          constant: -horizontalPadding
+        ),
+        view.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
       ]
       NSLayoutConstraint.activate(centerConstraints)
     case .leading:
       leadingConstraints = [
-        view.topAnchor.constraint(equalTo: hostView.topAnchor, constant: 10),
-        view.bottomAnchor.constraint(equalTo: hostView.bottomAnchor, constant: -10),
-        view.leadingAnchor.constraint(equalTo: hostView.leadingAnchor, constant: horizontalPadding),
-        view.trailingAnchor.constraint(equalTo: hostView.trailingAnchor, constant: -horizontalPadding),
+        view.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+        view.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
+        view.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: horizontalPadding),
+        view.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -horizontalPadding),
       ]
       NSLayoutConstraint.activate(leadingConstraints)
     }
@@ -107,7 +108,7 @@ final class FKActionSheetCustomRowCell: UITableViewCell {
     leadingConstraints = []
     embeddedView?.removeFromSuperview()
     embeddedView = nil
-    hostHeightConstraint?.isActive = false
-    hostHeightConstraint = nil
+    contentHeightConstraint?.isActive = false
+    contentHeightConstraint = nil
   }
 }

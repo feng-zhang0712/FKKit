@@ -4,7 +4,6 @@ import UIKit
 @MainActor
 final class FKActionSheetUIKitPresentationController: UIPresentationController {
   private let configuration: FKActionSheetPresentationConfiguration
-  private weak var actionSheet: FKActionSheet?
 
   private(set) lazy var backdropView: UIView = {
     let view = UIView()
@@ -19,11 +18,9 @@ final class FKActionSheetUIKitPresentationController: UIPresentationController {
   init(
     presentedViewController: UIViewController,
     presenting presentingViewController: UIViewController?,
-    configuration: FKActionSheetPresentationConfiguration,
-    actionSheet: FKActionSheet?
+    configuration: FKActionSheetPresentationConfiguration
   ) {
     self.configuration = configuration
-    self.actionSheet = actionSheet
     super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
   }
 

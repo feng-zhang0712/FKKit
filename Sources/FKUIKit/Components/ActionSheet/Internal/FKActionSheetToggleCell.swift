@@ -53,7 +53,6 @@ final class FKActionSheetToggleCell: UITableViewCell {
     titleLabel.font = appearance.resolvedActionTitleFont(isCancel: false)
     titleLabel.textColor = action.isEnabled ? appearance.actionTitleColor : appearance.disabledTitleColor
     titleLabel.text = action.title
-    titleLabel.adjustsFontForContentSizeCategory = true
 
     toggleSwitch.isOn = toggle.isOn
     toggleSwitch.isEnabled = action.isEnabled

@@ -214,7 +214,6 @@ final class FKActionSheetLoadingHostView: UIView {
       label.textColor = content.titleColor ?? appearance.headerTitleColor
       label.textAlignment = .center
       label.numberOfLines = 0
-      label.adjustsFontForContentSizeCategory = true
       label.text = title
       stack.addArrangedSubview(label)
     }
@@ -225,7 +224,6 @@ final class FKActionSheetLoadingHostView: UIView {
       label.textColor = content.messageColor ?? appearance.headerMessageColor
       label.textAlignment = .center
       label.numberOfLines = 0
-      label.adjustsFontForContentSizeCategory = true
       label.text = message
       stack.addArrangedSubview(label)
     }

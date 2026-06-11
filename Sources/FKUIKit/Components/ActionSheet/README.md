@@ -21,7 +21,11 @@ HIG-oriented action sheet for UIKit apps. The sheet is a modal `UIViewController
 | `Internal/FKActionSheetTransitioningDelegate.swift` | Custom modal presentation delegate |
 | `Internal/FKActionSheetAnimator.swift` | Bottom/centered transition animations |
 | `Internal/FKActionSheetUIKitPresentationController.swift` | Dimmed backdrop (tap handled on sheet view) |
-| `Internal/` | Table UI, cells, session, validation, haptics |
+| `Internal/FKActionSheetView.swift` | Table/list host, header caching, loading ↔ actions switching |
+| `Internal/FKActionSheetActionCell.swift` | Standard action row rendering |
+| `Internal/FKActionSheetTextHeaderView.swift` | Reusable text header section |
+| `Internal/FKActionSheetSectionTitleView.swift` | Reusable section title header |
+| `Internal/` | Other cells, loading host, session, validation, haptics |
 
 ## Quick start
 
