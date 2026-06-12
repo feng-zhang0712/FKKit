@@ -142,6 +142,7 @@ See [`Sources/FKCoreKit/Components/Extension/README.md`](Sources/FKCoreKit/Compo
 | **TabBar** | High-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only) — see [`TabBar/README.md`](Sources/FKUIKit/Components/TabBar/README.md). |
 | **TextField** | One-stop formatted input components (`FKTextField`, `FKCodeTextField`, `FKCountTextView`) with validation, counters, OTP slots, and shake feedback. |
 | **Toast** | Unified Toast / HUD / Snackbar presenter with queueing, priority, keyboard-aware placement, accessibility, optional material blur, custom content, and SwiftUI hosting — see [`Toast/README.md`](Sources/FKUIKit/Components/Toast/README.md). |
+| **CellKit** | Reusable settings, feed, and form `UITableViewCell` / `UICollectionViewCell` library with shared Internal layout engines, collection parity, and `FKListPresetItem` mapping — see [`CellKit/README.md`](Sources/FKUIKit/Components/CellKit/README.md). |
 
 `FKUIKit` depends on **`FKCoreKit`**. For API details, defaults, and migration notes, prefer each component **`README.md`** over this root index.
 

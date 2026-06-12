@@ -59,6 +59,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKCarouselExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "CellKit",
+          subtitle: "Hub: settings, forms, feed/commerce, collection parity, ListKit presets, full cell gallery",
+          make: { FKCellKitExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Chip",
           subtitle: "Hub: FKChip, FKTag, FKChipGroup — modes, filter bar, input tokens, variants, flow, SwiftUI",
           make: { FKChipExamplesHubViewController() }

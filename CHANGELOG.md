@@ -4,6 +4,15 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Added (FKUIKit — CellKit Phase 6)
+
+- **Display long-tail (D-49–D-90)** — Activity, StepList, Event, Review, InlineEmpty, Marquee, Device, Network, SubscriptionPlan, ShortcutGrid, Transaction, Task, PollResult, Leaderboard, PlayableMedia, Quote, MonospaceBlock, Language, AppUpdate, SkeletonRow, Indented, InlineActions, LiveBadge, CourseProgress, Reminder, NowPlaying, Conflict, Environment, Comparison cells with `Sendable` configurations and row models under `Public/Display/LongTail/`.
+- **Interactive long-tail (I-08–I-15)** — Checkbox, Favorite, Segment, Slider, Editing, Stepper, and PreviewPicker settings cells; I-14 documented as `FKCellSelectionCell`.
+- **Form long-tail (X-54–X-72, F-14–F-20)** — Extended form cells (email suffix, split field, range, color, rich text, voice, biometric, PIN, drag upload, media grid, inline expand, NPS, emoji, inline wheel, calculated preview, character count footer, system picker, settings link, map radius) plus semantic F-14–F-20 row presets.
+- **Collection parity** — `FKCellCollectionReusable`, `FKCellCollectionRegistration`, `UICollectionView+FKCellKit`, shared Internal layout renderers, and collection variants for disclosure, value disclosure, switch, profile, and conversation rows.
+- **ListKit integration** — `FKListPresetItem` enum and `FKListPresetCellConfigurator` thin mapping to existing CellKit cells (no duplicate Auto Layout).
+- **Helper** — `FKFormCellConditionalVisibility` linkage visibility helper (X-41).
+
 ## [0.68.0] - 2026-06-10
 
 ### Added (FKUIKit — Widgets)

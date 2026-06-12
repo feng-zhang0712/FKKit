@@ -1,0 +1,7 @@
+import Foundation
+/// Semantic form row preset (F-18).
+public struct FKFormQuantityRow: Sendable, Equatable, Hashable {
+  public var id: String; public var configuration: FKCellStepperConfiguration
+  public init(id: String, configuration: FKCellStepperConfiguration) { self.id=id; self.configuration=configuration }
+  public func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
