@@ -463,6 +463,8 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 | **集成** | 可选 Safe Area  inset 调整；多条 Banner 按优先级堆叠。 |
 | **复用** | `FKButton`、`CornerShadow`、`FKUIKitI18n`。 |
 
+**详细设计需求：** [FKBanner-FKNoticeBar_DESIGN.zh-CN.md](FKBanner-FKNoticeBar_DESIGN.zh-CN.md)
+
 ### 2.2 FKChip / FKTag
 
 筛选与元数据的可选/只读标签。支持前置图标、移除按钮、组内最大选中数。
@@ -515,6 +517,8 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 
 将 `FKFileStorageCore` 中的 ZIP 占位替换为原生实现（支持系统上使用 Archive.framework，或文档化回退方案）。
 
+**详细设计需求：** [FKFileManager_ENHANCEMENT_DESIGN.zh-CN.md](FKFileManager_ENHANCEMENT_DESIGN.zh-CN.md)
+
 
 ### 2.10 FKFeatureFlag — 默认适配器
 
@@ -532,12 +536,16 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 | 组件 | 模块 | 说明 |
 |------|------|------|
 | **FKQRCode** | FKCoreKit + FKUIKit | 生成（`CIFilter`）+ 扫描 UI（`AVFoundation`），相机权限走 `FKPermissions`。 |
+
+**详细设计需求：** [FKQRCode_DESIGN.zh-CN.md](FKQRCode_DESIGN.zh-CN.md)
 | **FKMarquee** | FKUIKit | 公告滚动文字；尊重「减少动态效果」。 |
 
 **详细设计需求：** [FKMarqueeLabel_DESIGN.zh-CN.md](FKMarqueeLabel_DESIGN.zh-CN.md)
 | **FKAccordion** | FKUIKit | FAQ/设置折叠面板；单/多段展开。 |
 | **FKShareSheet** | FKUIKit | 基于 `UIActivityViewController` + `FKFileManager` 分享辅助的统一分享入口。 |
 | **FKTheme** | FKUIKit Core | 设计令牌：颜色角色、字阶、间距；深色模式与 Dynamic Type。 |
+
+**详细设计需求：** [FKTheme_DESIGN.zh-CN.md](FKTheme_DESIGN.zh-CN.md)
 | **FKForm** | FKUIKit | 在 `FKTextField` 之上的表单级校验编排（跨字段规则、提交门控）。 |
 | **FKLocalNotificationManager** | FKCoreKit | 基于 `UserNotifications` 的本地通知调度/取消（权限走 `FKPermissions`）。 |
 
@@ -556,10 +564,14 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 - 重试策略预设（指数退避、仅幂等方法）。
 - Mock `URLSession` 模板（文档 + 示例代码，不必强制入库测试 Target）。
 
+**详细设计需求：** [FKNetwork_ENHANCEMENT_DESIGN.zh-CN.md](FKNetwork_ENHANCEMENT_DESIGN.zh-CN.md)
+
 ### FKFileManager（`FKCoreKit`）
 
 - 交付可用的 ZIP 压缩/解压，或按 OS 能力明确门控 API。
 - 文档化后台传输限制与恢复流程。
+
+**详细设计需求：** [FKFileManager_ENHANCEMENT_DESIGN.zh-CN.md](FKFileManager_ENHANCEMENT_DESIGN.zh-CN.md)
 
 ### FKBusinessKit（`FKCoreKit`）
 
@@ -813,6 +825,12 @@ SwiftUI Bridge 应保持轻薄；业务逻辑留在 UIKit 类型中。
 
 ## 相关文档
 
+- [COMPONENT_GAP_ANALYSIS.zh-CN.md](COMPONENT_GAP_ANALYSIS.zh-CN.md) — 基于当前代码库的缺口与优先级分析（中文）
+- [FKTheme_DESIGN.zh-CN.md](FKTheme_DESIGN.zh-CN.md) — 设计令牌与主题体系
+- [FKQRCode_DESIGN.zh-CN.md](FKQRCode_DESIGN.zh-CN.md) — QR 生成与扫描
+- [FKBanner-FKNoticeBar_DESIGN.zh-CN.md](FKBanner-FKNoticeBar_DESIGN.zh-CN.md) — 持久通知条
+- [FKNetwork_ENHANCEMENT_DESIGN.zh-CN.md](FKNetwork_ENHANCEMENT_DESIGN.zh-CN.md) — 网络模块增强
+- [FKFileManager_ENHANCEMENT_DESIGN.zh-CN.md](FKFileManager_ENHANCEMENT_DESIGN.zh-CN.md) — 文件模块增强
 - [根目录 README.md](../README.md) — 已交付组件索引
 - [Pluggable README](../Sources/FKCoreKit/Components/Pluggable/README.md) — 依赖注入契约
 - [Network README](../Sources/FKCoreKit/Components/Network/README.md) — 网络模块路线图条目
