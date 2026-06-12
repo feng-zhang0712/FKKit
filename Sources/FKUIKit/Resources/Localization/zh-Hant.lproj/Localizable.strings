@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "已複製";
 "fkuikit.copy_chip.toast.success" = "已複製到剪貼簿";
 "fkuikit.status.a11y.label" = "%@，狀態";
+"fkuikit.qrcode.close_a11y" = "關閉掃描器";
+"fkuikit.qrcode.error.camera_unavailable" = "此裝置無法使用相機。";
+"fkuikit.qrcode.error.interrupted" = "掃描已中斷。";
+"fkuikit.qrcode.error.permission_denied" = "相機存取遭拒。";
+"fkuikit.qrcode.error.session_configuration_failed" = "無法設定相機工作階段。";
+"fkuikit.qrcode.mock.description" = "模擬器沒有相機。請點下方按鈕模擬掃描成功。";
+"fkuikit.qrcode.mock.simulate" = "模擬掃描";
+"fkuikit.qrcode.mock.title" = "相機不可用";
+"fkuikit.qrcode.permission.description" = "請在設定中允許相機存取以掃描 QR 碼。";
+"fkuikit.qrcode.permission.open_settings" = "開啟設定";
+"fkuikit.qrcode.permission.title" = "需要相機存取權限";
+"fkuikit.qrcode.scan_hint" = "將 QR 碼對準框內";
+"fkuikit.qrcode.scan_success_a11y" = "已掃描 QR 碼";
+"fkuikit.qrcode.torch_a11y" = "切換手電筒";

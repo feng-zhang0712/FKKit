@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "Copiado";
 "fkuikit.copy_chip.toast.success" = "Copiado al portapapeles";
 "fkuikit.status.a11y.label" = "%@, estado";
+"fkuikit.qrcode.close_a11y" = "Cerrar escáner";
+"fkuikit.qrcode.error.camera_unavailable" = "La cámara no está disponible en este dispositivo.";
+"fkuikit.qrcode.error.interrupted" = "El escaneo se interrumpió.";
+"fkuikit.qrcode.error.permission_denied" = "Se denegó el acceso a la cámara.";
+"fkuikit.qrcode.error.session_configuration_failed" = "No se pudo configurar la sesión de la cámara.";
+"fkuikit.qrcode.mock.description" = "El simulador no tiene cámara. Usa el botón de abajo para simular un escaneo exitoso.";
+"fkuikit.qrcode.mock.simulate" = "Simular escaneo";
+"fkuikit.qrcode.mock.title" = "Cámara no disponible";
+"fkuikit.qrcode.permission.description" = "Permite el acceso a la cámara en Ajustes para escanear códigos QR.";
+"fkuikit.qrcode.permission.open_settings" = "Abrir Ajustes";
+"fkuikit.qrcode.permission.title" = "Se requiere acceso a la cámara";
+"fkuikit.qrcode.scan_hint" = "Alinea el código QR dentro del marco";
+"fkuikit.qrcode.scan_success_a11y" = "Código QR escaneado";
+"fkuikit.qrcode.torch_a11y" = "Activar o desactivar linterna";

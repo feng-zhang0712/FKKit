@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "Скопировано";
 "fkuikit.copy_chip.toast.success" = "Скопировано в буфер обмена";
 "fkuikit.status.a11y.label" = "%@, статус";
+"fkuikit.qrcode.close_a11y" = "Закрыть сканер";
+"fkuikit.qrcode.error.camera_unavailable" = "Камера недоступна на этом устройстве.";
+"fkuikit.qrcode.error.interrupted" = "Сканирование прервано.";
+"fkuikit.qrcode.error.permission_denied" = "Доступ к камере запрещён.";
+"fkuikit.qrcode.error.session_configuration_failed" = "Не удалось настроить сессию камеры.";
+"fkuikit.qrcode.mock.description" = "В симуляторе нет камеры. Нажмите кнопку ниже, чтобы имитировать успешное сканирование.";
+"fkuikit.qrcode.mock.simulate" = "Имитировать сканирование";
+"fkuikit.qrcode.mock.title" = "Камера недоступна";
+"fkuikit.qrcode.permission.description" = "Разрешите доступ к камере в Настройках для сканирования QR-кодов.";
+"fkuikit.qrcode.permission.open_settings" = "Открыть Настройки";
+"fkuikit.qrcode.permission.title" = "Требуется доступ к камере";
+"fkuikit.qrcode.scan_hint" = "Поместите QR-код в рамку";
+"fkuikit.qrcode.scan_success_a11y" = "QR-код отсканирован";
+"fkuikit.qrcode.torch_a11y" = "Переключить фонарик";

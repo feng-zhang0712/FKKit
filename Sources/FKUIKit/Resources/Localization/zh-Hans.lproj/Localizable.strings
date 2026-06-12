@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "已复制";
 "fkuikit.copy_chip.toast.success" = "已复制到剪贴板";
 "fkuikit.status.a11y.label" = "%@，状态";
+"fkuikit.qrcode.close_a11y" = "关闭扫描器";
+"fkuikit.qrcode.error.camera_unavailable" = "此设备无法使用相机。";
+"fkuikit.qrcode.error.interrupted" = "扫描已中断。";
+"fkuikit.qrcode.error.permission_denied" = "相机访问被拒绝。";
+"fkuikit.qrcode.error.session_configuration_failed" = "无法配置相机会话。";
+"fkuikit.qrcode.mock.description" = "模拟器没有相机。点击下方按钮模拟扫描成功。";
+"fkuikit.qrcode.mock.simulate" = "模拟扫描";
+"fkuikit.qrcode.mock.title" = "相机不可用";
+"fkuikit.qrcode.permission.description" = "请在设置中允许相机访问以扫描二维码。";
+"fkuikit.qrcode.permission.open_settings" = "打开设置";
+"fkuikit.qrcode.permission.title" = "需要相机访问权限";
+"fkuikit.qrcode.scan_hint" = "将二维码对准框内";
+"fkuikit.qrcode.scan_success_a11y" = "已扫描二维码";
+"fkuikit.qrcode.torch_a11y" = "切换手电筒";

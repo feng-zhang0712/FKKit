@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "Kopiert";
 "fkuikit.copy_chip.toast.success" = "In die Zwischenablage kopiert";
 "fkuikit.status.a11y.label" = "%@, Status";
+"fkuikit.qrcode.close_a11y" = "Scanner schließen";
+"fkuikit.qrcode.error.camera_unavailable" = "Kamera ist auf diesem Gerät nicht verfügbar.";
+"fkuikit.qrcode.error.interrupted" = "Scanvorgang unterbrochen.";
+"fkuikit.qrcode.error.permission_denied" = "Kamerazugriff verweigert.";
+"fkuikit.qrcode.error.session_configuration_failed" = "Kamera-Sitzung konnte nicht konfiguriert werden.";
+"fkuikit.qrcode.mock.description" = "Der Simulator hat keine Kamera. Tippe unten, um einen erfolgreichen Scan zu simulieren.";
+"fkuikit.qrcode.mock.simulate" = "Scan simulieren";
+"fkuikit.qrcode.mock.title" = "Kamera nicht verfügbar";
+"fkuikit.qrcode.permission.description" = "Erlaube in den Einstellungen den Kamerazugriff, um QR-Codes zu scannen.";
+"fkuikit.qrcode.permission.open_settings" = "Einstellungen öffnen";
+"fkuikit.qrcode.permission.title" = "Kamerazugriff erforderlich";
+"fkuikit.qrcode.scan_hint" = "QR-Code im Rahmen ausrichten";
+"fkuikit.qrcode.scan_success_a11y" = "QR-Code gescannt";
+"fkuikit.qrcode.torch_a11y" = "Taschenlampe umschalten";

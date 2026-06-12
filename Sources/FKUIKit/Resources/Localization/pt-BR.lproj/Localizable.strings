@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "Copiado";
 "fkuikit.copy_chip.toast.success" = "Copiado para a área de transferência";
 "fkuikit.status.a11y.label" = "%@, status";
+"fkuikit.qrcode.close_a11y" = "Fechar scanner";
+"fkuikit.qrcode.error.camera_unavailable" = "A câmera não está disponível neste dispositivo.";
+"fkuikit.qrcode.error.interrupted" = "A leitura foi interrompida.";
+"fkuikit.qrcode.error.permission_denied" = "Acesso à câmera negado.";
+"fkuikit.qrcode.error.session_configuration_failed" = "Não foi possível configurar a sessão da câmera.";
+"fkuikit.qrcode.mock.description" = "O simulador não tem câmera. Use o botão abaixo para simular uma leitura bem-sucedida.";
+"fkuikit.qrcode.mock.simulate" = "Simular leitura";
+"fkuikit.qrcode.mock.title" = "Câmera indisponível";
+"fkuikit.qrcode.permission.description" = "Permita o acesso à câmera em Ajustes para ler códigos QR.";
+"fkuikit.qrcode.permission.open_settings" = "Abrir Ajustes";
+"fkuikit.qrcode.permission.title" = "Acesso à câmera necessário";
+"fkuikit.qrcode.scan_hint" = "Alinhe o código QR dentro da moldura";
+"fkuikit.qrcode.scan_success_a11y" = "Código QR lido";
+"fkuikit.qrcode.torch_a11y" = "Alternar lanterna";

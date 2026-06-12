@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "Copied";
 "fkuikit.copy_chip.toast.success" = "Copied to clipboard";
 "fkuikit.status.a11y.label" = "%@, status";
+"fkuikit.qrcode.close_a11y" = "Close scanner";
+"fkuikit.qrcode.error.camera_unavailable" = "Camera is not available on this device.";
+"fkuikit.qrcode.error.interrupted" = "Scanning was interrupted.";
+"fkuikit.qrcode.error.permission_denied" = "Camera access was denied.";
+"fkuikit.qrcode.error.session_configuration_failed" = "The camera session could not be configured.";
+"fkuikit.qrcode.mock.description" = "The simulator has no camera. Use the button below to simulate a successful scan.";
+"fkuikit.qrcode.mock.simulate" = "Simulate Scan";
+"fkuikit.qrcode.mock.title" = "Camera Unavailable";
+"fkuikit.qrcode.permission.description" = "Allow camera access in Settings to scan QR codes.";
+"fkuikit.qrcode.permission.open_settings" = "Open Settings";
+"fkuikit.qrcode.permission.title" = "Camera Access Required";
+"fkuikit.qrcode.scan_hint" = "Align the QR code within the frame";
+"fkuikit.qrcode.scan_success_a11y" = "QR code scanned";
+"fkuikit.qrcode.torch_a11y" = "Toggle flashlight";

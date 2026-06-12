@@ -129,6 +129,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKPhotoPickerExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "QRCode Scanner",
+          subtitle: "Hub: FKQRCodeScannerViewController — modes, debounce, torch, permissions, navigation policy, SwiftUI",
+          make: { FKQRCodeScannerExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "PagingController",
           subtitle: "FKTabBar ↔ UIPageViewController sync: lazy/SwiftUI/delegate, RTL & gestures (Public/Internal/Extension)",
           make: { FKPagingControllerExamplesHubViewController() }
@@ -233,6 +238,11 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Permissions",
           subtitle: "Unified permission status/query/request, batch, denied handling, settings jump",
           make: { FKPermissionsExampleViewController() }
+        ),
+        ExampleMenuItem(
+          title: "QRCode",
+          subtitle: "Hub: FKQRCodeGenerator & FKQRCodeParser — correction, logo, CIImage, errors, payloads",
+          make: { FKQRCodeExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Pluggable",

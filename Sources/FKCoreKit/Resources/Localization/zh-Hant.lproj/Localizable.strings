@@ -53,6 +53,10 @@
 "fkcore.network.error.unknown_server_message" = "未知錯誤";
 "fkcore.permission.error.pre_prompt_cancelled" = "權限引導已取消。";
 "fkcore.permission.error.unavailable" = "此裝置不支援該權限。";
+"fkcore.qrcode.error.content_too_long" = "QR 內容超過最大長度（%d 位元組）。";
+"fkcore.qrcode.error.empty_content" = "QR 內容不能為空。";
+"fkcore.qrcode.error.filter_failed" = "QR 碼產生失敗。";
+"fkcore.qrcode.error.image_conversion_failed" = "QR 影像轉換失敗。";
 "fkcore.security.detail.aes_iv_length" = "AES-CBC 需要 16 位元組 IV。";
 "fkcore.security.detail.aes_key_length" = "AES 密鑰長度必須為 16/24/32 位元組。";
 "fkcore.security.detail.alphabet_empty" = "字母表不能為空。";

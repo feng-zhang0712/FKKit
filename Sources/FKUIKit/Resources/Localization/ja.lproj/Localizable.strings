@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "コピーしました";
 "fkuikit.copy_chip.toast.success" = "クリップボードにコピーしました";
 "fkuikit.status.a11y.label" = "%@、ステータス";
+"fkuikit.qrcode.close_a11y" = "スキャナーを閉じる";
+"fkuikit.qrcode.error.camera_unavailable" = "このデバイスではカメラを利用できません。";
+"fkuikit.qrcode.error.interrupted" = "スキャンが中断されました。";
+"fkuikit.qrcode.error.permission_denied" = "カメラへのアクセスが拒否されました。";
+"fkuikit.qrcode.error.session_configuration_failed" = "カメラセッションを構成できませんでした。";
+"fkuikit.qrcode.mock.description" = "シミュレーターにはカメラがありません。下のボタンでスキャン成功をシミュレートできます。";
+"fkuikit.qrcode.mock.simulate" = "スキャンをシミュレート";
+"fkuikit.qrcode.mock.title" = "カメラを利用できません";
+"fkuikit.qrcode.permission.description" = "設定でカメラへのアクセスを許可すると QR コードを読み取れます。";
+"fkuikit.qrcode.permission.open_settings" = "設定を開く";
+"fkuikit.qrcode.permission.title" = "カメラへのアクセスが必要です";
+"fkuikit.qrcode.scan_hint" = "QR コードを枠内に合わせてください";
+"fkuikit.qrcode.scan_success_a11y" = "QR コードを読み取りました";
+"fkuikit.qrcode.torch_a11y" = "ライトのオン/オフ";

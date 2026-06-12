@@ -53,6 +53,10 @@
 "fkcore.network.error.unknown_server_message" = "Unknown error";
 "fkcore.permission.error.pre_prompt_cancelled" = "Permission pre-prompt was cancelled.";
 "fkcore.permission.error.unavailable" = "This permission is unavailable on this device.";
+"fkcore.qrcode.error.content_too_long" = "QR content exceeds the maximum length (%d bytes).";
+"fkcore.qrcode.error.empty_content" = "QR content must not be empty.";
+"fkcore.qrcode.error.filter_failed" = "QR code generation failed.";
+"fkcore.qrcode.error.image_conversion_failed" = "QR image conversion failed.";
 "fkcore.security.detail.aes_iv_length" = "AES-CBC requires a 16-byte IV.";
 "fkcore.security.detail.aes_key_length" = "AES key length must be 16/24/32 bytes.";
 "fkcore.security.detail.alphabet_empty" = "Alphabet must not be empty.";

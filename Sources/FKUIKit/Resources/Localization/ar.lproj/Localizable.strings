@@ -253,3 +253,17 @@
 "fkuikit.copy_chip.a11y.copied" = "تم النسخ";
 "fkuikit.copy_chip.toast.success" = "تم النسخ إلى الحافظة";
 "fkuikit.status.a11y.label" = "%@، الحالة";
+"fkuikit.qrcode.close_a11y" = "إغلاق الماسح";
+"fkuikit.qrcode.error.camera_unavailable" = "الكاميرا غير متاحة على هذا الجهاز.";
+"fkuikit.qrcode.error.interrupted" = "تمت مقاطعة المسح.";
+"fkuikit.qrcode.error.permission_denied" = "تم رفض الوصول إلى الكاميرا.";
+"fkuikit.qrcode.error.session_configuration_failed" = "تعذّر إعداد جلسة الكاميرا.";
+"fkuikit.qrcode.mock.description" = "المحاكي لا يحتوي على كاميرا. استخدم الزر أدناه لمحاكاة مسح ناجح.";
+"fkuikit.qrcode.mock.simulate" = "محاكاة المسح";
+"fkuikit.qrcode.mock.title" = "الكاميرا غير متاحة";
+"fkuikit.qrcode.permission.description" = "اسمح بالوصول إلى الكاميرا في الإعدادات لمسح رموز QR.";
+"fkuikit.qrcode.permission.open_settings" = "فتح الإعدادات";
+"fkuikit.qrcode.permission.title" = "مطلوب الوصول إلى الكاميرا";
+"fkuikit.qrcode.scan_hint" = "ضع رمز QR داخل الإطار";
+"fkuikit.qrcode.scan_success_a11y" = "تم مسح رمز QR";
+"fkuikit.qrcode.torch_a11y" = "تبديل المصباح";

@@ -23,7 +23,10 @@ final class FKThemeExampleRegistryNotificationViewController: FKThemeExampleBase
       object: nil,
       queue: .main
     ) { [weak self] _ in
-      self?.themeChanged()
+      guard let self else { return }
+      MainActor.assumeIsolated {
+        self.themeChanged()
+      }
     }
 
     stack.addArrangedSubview(banner)
