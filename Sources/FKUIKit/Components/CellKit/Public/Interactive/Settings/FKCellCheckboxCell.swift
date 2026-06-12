@@ -14,7 +14,10 @@ public final class FKCellCheckboxCell: UITableViewCell, FKCellReusable {
     layout.applyAppearance(appearance)
     updateCheckboxImage(isChecked: configuration.isChecked)
     checkbox.isEnabled = configuration.isEnabled
-    layout.contentStack.setLeadingContent(configuration.placement == .leading ? checkbox : nil, width: configuration.placement == .leading ? 28 : 0)
+    layout.contentStack.setLeadingContent(
+      configuration.placement == .leading ? checkbox : nil,
+      width: configuration.placement == .leading ? FKCellLayoutMetrics.checkmarkColumnWidth : 0
+    )
     layout.contentStack.setTitle(configuration.title); layout.contentStack.setSubtitle(configuration.subtitle)
     if configuration.placement == .trailing { layout.contentStack.setAccessoryViews([checkbox]) } else { layout.contentStack.setAccessoryViews([]) }
     layout.applyChrome(.init(groupConfiguration: nil, separatorPolicy: configuration.separatorPolicy, isLastInSection: configuration.isLastInSection, isEnabled: configuration.isEnabled), to: self)
@@ -27,7 +30,10 @@ public final class FKCellCheckboxCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear; contentView.backgroundColor = .clear
     checkbox.translatesAutoresizingMaskIntoConstraints = false
     checkbox.addTarget(self, action: #selector(checkboxTapped), for: .touchUpInside)
-    NSLayoutConstraint.activate([checkbox.widthAnchor.constraint(equalToConstant: 28), checkbox.heightAnchor.constraint(equalToConstant: 28)])
+    NSLayoutConstraint.activate([
+      checkbox.widthAnchor.constraint(equalToConstant: FKCellLayoutMetrics.checkmarkColumnWidth),
+      checkbox.heightAnchor.constraint(equalToConstant: FKCellLayoutMetrics.checkmarkColumnWidth),
+    ])
     layout.install(in: contentView)
   }
   @objc private func checkboxTapped() { toggleChecked() }

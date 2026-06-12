@@ -33,7 +33,6 @@ public final class FKCellAudioTrackCell: UITableViewCell, FKCellReusable {
     layout.contentStack.setTitle(configuration.title)
     layout.contentStack.setSubtitle(configuration.artist)
     layout.contentStack.setDetail(configuration.duration)
-    layout.accessoryHost.apply(.none, appearance: appearance)
     layout.contentStack.setAccessoryViews([])
 
     layout.applyChrome(

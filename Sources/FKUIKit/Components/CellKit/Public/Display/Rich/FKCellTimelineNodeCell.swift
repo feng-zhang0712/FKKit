@@ -6,7 +6,7 @@ import UIKit
 public final class FKCellTimelineNodeCell: UITableViewCell, FKCellReusable {
   public typealias ViewModel = FKCellTimelineNodeRow
 
-  private let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let rootStack = UIStackView()
   private let axisColumn = UIView()
   private let topLine = UIView()
@@ -55,7 +55,7 @@ public final class FKCellTimelineNodeCell: UITableViewCell, FKCellReusable {
     topLine.isHidden = configuration.isFirst
     bottomLine.isHidden = configuration.isLast
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: contentView)
     FKCellSeparatorLayout.updateVisibility(
       divider: separator,
       policy: configuration.separatorPolicy,
@@ -87,8 +87,6 @@ public final class FKCellTimelineNodeCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     selectionStyle = .none
-
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     rootStack.axis = .horizontal
     rootStack.alignment = .top
     rootStack.spacing = 12
@@ -133,17 +131,11 @@ public final class FKCellTimelineNodeCell: UITableViewCell, FKCellReusable {
     contentStack.addArrangedSubview(subtitleLabel)
     rootStack.addArrangedSubview(axisColumn)
     rootStack.addArrangedSubview(contentStack)
-
-    contentView.addSubview(groupedBackground)
     contentView.addSubview(rootStack)
     contentView.addSubview(separator)
 
     let insets = FKCellAppearanceConfiguration.default.contentInsets
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
       rootStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: insets.top),
       rootStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: insets.left),

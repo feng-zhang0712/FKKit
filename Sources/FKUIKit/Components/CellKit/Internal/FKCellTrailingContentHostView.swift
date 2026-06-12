@@ -3,7 +3,8 @@ import UIKit
 /// Hosts ``FKCellTrailingContent`` for status and badge rows.
 @MainActor
 final class FKCellTrailingContentHostView: UIView {
-  private let accessoryHost = FKCellAccessoryHostView()
+  private var accessoryHostStorage: FKCellAccessoryHostView?
+  private var hostConstraints: [NSLayoutConstraint] = []
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -22,32 +23,57 @@ final class FKCellTrailingContentHostView: UIView {
   ) {
     switch content {
     case .none:
-      accessoryHost.apply(.none, appearance: appearance)
+      accessoryHostStorage?.apply(.none, appearance: appearance)
+      detachAccessoryHost()
+
     case .disclosure:
-      accessoryHost.apply(.disclosureIndicator, appearance: appearance)
+      resolvedAccessoryHost().apply(.disclosureIndicator, appearance: appearance)
+
     case let .value(text):
-      accessoryHost.apply(.value(text), appearance: appearance)
+      resolvedAccessoryHost().apply(.value(text), appearance: appearance)
+
     case let .statusPill(configuration):
-      accessoryHost.apply(.statusPill(configuration), appearance: appearance)
+      resolvedAccessoryHost().apply(.statusPill(configuration), appearance: appearance)
+
     case let .badge(configuration):
-      accessoryHost.apply(.badge(configuration), appearance: appearance, badgeCount: badgeCount)
-    case .custom(let id):
-      accessoryHost.apply(.custom(id: id), appearance: appearance)
+      resolvedAccessoryHost().apply(.badge(configuration), appearance: appearance, badgeCount: badgeCount)
+
+    case let .custom(id):
+      resolvedAccessoryHost().apply(.custom(id: id), appearance: appearance)
     }
   }
 
   func reset() {
-    accessoryHost.apply(.none, appearance: .default)
+    accessoryHostStorage?.apply(.none, appearance: .default)
+    detachAccessoryHost()
   }
 
   private func commonInit() {
-    accessoryHost.translatesAutoresizingMaskIntoConstraints = false
-    addSubview(accessoryHost)
-    NSLayoutConstraint.activate([
-      accessoryHost.topAnchor.constraint(equalTo: topAnchor),
-      accessoryHost.leadingAnchor.constraint(equalTo: leadingAnchor),
-      accessoryHost.trailingAnchor.constraint(equalTo: trailingAnchor),
-      accessoryHost.bottomAnchor.constraint(equalTo: bottomAnchor),
-    ])
+    translatesAutoresizingMaskIntoConstraints = false
+    setContentHuggingPriority(.required, for: .horizontal)
+    setContentCompressionResistancePriority(.required, for: .horizontal)
+  }
+
+  private func resolvedAccessoryHost() -> FKCellAccessoryHostView {
+    if let accessoryHostStorage { return accessoryHostStorage }
+    let host = FKCellAccessoryHostView()
+    host.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(host)
+    hostConstraints = [
+      host.topAnchor.constraint(equalTo: topAnchor),
+      host.leadingAnchor.constraint(equalTo: leadingAnchor),
+      host.trailingAnchor.constraint(equalTo: trailingAnchor),
+      host.bottomAnchor.constraint(equalTo: bottomAnchor),
+    ]
+    NSLayoutConstraint.activate(hostConstraints)
+    accessoryHostStorage = host
+    return host
+  }
+
+  private func detachAccessoryHost() {
+    accessoryHostStorage?.removeFromSuperview()
+    accessoryHostStorage = nil
+    NSLayoutConstraint.deactivate(hostConstraints)
+    hostConstraints = []
   }
 }

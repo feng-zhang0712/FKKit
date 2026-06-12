@@ -26,7 +26,6 @@ enum FKCellProfileLayoutRenderer {
 
     switch configuration.accessory {
     case .none:
-      layout.accessoryHost.apply(.none, appearance: appearance)
       layout.contentStack.setAccessoryViews([])
     case .disclosure:
       layout.accessoryHost.apply(.disclosureIndicator, appearance: appearance)

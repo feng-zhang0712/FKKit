@@ -41,6 +41,7 @@ public final class FKCellSwitchCell: UITableViewCell, FKCellReusable {
       groupConfiguration: groupConfiguration,
       host: self
     )
+    wireSwitchControl()
     isApplyingConfiguration = false
 
     selectionStyle = .none
@@ -64,7 +65,11 @@ public final class FKCellSwitchCell: UITableViewCell, FKCellReusable {
     contentView.backgroundColor = .clear
     selectionStyle = .none
     layout.install(in: contentView)
-    layout.accessoryHost.switchControl.addTarget(self, action: #selector(handleSwitchValueChanged(_:)), for: .valueChanged)
+  }
+
+  private func wireSwitchControl() {
+    layout.switchControl.removeTarget(nil, action: nil, for: .valueChanged)
+    layout.switchControl.addTarget(self, action: #selector(handleSwitchValueChanged(_:)), for: .valueChanged)
   }
 
   @objc private func handleSwitchValueChanged(_ sender: UISwitch) {

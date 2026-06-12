@@ -3,7 +3,7 @@ import UIKit
 /// Grouped card chrome with optional full-width separator for rich settings rows.
 @MainActor
 final class FKCellRichCardChromeView: UIView {
-  let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   let contentStack = UIStackView()
   let footerSeparator = FKCellSeparatorLayout.makeDivider()
   let footerButton = UIButton(type: .system)
@@ -29,7 +29,7 @@ final class FKCellRichCardChromeView: UIView {
     isLastInSection: Bool,
     to cell: UITableViewCell
   ) {
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: self)
     FKCellSeparatorLayout.updateVisibility(
       divider: footerSeparator,
       policy: separatorPolicy,
@@ -52,6 +52,7 @@ final class FKCellRichCardChromeView: UIView {
   }
 
   func resetForReuse() {
+    groupedBackgroundHost.detach()
     contentStack.arrangedSubviews.forEach { view in
       contentStack.removeArrangedSubview(view)
       view.removeFromSuperview()
@@ -66,25 +67,18 @@ final class FKCellRichCardChromeView: UIView {
     contentStack.axis = .vertical
     contentStack.spacing = 8
     contentStack.translatesAutoresizingMaskIntoConstraints = false
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     footerSeparator.translatesAutoresizingMaskIntoConstraints = false
     footerButton.translatesAutoresizingMaskIntoConstraints = false
     footerButton.contentHorizontalAlignment = .leading
     footerButton.titleLabel?.font = .preferredFont(forTextStyle: .body)
     footerButton.isHidden = true
     footerSeparator.isHidden = true
-
-    addSubview(groupedBackground)
     addSubview(contentStack)
     addSubview(footerSeparator)
     addSubview(footerButton)
 
     let insets = FKCellAppearanceConfiguration.default.contentInsets
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: bottomAnchor),
 
       contentStack.topAnchor.constraint(equalTo: topAnchor, constant: insets.top),
       contentStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: insets.left),

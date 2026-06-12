@@ -3,7 +3,7 @@ import UIKit
 /// Shared conversation row content for table and collection cells (D-20).
 @MainActor
 final class FKCellConversationContentView: UIView {
-  let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let rootStack = UIStackView()
   let avatarSlot = FKCellAvatarSlotView()
   private let textColumn = UIStackView()
@@ -48,7 +48,7 @@ final class FKCellConversationContentView: UIView {
       appearance: appearance
     )
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: self)
     FKCellSeparatorLayout.updateVisibility(
       divider: separator,
       policy: configuration.separatorPolicy,
@@ -67,6 +67,7 @@ final class FKCellConversationContentView: UIView {
   }
 
   func resetForReuse() {
+    groupedBackgroundHost.detach()
     avatarSlot.resetForReuse()
     metaColumn.reset()
     titleLabel.text = nil
@@ -76,7 +77,6 @@ final class FKCellConversationContentView: UIView {
 
   private func commonInit() {
     backgroundColor = .clear
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     rootStack.axis = .horizontal
     rootStack.alignment = .center
     rootStack.spacing = FKCellLayoutMetrics.iconColumnSpacing
@@ -103,17 +103,11 @@ final class FKCellConversationContentView: UIView {
     rootStack.addArrangedSubview(metaColumn)
 
     separator.translatesAutoresizingMaskIntoConstraints = false
-
-    addSubview(groupedBackground)
     addSubview(rootStack)
     addSubview(separator)
 
     let insets = FKCellAppearanceConfiguration.default.contentInsets
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: bottomAnchor),
 
       rootStack.topAnchor.constraint(equalTo: topAnchor, constant: insets.top),
       rootStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: insets.left),

@@ -6,9 +6,9 @@ import UIKit
 public final class FKCellHeroCell: UITableViewCell, FKCellReusable {
   public typealias ViewModel = FKCellHeroRow
 
-  private let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let rootStack = UIStackView()
-  private let iconSlot = FKCellIconSlotView()
+  private let heroIconView = UIImageView()
   private let titleLabel = UILabel()
   private let descriptionLabel = UILabel()
   private let separator = FKCellSeparatorLayout.makeDivider()
@@ -32,10 +32,11 @@ public final class FKCellHeroCell: UITableViewCell, FKCellReusable {
     appearance: FKCellAppearanceConfiguration = .default
   ) {
     if let icon = configuration.icon {
-      iconSlot.apply(icon)
-      iconSlot.isHidden = false
+      applyHeroIcon(icon)
+      heroIconView.isHidden = false
     } else {
-      iconSlot.isHidden = true
+      heroIconView.image = nil
+      heroIconView.isHidden = true
     }
 
     titleLabel.text = configuration.title
@@ -43,7 +44,7 @@ public final class FKCellHeroCell: UITableViewCell, FKCellReusable {
     descriptionLabel.text = configuration.description
     descriptionLabel.textAlignment = configuration.textAlignment
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: contentView)
     FKCellSeparatorLayout.updateVisibility(
       divider: separator,
       policy: configuration.separatorPolicy,
@@ -62,7 +63,8 @@ public final class FKCellHeroCell: UITableViewCell, FKCellReusable {
 
   public override func prepareForReuse() {
     super.prepareForReuse()
-    iconSlot.reset()
+    heroIconView.image = nil
+    heroIconView.isHidden = true
     titleLabel.text = nil
     descriptionLabel.text = nil
     selectionStyle = .none
@@ -73,8 +75,6 @@ public final class FKCellHeroCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     selectionStyle = .none
-
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     rootStack.axis = .vertical
     rootStack.alignment = .center
     rootStack.spacing = 12
@@ -90,33 +90,50 @@ public final class FKCellHeroCell: UITableViewCell, FKCellReusable {
     descriptionLabel.numberOfLines = 0
     descriptionLabel.adjustsFontForContentSizeCategory = true
 
+    heroIconView.translatesAutoresizingMaskIntoConstraints = false
+    heroIconView.contentMode = .scaleAspectFit
+    heroIconView.setContentHuggingPriority(.required, for: .horizontal)
+    heroIconView.setContentHuggingPriority(.required, for: .vertical)
+
     separator.translatesAutoresizingMaskIntoConstraints = false
-    rootStack.addArrangedSubview(iconSlot)
+    rootStack.addArrangedSubview(heroIconView)
     rootStack.addArrangedSubview(titleLabel)
     rootStack.addArrangedSubview(descriptionLabel)
-
-    contentView.addSubview(groupedBackground)
     contentView.addSubview(rootStack)
     contentView.addSubview(separator)
 
     let insets = FKCellAppearanceConfiguration.default.contentInsets
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
       rootStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: insets.top + 8),
       rootStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: insets.left),
       rootStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -insets.right),
       rootStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -insets.bottom - 8),
 
-      iconSlot.widthAnchor.constraint(equalToConstant: 64),
-      iconSlot.heightAnchor.constraint(equalToConstant: 64),
+      heroIconView.widthAnchor.constraint(equalToConstant: FKCellLayoutMetrics.heroIconSize),
+      heroIconView.heightAnchor.constraint(equalToConstant: FKCellLayoutMetrics.heroIconSize),
 
       separator.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
       separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
       separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
     ])
+  }
+
+  private func applyHeroIcon(_ content: FKCellIconContent) {
+    if let image = content.image {
+      heroIconView.image = image
+      heroIconView.tintColor = nil
+      return
+    }
+
+    guard let symbolName = content.symbolName else {
+      heroIconView.image = nil
+      return
+    }
+
+    let pointSize = FKCellLayoutMetrics.heroIconSize * 0.875
+    let symbolConfig = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .regular)
+    heroIconView.image = UIImage(systemName: symbolName, withConfiguration: symbolConfig)
+    heroIconView.tintColor = content.configuration.appearance.defaultTintColor
   }
 }

@@ -48,6 +48,7 @@ public final class FKCellIconSwitchCell: UITableViewCell, FKCellReusable {
     isApplyingConfiguration = true
     layout.accessoryHost.switchControl.isOn = configuration.isOn
     isApplyingConfiguration = false
+    wireSwitchControl()
 
     layout.applyChrome(
       .init(
@@ -88,6 +89,10 @@ public final class FKCellIconSwitchCell: UITableViewCell, FKCellReusable {
     contentView.backgroundColor = .clear
     selectionStyle = .none
     layout.install(in: contentView)
+  }
+
+  private func wireSwitchControl() {
+    layout.accessoryHost.switchControl.removeTarget(nil, action: nil, for: .valueChanged)
     layout.accessoryHost.switchControl.addTarget(self, action: #selector(handleSwitchValueChanged(_:)), for: .valueChanged)
   }
 

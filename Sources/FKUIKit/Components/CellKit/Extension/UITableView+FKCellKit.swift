@@ -8,7 +8,10 @@ public extension UITableView {
   }
 
   /// Registers ``FKCellSectionHeaderView`` and ``FKCellSectionFooterView`` reuse identifiers.
+  ///
+  /// Also disables the table view's system row separators; CellKit rows draw separators with ``FKDivider``.
   func fk_registerCellKitStructureViews() {
+    separatorStyle = .none
     register(
       FKCellSectionHeaderView.self,
       forHeaderFooterViewReuseIdentifier: FKCellSectionHeaderView.reuseIdentifier

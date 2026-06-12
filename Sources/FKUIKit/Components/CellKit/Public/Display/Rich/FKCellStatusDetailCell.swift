@@ -9,7 +9,7 @@ public final class FKCellStatusDetailCell: UITableViewCell, FKCellReusable {
   public var onBodyLinkTapped: ((FKCellLinkRange) -> Void)?
   public var onFooterActionTapped: ((FKCellActionLink) -> Void)?
 
-  private let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let rootStack = UIStackView()
   private let headerRow = UIStackView()
   private let iconSlot = FKCellIconSlotView()
@@ -87,7 +87,7 @@ public final class FKCellStatusDetailCell: UITableViewCell, FKCellReusable {
       contentBottomConstraint?.isActive = true
     }
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: contentView)
     FKCellSeparatorLayout.updateVisibility(
       divider: bottomSeparator,
       policy: configuration.separatorPolicy,
@@ -121,8 +121,6 @@ public final class FKCellStatusDetailCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     selectionStyle = .none
-
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     rootStack.axis = .vertical
     rootStack.spacing = 8
     rootStack.translatesAutoresizingMaskIntoConstraints = false
@@ -160,7 +158,6 @@ public final class FKCellStatusDetailCell: UITableViewCell, FKCellReusable {
     rootStack.addArrangedSubview(bodyView)
 
     bottomSeparator.translatesAutoresizingMaskIntoConstraints = false
-    contentView.addSubview(groupedBackground)
     contentView.addSubview(rootStack)
     contentView.addSubview(footerStack)
     contentView.addSubview(bottomSeparator)
@@ -177,10 +174,6 @@ public final class FKCellStatusDetailCell: UITableViewCell, FKCellReusable {
     contentBottomConstraint?.isActive = true
 
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
       rootStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: insets.top),
       rootStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: insets.left),

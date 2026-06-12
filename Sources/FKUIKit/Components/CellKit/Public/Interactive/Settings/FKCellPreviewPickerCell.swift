@@ -15,7 +15,6 @@ public final class FKCellPreviewPickerCell: UITableViewCell, FKCellReusable {
     else { layout.contentStack.setLeadingContent(nil, width: 0) }
     layout.contentStack.setTitle(configuration.title); layout.contentStack.setDetail(configuration.value, emphasis: .secondary)
     previewView.image = configuration.previewImage; previewView.isHidden = configuration.previewImage == nil
-    layout.accessoryHost.apply(.none, appearance: appearance)
     let trailing = UIStackView(arrangedSubviews: [previewView, pickerIndicator]); trailing.axis = .horizontal; trailing.spacing = 8; trailing.alignment = .center
     layout.contentStack.setAccessoryViews([trailing])
     layout.applyChrome(.init(groupConfiguration: nil, separatorPolicy: configuration.separatorPolicy, isLastInSection: configuration.isLastInSection, isEnabled: configuration.isEnabled), to: self)

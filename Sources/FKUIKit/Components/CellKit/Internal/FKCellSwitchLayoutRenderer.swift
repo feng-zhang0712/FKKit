@@ -16,10 +16,10 @@ enum FKCellSwitchLayoutRenderer {
     layout.contentStack.setSubtitle(nil)
     layout.contentStack.setDetail(nil)
 
-    layout.accessoryHost.apply(.switchControl(isOn: configuration.isOn), appearance: appearance)
-    layout.accessoryHost.switchControl.isEnabled = configuration.isEnabled
-    layout.contentStack.setAccessoryViews([layout.accessoryHost])
-    layout.accessoryHost.switchControl.isOn = configuration.isOn
+    let control = layout.switchControl
+    control.isOn = configuration.isOn
+    control.isEnabled = configuration.isEnabled
+    layout.contentStack.setAccessoryViews([control])
 
     layout.applyChrome(
       .init(
@@ -32,6 +32,6 @@ enum FKCellSwitchLayoutRenderer {
     )
 
     layout.contentStack.titleLabel.textColor = configuration.isEnabled ? .label : .tertiaryLabel
-    layout.accessoryHost.switchControl.accessibilityLabel = configuration.title
+    control.accessibilityLabel = configuration.title
   }
 }

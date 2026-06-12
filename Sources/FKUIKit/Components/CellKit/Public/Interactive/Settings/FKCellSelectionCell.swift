@@ -31,11 +31,16 @@ public final class FKCellSelectionCell: UITableViewCell, FKCellReusable {
     groupConfiguration: FKCellGroupConfiguration? = nil
   ) {
     layout.applyAppearance(appearance)
+    let showsLeadingCheckmarkColumn = configuration.isSelected
+      || configuration.reservesLeadingSpaceWhenUnselected
     checkmarkSlot.apply(
       isSelected: configuration.isSelected,
       reservesSpaceWhenUnselected: configuration.reservesLeadingSpaceWhenUnselected
     )
-    layout.contentStack.setLeadingContent(checkmarkSlot, width: FKCellLayoutMetrics.checkmarkColumnWidth)
+    layout.contentStack.setLeadingContent(
+      showsLeadingCheckmarkColumn ? checkmarkSlot : nil,
+      width: showsLeadingCheckmarkColumn ? FKCellLayoutMetrics.checkmarkColumnWidth : 0
+    )
     layout.contentStack.setTitle(configuration.title)
     layout.contentStack.setSubtitle(configuration.subtitle)
     layout.contentStack.setDetail(nil)

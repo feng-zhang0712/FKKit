@@ -6,7 +6,7 @@ import UIKit
 public final class FKCellStackedKeyValueCell: UITableViewCell, FKCellReusable {
   public typealias ViewModel = FKCellStackedKeyValueRow
 
-  private let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let stack = UIStackView()
   private let separator = FKCellSeparatorLayout.makeDivider()
   private var appearance: FKCellAppearanceConfiguration = .default
@@ -61,7 +61,7 @@ public final class FKCellStackedKeyValueCell: UITableViewCell, FKCellReusable {
       stack.addArrangedSubview(row)
     }
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: contentView)
     FKCellSeparatorLayout.updateVisibility(
       divider: separator,
       policy: configuration.separatorPolicy,
@@ -92,23 +92,15 @@ public final class FKCellStackedKeyValueCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     selectionStyle = .none
-
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     stack.axis = .vertical
     stack.spacing = 8
     stack.translatesAutoresizingMaskIntoConstraints = false
     separator.translatesAutoresizingMaskIntoConstraints = false
-
-    contentView.addSubview(groupedBackground)
     contentView.addSubview(stack)
     contentView.addSubview(separator)
 
     let insets = appearance.contentInsets
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
       stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: insets.top),
       stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: insets.left),

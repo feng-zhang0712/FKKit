@@ -6,7 +6,7 @@ import UIKit
 public final class FKCellImageCardCell: UITableViewCell, FKCellReusable {
   public typealias ViewModel = FKCellImageCardRow
 
-  private let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let rootStack = UIStackView()
   private let imageHost = UIView()
   private let thumbnailView = FKCellImageThumbnailView()
@@ -38,7 +38,7 @@ public final class FKCellImageCardCell: UITableViewCell, FKCellReusable {
     titleLabel.text = configuration.title
     summaryLabel.text = configuration.summary
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: contentView)
     FKCellSeparatorLayout.updateVisibility(
       divider: separator,
       policy: configuration.separatorPolicy,
@@ -73,8 +73,6 @@ public final class FKCellImageCardCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     selectionStyle = .default
-
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     rootStack.axis = .vertical
     rootStack.spacing = 8
     rootStack.translatesAutoresizingMaskIntoConstraints = false
@@ -103,8 +101,6 @@ public final class FKCellImageCardCell: UITableViewCell, FKCellReusable {
     rootStack.addArrangedSubview(imageHost)
     rootStack.addArrangedSubview(titleLabel)
     rootStack.addArrangedSubview(summaryLabel)
-
-    contentView.addSubview(groupedBackground)
     contentView.addSubview(rootStack)
     contentView.addSubview(separator)
 
@@ -116,10 +112,6 @@ public final class FKCellImageCardCell: UITableViewCell, FKCellReusable {
     imageHeightConstraint?.isActive = true
 
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
       rootStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: insets.top),
       rootStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: insets.left),

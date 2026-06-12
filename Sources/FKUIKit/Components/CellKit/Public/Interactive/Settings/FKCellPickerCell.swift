@@ -44,7 +44,6 @@ public final class FKCellPickerCell: UITableViewCell, FKCellReusable {
     layout.contentStack.setTitle(configuration.title)
     layout.contentStack.setSubtitle(nil)
     layout.contentStack.setDetail(configuration.value, emphasis: .secondary)
-    layout.accessoryHost.apply(.none, appearance: appearance)
     layout.contentStack.setAccessoryViews([pickerIndicator])
 
     layout.applyChrome(

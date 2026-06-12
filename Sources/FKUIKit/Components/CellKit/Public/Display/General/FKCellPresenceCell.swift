@@ -44,7 +44,6 @@ public final class FKCellPresenceCell: UITableViewCell, FKCellReusable {
     layout.contentStack.setSubtitle(configuration.statusText)
     layout.contentStack.setDetail(configuration.timestamp)
 
-    layout.accessoryHost.apply(.none, appearance: appearance)
     layout.contentStack.setAccessoryViews([])
 
     layout.applyChrome(

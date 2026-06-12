@@ -37,7 +37,6 @@ public final class FKCellArticleCell: UITableViewCell, FKCellReusable {
     layout.contentStack.setTitle(configuration.title, numberOfLines: 3)
     layout.contentStack.setSubtitle(configuration.source)
     layout.contentStack.setDetail(configuration.timestamp)
-    layout.accessoryHost.apply(.none, appearance: appearance)
     layout.contentStack.setAccessoryViews([])
 
     layout.applyChrome(

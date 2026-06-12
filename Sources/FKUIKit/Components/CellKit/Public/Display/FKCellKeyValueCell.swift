@@ -38,7 +38,6 @@ public final class FKCellKeyValueCell: UITableViewCell, FKCellReusable {
       numberOfLines: configuration.valueNumberOfLines,
       emphasis: configuration.valueEmphasis
     )
-    layout.accessoryHost.apply(.none, appearance: appearance)
     layout.contentStack.setAccessoryViews([])
 
     layout.applyChrome(

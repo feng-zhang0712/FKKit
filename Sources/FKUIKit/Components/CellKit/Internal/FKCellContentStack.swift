@@ -4,16 +4,25 @@ import UIKit
 @MainActor
 final class FKCellContentStack: UIView {
   let leadingSlot = UIView()
-  let textStack = UIStackView()
-  let trailingSlot = UIStackView()
-
   let titleLabel = UILabel()
   let subtitleLabel = UILabel()
   let detailLabel = UILabel()
 
+  private var trailingStackStorage: UIStackView?
+  private var trailingItemConstraints: [NSLayoutConstraint] = []
+  private var trailingGuideLeadingConstraint: NSLayoutConstraint?
+  private let trailingLeadingGuide = UILayoutGuide()
+
   private var leadingWidthConstraint: NSLayoutConstraint?
+  private var leadingItemConstraints: [NSLayoutConstraint] = []
   private var leadingSpacingConstraint: NSLayoutConstraint?
+  private var titleCenterYConstraint: NSLayoutConstraint?
+  private var titleTopConstraint: NSLayoutConstraint?
+  private var subtitleTopConstraint: NSLayoutConstraint?
+  private var subtitleBottomConstraint: NSLayoutConstraint?
   private var accessoryViews: [UIView] = []
+  private var mountedTrailingViews: [UIView] = []
+  private var trailingSpacing = FKCellLayoutMetrics.trailingAccessorySpacing
   private var appearance: FKCellAppearanceConfiguration = .default
 
   override init(frame: CGRect) {
@@ -32,25 +41,28 @@ final class FKCellContentStack: UIView {
   }
 
   func setLeadingContent(_ view: UIView?, width: CGFloat) {
+    NSLayoutConstraint.deactivate(leadingItemConstraints)
+    leadingItemConstraints = []
     leadingSlot.subviews.forEach { $0.removeFromSuperview() }
-    guard let view else {
-      leadingWidthConstraint?.constant = 0
+    leadingWidthConstraint?.constant = width
+
+    guard let view, width > 0 else {
       leadingSlot.isHidden = true
       leadingSpacingConstraint?.constant = 0
       return
     }
+
     leadingSlot.isHidden = false
+    leadingSpacingConstraint?.constant = FKCellLayoutMetrics.iconColumnSpacing
     view.translatesAutoresizingMaskIntoConstraints = false
     leadingSlot.addSubview(view)
-    NSLayoutConstraint.activate([
-      view.topAnchor.constraint(equalTo: leadingSlot.topAnchor),
-      view.leadingAnchor.constraint(equalTo: leadingSlot.leadingAnchor),
-      view.trailingAnchor.constraint(equalTo: leadingSlot.trailingAnchor),
-      view.bottomAnchor.constraint(lessThanOrEqualTo: leadingSlot.bottomAnchor),
+    leadingItemConstraints = [
+      view.centerXAnchor.constraint(equalTo: leadingSlot.centerXAnchor),
       view.centerYAnchor.constraint(equalTo: leadingSlot.centerYAnchor),
-    ])
-    leadingWidthConstraint?.constant = width
-    leadingSpacingConstraint?.constant = width > 0 ? FKCellLayoutMetrics.iconColumnSpacing : 0
+      view.topAnchor.constraint(greaterThanOrEqualTo: leadingSlot.topAnchor),
+      view.bottomAnchor.constraint(lessThanOrEqualTo: leadingSlot.bottomAnchor),
+    ]
+    NSLayoutConstraint.activate(leadingItemConstraints)
   }
 
   func setTitle(_ text: String?, numberOfLines: Int = 0, font: UIFont? = nil, color: UIColor? = nil) {
@@ -65,6 +77,7 @@ final class FKCellContentStack: UIView {
     subtitleLabel.text = text
     subtitleLabel.numberOfLines = numberOfLines
     subtitleLabel.isHidden = text?.isEmpty ?? true
+    updateTextLayoutConstraints()
   }
 
   func setDetail(
@@ -78,13 +91,13 @@ final class FKCellContentStack: UIView {
     detailLabel.textColor = emphasis == .secondary
       ? appearance.secondaryLabelColor.resolvedColor(with: traitCollection)
       : .label
-    rebuildTrailingSlot()
+    rebuildTrailingContent()
   }
 
   func setAccessoryViews(_ views: [UIView], spacing: CGFloat = FKCellLayoutMetrics.trailingAccessorySpacing) {
     accessoryViews = views
-    trailingSlot.spacing = spacing
-    rebuildTrailingSlot()
+    trailingSpacing = spacing
+    rebuildTrailingContent()
   }
 
   /// Leading anchor for separator inset alignment (title leading).
@@ -92,16 +105,83 @@ final class FKCellContentStack: UIView {
     titleLabel.leadingAnchor
   }
 
-  private func rebuildTrailingSlot() {
-    trailingSlot.arrangedSubviews.forEach {
-      trailingSlot.removeArrangedSubview($0)
-      $0.removeFromSuperview()
+  override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    guard !isHidden, isUserInteractionEnabled, alpha >= 0.01, bounds.contains(point) else { return nil }
+    for subview in subviews.reversed() {
+      let converted = convert(point, to: subview)
+      if let hit = subview.hitTest(converted, with: event) { return hit }
     }
-    if !detailLabel.isHidden {
-      trailingSlot.addArrangedSubview(detailLabel)
+    return nil
+  }
+
+  private func rebuildTrailingContent() {
+    trailingStackStorage?.removeFromSuperview()
+    trailingStackStorage = nil
+
+    for view in mountedTrailingViews where view.superview === self {
+      view.removeFromSuperview()
     }
-    accessoryViews.forEach { trailingSlot.addArrangedSubview($0) }
-    trailingSlot.isHidden = trailingSlot.arrangedSubviews.isEmpty
+    mountedTrailingViews = []
+
+    NSLayoutConstraint.deactivate(trailingItemConstraints)
+    trailingItemConstraints = []
+
+    var items: [UIView] = []
+    if !detailLabel.isHidden { items.append(detailLabel) }
+    items.append(contentsOf: accessoryViews)
+
+    guard !items.isEmpty else {
+      attachTrailingGuide(to: nil)
+      return
+    }
+
+    items.forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
+
+    if items.count == 1 {
+      let view = items[0]
+      addSubview(view)
+      trailingItemConstraints = [
+        view.trailingAnchor.constraint(equalTo: trailingAnchor),
+        view.centerYAnchor.constraint(equalTo: centerYAnchor),
+        view.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
+        view.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
+      ]
+      attachTrailingGuide(to: view)
+    } else {
+      let stack = UIStackView(arrangedSubviews: items)
+      stack.axis = .horizontal
+      stack.alignment = .center
+      stack.spacing = trailingSpacing
+      stack.translatesAutoresizingMaskIntoConstraints = false
+      stack.setContentHuggingPriority(.required, for: .horizontal)
+      stack.setContentCompressionResistancePriority(.required, for: .horizontal)
+      addSubview(stack)
+      trailingStackStorage = stack
+      trailingItemConstraints = [
+        stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+        stack.centerYAnchor.constraint(equalTo: centerYAnchor),
+        stack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
+        stack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
+      ]
+      attachTrailingGuide(to: stack)
+    }
+
+    NSLayoutConstraint.activate(trailingItemConstraints)
+    mountedTrailingViews = items
+  }
+
+  private func attachTrailingGuide(to view: UIView?) {
+    trailingGuideLeadingConstraint?.isActive = false
+    if let view {
+      trailingGuideLeadingConstraint = trailingLeadingGuide.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      )
+    } else {
+      trailingGuideLeadingConstraint = trailingLeadingGuide.leadingAnchor.constraint(
+        equalTo: trailingLeadingGuide.trailingAnchor
+      )
+    }
+    trailingGuideLeadingConstraint?.isActive = true
   }
 
   private func commonInit() {
@@ -111,35 +191,38 @@ final class FKCellContentStack: UIView {
     leadingSlot.setContentHuggingPriority(.required, for: .horizontal)
     leadingSlot.setContentCompressionResistancePriority(.required, for: .horizontal)
 
-    textStack.axis = .vertical
-    textStack.alignment = .fill
-    textStack.spacing = FKCellLayoutMetrics.titleSubtitleSpacing
-    textStack.translatesAutoresizingMaskIntoConstraints = false
-
-    trailingSlot.axis = .horizontal
-    trailingSlot.alignment = .center
-    trailingSlot.spacing = FKCellLayoutMetrics.trailingAccessorySpacing
-    trailingSlot.translatesAutoresizingMaskIntoConstraints = false
-    trailingSlot.setContentHuggingPriority(.required, for: .horizontal)
-    trailingSlot.setContentCompressionResistancePriority(.required, for: .horizontal)
-
     configureLabel(titleLabel, isTitle: true)
     configureLabel(subtitleLabel, isTitle: false)
     configureDetailLabel(detailLabel)
 
-    textStack.addArrangedSubview(titleLabel)
-    textStack.addArrangedSubview(subtitleLabel)
     subtitleLabel.isHidden = true
-
     detailLabel.isHidden = true
-    trailingSlot.isHidden = true
 
     addSubview(leadingSlot)
-    addSubview(textStack)
-    addSubview(trailingSlot)
+    addSubview(titleLabel)
+    addSubview(subtitleLabel)
+    addLayoutGuide(trailingLeadingGuide)
 
     leadingWidthConstraint = leadingSlot.widthAnchor.constraint(equalToConstant: 0)
     leadingWidthConstraint?.isActive = true
+
+    let textLeading = titleLabel.leadingAnchor.constraint(
+      equalTo: leadingSlot.trailingAnchor,
+      constant: 0
+    )
+    leadingSpacingConstraint = textLeading
+
+    titleCenterYConstraint = titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
+    titleTopConstraint = titleLabel.topAnchor.constraint(equalTo: topAnchor)
+    subtitleTopConstraint = subtitleLabel.topAnchor.constraint(
+      equalTo: titleLabel.bottomAnchor,
+      constant: FKCellLayoutMetrics.titleSubtitleSpacing
+    )
+    subtitleBottomConstraint = subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
+
+    trailingGuideLeadingConstraint = trailingLeadingGuide.leadingAnchor.constraint(
+      equalTo: trailingLeadingGuide.trailingAnchor
+    )
 
     NSLayoutConstraint.activate([
       leadingSlot.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -147,31 +230,35 @@ final class FKCellContentStack: UIView {
       leadingSlot.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
       leadingSlot.centerYAnchor.constraint(equalTo: centerYAnchor),
 
-      {
-        let spacing = textStack.leadingAnchor.constraint(
-          equalTo: leadingSlot.trailingAnchor,
-          constant: 0
-        )
-        leadingSpacingConstraint = spacing
-        return spacing
-      }(),
-      textStack.topAnchor.constraint(equalTo: topAnchor),
-      textStack.bottomAnchor.constraint(equalTo: bottomAnchor),
-      textStack.trailingAnchor.constraint(
-        lessThanOrEqualTo: trailingSlot.leadingAnchor,
+      textLeading,
+      titleLabel.trailingAnchor.constraint(
+        lessThanOrEqualTo: trailingLeadingGuide.leadingAnchor,
+        constant: -FKCellLayoutMetrics.trailingAccessorySpacing
+      ),
+      subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+      subtitleLabel.trailingAnchor.constraint(
+        lessThanOrEqualTo: trailingLeadingGuide.leadingAnchor,
         constant: -FKCellLayoutMetrics.trailingAccessorySpacing
       ),
 
-      trailingSlot.trailingAnchor.constraint(equalTo: trailingAnchor),
-      trailingSlot.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
-      trailingSlot.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
-      trailingSlot.centerYAnchor.constraint(equalTo: centerYAnchor),
+      trailingLeadingGuide.trailingAnchor.constraint(equalTo: trailingAnchor),
+      trailingGuideLeadingConstraint!,
     ])
+
+    updateTextLayoutConstraints()
 
     titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
     detailLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     detailLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
     titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+  }
+
+  private func updateTextLayoutConstraints() {
+    let hasSubtitle = !subtitleLabel.isHidden
+    titleCenterYConstraint?.isActive = !hasSubtitle
+    titleTopConstraint?.isActive = hasSubtitle
+    subtitleTopConstraint?.isActive = hasSubtitle
+    subtitleBottomConstraint?.isActive = hasSubtitle
   }
 
   private func configureLabel(_ label: UILabel, isTitle: Bool) {

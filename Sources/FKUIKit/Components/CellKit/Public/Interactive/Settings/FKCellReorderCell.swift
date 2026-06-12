@@ -32,7 +32,6 @@ public final class FKCellReorderCell: UITableViewCell, FKCellReusable {
     layout.contentStack.setTitle(configuration.title)
     layout.contentStack.setSubtitle(configuration.subtitle)
     layout.contentStack.setDetail(nil)
-    layout.accessoryHost.apply(.none, appearance: appearance)
     layout.contentStack.setAccessoryViews([])
 
     layout.applyChrome(

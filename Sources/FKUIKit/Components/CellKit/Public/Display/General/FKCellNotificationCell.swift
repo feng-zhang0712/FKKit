@@ -33,7 +33,6 @@ public final class FKCellNotificationCell: UITableViewCell, FKCellReusable {
     layout.contentStack.setTitle(configuration.title)
     layout.contentStack.setSubtitle(configuration.body)
     layout.contentStack.setDetail(configuration.timestamp)
-    layout.accessoryHost.apply(.none, appearance: appearance)
     layout.contentStack.setAccessoryViews([])
 
     FKCellUnreadApplicator.apply(

@@ -39,6 +39,7 @@ public final class FKCellSwitchCollectionCell: UICollectionViewCell, FKCellColle
       groupConfiguration: groupConfiguration,
       host: self
     )
+    wireSwitchControl()
     isApplyingConfiguration = false
     accessibilityLabel = configuration.title
   }
@@ -58,7 +59,11 @@ public final class FKCellSwitchCollectionCell: UICollectionViewCell, FKCellColle
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     contentHost.install(in: contentView)
-    contentHost.layout.accessoryHost.switchControl.addTarget(
+  }
+
+  private func wireSwitchControl() {
+    contentHost.layout.switchControl.removeTarget(nil, action: nil, for: .valueChanged)
+    contentHost.layout.switchControl.addTarget(
       self,
       action: #selector(handleSwitchValueChanged(_:)),
       for: .valueChanged

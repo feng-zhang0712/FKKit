@@ -6,7 +6,7 @@ import UIKit
 public final class FKCellStorageSummaryCell: UITableViewCell, FKCellReusable {
   public typealias ViewModel = FKCellStorageSummaryRow
 
-  private let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let rootStack = UIStackView()
   private let titleLabel = UILabel()
   private let usageLabel = UILabel()
@@ -35,7 +35,7 @@ public final class FKCellStorageSummaryCell: UITableViewCell, FKCellReusable {
     usageLabel.text = configuration.usageText
     progressView.apply(segments: configuration.segments, progress: configuration.progress)
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: contentView)
     FKCellSeparatorLayout.updateVisibility(
       divider: separator,
       policy: configuration.separatorPolicy,
@@ -65,8 +65,6 @@ public final class FKCellStorageSummaryCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     selectionStyle = .none
-
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     rootStack.axis = .vertical
     rootStack.spacing = 8
     rootStack.translatesAutoresizingMaskIntoConstraints = false
@@ -84,17 +82,11 @@ public final class FKCellStorageSummaryCell: UITableViewCell, FKCellReusable {
     rootStack.addArrangedSubview(titleLabel)
     rootStack.addArrangedSubview(usageLabel)
     rootStack.addArrangedSubview(progressView)
-
-    contentView.addSubview(groupedBackground)
     contentView.addSubview(rootStack)
     contentView.addSubview(separator)
 
     let insets = FKCellAppearanceConfiguration.default.contentInsets
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
       rootStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: insets.top),
       rootStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: insets.left),

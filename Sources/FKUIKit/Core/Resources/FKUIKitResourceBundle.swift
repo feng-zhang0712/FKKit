@@ -6,6 +6,7 @@ enum FKUIKitResourceBundle {
   /// Asset names for Material-derived custom symbol images shipped with FKUIKit.
   enum SymbolName: String, Sendable {
     case check
+    case chevronRight = "chevron_right"
     case close
     case radioChecked = "radio_checked"
     case radioUnchecked = "radio_unchecked"

@@ -6,7 +6,7 @@ import UIKit
 public final class FKCellTagCell: UITableViewCell, FKCellReusable {
   public typealias ViewModel = FKCellTagRow
 
-  private let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let rootStack = UIStackView()
   private let titleLabel = UILabel()
   private let chipGroup = FKChipGroup(selectionMode: .none)
@@ -41,7 +41,7 @@ public final class FKCellTagCell: UITableViewCell, FKCellReusable {
       FKChipItem(id: $0, title: $0)
     }
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: contentView)
     FKCellSeparatorLayout.updateVisibility(
       divider: separator,
       policy: configuration.separatorPolicy,
@@ -70,8 +70,6 @@ public final class FKCellTagCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     selectionStyle = .none
-
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     rootStack.axis = .vertical
     rootStack.spacing = 8
     rootStack.translatesAutoresizingMaskIntoConstraints = false
@@ -85,17 +83,11 @@ public final class FKCellTagCell: UITableViewCell, FKCellReusable {
 
     rootStack.addArrangedSubview(titleLabel)
     rootStack.addArrangedSubview(chipGroup)
-
-    contentView.addSubview(groupedBackground)
     contentView.addSubview(rootStack)
     contentView.addSubview(separator)
 
     let insets = FKCellAppearanceConfiguration.default.contentInsets
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
       rootStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: insets.top),
       rootStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: insets.left),

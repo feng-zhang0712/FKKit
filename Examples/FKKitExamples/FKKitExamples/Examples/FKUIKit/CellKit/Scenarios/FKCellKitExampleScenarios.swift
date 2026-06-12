@@ -12,8 +12,6 @@ enum FKCellKitExampleScenarios {
       title: "Settings — General",
       sections: [
         FKCellKitExampleSection(
-          title: "Apple ID",
-          footer: "Manage your account, iCloud, media, and purchases.",
           rows: [
             row(FKCellHeroCell.self, title: "Hero") {
               $0.configure(with: FKCellHeroRow(
@@ -25,6 +23,12 @@ enum FKCellKitExampleScenarios {
                 )
               ))
             },
+          ]
+        ),
+        FKCellKitExampleSection(
+          title: "Apple ID",
+          footer: "Manage your account, iCloud, media, and purchases.",
+          rows: [
             row(FKCellIconValueDisclosureCell.self, title: "Name") {
               $0.configure(with: FKCellIconValueDisclosureRow(
                 id: "name",

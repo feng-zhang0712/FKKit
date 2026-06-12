@@ -1,58 +1,29 @@
 import UIKit
 
-/// Lazily hosts trailing accessories without removing subviews on reuse.
+/// Hosts a single trailing accessory slot, creating subviews on demand.
 @MainActor
 final class FKCellAccessoryHostView: UIView {
-  private lazy var disclosureView: UIImageView = {
-    let image = UIImage(systemName: "chevron.forward", withConfiguration: chevronConfiguration())
-    let view = UIImageView(image: image)
-    view.translatesAutoresizingMaskIntoConstraints = false
-    view.setContentHuggingPriority(.required, for: .horizontal)
-    view.setContentCompressionResistancePriority(.required, for: .horizontal)
-    view.tintColor = .tertiaryLabel
-    return view
-  }()
+  private enum ActiveCoreSlot {
+    case disclosure(UIImageView)
+    case checkmark(UIImageView)
+    case value(UILabel)
+    case switchControl(UISwitch)
+  }
 
-  private lazy var checkmarkView: UIImageView = {
-    let image = UIImage(
-      systemName: "checkmark",
-      withConfiguration: UIImage.SymbolConfiguration(textStyle: .body, scale: .medium)
-    )
-    let view = UIImageView(image: image)
-    view.translatesAutoresizingMaskIntoConstraints = false
-    view.setContentHuggingPriority(.required, for: .horizontal)
-    view.setContentCompressionResistancePriority(.required, for: .horizontal)
-    view.tintColor = .systemBlue
-    view.isHidden = true
-    return view
-  }()
-
-  private lazy var valueLabel: UILabel = {
-    let label = UILabel()
-    label.translatesAutoresizingMaskIntoConstraints = false
-    label.adjustsFontForContentSizeCategory = true
-    label.font = .preferredFont(forTextStyle: .body)
-    label.textColor = .secondaryLabel
-    label.numberOfLines = 1
-    label.lineBreakMode = .byTruncatingTail
-    label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-    label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-    label.isHidden = true
-    return label
-  }()
-
-  private(set) lazy var switchControl: UISwitch = {
-    let control = UISwitch()
-    control.translatesAutoresizingMaskIntoConstraints = false
-    control.setContentHuggingPriority(.required, for: .horizontal)
-    control.setContentCompressionResistancePriority(.required, for: .horizontal)
-    control.isHidden = true
-    return control
-  }()
-
+  private var activeCoreSlot: ActiveCoreSlot?
   private var statusPillView: FKStatusPill?
   private var badgeHostView: UIView?
   private var copyChipView: FKCopyChip?
+
+  /// The embedded switch when the active accessory is ``FKCellAccessory/switchControl``.
+  var switchControl: UISwitch {
+    if case let .switchControl(control) = activeCoreSlot {
+      return control
+    }
+    let control = makeSwitchControl()
+    setCoreSlot(.switchControl(control))
+    return control
+  }
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -70,48 +41,40 @@ final class FKCellAccessoryHostView: UIView {
     badgeCount: Int? = nil
   ) {
     resetOptionalHosts()
-    switchControl.isHidden = true
 
     switch accessory {
     case .none:
-      disclosureView.isHidden = true
-      checkmarkView.isHidden = true
-      valueLabel.isHidden = true
+      clearCoreSlot()
 
     case .disclosureIndicator:
-      disclosureView.isHidden = false
-      checkmarkView.isHidden = true
-      valueLabel.isHidden = true
+      setCoreSlot(.disclosure(makeDisclosureView()))
 
     case let .checkmark(isSelected):
-      disclosureView.isHidden = true
-      checkmarkView.isHidden = !isSelected
-      valueLabel.isHidden = true
+      let view = makeCheckmarkView()
+      view.isHidden = !isSelected
+      setCoreSlot(.checkmark(view))
 
     case let .switchControl(isOn):
-      disclosureView.isHidden = true
-      checkmarkView.isHidden = true
-      valueLabel.isHidden = true
-      switchControl.isHidden = false
-      switchControl.isOn = isOn
+      if case let .switchControl(existing) = activeCoreSlot {
+        existing.isOn = isOn
+      } else {
+        let control = makeSwitchControl()
+        control.isOn = isOn
+        setCoreSlot(.switchControl(control))
+      }
 
     case let .value(text):
-      disclosureView.isHidden = true
-      checkmarkView.isHidden = true
-      valueLabel.isHidden = false
-      valueLabel.text = text
-      valueLabel.textColor = appearance.secondaryLabelColor.resolvedColor(with: traitCollection)
+      let label = makeValueLabel()
+      label.text = text
+      label.textColor = appearance.secondaryLabelColor.resolvedColor(with: traitCollection)
+      setCoreSlot(.value(label))
 
     case let .statusPill(configuration):
-      disclosureView.isHidden = true
-      checkmarkView.isHidden = true
-      valueLabel.isHidden = true
+      clearCoreSlot()
       embedOptionalHost(FKStatusPill(configuration: configuration))
 
     case let .badge(configuration):
-      disclosureView.isHidden = true
-      checkmarkView.isHidden = true
-      valueLabel.isHidden = true
+      clearCoreSlot()
       let host = UIView()
       host.translatesAutoresizingMaskIntoConstraints = false
       host.fk_badge.configuration = configuration
@@ -125,15 +88,11 @@ final class FKCellAccessoryHostView: UIView {
       badgeHostView = host
 
     case let .copy(configuration):
-      disclosureView.isHidden = true
-      checkmarkView.isHidden = true
-      valueLabel.isHidden = true
+      clearCoreSlot()
       embedOptionalHost(FKCopyChip(configuration: configuration))
 
     case .custom:
-      disclosureView.isHidden = true
-      checkmarkView.isHidden = true
-      valueLabel.isHidden = true
+      clearCoreSlot()
     }
   }
 
@@ -141,36 +100,108 @@ final class FKCellAccessoryHostView: UIView {
     translatesAutoresizingMaskIntoConstraints = false
     setContentHuggingPriority(.required, for: .horizontal)
     setContentCompressionResistancePriority(.required, for: .horizontal)
-
-    addSubview(disclosureView)
-    addSubview(checkmarkView)
-    addSubview(valueLabel)
-    addSubview(switchControl)
-
-    NSLayoutConstraint.activate([
-      disclosureView.leadingAnchor.constraint(equalTo: leadingAnchor),
-      disclosureView.trailingAnchor.constraint(equalTo: trailingAnchor),
-      disclosureView.centerYAnchor.constraint(equalTo: centerYAnchor),
-      disclosureView.widthAnchor.constraint(equalToConstant: FKCellLayoutMetrics.chevronWidth),
-
-      checkmarkView.leadingAnchor.constraint(equalTo: leadingAnchor),
-      checkmarkView.trailingAnchor.constraint(equalTo: trailingAnchor),
-      checkmarkView.centerYAnchor.constraint(equalTo: centerYAnchor),
-
-      valueLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-      valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-      valueLabel.topAnchor.constraint(equalTo: topAnchor),
-      valueLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-      switchControl.leadingAnchor.constraint(equalTo: leadingAnchor),
-      switchControl.trailingAnchor.constraint(equalTo: trailingAnchor),
-      switchControl.centerYAnchor.constraint(equalTo: centerYAnchor),
-    ])
   }
 
-  private func chevronConfiguration() -> UIImage.SymbolConfiguration {
-    UIImage.SymbolConfiguration(textStyle: .footnote, scale: .medium)
-      .applying(UIImage.SymbolConfiguration(weight: .semibold))
+  override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    guard !isHidden, isUserInteractionEnabled, alpha >= 0.01, bounds.contains(point) else { return nil }
+    for subview in subviews.reversed() {
+      let converted = convert(point, to: subview)
+      if let hit = subview.hitTest(converted, with: event) { return hit }
+    }
+    return nil
+  }
+
+  private func clearCoreSlot() {
+    guard let slot = activeCoreSlot else { return }
+    view(for: slot).removeFromSuperview()
+    activeCoreSlot = nil
+  }
+
+  private func setCoreSlot(_ slot: ActiveCoreSlot) {
+    clearCoreSlot()
+    activeCoreSlot = slot
+    let view = view(for: slot)
+    view.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(view)
+    activateConstraints(for: slot, view: view)
+  }
+
+  private func view(for slot: ActiveCoreSlot) -> UIView {
+    switch slot {
+    case let .disclosure(view), let .checkmark(view):
+      return view
+    case let .value(view):
+      return view
+    case let .switchControl(view):
+      return view
+    }
+  }
+
+  private func activateConstraints(for slot: ActiveCoreSlot, view: UIView) {
+    switch slot {
+    case .disclosure:
+      NSLayoutConstraint.activate([
+        view.leadingAnchor.constraint(equalTo: leadingAnchor),
+        view.trailingAnchor.constraint(equalTo: trailingAnchor),
+        view.centerYAnchor.constraint(equalTo: centerYAnchor),
+        view.widthAnchor.constraint(equalToConstant: FKCellLayoutMetrics.chevronWidth),
+        view.heightAnchor.constraint(equalToConstant: FKCellLayoutMetrics.chevronHeight),
+      ])
+
+    case .checkmark, .switchControl:
+      NSLayoutConstraint.activate([
+        view.leadingAnchor.constraint(equalTo: leadingAnchor),
+        view.trailingAnchor.constraint(equalTo: trailingAnchor),
+        view.centerYAnchor.constraint(equalTo: centerYAnchor),
+      ])
+
+    case .value:
+      NSLayoutConstraint.activate([
+        view.leadingAnchor.constraint(equalTo: leadingAnchor),
+        view.trailingAnchor.constraint(equalTo: trailingAnchor),
+        view.topAnchor.constraint(equalTo: topAnchor),
+        view.bottomAnchor.constraint(equalTo: bottomAnchor),
+      ])
+    }
+  }
+
+  private func makeDisclosureView() -> UIImageView {
+    let view = UIImageView(image: FKCellDisclosureChevronImage.make())
+    view.contentMode = .scaleAspectFit
+    view.setContentHuggingPriority(.required, for: .horizontal)
+    view.setContentCompressionResistancePriority(.required, for: .horizontal)
+    view.tintColor = .tertiaryLabel
+    return view
+  }
+
+  private func makeCheckmarkView() -> UIImageView {
+    let image = UIImage(
+      systemName: "checkmark",
+      withConfiguration: UIImage.SymbolConfiguration(textStyle: .body, scale: .medium)
+    )
+    let view = UIImageView(image: image)
+    view.setContentHuggingPriority(.required, for: .horizontal)
+    view.setContentCompressionResistancePriority(.required, for: .horizontal)
+    view.tintColor = .systemBlue
+    return view
+  }
+
+  private func makeValueLabel() -> UILabel {
+    let label = UILabel()
+    label.adjustsFontForContentSizeCategory = true
+    label.font = .preferredFont(forTextStyle: .body)
+    label.numberOfLines = 1
+    label.lineBreakMode = .byTruncatingTail
+    label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+    return label
+  }
+
+  private func makeSwitchControl() -> UISwitch {
+    let control = UISwitch()
+    control.setContentHuggingPriority(.required, for: .horizontal)
+    control.setContentCompressionResistancePriority(.required, for: .horizontal)
+    return control
   }
 
   private func resetOptionalHosts() {
@@ -198,8 +229,12 @@ final class FKCellAccessoryHostView: UIView {
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
-    if traitCollection.layoutDirection != previousTraitCollection?.layoutDirection {
-      disclosureView.image = UIImage(systemName: "chevron.forward", withConfiguration: chevronConfiguration())
+    guard
+      traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory
+        || traitCollection.layoutDirection != previousTraitCollection?.layoutDirection
+    else { return }
+    if case let .disclosure(view) = activeCoreSlot {
+      view.image = FKCellDisclosureChevronImage.make()
     }
   }
 }

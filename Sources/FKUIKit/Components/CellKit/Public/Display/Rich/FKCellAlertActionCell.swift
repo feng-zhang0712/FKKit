@@ -8,7 +8,7 @@ public final class FKCellAlertActionCell: UITableViewCell, FKCellReusable {
 
   public var onPrimaryActionTapped: ((FKCellActionLink) -> Void)?
 
-  private let groupedBackground = FKCellGroupedBackgroundView()
+  private let groupedBackgroundHost = FKCellGroupedBackgroundHosting()
   private let rootStack = UIStackView()
   private let titleRow = UIStackView()
   private let titleLabel = UILabel()
@@ -56,7 +56,7 @@ public final class FKCellAlertActionCell: UITableViewCell, FKCellReusable {
     actionButton.setTitle(configuration.primaryAction.title, for: .normal)
     actionButton.setTitleColor(linkColor, for: .normal)
 
-    groupedBackground.apply(nil)
+    groupedBackgroundHost.apply(nil, in: contentView)
     FKCellSeparatorLayout.updateVisibility(
       divider: bottomSeparator,
       policy: configuration.separatorPolicy,
@@ -88,8 +88,6 @@ public final class FKCellAlertActionCell: UITableViewCell, FKCellReusable {
     backgroundColor = .clear
     contentView.backgroundColor = .clear
     selectionStyle = .none
-
-    groupedBackground.translatesAutoresizingMaskIntoConstraints = false
     rootStack.axis = .vertical
     rootStack.spacing = 8
     rootStack.translatesAutoresizingMaskIntoConstraints = false
@@ -114,6 +112,7 @@ public final class FKCellAlertActionCell: UITableViewCell, FKCellReusable {
 
     footerSeparator.translatesAutoresizingMaskIntoConstraints = false
     bottomSeparator.translatesAutoresizingMaskIntoConstraints = false
+    actionButton.translatesAutoresizingMaskIntoConstraints = false
     actionButton.contentHorizontalAlignment = .leading
     actionButton.titleLabel?.font = .preferredFont(forTextStyle: .body)
     actionButton.addTarget(self, action: #selector(handleActionTap), for: .touchUpInside)
@@ -122,8 +121,6 @@ public final class FKCellAlertActionCell: UITableViewCell, FKCellReusable {
     titleRow.addArrangedSubview(warningIcon)
     rootStack.addArrangedSubview(titleRow)
     rootStack.addArrangedSubview(bodyLabel)
-
-    contentView.addSubview(groupedBackground)
     contentView.addSubview(rootStack)
     contentView.addSubview(footerSeparator)
     contentView.addSubview(actionButton)
@@ -131,10 +128,6 @@ public final class FKCellAlertActionCell: UITableViewCell, FKCellReusable {
 
     let insets = FKCellAppearanceConfiguration.default.contentInsets
     NSLayoutConstraint.activate([
-      groupedBackground.topAnchor.constraint(equalTo: contentView.topAnchor),
-      groupedBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-      groupedBackground.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      groupedBackground.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
       rootStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: insets.top),
       rootStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: insets.left),
