@@ -30,6 +30,11 @@ private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/Extension",
 ]
 
+/// FKUIKit Core docs (`Sources/FKUIKit/Core/…/README.md`).
+private let fkUIKitCoreDocDirectories: [String] = [
+  "Core/Theme",
+]
+
 /// FKUIKit component docs (`Sources/FKUIKit/Components/…/README.md`), including nested Player modules.
 private let fkUIKitComponentDocDirectories: [String] = [
   "Components/ActionSheet",
@@ -84,7 +89,8 @@ let package = Package(
       name: "FKUIKit",
       dependencies: ["FKCoreKit"],
       path: "Sources/FKUIKit",
-      exclude: readmeExcludes(moduleDirectories: fkUIKitComponentDocDirectories),
+      exclude: readmeExcludes(moduleDirectories: fkUIKitComponentDocDirectories)
+        + readmeExcludes(moduleDirectories: fkUIKitCoreDocDirectories),
       resources: [
         .process("Resources"),
       ]

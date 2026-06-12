@@ -169,6 +169,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKTabBarExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "Theme",
+          subtitle: "Hub: FKTheme design tokens, registry, resolver, Button/Toast integration, SwiftUI environment",
+          make: { FKThemeExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "TextField",
           subtitle: "Formatted input, validation, style customization, callbacks, and global defaults",
           make: { FKTextFieldExamplesHubViewController() }
