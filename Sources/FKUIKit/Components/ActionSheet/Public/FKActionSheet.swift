@@ -29,7 +29,6 @@ public final class FKActionSheet: UIViewController {
 
   var panelHeightConstraint: NSLayoutConstraint?
   var panelWidthConstraint: NSLayoutConstraint?
-  var panelCenterYConstraint: NSLayoutConstraint?
   var installedPanelLayout: InstalledPanelLayout?
   var installedLayoutConstraints: [NSLayoutConstraint] = []
 
@@ -53,10 +52,6 @@ public final class FKActionSheet: UIViewController {
   /// Whether this sheet is currently on screen.
   public var isPresented: Bool {
     presentingViewController != nil
-  }
-
-  var actionSheetPresentationController: FKActionSheetUIKitPresentationController? {
-    presentationController as? FKActionSheetUIKitPresentationController
   }
 
   /// Creates an action sheet. Throws when `configuration` is invalid.

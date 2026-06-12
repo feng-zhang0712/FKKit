@@ -40,8 +40,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
     return FKActionSheetUIKitPresentationController(
       presentedViewController: presented,
       presenting: presenting,
-      configuration: presentationConfiguration,
-      actionSheet: actionSheet
+      configuration: presentationConfiguration
     )
   }
 
@@ -53,8 +52,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
     guard presentationConfiguration.usesCustomModalPresentation else { return nil }
     return FKActionSheetAnimator(
       isPresenting: true,
-      configuration: presentationConfiguration,
-      actionSheet: actionSheet
+      configuration: presentationConfiguration
     )
   }
 
@@ -62,8 +60,7 @@ final class FKActionSheetTransitioningDelegate: NSObject, UIViewControllerTransi
     guard presentationConfiguration.usesCustomModalPresentation else { return nil }
     return FKActionSheetAnimator(
       isPresenting: false,
-      configuration: presentationConfiguration,
-      actionSheet: actionSheet
+      configuration: presentationConfiguration
     )
   }
 }

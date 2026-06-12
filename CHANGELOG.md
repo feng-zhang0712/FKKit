@@ -4,6 +4,95 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.68.0] - 2026-06-10
+
+### Added (FKUIKit — Widgets)
+
+- **`FKAvatar`**, **`FKAvatarGroup`**, and **`FKPresenceIndicator`** — configuration-driven avatars with initials, remote loading, group overlap, and presence dots.
+- **`FKChip`** and **`FKChipGroup`** — selectable and removable tag chips with layout presets and SwiftUI bridges.
+- **`FKCopyChip`** — copy-to-clipboard chip with feedback states and localized copy.
+- **`FKIconView`** — templated icon container with badge attachment points and size presets.
+- **`FKMarqueeLabel`** — horizontal marquee text with pause-on-tap, accessibility, and Dynamic Type support.
+- **`FKStatusPill`** — compact status badges (semantic colors, pulse, icons) for lists and headers.
+- **Examples**: full hub coverage under `Examples/FKUIKit/Widgets/`.
+
+### Added (FKUIKit — EmptyState)
+
+- **`FKEmptyStateSpacingConfiguration`** — per-block vertical spacing (`afterImage`, `afterTitle`, `afterDescription`, `afterActionsSlot`) via `UIStackView.setCustomSpacing(_:after:)`.
+- **`FKEmptyStateButtonCornerStyle`** — `.capsule` and `.fixed(radius:)` for true pill-shaped action buttons.
+- **Examples**: interactive layout playground with live sliders and switches for spacing, size, position, and button chrome.
+
+### Fixed (FKUIKit — EmptyState)
+
+- Slot containers (`header`, `media`, `content`, `actions`, `footer`) no longer stay hidden after `applySlots` fills them.
+
+### Changed (FKUIKit — EmptyState)
+
+- Explicit **`segmentSpacing`** values are not scaled by **`density`**; only fallback **`verticalSpacing`** is density-scaled.
+- Slot and spacing documentation clarifies that slots are for custom content, not invisible spacers.
+
+### Added (Documentation)
+
+- Consolidate Widgets implementation design specs to zh-CN-only module documents under `docs/`.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.68.0** (Git tag **`0.68.0`**).
+
+## [0.67.0] - 2026-06-09
+
+### Added (FKCoreKit — ImageLoader)
+
+- **`FKImageLoader`** — production default stack for **`FKImageLoading`** and **`FKImageCaching`**: memory and disk caching, coalesced loads, downsampling, prefetch, conditional GET, and configurable **`URLSession`**, logging, and cache statistics.
+
+### Added (FKCoreKit — BiometricAuth)
+
+- **`FKBiometricAuth`** — LocalAuthentication wrapper with typed policies, capability probing, **`LAError`** mapping, session-aware cancellation, and mock/pluggable support.
+- **Examples**: grouped FKKitExamples scenarios (live auth, configuration, Keychain gate, simulator recovery).
+
+### Added (FKCoreKit — PhotoPicker)
+
+- **`FKPhotoPicker`** — PHPicker and **`UIImagePickerController`** flows with compression, permissions, multi-select, SwiftUI bridge, localized errors, and full Examples coverage.
+
+### Added (FKUIKit — ImageView)
+
+- **`FKImageView`** — layered configuration, reuse-safe loading, placeholders, failure/retry, profiles, and SwiftUI bridge.
+- **`FKImageLoadRequest.resolvedCacheKey`** exposed for integrator cache keys.
+- **Examples**: hub scenarios for **`FKImageView`** and **`FKImageLoader`**.
+
+### Added (FKUIKit — WebView)
+
+- **`FKWebView`** — production-oriented **`WKWebView`** wrapper with policy-driven navigation, progress/chrome, JavaScript bridge, and error recovery.
+- **Examples**: hub scenarios with bundled HTML demos and localized empty-state strings.
+
+### Added (FKUIKit — Carousel)
+
+- **`FKCarousel`** — generic **`UICollectionView`** pager with layered configuration, indicators, auto-scroll, infinite loop, overlays, Dynamic Type height expansion, haptics, and SwiftUI representables.
+- **`FKImageBanner`** — image-first banner facade built on **`FKCarousel`**.
+
+### Added (FKUIKit — Search)
+
+- **`FKSearchBar`** and **`FKSearchField`** — UITextField-based search controls with debounced query callbacks, clear/cancel policies, loading state, navigation hosting, SwiftUI bridges, and lazy accessory chrome.
+
+### Added (FKUIKit — FlowVisualization)
+
+- **`FKStepIndicator`** — horizontal step progress for checkout, onboarding, and wizard flows.
+- **`FKTimeline`** — vertical event timeline for logistics, audit, and activity feeds.
+- Shared flow models (**`FKFlowStepItem`**, **`FKFlowStepState`**, **`FKFlowStepIcon`**) with layered Sendable configuration, presets, and SwiftUI bridges.
+
+### Added (Documentation)
+
+- **`docs/COMPONENT_ROADMAP.md`** and bilingual implementation design specs for planned components.
+- Clarify that per-component **`Public/` / `Internal/`** directory trees in design docs are recommendations, not mandatory layout.
+
+### Fixed (FKCoreKit — ImageLoader)
+
+- **`FKImageDiskCache`** index persist deadlock during concurrent writes.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.67.0** (Git tag **`0.67.0`**).
+
 ## [0.66.0] - 2026-06-07
 
 ### Changed (FKCoreKit & FKUIKit — API naming)
@@ -395,7 +484,7 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 ### Added (FKUIKit — ActionSheet)
 
 - **`FKActionSheet`**: presentable **`UIViewController`** with bottom sheet, centered card, and popover styles; configuration-driven sections, headers, and actions; lifecycle hooks; **`reload`** / **`updateAction`** for live updates; validation with user-facing messages.
-- **Selection**: single- and multi-select modes, scroll-to-selection on present, bundled Material symbol checkmarks (`check`, `radio_button_checked`, `radio_button_unchecked`) via **`FKUIKit`** resource bundle.
+- **Selection**: single- and multi-select modes, scroll-to-selection on present, bundled Material symbol checkmarks (`check`, `radio_checked`, `radio_unchecked`) via **`FKUIKit`** resource bundle.
 - **SwiftUI**: bridge and builder helpers; **`FKActionSheet+Symbol`** action presets.
 - **Examples**: ActionSheet hub and scenario catalog under **`Examples/FKKitExamples/.../ActionSheet/`**.
 
@@ -2603,7 +2692,9 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...HEAD
+[0.68.0]: https://github.com/feng-zhang0712/FKKit/compare/0.67.0...0.68.0
+[0.67.0]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...0.67.0
 [0.66.0]: https://github.com/feng-zhang0712/FKKit/compare/0.65.0...0.66.0
 [0.65.0]: https://github.com/feng-zhang0712/FKKit/compare/0.64.0...0.65.0
 [0.64.0]: https://github.com/feng-zhang0712/FKKit/compare/0.63.0...0.64.0

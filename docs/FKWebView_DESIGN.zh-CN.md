@@ -5,7 +5,6 @@ FKKit **`FKWebView`** 的实现指导文档：面向生产的 `WKWebView` 封装
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
 **路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §1.6  
-**English version:** [FKWebView_DESIGN.md](FKWebView_DESIGN.md)
 
 ---
 
@@ -149,6 +148,18 @@ FKKit **`FKWebView`** 的实现指导文档：面向生产的 `WKWebView` 封装
 | API 鉴权 HTTP | 否 | `FKNetwork` 独立 |
 
 仅 `import WebKit`；无第三方 Web SDK。
+
+### 5.1 FKCoreKit 复用要求（强制）
+
+| 能力 | 必须使用（FKCoreKit） | 禁止 |
+|------|----------------------|------|
+| 网络可达性 | **`NetworkReachability`** / **`FKNetwork`** 工具 | 自写 SCNetworkReachability 封装 |
+| URL/编码 | **`String.fk_urlEncoded`**、`URL` Extension | 重复 percent-encode |
+| 日志 | **`FKLogger`**（若记录导航） | `print` 泄露 URL token |
+| 本地化 | **`FKI18n`** | 硬编码错误文案 |
+| JSON/字典 | **`Dictionary` JSON Extension**（Bridge 消息） | 自写序列化 |
+
+UI 叠加层复用 **`FKProgressBar`**、**`FKEmptyState`**、**`FKButton`** — 不在 WebView 内重做。
 
 ---
 
@@ -743,7 +754,6 @@ Sources/FKUIKit/Components/WebView/
 
 ## 相关文档
 
-- [FKWebView_DESIGN.md](FKWebView_DESIGN.md) — 英文版
 - [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md)
 - [FKEmptyState README](../Sources/FKUIKit/Components/EmptyState/README.md)
 - [FKProgressBar README](../Sources/FKUIKit/Components/ProgressBar/README.md)

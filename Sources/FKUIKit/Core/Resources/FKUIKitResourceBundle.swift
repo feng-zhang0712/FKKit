@@ -6,8 +6,9 @@ enum FKUIKitResourceBundle {
   /// Asset names for Material-derived custom symbol images shipped with FKUIKit.
   enum SymbolName: String, Sendable {
     case check
-    case radioButtonChecked = "radio_button_checked"
-    case radioButtonUnchecked = "radio_button_unchecked"
+    case close
+    case radioChecked = "radio_checked"
+    case radioUnchecked = "radio_unchecked"
   }
 
   /// Bundle that contains ``Assets.xcassets`` for SPM and CocoaPods consumers.

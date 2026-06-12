@@ -64,8 +64,13 @@ final class FKEmptyStateExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Layout density, axis & link action",
-          subtitle: "Compact spacing, horizontal row layout, tinted icon, and link-style tertiary",
+          subtitle: "Capsule button, segment spacing, compact density, horizontal row, link tertiary",
           make: { FKEmptyStateCapabilitiesExampleViewController() }
+        ),
+        Row(
+          title: "Layout playground",
+          subtitle: "Live preview with sliders and switches for spacing, size, position, and chrome",
+          make: { FKEmptyStateLayoutPlaygroundExampleViewController() }
         ),
       ]
     ),

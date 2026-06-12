@@ -149,7 +149,9 @@ final class FKBadgeContentView: UIView {
 
   func prepareForReuse() {
     layer.removeAllAnimations()
-    transform = .identity
-    alpha = 1
+    UIView.performWithoutAnimation {
+      transform = .identity
+      alpha = 1
+    }
   }
 }

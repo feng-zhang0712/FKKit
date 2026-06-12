@@ -2,8 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>The FKBiometricAuth example demonstrates Face ID and device passcode authentication.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>The FKPermissions example demonstrates how to request camera authorization.</string>
+	<string>FKPermissions and FKQRCode examples demonstrate camera authorization and QR code scanning.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>The FKPermissions example demonstrates “Always” location authorization.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>

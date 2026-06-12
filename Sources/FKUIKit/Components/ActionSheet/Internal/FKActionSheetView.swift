@@ -25,6 +25,9 @@ final class FKActionSheetView: UIView {
   private var loadingHostView: FKActionSheetLoadingHostView?
 
   private var loadingHostConstraints: [NSLayoutConstraint] = []
+  private var cachedTextHeaderView: FKActionSheetTextHeaderView?
+  private var cachedCustomHeaderView: FKActionSheetCustomHeaderView?
+  private var cachedSectionTitleViews: [String: FKActionSheetSectionTitleView] = [:]
 
   private enum SectionKind {
     case header(FKActionSheetHeaderContent)
@@ -298,7 +301,14 @@ final class FKActionSheetView: UIView {
     tableViewConstraints = []
     bottomSafeAreaFooterView = nil
     registeredReuseIdentifiers.removeAll()
+    clearHeaderViewCache()
     tableView = nil
+  }
+
+  private func clearHeaderViewCache() {
+    cachedTextHeaderView = nil
+    cachedCustomHeaderView = nil
+    cachedSectionTitleViews.removeAll()
   }
 
   private func applyBottomSafeAreaFooter(height: CGFloat) {
@@ -738,24 +748,16 @@ extension FKActionSheetView: UITableViewDataSource, UITableViewDelegate {
     header.preferredHeight ?? 72
   }
 
-  private func minimumRowHeight(for action: FKActionSheetAction) -> CGFloat {
-    let appearance = currentConfiguration.appearance
-    switch action.rowContent {
-    case .custom(let row):
-      return max(row.preferredHeight ?? appearance.minimumRowHeight, appearance.minimumRowHeight)
-    case .standard:
-      return estimatedStandardRowHeight(for: action, appearance: appearance)
-    case .toggle:
-      return appearance.minimumRowHeight
-    }
-  }
-
   private func makeHeaderView(header: FKActionSheetHeaderContent) -> UIView {
     switch header {
     case .text(let textHeader):
-      return makeTextHeaderView(header: textHeader)
+      let view = cachedTextHeaderView ?? FKActionSheetTextHeaderView(frame: .zero)
+      cachedTextHeaderView = view
+      view.apply(header: textHeader, appearance: currentConfiguration.appearance)
+      return view
     case .custom(let customHeader):
-      let view = FKActionSheetCustomHeaderView(frame: .zero)
+      let view = cachedCustomHeaderView ?? FKActionSheetCustomHeaderView(frame: .zero)
+      cachedCustomHeaderView = view
       let context = FKActionSheetHeaderBuildContext(
         appearance: currentConfiguration.appearance,
         boundsWidth: max(1, bounds.width)
@@ -765,69 +767,12 @@ extension FKActionSheetView: UITableViewDataSource, UITableViewDelegate {
     }
   }
 
-  private func makeTextHeaderView(header: FKActionSheetHeader) -> UIView {
-    let container = UIView()
-    container.isAccessibilityElement = true
-    container.accessibilityTraits = .header
-
-    let stack = UIStackView()
-    stack.axis = .vertical
-    stack.alignment = .center
-    stack.spacing = 4
-    stack.translatesAutoresizingMaskIntoConstraints = false
-    container.addSubview(stack)
-
-    let appearance = currentConfiguration.appearance
-    var accessibilityParts: [String] = []
-
-    if let title = header.title, !title.isEmpty {
-      let label = UILabel()
-      label.font = appearance.resolvedHeaderTitleFont()
-      label.textColor = appearance.headerTitleColor
-      label.textAlignment = .center
-      label.numberOfLines = 0
-      label.text = title
-      label.adjustsFontForContentSizeCategory = true
-      stack.addArrangedSubview(label)
-      accessibilityParts.append(title)
-    }
-    if let message = header.message, !message.isEmpty {
-      let label = UILabel()
-      label.font = appearance.resolvedHeaderMessageFont()
-      label.textColor = appearance.headerMessageColor
-      label.textAlignment = .center
-      label.numberOfLines = 0
-      label.text = message
-      label.adjustsFontForContentSizeCategory = true
-      stack.addArrangedSubview(label)
-      accessibilityParts.append(message)
-    }
-    container.accessibilityLabel = accessibilityParts.joined(separator: ", ")
-
-    NSLayoutConstraint.activate([
-      stack.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
-      stack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
-      stack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-      stack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -4),
-    ])
-    return container
-  }
-
   private func makeSectionTitleView(title: String) -> UIView {
-    let label = UILabel()
-    label.font = currentConfiguration.appearance.resolvedSectionTitleFont()
-    label.textColor = currentConfiguration.appearance.sectionTitleColor
-    label.text = title.uppercased()
-    label.adjustsFontForContentSizeCategory = true
-    label.translatesAutoresizingMaskIntoConstraints = false
-    let container = UIView()
-    container.addSubview(label)
-    NSLayoutConstraint.activate([
-      label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
-      label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
-      label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -2),
-    ])
-    return container
+    let key = title.uppercased()
+    let view = cachedSectionTitleViews[key] ?? FKActionSheetSectionTitleView(frame: .zero)
+    cachedSectionTitleViews[key] = view
+    view.apply(title: title, appearance: currentConfiguration.appearance)
+    return view
   }
 }
 
@@ -835,8 +780,4 @@ extension FKActionSheetView: FKActionSheetLoadingHostViewDelegate {
   func loadingHostView(_ view: FKActionSheetLoadingHostView, didSelectCancel action: FKActionSheetAction) {
     delegate?.actionSheetView(self, didSelect: action, sectionID: nil, isCancelGroup: true)
   }
-}
-
-extension FKActionSheetCustomRowCell {
-  static let defaultReuseIdentifier = "FKActionSheetCustomRow"
 }

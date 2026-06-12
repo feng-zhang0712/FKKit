@@ -13,8 +13,13 @@ public struct FKEmptyStateLayoutConfiguration {
 
   /// Fixed image dimensions when set; intrinsic sizing otherwise.
   public var imageSize: CGSize?
-  /// Vertical spacing between stack subviews; `nil` uses the context preset.
+  /// Default vertical spacing between stack subviews; `nil` uses the context preset.
+  ///
+  /// Also used as the fallback when ``segmentSpacing`` properties are `nil`.
+  /// This value **is** scaled by ``density`` (compact ×0.75, comfortable ×1.25).
   public var verticalSpacing: CGFloat?
+  /// Per-segment spacing overrides; explicit values are not scaled by ``density``.
+  public var segmentSpacing: FKEmptyStateSpacingConfiguration
   /// Padding around the content column; `nil` uses the context preset.
   public var contentInsets: UIEdgeInsets?
   /// Max width of the centered content column; `nil` uses the context preset.
@@ -32,6 +37,7 @@ public struct FKEmptyStateLayoutConfiguration {
     axis: FKEmptyStateAxis = .vertical,
     imageSize: CGSize? = nil,
     verticalSpacing: CGFloat? = nil,
+    segmentSpacing: FKEmptyStateSpacingConfiguration = FKEmptyStateSpacingConfiguration(),
     contentInsets: UIEdgeInsets? = nil,
     maxContentWidth: CGFloat? = nil,
     contentAlignment: FKEmptyStateContentAlignment? = nil,
@@ -43,6 +49,7 @@ public struct FKEmptyStateLayoutConfiguration {
     self.axis = axis
     self.imageSize = imageSize
     self.verticalSpacing = verticalSpacing.map { max(0, $0) }
+    self.segmentSpacing = segmentSpacing
     self.contentInsets = contentInsets
     self.maxContentWidth = maxContentWidth.map { max(180, $0) }
     self.contentAlignment = contentAlignment

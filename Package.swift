@@ -16,6 +16,7 @@ private func readmeExcludes(moduleDirectories: [String]) -> [String] {
 /// FKCoreKit component docs (`Sources/FKCoreKit/Components/<name>/README.md`).
 private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/Async",
+  "Components/BiometricAuth",
   "Components/BusinessKit",
   "Components/FileManager",
   "Components/I18n",
@@ -24,9 +25,15 @@ private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/Network",
   "Components/Permissions",
   "Components/Pluggable",
+  "Components/QRCode",
   "Components/Security",
   "Components/Storage",
   "Components/Extension",
+]
+
+/// FKUIKit Core docs (`Sources/FKUIKit/Core/…/README.md`).
+private let fkUIKitCoreDocDirectories: [String] = [
+  "Core/Theme",
 ]
 
 /// FKUIKit component docs (`Sources/FKUIKit/Components/…/README.md`), including nested Player modules.
@@ -35,25 +42,37 @@ private let fkUIKitComponentDocDirectories: [String] = [
   "Components/Badge",
   "Components/BlurView",
   "Components/Button",
+  "Components/Carousel",
   "Components/Callout",
   "Components/CornerShadow",
   "Components/Divider",
   "Components/EmptyState",
   "Components/ExpandableText",
+  "Components/FlowVisualization",
   "Components/ImageView",
   "Components/ListKit",
   "Components/PagingController",
+  "Components/PhotoPicker",
   "Components/Player/AudioPlayer",
   "Components/Player/Core",
   "Components/Player/VideoPlayer",
   "Components/ProgressBar",
+  "Components/QRCode",
   "Components/RatingControl",
   "Components/Refresh",
+  "Components/SearchBar",
   "Components/SheetPresentationController",
   "Components/Skeleton",
   "Components/TabBar",
   "Components/TextField",
   "Components/Toast",
+  "Components/WebView",
+  "Components/Widgets/Avatar",
+  "Components/Widgets/Chip",
+  "Components/Widgets/CopyChip",
+  "Components/Widgets/IconView",
+  "Components/Widgets/Marquee",
+  "Components/Widgets/StatusPill",
 ]
 
 // MARK: - Package
@@ -73,7 +92,8 @@ let package = Package(
       name: "FKUIKit",
       dependencies: ["FKCoreKit"],
       path: "Sources/FKUIKit",
-      exclude: readmeExcludes(moduleDirectories: fkUIKitComponentDocDirectories),
+      exclude: readmeExcludes(moduleDirectories: fkUIKitComponentDocDirectories)
+        + readmeExcludes(moduleDirectories: fkUIKitCoreDocDirectories),
       resources: [
         .process("Resources"),
       ]

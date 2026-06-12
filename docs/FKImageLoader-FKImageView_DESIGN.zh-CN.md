@@ -5,7 +5,6 @@ FKKit 图片加载栈的实现指导文档：**FKCoreKit** 中的默认 `FKImage
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
 **路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §1.1  
-**English version:** [FKImageLoader-FKImageView_DESIGN.md](FKImageLoader-FKImageView_DESIGN.md)
 
 ---
 
@@ -171,6 +170,19 @@ Loader 必须在 App 组合根**可替换**；View **不得**硬编码 Kingfishe
 | VoiceOver 呈现 | 否 | 是 |
 
 **依赖规则：** `FKImageView` 仅 import `FKCoreKit`、`FKUIKit`；`FKImageLoader` **不得** import `FKUIKit`。
+
+### 5.1 FKCoreKit 复用要求（强制）
+
+`FKImageLoader` 位于 **FKCoreKit**；实现时**必须**复用 Pluggable 契约与 Extension，**禁止**在 Loader/View 内重复位图与缓存工具：
+
+| 能力 | 必须使用 | 禁止 |
+|------|----------|------|
+| 加载协议 | **`FKImageLoading`**、**`FKImageCaching`**（Pluggable） | 平行协议 |
+| 位图操作 | **`UIImage.fk_*`**（`FKCoreKit/Extension/UIKit/UIImage.swift`） | FKUIKit 内复制 |
+| 并发/合并 | **`FKAsync`**、请求 dedup 模式（参考 Network） | 无取消加载 |
+| 磁盘路径 | **`FKFileManager`** 惯例 / Storage 工具 | 硬编码 Caches 路径 |
+
+**禁止**在 FKUIKit 重复实现 `UIImage.fk_*` — 预处理位图走 FKCoreKit Extension（见 §15）。
 
 ---
 
@@ -937,7 +949,6 @@ Hub：**ImageView**，副标题说明 Loader + View 栈。
 
 ## 相关文档
 
-- [FKImageLoader-FKImageView_DESIGN.md](FKImageLoader-FKImageView_DESIGN.md) — 英文版设计需求
 - [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) — 项目路线图（中文）
 - [Pluggable FKImageLoading](../Sources/FKCoreKit/Components/Pluggable/Media/FKImageLoading.swift) — 协议契约
 - [FKSkeleton README](../Sources/FKUIKit/Components/Skeleton/README.md) — 骨架屏集成

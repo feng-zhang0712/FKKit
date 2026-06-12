@@ -5,7 +5,6 @@ FKKit **`FKAlert`** 的实现指导文档：基于 **`FKSheetPresentationControl
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
 **路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §1.5  
-**English version:** [FKAlert_DESIGN.md](FKAlert_DESIGN.md)
 
 ---
 
@@ -165,6 +164,16 @@ FKKit **`FKAlert`** 的实现指导文档：基于 **`FKSheetPresentationControl
 | 模块 | FKUIKit | FKUIKit | FKCoreKit |
 
 依赖：`FKSheetPresentationController`、`FKButton`、`FKTextField`、`FKCoreKit`（`FKAlertAction`、`FKI18n`）。
+
+### 5.1 FKCoreKit 复用要求（强制）
+
+| 能力 | 必须使用（FKCoreKit） | 禁止 |
+|------|----------------------|------|
+| Alert 操作模型 | **`FKAlertAction`**（BusinessKit） | 在 FKUIKit 重复定义 Action |
+| 本地化 | **`FKI18n`** | 硬编码按钮文案 |
+| 队列/去重 | 参考 **`FKBusinessAlertManager`** 模式 | 无 id 的重复弹窗 |
+
+Alert **不得**复制 **`FKActionSheet`** 行渲染器；仅复用 Sheet **center** 展示基础设施。
 
 ---
 
@@ -531,7 +540,6 @@ Sources/FKUIKit/Components/Alert/
 
 ## 相关文档
 
-- [FKAlert_DESIGN.md](FKAlert_DESIGN.md) — 英文版
 - [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md)
 - [FKSheetPresentationController README](../Sources/FKUIKit/Components/SheetPresentationController/README.md)
 - [FKActionSheet README](../Sources/FKUIKit/Components/ActionSheet/README.md)

@@ -2,10 +2,10 @@ import FKCoreKit
 import FKUIKit
 import UIKit
 
-/// Demonstrates density scaling, horizontal axis layout, tinted illustrations, and link actions.
+/// Demonstrates density scaling, horizontal axis layout, segment spacing, capsule buttons, and link actions.
 final class FKEmptyStateCapabilitiesExampleViewController: UIViewController {
   private let container = UIView()
-  private let modeControl = UISegmentedControl(items: ["Vertical", "Horizontal", "Compact"])
+  private let modeControl = UISegmentedControl(items: ["Vertical", "Horizontal", "Compact", "Segment spacing"])
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -46,6 +46,7 @@ final class FKEmptyStateCapabilitiesExampleViewController: UIViewController {
       primary: FKEmptyStateAction(id: "browse", title: "Browse catalog", kind: .primary),
       tertiary: FKEmptyStateAction(id: "learn", title: "Learn how favorites work", kind: .link)
     )
+    model.appearance.buttons.primary.cornerStyle = .capsule
 
     switch mode {
     case 1:
@@ -54,6 +55,11 @@ final class FKEmptyStateCapabilitiesExampleViewController: UIViewController {
     case 2:
       model.layout.density = .compact
       model.layout.imageSize = CGSize(width: 40, height: 40)
+    case 3:
+      model.layout.segmentSpacing.afterImage = 24
+      model.layout.segmentSpacing.afterTitle = 4
+      model.layout.segmentSpacing.afterDescription = 28
+      model.layout.verticalSpacing = 10
     default:
       break
     }
