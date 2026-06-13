@@ -1,5 +1,22 @@
 /* FKCoreKit localization — pt-BR */
 
+"fkcore.biometric.error.app_cancelled" = "A autenticação foi cancelada pelo app.";
+"fkcore.biometric.error.authentication_failed" = "Falha na autenticação.";
+"fkcore.biometric.error.authentication_in_progress" = "A autenticação já está em andamento.";
+"fkcore.biometric.error.biometry_lockout" = "A autenticação biométrica está bloqueada. Use a senha do dispositivo ou tente novamente mais tarde.";
+"fkcore.biometric.error.biometry_not_available" = "A autenticação biométrica não está disponível neste dispositivo.";
+"fkcore.biometric.error.biometry_not_enrolled" = "Nenhum dado biométrico registrado. Configure Face ID ou Touch ID em Ajustes.";
+"fkcore.biometric.error.invalid_context" = "O contexto de autenticação é inválido.";
+"fkcore.biometric.error.invalid_reason" = "O motivo da autenticação não pode estar vazio.";
+"fkcore.biometric.error.not_interactive" = "A interface de autenticação não pode ser exibida enquanto o app não está ativo.";
+"fkcore.biometric.error.passcode_not_set" = "A senha do dispositivo não está definida.";
+"fkcore.biometric.error.system_cancelled" = "A autenticação foi cancelada pelo sistema.";
+"fkcore.biometric.error.underlying" = "Erro de autenticação (%d): %@";
+"fkcore.biometric.error.user_cancelled" = "Autenticação cancelada.";
+"fkcore.biometric.error.user_fallback" = "Entrada de senha selecionada.";
+"fkcore.biometric.error.watch_not_available" = "Apple Watch não está disponível para autenticação.";
+"fkcore.biometric.reason.confirm_action" = "Confirmar esta ação";
+"fkcore.biometric.reason.unlock_app" = "Desbloquear para continuar";
 "fkcore.business.error.cancelled" = "Cancelado";
 "fkcore.business.error.invalid_argument" = "Argumento inválido: %@";
 "fkcore.business.error.missing_configuration" = "Configuração ausente: %@";
@@ -121,23 +138,6 @@
 "fkcore.storage.error.keychain_failed" = "Erro de keychain (status %d).";
 "fkcore.storage.error.not_found" = "Nenhum valor armazenado para a chave.";
 "fkcore.storage.error.unsupported" = "Operação não suportada.";
-"fkcore.biometric.error.app_cancelled" = "A autenticação foi cancelada pelo app.";
-"fkcore.biometric.error.authentication_failed" = "Falha na autenticação.";
-"fkcore.biometric.error.authentication_in_progress" = "A autenticação já está em andamento.";
-"fkcore.biometric.error.biometry_lockout" = "A autenticação biométrica está bloqueada. Use a senha do dispositivo ou tente novamente mais tarde.";
-"fkcore.biometric.error.biometry_not_available" = "A autenticação biométrica não está disponível neste dispositivo.";
-"fkcore.biometric.error.biometry_not_enrolled" = "Nenhum dado biométrico registrado. Configure Face ID ou Touch ID em Ajustes.";
-"fkcore.biometric.error.invalid_context" = "O contexto de autenticação é inválido.";
-"fkcore.biometric.error.invalid_reason" = "O motivo da autenticação não pode estar vazio.";
-"fkcore.biometric.error.not_interactive" = "A interface de autenticação não pode ser exibida enquanto o app não está ativo.";
-"fkcore.biometric.error.passcode_not_set" = "A senha do dispositivo não está definida.";
-"fkcore.biometric.error.system_cancelled" = "A autenticação foi cancelada pelo sistema.";
-"fkcore.biometric.error.underlying" = "Erro de autenticação (%d): %@";
-"fkcore.biometric.error.user_cancelled" = "Autenticação cancelada.";
-"fkcore.biometric.error.user_fallback" = "Entrada de senha selecionada.";
-"fkcore.biometric.error.watch_not_available" = "Apple Watch não está disponível para autenticação.";
-"fkcore.biometric.reason.confirm_action" = "Confirmar esta ação";
-"fkcore.biometric.reason.unlock_app" = "Desbloquear para continuar";
 "fkcore.utils.battery.state.charging" = "carregando";
 "fkcore.utils.battery.state.full" = "completo";
 "fkcore.utils.battery.state.unknown" = "desconhecido";

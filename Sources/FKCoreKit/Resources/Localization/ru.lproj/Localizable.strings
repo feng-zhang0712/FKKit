@@ -1,5 +1,22 @@
 /* FKCoreKit localization — ru */
 
+"fkcore.biometric.error.app_cancelled" = "Приложение отменило аутентификацию.";
+"fkcore.biometric.error.authentication_failed" = "Ошибка аутентификации.";
+"fkcore.biometric.error.authentication_in_progress" = "Аутентификация уже выполняется.";
+"fkcore.biometric.error.biometry_lockout" = "Биометрическая аутентификация заблокирована. Используйте код устройства или повторите позже.";
+"fkcore.biometric.error.biometry_not_available" = "Биометрическая аутентификация недоступна на этом устройстве.";
+"fkcore.biometric.error.biometry_not_enrolled" = "Биометрические данные не зарегистрированы. Настройте Face ID или Touch ID в Настройках.";
+"fkcore.biometric.error.invalid_context" = "Контекст аутентификации недействителен.";
+"fkcore.biometric.error.invalid_reason" = "Причина аутентификации не может быть пустой.";
+"fkcore.biometric.error.not_interactive" = "Интерфейс аутентификации нельзя показать, пока приложение неактивно.";
+"fkcore.biometric.error.passcode_not_set" = "Код устройства не установлен.";
+"fkcore.biometric.error.system_cancelled" = "Система отменила аутентификацию.";
+"fkcore.biometric.error.underlying" = "Ошибка аутентификации (%d): %@";
+"fkcore.biometric.error.user_cancelled" = "Аутентификация отменена.";
+"fkcore.biometric.error.user_fallback" = "Выбран ввод кода.";
+"fkcore.biometric.error.watch_not_available" = "Apple Watch недоступны для аутентификации.";
+"fkcore.biometric.reason.confirm_action" = "Подтвердить это действие";
+"fkcore.biometric.reason.unlock_app" = "Разблокировать для продолжения";
 "fkcore.business.error.cancelled" = "Отменено";
 "fkcore.business.error.invalid_argument" = "Недопустимый аргумент: %@";
 "fkcore.business.error.missing_configuration" = "Отсутствует конфигурация: %@";
@@ -121,23 +138,6 @@
 "fkcore.storage.error.keychain_failed" = "Ошибка Keychain (статус %d).";
 "fkcore.storage.error.not_found" = "Нет сохранённого значения для ключа.";
 "fkcore.storage.error.unsupported" = "Операция не поддерживается.";
-"fkcore.biometric.error.app_cancelled" = "Приложение отменило аутентификацию.";
-"fkcore.biometric.error.authentication_failed" = "Ошибка аутентификации.";
-"fkcore.biometric.error.authentication_in_progress" = "Аутентификация уже выполняется.";
-"fkcore.biometric.error.biometry_lockout" = "Биометрическая аутентификация заблокирована. Используйте код устройства или повторите позже.";
-"fkcore.biometric.error.biometry_not_available" = "Биометрическая аутентификация недоступна на этом устройстве.";
-"fkcore.biometric.error.biometry_not_enrolled" = "Биометрические данные не зарегистрированы. Настройте Face ID или Touch ID в Настройках.";
-"fkcore.biometric.error.invalid_context" = "Контекст аутентификации недействителен.";
-"fkcore.biometric.error.invalid_reason" = "Причина аутентификации не может быть пустой.";
-"fkcore.biometric.error.not_interactive" = "Интерфейс аутентификации нельзя показать, пока приложение неактивно.";
-"fkcore.biometric.error.passcode_not_set" = "Код устройства не установлен.";
-"fkcore.biometric.error.system_cancelled" = "Система отменила аутентификацию.";
-"fkcore.biometric.error.underlying" = "Ошибка аутентификации (%d): %@";
-"fkcore.biometric.error.user_cancelled" = "Аутентификация отменена.";
-"fkcore.biometric.error.user_fallback" = "Выбран ввод кода.";
-"fkcore.biometric.error.watch_not_available" = "Apple Watch недоступны для аутентификации.";
-"fkcore.biometric.reason.confirm_action" = "Подтвердить это действие";
-"fkcore.biometric.reason.unlock_app" = "Разблокировать для продолжения";
 "fkcore.utils.battery.state.charging" = "зарядка";
 "fkcore.utils.battery.state.full" = "полный";
 "fkcore.utils.battery.state.unknown" = "неизвестно";
