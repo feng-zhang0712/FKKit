@@ -79,7 +79,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 
 - **基础设施层（FKCoreKit）**：网络、存储、日志、权限、安全、文件、异步、BusinessKit、I18n 等已**生产可用**；部分 Pluggable 组仍**仅协议、无参考实现**。
 - **UI 层（FKUIKit）**：Toast、Sheet、Refresh、TextField、Player、Sheet 呈现等已**非常完整**；2026 上半年补齐了图片、搜索、WebView、生物识别及大量 Widgets。
-- **最大剩余空洞**：**独立表单控件族（FKFormControls）**、**自定义居中 Alert（FKAlert）**。（**FKListKit** v1 已交付，见 §5 / §7.1。）
+- **最大剩余空洞**：**独立表单控件族（FKFormControls）**。（**FKListKit**、**FKAlert** v1 已交付，见 §5 / §7.1 / §7.3。）
 
 ---
 
@@ -134,6 +134,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 | **TextField** | `TextField/` | 生产可用 | 格式化输入、OTP、计数、校验、SwiftUI | 表单文本 |
 | **Toast** | `Toast/` | 生产可用 | Toast/HUD/Snackbar 队列、SwiftUI 承载 | 轻提示 |
 | **ListKit** | `ListKit/` | 生产可用 | Diffable Table/Collection VC、预设行、滑动操作、Refresh/Empty/Skeleton 集成 | 信息流、设置页 |
+| **Alert** | `Alert/` | 生产可用 | 居中确认框、单行输入、队列/去重、危险操作门控、SwiftUI Modifier | 删除确认、重命名提示 |
 
 ### 4.2 Widgets 子库（`Components/Widgets/`）
 
@@ -169,6 +170,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 | §2.6 FKPhotoPicker | ✅ 已交付 | `FKUIKit/PhotoPicker` |
 | §2.7 FKStepIndicator / FKTimeline | ✅ 已交付 | `FKUIKit/FlowVisualization` |
 | §1.2 FKListKit | ✅ 已交付 | `FKUIKit/ListKit` — Table/Collection Diffable 基类、预设行、Examples |
+| §1.5 FKAlert | ✅ 已交付 | `FKUIKit/Alert` — 居中确认框、队列/去重、SwiftUI Modifier、12+ Examples |
 | Tier 3 FKMarquee | ✅ 已交付 | `FKUIKit/Widgets/Marquee` |
 | 小组件扩展 | ✅ 部分交付 | StatusPill、CopyChip、IconView 等 |
 
@@ -184,7 +186,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 |------|----------|----------|
 | **列表** | ~~无 Diffable 列表 Controller~~ → **FKListKit v1 已交付**（`ListKit/`）；UITableView Extension 仍较薄 | 典型 App 列表页可复用基类；Extension 级 Diffable 便利方法仍为可选增强 |
 | **表单控件** | `FKTextField` 强；**无独立 SegmentedControl、Toggle、Checkbox、RadioGroup、Slider** | 设置页、筛选栏、引导页缺乏统一 FK 视觉语言 |
-| **确认对话框** | `FKBusinessAlertManager` 仅封装系统 `UIAlertController`；**无 FK 风格居中 Alert** | 删除确认、带输入弹窗无法品牌化；与 ActionSheet 场景边界不清 |
+| **确认对话框** | ~~无 FK 风格居中 Alert~~ → **FKAlert v1 已交付**（`Alert/`）；`FKBusinessAlertManager` 仍保留系统路径 | 品牌化确认/输入弹窗已可用；BusinessKit 后端开关待 v1.1 |
 
 **次要但仍有价值的缺口：** 内嵌 Banner、日期/滚轮选择器、键盘 Toolbar、ZIP 真正实现、Feature Flag 参考实现、Theme 体系、部分 SwiftUI Bridge、QR/Accordion/Form 等垂直能力。
 
@@ -193,7 +195,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 ## 7. Tier 1 — 最高优先级（部分仍缺）
 
 > 频率：⭐⭐⭐⭐⭐（几乎每 App）  
-> **FKListKit** 已交付（§7.1）；下列 **FormControls / Alert** 仍为 Tier 1 缺口。  
+> **FKListKit**、**FKAlert** 已交付（§7.1、§7.3）；下列 **FormControls** 仍为 Tier 1 缺口。  
 > 详细设计：[FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md)、[FKFormControls_DESIGN.zh-CN.md](FKFormControls_DESIGN.zh-CN.md)、[FKAlert_DESIGN.zh-CN.md](FKAlert_DESIGN.zh-CN.md)
 
 ### 7.1 FKListKit（Diffable 列表基础设施）— ✅ 已交付（v1）
@@ -250,45 +252,33 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 
 ---
 
-### 7.3 FKAlert（自定义居中确认框）
+### 7.3 FKAlert（自定义居中确认框）— ✅ 已交付（v1）
 
-**模块：** `FKUIKit/Components/Alert/`
+**模块：** `FKUIKit/Components/Alert/`  
+**状态：** v1 已实现 — 居中 Sheet 确认框、单行输入、队列/去重、危险操作门控、SwiftUI `fkAlert`、12+ Examples。  
+**设计文档（活文档）：** [FKAlert_DESIGN.zh-CN.md](FKAlert_DESIGN.zh-CN.md)
 
-**问题陈述**
+**已交付摘要**
 
-| 现有能力 | 角色 | 缺口 |
-|----------|------|------|
-| `FKBusinessAlertManager` | `UIAlertController` + `presentOnce` | 非 FK 样式；布局受限 |
-| `FKActionSheet` | 底部操作表 | 不适合居中破坏性确认 |
-| `FKSheetPresentationController.centerAlert` | 展示基础设施 | 无 Alert 内容组装 |
-
-**拟议交付物**
-
-- `FKAlertViewController` — 标题、正文、可选 `FKTextField`、按钮列；
-- `FKAlertPresenter` / `FKAlertCoordinator` — 展示、队列、`presentOnce(id:)`；
-- `FKAlertContent` / `FKAlertConfiguration` — Sendable 声明式内容与视觉策略；
-- 可选 `async` API：`await FKAlert.present(...)` 返回所点操作。
-
-**必需行为**
-
-- 通过 `FKSheetPresentationController` **`.center`** 模式展示；
-- 主/次/破坏性按钮样式复用 `FKButton`；
-- 危险操作：破坏性强调、可选二次确认勾选框；
-- 队列与去重（移植 `FKBusinessAlertManager.presentOnce` 思路）。
+| 类型 | 职责 |
+|------|------|
+| `FKAlertContent` / `FKAlertConfiguration` | Sendable 声明式内容与视觉/交互策略 |
+| `FKAlertViewController` + `FKAlertContentView` | 自适应正文滚动、勾选门控、`FKTextField` |
+| `FKAlertPresenter` / `FKAlertCoordinator` | `present` / `presentOnce` / `dismiss` / `setLoading` |
+| `FKAlert` | `confirm` / `prompt` 便捷 API |
+| `FKAlertPresets` | `destructiveConfirm` / `informational` / `textPrompt` |
+| `FKAlertModifier` | SwiftUI Binding 桥接 |
 
 **与 ActionSheet / Toast 边界**
 
 | 需求 | 选用 |
 |------|------|
 | 底部多操作、Toggle 行、Popover | `FKActionSheet` |
-| 居中破坏性确认、阻塞式错误、单行输入 | **`FKAlert`**（待建） |
+| 居中破坏性确认、阻塞式错误、单行输入 | **`FKAlert`** |
 | 短暂非模态提示 | `FKToast` |
+| 系统 chrome、无 FKUIKit 样式 | `FKBusinessAlertManager` |
 
-**Examples 最低场景**
-
-- 删除确认（破坏性）；
-- 带单行输入的 Alert；
-- 堆叠 Alert / 按 ID 去重。
+**后续演进（非 v1 阻塞）：** BusinessKit `FKBusinessAlertBackend` 开关、`FKCheckbox` 替代 `UISwitch`、自定义内容区 — 见设计文档 §23。
 
 ---
 
@@ -397,7 +387,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 
 ### 10.3 FKBusinessKit（`FKCoreKit`）
 
-- `FKAlert` 就绪后，Alert 展示迁移至新组件（`UIAlertController` 路径可配置废弃）；
+- 评估 `FKBusinessAlertBackend`（`systemAlert` / `fkAlert`）配置开关（v1.1）；v1 长期共存；
 - 若广泛需要，公开或迁移 `FKTopViewControllerResolver` 至 Extension。
 
 ### 10.4 FKExtension（`FKCoreKit`）
@@ -459,7 +449,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 |------|-------------|--------|------|
 | **FKButton** | `FKButtonRepresentable` | **P1** | 使用极广；SwiftUI 混合栈高频 |
 | **FKEmptyState** | `FKEmptyStateRepresentable` | **P1** | 列表/详情空态 |
-| **FKAlert**（待建） | `FKAlertModifier` / Binding API | **P1** | 随 Alert 一并交付 |
+| **FKAlert** | `FKAlertModifier` / Binding API | **P1** | ✅ 已随 Alert v1 交付 |
 | **FormControls**（待建） | 各控件独立 Representable | **P1** | 随 FormControls 交付 |
 | **FKBadge** | `FKBadgeRepresentable` | P2 | Tab/导航角标 |
 | **FKSkeleton** | `FKSkeletonRepresentable` | P2 | 加载占位 |
@@ -489,7 +479,7 @@ flowchart TB
     ListKit[FKListKit ✅]
     SearchBar[FKSearchBar ✅]
     FormControls[FormControls 待建]
-    Alert[FKAlert 待建]
+    Alert[FKAlert ✅]
     WebView[FKWebView ✅]
     Avatar[FKAvatar ✅]
     Carousel[FKCarousel ✅]
@@ -530,7 +520,7 @@ flowchart TB
 |------|--------|------|
 | 1 | ~~**FKListKit**~~ | ✅ 已交付（2026-06） |
 | 2 | **FKFormControls**（Segment + Toggle 优先） | 设置/筛选页刚需；可与 ListKit 预设 Cell 联动 |
-| 3 | **FKAlert** | Sheet.center 已稳定；补齐确认流 |
+| 3 | ~~**FKAlert**~~ | ✅ 已交付（2026-06） |
 | 4 | **FKBanner**、**FKDatePicker/Picker**、**FKKeyboardToolbar** | 完善通知与表单体验 |
 | 5 | **ZIP**、**FKFeatureFlag**、**SwiftUI Bridge 回填** | 基础设施与混合栈 |
 | 6 | **FKTheme**、Tier 3 垂直组件 | 视觉统一与专业化 |
@@ -546,7 +536,7 @@ flowchart TB
 | **A** | FKImageLoader、FKImageView | 图片能力 | ✅ 已完成 |
 | **B** | FKListKit（Table）、FKSearchBar | 列表页 MVP | ✅ 已完成 |
 | **C** | FKListKit（Collection）、FKSegmentedControl、FKToggle | 列表 + 基础表单 | ListKit Collection ✅；FormControls ⏳ |
-| **D** | FKCheckbox、FKRadioGroup、FKSlider、FKAlert | 表单 + 确认流 | ⏳ |
+| **D** | FKCheckbox、FKRadioGroup、FKSlider、~~FKAlert~~ | 表单 + 确认流 | Alert ✅；FormControls ⏳ |
 | **E** | FKWebView、FKBiometricAuth | 混合内容 + 安全 | ✅ 已完成 |
 | **F** | FKBanner、FKChip、ZIP 补全 | 通知条 + 修复 | Chip ✅；Banner/ZIP ⏳ |
 | **G** | FKAvatar、FKCarousel、FKFeatureFlag | 富媒体 UI | Avatar/Carousel ✅；FeatureFlag ⏳ |
@@ -566,7 +556,7 @@ flowchart TB
 |----------|------------------|----------|
 | 远程图片 + 占位 + 失败重试 | `FKImageView` + `FKImageLoader` | — |
 | 底部操作菜单 | `FKActionSheet` | — |
-| 居中破坏性确认 / 单行输入弹窗 | — | 待 **`FKAlert`** |
+| 居中破坏性确认 / 单行输入弹窗 | **`FKAlert`** | — |
 | 短暂浮层消息 | `FKToast` | — |
 | 持久顶部/底部通知条 | — | 待 **`FKBanner`** |
 | 加载占位 | `FKSkeleton` | — |
@@ -603,7 +593,7 @@ flowchart TB
 **维护者待决（摘自路线图）：**
 
 1. ~~`FKListKit` 单文件夹 vs 拆分？~~ → **已决：`ListKit/`**（见 [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md) §27）
-2. `FKAlert` 是否替换 `FKBusinessAlertManager` 实现，还是长期共存？
+2. `FKAlert` 与 `FKBusinessAlertManager` **v1 长期共存**；BusinessKit 后端开关见 [FKAlert 设计](FKAlert_DESIGN.zh-CN.md) §23 / §27 Q3。
 3. SwiftUI Bridge 回填的最低清单（P1）何时作为发版门槛？
 
 ---
@@ -639,3 +629,4 @@ flowchart TB
 | 日期 | 变更 |
 |------|------|
 | 2026-06-12 | 初版：基于代码库现状的缺口与优先级分析（中文） |
+| 2026-06-13 | §7.3 FKAlert 标注 v1 已交付；结构性缺口、选型树、分阶段计划同步 |

@@ -6,6 +6,7 @@
 "fkuikit.alert.destructive_hint" = "Это действие нельзя отменить.";
 "fkuikit.alert.destructive_requires_confirmation" = "Сначала включите переключатель подтверждения.";
 "fkuikit.alert.dangerous_checkbox_default" = "Я понимаю, что это нельзя отменить.";
+"fkuikit.alert.text_input_required" = "Введите значение, чтобы продолжить.";
 "fkuikit.actionsheet.error.already_presented" = "Action Sheet уже показан.";
 "fkuikit.actionsheet.error.empty_loading" = "Включите индикатор или укажите текст.";
 "fkuikit.actionsheet.error.multiple_cancel" = "Разрешено только одно действие «Отмена».";

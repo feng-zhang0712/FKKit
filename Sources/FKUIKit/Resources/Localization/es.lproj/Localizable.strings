@@ -6,6 +6,7 @@
 "fkuikit.alert.destructive_hint" = "Esta acción no se puede deshacer.";
 "fkuikit.alert.destructive_requires_confirmation" = "Activa primero el interruptor de confirmación.";
 "fkuikit.alert.dangerous_checkbox_default" = "Entiendo que esto no se puede deshacer.";
+"fkuikit.alert.text_input_required" = "Introduce un valor para continuar.";
 "fkuikit.actionsheet.error.already_presented" = "La hoja de acciones ya está visible.";
 "fkuikit.actionsheet.error.empty_loading" = "Activa el indicador o proporciona texto de carga.";
 "fkuikit.actionsheet.error.multiple_cancel" = "Solo se permite una acción de cancelar.";

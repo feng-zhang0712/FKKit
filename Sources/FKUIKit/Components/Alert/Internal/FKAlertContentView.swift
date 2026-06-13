@@ -185,7 +185,14 @@ final class FKAlertContentView: UIView {
 
   func validateTextInput() -> Bool {
     guard let textInput = content.textInput else { return true }
-    let value = currentTextValue()?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let value = trimmedTextInputValue()
+    if textInput.requiresNonEmptyInput, value.isEmpty {
+      textField?.setError(
+        message: textInput.nonEmptyFailureMessage
+          ?? FKUIKitI18n.string("fkuikit.alert.text_input_required")
+      )
+      return false
+    }
     guard let validation = textInput.validation else { return true }
     let isValid = validation.validate(value)
     if !isValid {
@@ -240,13 +247,23 @@ final class FKAlertContentView: UIView {
   }
 
   private func validateTextSilently() -> Bool {
+    guard satisfiesNonEmptyInputRequirement() else { return false }
     guard let validation = content.textInput?.validation else { return true }
-    let value = currentTextValue()?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let value = trimmedTextInputValue()
     let isValid = validation.validate(value)
     if isValid {
       textField?.setError(message: nil)
     }
     return isValid
+  }
+
+  private func trimmedTextInputValue() -> String {
+    currentTextValue()?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+  }
+
+  private func satisfiesNonEmptyInputRequirement() -> Bool {
+    guard content.textInput?.requiresNonEmptyInput == true else { return true }
+    return !trimmedTextInputValue().isEmpty
   }
 
   private func configureHierarchy() {
@@ -373,12 +390,14 @@ final class FKAlertContentView: UIView {
       iconImageView.image = nil
     case .systemName(let name, let tint):
       iconImageView.isHidden = false
+      iconImageView.isAccessibilityElement = false
       iconImageView.image = UIImage(systemName: name)
       iconImageView.tintColor = resolvedTint(tint)
       iconHeightConstraint = iconImageView.heightAnchor.constraint(equalToConstant: configuration.appearance.iconSize)
       iconHeightConstraint?.isActive = true
     case .asset(let name, let bundle):
       iconImageView.isHidden = false
+      iconImageView.isAccessibilityElement = false
       iconImageView.image = UIImage(named: name, in: bundle, compatibleWith: traitCollection)
       iconImageView.tintColor = nil
       iconHeightConstraint = iconImageView.heightAnchor.constraint(equalToConstant: configuration.appearance.iconSize)
@@ -406,8 +425,7 @@ final class FKAlertContentView: UIView {
     messageLabel.adjustsFontForContentSizeCategory = true
     messageLabel.textColor = configuration.appearance.messageColor
 
-    if let data = content.attributedMessage,
-       let attributed = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSAttributedString.self, from: data) {
+    if let attributed = FKAlertActionResolver.resolvedAttributedMessage(from: content.attributedMessage) {
       messageLabel.attributedText = attributed
       messageLabel.text = nil
     } else if let message = content.message, !message.isEmpty {
@@ -418,7 +436,6 @@ final class FKAlertContentView: UIView {
       messageLabel.attributedText = nil
       applyMessageLayoutMode(.none)
     }
-    messageLayoutMode = .none
     updateMessageLayout(forContentWidth: resolvedContentWidth() > 1 ? resolvedContentWidth() : 280)
     setNeedsLayout()
   }

@@ -6,6 +6,8 @@ public enum FKAlertResult: Sendable, Equatable {
   /// User selected an action. `text` is populated when the alert included a text field.
   case action(index: Int, action: FKAlertActionSnapshot, text: String?)
   /// User tapped a cancel-style action.
+  ///
+  /// Any handler attached to the cancel ``FKAlertAction`` is not invoked; observe this result instead.
   case cancelled
   /// Alert closed via backdrop tap, swipe, or programmatic dismiss without selecting an action.
   case dismissed

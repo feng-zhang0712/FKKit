@@ -26,6 +26,16 @@ final class FKAlertExamplePresentationPolicyViewController: FKAlertExampleBaseVi
       )
     })
 
+    body.addArrangedSubview(FKAlertExampleUI.button("Swipe dismiss enabled (opt-in)") { [weak self] in
+      var configuration = FKAlertPresets.informational()
+      configuration.presentation.allowsSwipeToDismiss = true
+      self?.presentAlert(
+        FKAlertExamplePlaybook.informationalContent(),
+        configuration: configuration,
+        label: "swipe enabled"
+      )
+    })
+
     body.addArrangedSubview(FKAlertExampleUI.button("Swipe dismiss disabled (text prompt)") { [weak self] in
       self?.presentAlert(
         FKAlertExamplePlaybook.renamePromptContent(initial: ""),
@@ -47,7 +57,7 @@ final class FKAlertExamplePresentationPolicyViewController: FKAlertExampleBaseVi
     contentStack.addArrangedSubview(
       FKAlertExampleUI.section(
         title: "Sheet integration",
-        description: "Alerts use FKSheetPresentationController centerAlert defaults (~320pt width, fitted height). On iPad the panel stays centered with minimum margins. Toggle allowsBackdropTapToDismiss and allowsSwipeToDismiss via FKAlertPresentationConfiguration.",
+        description: "Alerts use FKSheetPresentationController centerAlert defaults (~320pt width, fitted height). Informational preset uses backdrop tap only; swipe is off by default because center pans cannot start on buttons. Opt in via allowsSwipeToDismiss when needed.",
         body: body
       )
     )

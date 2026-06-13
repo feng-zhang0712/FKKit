@@ -19,10 +19,9 @@ final class FKAlertExampleAppearanceViewController: FKAlertExampleBaseViewContro
 
     body.addArrangedSubview(FKAlertExampleUI.button("Attributed message") { [weak self] in
       let attributed = FKAlertExamplePlaybook.attributedMessageContent()
-      let data = try? NSKeyedArchiver.archivedData(withRootObject: attributed, requiringSecureCoding: false)
       let content = FKAlertContent(
         title: "Refund available",
-        attributedMessage: data,
+        attributedMessage: FKAlertContent.archiveAttributedMessage(attributed),
         actions: [
           FKAlertAction(title: "Request refund", style: .default),
           FKAlertAction(title: "Not now", style: .cancel),

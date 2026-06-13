@@ -6,6 +6,7 @@
 "fkuikit.alert.destructive_hint" = "Esta ação não pode ser desfeita.";
 "fkuikit.alert.destructive_requires_confirmation" = "Ative o interruptor de confirmação primeiro.";
 "fkuikit.alert.dangerous_checkbox_default" = "Entendo que isso não pode ser desfeito.";
+"fkuikit.alert.text_input_required" = "Digite um valor para continuar.";
 "fkuikit.actionsheet.error.already_presented" = "Folha já apresentada.";
 "fkuikit.actionsheet.error.empty_loading" = "Ative o indicador ou forneça texto.";
 "fkuikit.actionsheet.error.multiple_cancel" = "Apenas uma ação de cancelar.";

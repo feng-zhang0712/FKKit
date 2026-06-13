@@ -9,6 +9,9 @@ public final class FKAlertPresenter {
   /// Optional lifecycle delegate.
   public weak var delegate: FKAlertDelegate?
 
+  /// Whether an alert is currently visible (including during its dismiss animation).
+  public var isPresenting: Bool { coordinator.isPresenting }
+
   private let coordinator = FKAlertCoordinator()
 
   private init() {}

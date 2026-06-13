@@ -46,6 +46,11 @@ public struct FKAlertContent: Sendable {
     self.dangerousAction = dangerousAction
     self.accessibilityIdentifier = accessibilityIdentifier
   }
+
+  /// Archives an ``NSAttributedString`` for ``FKAlertContent/attributedMessage``.
+  public static func archiveAttributedMessage(_ message: NSAttributedString) -> Data? {
+    try? NSKeyedArchiver.archivedData(withRootObject: message, requiringSecureCoding: false)
+  }
 }
 
 // MARK: - Icon
@@ -92,6 +97,10 @@ public struct FKAlertTextInput: Sendable {
   public var maxLength: Int?
   /// Optional validation executed before primary/destructive dismissal.
   public var validation: FKAlertTextValidation?
+  /// When `true`, primary/destructive actions stay disabled until trimmed input is non-empty.
+  public var requiresNonEmptyInput: Bool
+  /// Inline error when ``requiresNonEmptyInput`` fails. `nil` uses a localized default.
+  public var nonEmptyFailureMessage: String?
 
   /// Creates text input options.
   public init(
@@ -103,7 +112,9 @@ public struct FKAlertTextInput: Sendable {
     autocapitalization: UITextAutocapitalizationType = .sentences,
     returnKeyType: UIReturnKeyType = .done,
     maxLength: Int? = nil,
-    validation: FKAlertTextValidation? = nil
+    validation: FKAlertTextValidation? = nil,
+    requiresNonEmptyInput: Bool = false,
+    nonEmptyFailureMessage: String? = nil
   ) {
     self.placeholder = placeholder
     self.initialText = initialText
@@ -114,6 +125,8 @@ public struct FKAlertTextInput: Sendable {
     self.returnKeyType = returnKeyType
     self.maxLength = maxLength
     self.validation = validation
+    self.requiresNonEmptyInput = requiresNonEmptyInput
+    self.nonEmptyFailureMessage = nonEmptyFailureMessage
   }
 }
 

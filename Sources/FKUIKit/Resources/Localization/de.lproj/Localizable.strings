@@ -6,6 +6,7 @@
 "fkuikit.alert.destructive_hint" = "Diese Aktion kann nicht rückgängig gemacht werden.";
 "fkuikit.alert.destructive_requires_confirmation" = "Aktivieren Sie zuerst den Bestätigungsschalter.";
 "fkuikit.alert.dangerous_checkbox_default" = "Ich verstehe, dass dies nicht rückgängig gemacht werden kann.";
+"fkuikit.alert.text_input_required" = "Geben Sie einen Wert ein, um fortzufahren.";
 "fkuikit.actionsheet.error.already_presented" = "Action Sheet bereits angezeigt.";
 "fkuikit.actionsheet.error.empty_loading" = "Indikator aktivieren oder Ladetext angeben.";
 "fkuikit.actionsheet.error.multiple_cancel" = "Nur eine Abbrechen-Aktion.";

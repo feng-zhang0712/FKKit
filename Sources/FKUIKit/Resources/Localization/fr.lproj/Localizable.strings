@@ -6,6 +6,7 @@
 "fkuikit.alert.destructive_hint" = "Cette action est irréversible.";
 "fkuikit.alert.destructive_requires_confirmation" = "Activez d'abord l'interrupteur de confirmation.";
 "fkuikit.alert.dangerous_checkbox_default" = "Je comprends que cette action est irréversible.";
+"fkuikit.alert.text_input_required" = "Saisissez une valeur pour continuer.";
 "fkuikit.actionsheet.error.already_presented" = "La feuille est déjà affichée.";
 "fkuikit.actionsheet.error.empty_loading" = "Activez l'indicateur ou fournissez un texte.";
 "fkuikit.actionsheet.error.multiple_cancel" = "Une seule action d'annulation.";

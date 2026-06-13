@@ -34,12 +34,15 @@ public enum FKAlert {
   }
 
   /// Presents a text prompt and returns trimmed input, or `nil` when cancelled or dismissed.
+  ///
+  /// Empty or whitespace-only submissions return `nil` unless `allowsEmptySubmission` is `true`.
   public static func prompt(
     title: String?,
     message: String?,
     placeholder: String?,
     confirmTitle: String,
     cancelTitle: String = FKUIKitI18n.string("fkuikit.common.cancel"),
+    allowsEmptySubmission: Bool = false,
     from presenter: UIViewController? = nil,
     configuration: FKAlertConfiguration = FKAlertPresets.textPrompt()
   ) async -> String? {
@@ -50,12 +53,17 @@ public enum FKAlert {
         FKAlertAction(title: confirmTitle, style: .default),
         FKAlertAction(title: cancelTitle, style: .cancel),
       ],
-      textInput: FKAlertTextInput(placeholder: placeholder)
+      textInput: FKAlertTextInput(
+        placeholder: placeholder,
+        requiresNonEmptyInput: !allowsEmptySubmission
+      )
     )
     let result = await FKAlertPresenter.shared.present(content, from: presenter, configuration: configuration)
     switch result {
     case .action(_, _, let text):
-      return text?.trimmingCharacters(in: .whitespacesAndNewlines)
+      let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+      guard allowsEmptySubmission || !trimmed.isEmpty else { return nil }
+      return trimmed
     default:
       return nil
     }

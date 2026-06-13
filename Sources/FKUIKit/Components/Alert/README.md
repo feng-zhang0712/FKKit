@@ -12,7 +12,7 @@ Centered confirmation dialog for UIKit apps, built on ``FKSheetPresentationContr
 | Path | Role |
 |------|------|
 | `Public/FKAlert.swift` | Ergonomic `confirm` / `prompt` helpers |
-| `Public/FKAlertPresenter.swift` | Shared presenter: `present`, `presentOnce`, `dismiss` |
+| `Public/FKAlertPresenter.swift` | Shared presenter: `present`, `presentOnce`, `dismiss`, `isPresenting` |
 | `Public/FKAlertViewController.swift` | Sheet content root |
 | `Public/FKAlertContent.swift` | Declarative content, icon, text input, dangerous-action options |
 | `Public/FKAlertResult.swift` | Async result model |
@@ -75,9 +75,32 @@ let result = await FKAlertPresenter.shared.presentOnce(
 | Brief non-blocking message | `FKToast` |
 | System chrome only (no FKUIKit styling) | `FKBusinessAlertManager` |
 
+## Dismiss policy
+
+| Preset / default | Backdrop tap | Swipe |
+|------------------|--------------|-------|
+| Default `FKAlertConfiguration` | No | No — use action buttons |
+| `informational()` | Yes | No — backdrop is the lightweight escape hatch |
+| `destructiveConfirm()` / `textPrompt()` | No / Yes | No |
+| Opt-in | Set `presentation.allowsSwipeToDismiss = true` | Drag from title/message chrome (not buttons) |
+
+Center-card swipe uses ``FKSheetPresentationController`` pan rules: pans cannot begin on ``FKButton`` / text fields. Swipe stays off by default to avoid a hard-to-discover dismiss path on compact alerts.
+
+## Handler semantics
+
+- Primary and destructive ``FKAlertAction`` handlers run **after** the dismiss animation completes.
+- Cancel-style actions return ``FKAlertResult/cancelled``; attached handlers are **not** invoked (use ``FKAlertResult`` or ``FKAlertDelegate`` instead).
+- Backdrop tap, swipe, and ``FKAlertPresenter/dismiss()`` return ``FKAlertResult/dismissed`` without invoking action handlers.
+
+## Text input helpers
+
+- ``FKAlertContent/archiveAttributedMessage(_:)`` — archive rich message bodies for ``FKAlertContent/attributedMessage``.
+- ``FKAlertTextInput/requiresNonEmptyInput`` — disable primary/destructive actions until trimmed input is non-empty.
+- ``FKAlert/prompt`` rejects empty submissions by default; pass `allowsEmptySubmission: true` to opt out.
+
 ## Related docs
 
-- Design: `docs/FKAlert_DESIGN.md`
+- Design: `docs/FKAlert_DESIGN.zh-CN.md`
 - Examples: `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Alert/`
 - Sheet infra: `SheetPresentationController/README.md`
 - BusinessKit alerts: `FKCoreKit/Components/BusinessKit/README.md`

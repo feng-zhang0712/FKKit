@@ -11,11 +11,14 @@ public enum FKAlertPresets {
     return configuration
   }
 
-  /// Single-action informational alert with backdrop dismiss enabled.
+  /// Single-action informational alert with backdrop tap dismiss enabled.
+  ///
+  /// Swipe-to-dismiss stays off: center-card pans are unreliable on compact button stacks.
+  /// Set ``FKAlertPresentationConfiguration/allowsSwipeToDismiss`` when swipe is required.
   public static func informational() -> FKAlertConfiguration {
     var configuration = FKAlertConfiguration()
     configuration.presentation.allowsBackdropTapToDismiss = true
-    configuration.presentation.allowsSwipeToDismiss = true
+    configuration.presentation.allowsSwipeToDismiss = false
     configuration.queue = .singleActive
     return configuration
   }

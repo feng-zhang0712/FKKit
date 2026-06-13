@@ -125,9 +125,6 @@ public final class FKAlertViewController: UIViewController {
 
   private func resolvedAccessibilityMessageBody(from content: FKAlertContent) -> String? {
     if let message = content.message, !message.isEmpty { return message }
-    guard let data = content.attributedMessage,
-          let attributed = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSAttributedString.self, from: data),
-          !attributed.string.isEmpty else { return nil }
-    return attributed.string
+    return FKAlertActionResolver.resolvedAttributedMessage(from: content.attributedMessage)?.string
   }
 }

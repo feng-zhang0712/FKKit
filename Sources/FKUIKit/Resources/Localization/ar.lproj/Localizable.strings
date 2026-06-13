@@ -6,6 +6,7 @@
 "fkuikit.alert.destructive_hint" = "لا يمكن التراجع عن هذا الإجراء.";
 "fkuikit.alert.destructive_requires_confirmation" = "فعّل مفتاح التأكيد أولاً.";
 "fkuikit.alert.dangerous_checkbox_default" = "أفهم أن هذا لا يمكن التراجع عنه.";
+"fkuikit.alert.text_input_required" = "أدخل قيمة للمتابعة.";
 "fkuikit.actionsheet.error.already_presented" = "ورقة الإجراءات معروضة بالفعل.";
 "fkuikit.actionsheet.error.empty_loading" = "فعّل المؤشر أو قدم نص التحميل.";
 "fkuikit.actionsheet.error.multiple_cancel" = "يُسمح بإجراء إلغاء واحد فقط.";

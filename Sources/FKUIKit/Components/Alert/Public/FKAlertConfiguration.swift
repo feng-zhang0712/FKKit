@@ -52,6 +52,10 @@ public struct FKAlertPresentationConfiguration: Sendable {
   /// Whether tapping the dimmed backdrop dismisses the alert.
   public var allowsBackdropTapToDismiss: Bool
   /// Whether interactive swipe dismisses the alert in center mode.
+  ///
+  /// Defaults to `false` because center-card swipe is hard to discover on compact alerts
+  /// (Sheet pan cannot begin on buttons or text fields). Prefer ``FKAlertPresets/informational()``
+  /// backdrop tap for lightweight notices, or set this to `true` when swipe is intentional.
   public var allowsSwipeToDismiss: Bool
   /// Optional override for container corner radius.
   public var cornerRadius: CGFloat?
@@ -60,7 +64,7 @@ public struct FKAlertPresentationConfiguration: Sendable {
   public init(
     sheet: FKSheetPresentationConfiguration? = nil,
     allowsBackdropTapToDismiss: Bool = false,
-    allowsSwipeToDismiss: Bool = true,
+    allowsSwipeToDismiss: Bool = false,
     cornerRadius: CGFloat? = nil
   ) {
     self.sheet = sheet

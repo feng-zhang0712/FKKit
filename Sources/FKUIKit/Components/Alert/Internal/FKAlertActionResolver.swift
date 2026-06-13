@@ -68,11 +68,16 @@ enum FKAlertActionResolver {
   }
 
   private static func hasNonEmptyAttributedMessage(_ data: Data?) -> Bool {
+    resolvedAttributedMessage(from: data) != nil
+  }
+
+  static func resolvedAttributedMessage(from data: Data?) -> NSAttributedString? {
     guard let data,
-          let attributed = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSAttributedString.self, from: data) else {
-      return false
+          let attributed = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSAttributedString.self, from: data),
+          !attributed.string.isEmpty else {
+      return nil
     }
-    return !attributed.string.isEmpty
+    return attributed
   }
 
   private static func trimmedActions(_ actions: [FKAlertAction]) -> [FKAlertAction] {
@@ -97,6 +102,9 @@ extension FKAlertPresentationConfiguration {
     var configuration = FKSheetPresentationConfiguration.centerAlert
     if case .center(var center) = configuration.layout {
       center.size = .fitted(maxSize: CGSize(width: 320, height: 680))
+      // Lower thresholds than generic centerAlert when callers opt in to swipe dismiss.
+      center.dismissProgressThreshold = 0.18
+      center.dismissVelocityThreshold = 650
       configuration.layout = .center(center)
     }
     configuration.preferredContentSizeReporting = .contentOnly

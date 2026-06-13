@@ -6,6 +6,7 @@
 "fkuikit.alert.destructive_hint" = "この操作は元に戻せません。";
 "fkuikit.alert.destructive_requires_confirmation" = "先に確認スイッチをオンにしてください。";
 "fkuikit.alert.dangerous_checkbox_default" = "元に戻せないことを理解しています。";
+"fkuikit.alert.text_input_required" = "続行するには値を入力してください。";
 "fkuikit.actionsheet.error.already_presented" = "アクションシートは既に表示されています。";
 "fkuikit.actionsheet.error.empty_loading" = "インジケーターを有効にするか、読み込みテキストを指定してください。";
 "fkuikit.actionsheet.error.multiple_cancel" = "キャンセル操作は1つのみです。";

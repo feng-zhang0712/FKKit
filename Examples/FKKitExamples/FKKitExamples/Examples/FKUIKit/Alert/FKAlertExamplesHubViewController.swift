@@ -74,7 +74,7 @@ final class FKAlertExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Presentation policy",
-          subtitle: "Backdrop tap, swipe dismiss, iPad center sizing",
+          subtitle: "Backdrop tap, swipe opt-in, iPad center sizing",
           make: { FKAlertExamplePresentationPolicyViewController() }
         ),
         Row(

@@ -28,6 +28,8 @@ final class FKAlertCoordinator {
     activeSessions.last
   }
 
+  var isPresenting: Bool { activeSession != nil }
+
   func present(
     content: FKAlertContent,
     from presenter: UIViewController?,
@@ -204,7 +206,7 @@ final class FKAlertCoordinator {
       session.presenterDelegate?.alertDidDismiss(session.alertViewController, result: result)
       session.continuation.resume(returning: result)
 
-      if invokeHandlers, let selectedAction {
+      if invokeHandlers, let selectedAction, selectedAction.role != .cancel {
         let handler = selectedAction.action.handler
         if handlerDelay > 0 {
           Task { @MainActor in

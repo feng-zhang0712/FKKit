@@ -46,6 +46,10 @@ final class FKAlertButtonStackView: UIView {
       return resolvedControlHeight(for: button)
     }
 
+    if let cancelButton = subview.subviews.compactMap({ $0 as? FKButton }).first {
+      return resolvedControlHeight(for: cancelButton)
+    }
+
     return max(44, subview.sizeThatFits(
       CGSize(width: fittingWidth, height: .greatestFiniteMagnitude)
     ).height)
@@ -172,7 +176,7 @@ final class FKAlertButtonStackView: UIView {
     return row
   }
 
-  private func makeButton(for resolved: FKAlertResolvedAction, isEnabled: Bool) -> FKButton {
+  private func makeButton(for resolved: FKAlertResolvedAction, isEnabled: Bool) -> UIView {
     let button = FKButton()
     button.translatesAutoresizingMaskIntoConstraints = false
     button.content = .textOnly
@@ -194,7 +198,25 @@ final class FKAlertButtonStackView: UIView {
       self?.onActionSelected?(resolved)
     }, for: .touchUpInside)
     actionButtons[resolved.sourceIndex] = button
-    return button
+
+    // Cancel actions use a text-style control centered in the row so the hit target
+    // matches the visible label instead of the full primary-button width.
+    guard resolved.role == .cancel else { return button }
+
+    button.setContentHuggingPriority(.required, for: .horizontal)
+    button.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+    let row = UIView()
+    row.translatesAutoresizingMaskIntoConstraints = false
+    row.addSubview(button)
+    NSLayoutConstraint.activate([
+      button.topAnchor.constraint(equalTo: row.topAnchor),
+      button.bottomAnchor.constraint(equalTo: row.bottomAnchor),
+      button.centerXAnchor.constraint(equalTo: row.centerXAnchor),
+      button.leadingAnchor.constraint(greaterThanOrEqualTo: row.leadingAnchor),
+      button.trailingAnchor.constraint(lessThanOrEqualTo: row.trailingAnchor),
+    ])
+    return row
   }
 
   private func buttonFont(for role: FKAlertResolvedAction.Role) -> UIFont {

@@ -6,6 +6,7 @@
 "fkuikit.alert.destructive_hint" = "This action cannot be undone.";
 "fkuikit.alert.destructive_requires_confirmation" = "Enable the confirmation switch first.";
 "fkuikit.alert.dangerous_checkbox_default" = "I understand this cannot be undone.";
+"fkuikit.alert.text_input_required" = "Enter a value to continue.";
 "fkuikit.actionsheet.error.already_presented" = "This action sheet is already presented.";
 "fkuikit.actionsheet.error.empty_loading" = "Enable the activity indicator or provide loading title or message text.";
 "fkuikit.actionsheet.error.multiple_cancel" = "Only one cancel action is allowed.";
