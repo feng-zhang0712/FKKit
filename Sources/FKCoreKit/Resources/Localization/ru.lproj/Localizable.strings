@@ -53,6 +53,10 @@
 "fkcore.network.error.unknown_server_message" = "Неизвестная ошибка";
 "fkcore.permission.error.pre_prompt_cancelled" = "Предварительный запрос отменён.";
 "fkcore.permission.error.unavailable" = "Разрешение недоступно на этом устройстве.";
+"fkcore.qrcode.error.content_too_long" = "Содержимое QR превышает максимальную длину (%d байт).";
+"fkcore.qrcode.error.empty_content" = "Содержимое QR не может быть пустым.";
+"fkcore.qrcode.error.filter_failed" = "Не удалось сгенерировать QR-код.";
+"fkcore.qrcode.error.image_conversion_failed" = "Не удалось преобразовать изображение QR.";
 "fkcore.security.detail.aes_iv_length" = "AES-CBC требует IV длиной 16 байт.";
 "fkcore.security.detail.aes_key_length" = "Длина ключа AES должна быть 16/24/32 байт.";
 "fkcore.security.detail.alphabet_empty" = "Алфавит не должен быть пустым.";

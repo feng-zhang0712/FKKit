@@ -10,8 +10,20 @@ public struct FKEmptyStateButtonStyle {
   public var font: UIFont
   /// Fill color for filled button style.
   public var backgroundColor: UIColor
-  /// Corner radius applied through `UIButton.Configuration` background (iOS 15+).
-  public var cornerRadius: CGFloat
+  /// Corner treatment applied through `UIButton.Configuration` (iOS 15+).
+  public var cornerStyle: FKEmptyStateButtonCornerStyle
+  /// Fixed corner radius when ``cornerStyle`` is `.fixed(radius:)`.
+  ///
+  /// Setting this property updates ``cornerStyle`` to `.fixed(radius:)`.
+  public var cornerRadius: CGFloat {
+    get {
+      if case .fixed(let radius) = cornerStyle { return radius }
+      return 10
+    }
+    set {
+      cornerStyle = .fixed(radius: newValue)
+    }
+  }
   /// Padding inside the button around the title.
   public var contentInsets: UIEdgeInsets
   /// Optional stroke; `nil` means no border.
@@ -24,6 +36,7 @@ public struct FKEmptyStateButtonStyle {
     font: UIFont = .systemFont(ofSize: 15, weight: .semibold),
     backgroundColor: UIColor = .systemBlue,
     cornerRadius: CGFloat = 10,
+    cornerStyle: FKEmptyStateButtonCornerStyle? = nil,
     contentInsets: UIEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16),
     borderColor: UIColor? = nil,
     borderWidth: CGFloat = 0
@@ -31,7 +44,7 @@ public struct FKEmptyStateButtonStyle {
     self.titleColor = titleColor
     self.font = font
     self.backgroundColor = backgroundColor
-    self.cornerRadius = cornerRadius
+    self.cornerStyle = cornerStyle ?? .fixed(radius: cornerRadius)
     self.contentInsets = contentInsets
     self.borderColor = borderColor
     self.borderWidth = borderWidth
@@ -64,7 +77,7 @@ public struct FKEmptyStateButtonAppearance {
       titleColor: primary.backgroundColor,
       font: primary.font,
       backgroundColor: .clear,
-      cornerRadius: primary.cornerRadius,
+      cornerStyle: primary.cornerStyle,
       contentInsets: primary.contentInsets,
       borderColor: primary.backgroundColor,
       borderWidth: 1
@@ -78,7 +91,7 @@ public struct FKEmptyStateButtonAppearance {
       titleColor: primary.backgroundColor,
       font: primary.font,
       backgroundColor: .clear,
-      cornerRadius: 0,
+      cornerStyle: .fixed(radius: 0),
       contentInsets: primary.contentInsets,
       borderColor: nil,
       borderWidth: 0

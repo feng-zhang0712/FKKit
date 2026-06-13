@@ -53,6 +53,10 @@
 "fkcore.network.error.unknown_server_message" = "不明なエラー";
 "fkcore.permission.error.pre_prompt_cancelled" = "権限の事前案内がキャンセルされました。";
 "fkcore.permission.error.unavailable" = "このデバイスでは利用できません。";
+"fkcore.qrcode.error.content_too_long" = "QR コンテンツが最大長（%d バイト）を超えています。";
+"fkcore.qrcode.error.empty_content" = "QR コンテンツを空にすることはできません。";
+"fkcore.qrcode.error.filter_failed" = "QR コードの生成に失敗しました。";
+"fkcore.qrcode.error.image_conversion_failed" = "QR 画像の変換に失敗しました。";
 "fkcore.security.detail.aes_iv_length" = "AES-CBC には 16 バイト IV が必要です。";
 "fkcore.security.detail.aes_key_length" = "AES 鍵長は 16/24/32 バイトである必要があります。";
 "fkcore.security.detail.alphabet_empty" = "アルファベットは空にできません。";

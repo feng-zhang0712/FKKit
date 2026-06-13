@@ -63,6 +63,9 @@ public extension UIView {
     view.apply(configuration, animated: contentAnimated)
     fk_emptyStateApplyScrollInteraction(host: self, configuration: configuration)
     bringSubviewToFront(view)
+    if let scrollView = self as? UIScrollView {
+      fk_emptyStateBringRefreshControlsToFront(on: scrollView)
+    }
   }
 
   /// Applies or hides the empty-state overlay from `configuration`.
@@ -127,6 +130,9 @@ public extension UIView {
 
     fk_emptyStateApplyScrollInteraction(host: self, configuration: configuration)
     bringSubviewToFront(view)
+    if let scrollView = self as? UIScrollView {
+      fk_emptyStateBringRefreshControlsToFront(on: scrollView)
+    }
   }
 
   /// Applies or hides the empty-state overlay with `actionHandler` as the only trailing-closure parameter.
@@ -197,6 +203,9 @@ public extension UIView {
   }
 
   /// Hides the empty-state overlay and restores `UIScrollView.isScrollEnabled` when the receiver is a scroll view.
+  ///
+  /// - Note: The overlay view stays in the hierarchy for reuse. Use ``fk_removeEmptyState(animated:)`` when the
+  ///   host should not retain an empty-state subtree until the next presentation.
   func fk_hideEmptyState(animated: Bool = true) {
     fk_emptyStateAssertMainThread()
     guard let view = fk_emptyStateView else { return }
@@ -214,6 +223,38 @@ public extension UIView {
     } else {
       hideBlock()
       completion(true)
+    }
+  }
+
+  /// Removes the empty-state overlay from the hierarchy and clears stored host state.
+  ///
+  /// Call when content is available and the overlay should not remain as a hidden subview.
+  /// The next ``fk_applyEmptyState(_:animated:actionHandler:viewTapHandler:)`` recreates the overlay.
+  func fk_removeEmptyState(animated: Bool = true) {
+    fk_emptyStateAssertMainThread()
+    guard let view = fk_emptyStateView else {
+      fk_emptyStateClearHostStorage(on: self)
+      return
+    }
+    view.layer.removeAllAnimations()
+    let duration = fk_emptyStateConfiguration?.presentation.fadeDuration ?? 0.25
+    let teardown = { [weak self] in
+      guard let self else { return }
+      view.removeFromSuperview()
+      fk_emptyStateClearHostStorage(on: self)
+      if let scroll = self as? UIScrollView {
+        scroll.isScrollEnabled = true
+      }
+    }
+    let shouldAnimate = animated && !UIAccessibility.isReduceMotionEnabled
+    if shouldAnimate {
+      UIView.animate(withDuration: duration, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState], animations: {
+        view.alpha = 0
+      }, completion: { _ in
+        teardown()
+      })
+    } else {
+      teardown()
     }
   }
 

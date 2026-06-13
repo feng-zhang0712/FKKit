@@ -30,6 +30,23 @@ public extension UIView {
     }
   }
 
+  /// Installs a shimmer overlay on this view, pinned to a child scroll view's visible content guide.
+  func fk_showSkeleton(
+    over scrollView: UIScrollView,
+    configuration: FKSkeletonConfiguration? = nil,
+    animated: Bool = true,
+    blocksInteraction: Bool = true
+  ) {
+    FKSkeletonDispatch.runOnMain {
+      self.fk_showSkeletonOverScrollViewOnMainThread(
+        scrollView: scrollView,
+        configuration: configuration,
+        animated: animated,
+        blocksInteraction: blocksInteraction
+      )
+    }
+  }
+
   /// Removes the overlay installed by ``fk_showSkeleton(configuration:animated:respectsSafeArea:blocksInteraction:)``.
   func fk_hideSkeleton(animated: Bool = true, completion: (() -> Void)? = nil) {
     FKSkeletonDispatch.runOnMain {
@@ -126,6 +143,7 @@ public extension UIView {
     if let existing = fk_skeletonOverlay {
       existing.configuration = config
       existing.isUserInteractionEnabled = blocksInteraction
+      bringSubviewToFront(existing)
       existing.show(animated: animated)
       return
     }
@@ -158,7 +176,55 @@ public extension UIView {
     }
 
     fk_skeletonOverlay = overlay
+    bringSubviewToFront(overlay)
     overlay.show(animated: animated)
+  }
+
+  fileprivate func fk_showSkeletonOverScrollViewOnMainThread(
+    scrollView: UIScrollView,
+    configuration: FKSkeletonConfiguration?,
+    animated: Bool,
+    blocksInteraction: Bool
+  ) {
+    let config = configuration ?? FKSkeleton.defaultConfiguration
+
+    if let existing = fk_skeletonOverlay {
+      existing.configuration = config
+      existing.isUserInteractionEnabled = blocksInteraction
+      bringSubviewToFront(existing)
+      existing.show(animated: animated)
+      return
+    }
+
+    let overlay = FKSkeletonView()
+    overlay.configuration = config
+    overlay.translatesAutoresizingMaskIntoConstraints = false
+    overlay.isUserInteractionEnabled = blocksInteraction
+
+    if config.inheritsCornerRadius {
+      overlay.layer.cornerRadius = scrollView.layer.cornerRadius
+      overlay.layer.maskedCorners = scrollView.layer.maskedCorners
+    }
+
+    addSubview(overlay)
+    NSLayoutConstraint.activate([
+      overlay.topAnchor.constraint(equalTo: scrollView.frameLayoutGuide.topAnchor),
+      overlay.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor),
+      overlay.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor),
+      overlay.bottomAnchor.constraint(equalTo: scrollView.frameLayoutGuide.bottomAnchor),
+    ])
+
+    fk_skeletonOverlay = overlay
+    bringSubviewToFront(overlay)
+    overlay.show(animated: animated)
+  }
+
+  /// Reorders the overlay from ``fk_showSkeleton(configuration:animated:respectsSafeArea:blocksInteraction:)`` above sibling scroll content after layout.
+  func fk_bringSkeletonOverlayToFrontIfNeeded() {
+    FKSkeletonDispatch.runOnMain {
+      guard let overlay = self.fk_skeletonOverlay else { return }
+      self.bringSubviewToFront(overlay)
+    }
   }
 
   fileprivate func fk_hideSkeletonOnMainThread(animated: Bool, completion: (() -> Void)?) {

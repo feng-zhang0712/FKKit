@@ -53,6 +53,10 @@
 "fkcore.network.error.unknown_server_message" = "خطأ غير معروف";
 "fkcore.permission.error.pre_prompt_cancelled" = "تم إلغاء الإشعار المسبق.";
 "fkcore.permission.error.unavailable" = "الإذن غير متاح على هذا الجهاز.";
+"fkcore.qrcode.error.content_too_long" = "محتوى QR يتجاوز الحد الأقصى للطول (%d بايت).";
+"fkcore.qrcode.error.empty_content" = "لا يمكن أن يكون محتوى QR فارغًا.";
+"fkcore.qrcode.error.filter_failed" = "فشل إنشاء رمز QR.";
+"fkcore.qrcode.error.image_conversion_failed" = "فشل تحويل صورة QR.";
 "fkcore.security.detail.aes_iv_length" = "AES-CBC يتطلب IV بطول 16 بايت.";
 "fkcore.security.detail.aes_key_length" = "يجب أن يكون طول مفتاح AES 16/24/32 بايت.";
 "fkcore.security.detail.alphabet_empty" = "يجب ألا يكون الأبجد فارغًا.";

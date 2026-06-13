@@ -5,7 +5,6 @@ FKKit **`FKPhotoPicker`** 的实现指导文档：面向生产的 **`PHPickerVie
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
 **路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §2.6  
-**English version:** [FKPhotoPicker_DESIGN.md](FKPhotoPicker_DESIGN.md)
 
 ---
 
@@ -163,6 +162,20 @@ FKKit **`FKPhotoPicker`** 的实现指导文档：面向生产的 **`PHPickerVie
 | 持久化 | 仅临时导出 | **`FKFileManager`** / Storage |
 
 依赖：`FKUIKit` → `FKCoreKit`；`import Photos`、`PhotosUI`、`UniformTypeIdentifiers`。
+
+### 5.1 FKCoreKit 复用要求（强制）
+
+PhotoPicker **必须**通过 FKCoreKit 完成权限、文件与位图预处理编排，**禁止**重复实现：
+
+| 能力 | 必须使用（FKCoreKit） | 禁止 |
+|------|----------------------|------|
+| 权限 | **`FKPermissions`**、**`FKPermissionPrePrompt`** | 直接 `AVCaptureDevice` 散落检查 |
+| 临时文件路径 | **`FKFileManager`** | 硬编码 `/tmp` 路径 |
+| 图像缩放/压缩/JPEG | **`UIImage.fk_*`** Extension | 组件内 UIGraphics 工具 |
+| 本地化 | **`FKI18n`** | 硬编码 |
+| 后台工作 | **`FKAsync`** / 结构化并发 | 无取消的 GCD 链 |
+
+图像解码流水线可留在 FKUIKit Internal，但**位图操作必须走 Core Extension**。
 
 ---
 
@@ -644,7 +657,6 @@ Sources/FKUIKit/Components/PhotoPicker/
 
 ## 相关文档
 
-- [FKPhotoPicker_DESIGN.md](FKPhotoPicker_DESIGN.md) — 英文版
 - [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md)
 - [FKPermissions README](../Sources/FKCoreKit/Components/Permissions/README.md)
 - [FKImageLoader-FKImageView_DESIGN.zh-CN.md](FKImageLoader-FKImageView_DESIGN.zh-CN.md)

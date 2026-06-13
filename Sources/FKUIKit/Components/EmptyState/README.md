@@ -39,10 +39,12 @@ Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plu
 |------|------|
 | `FKEmptyStateContentConfiguration.swift` | Copy, `FKEmptyStateImageContent`, `FKEmptyStateCustomAccessory` |
 | `FKEmptyStateLayoutConfiguration.swift` | Context, density, axis, optional layout overrides |
+| `FKEmptyStateSpacingConfiguration.swift` | Per-segment stack spacing overrides |
 | `FKEmptyStateAppearanceConfiguration.swift` | Typography, buttons, background, loading chrome |
 | `FKEmptyStatePresentationConfiguration.swift` | Transitions, scroll/keyboard behavior, loading rules |
 | `FKEmptyStateSlotConfiguration.swift` | Header/media/content/actions/footer slots |
 | `FKEmptyStateButtonStyle.swift` | Button chrome + `FKEmptyStateButtonAppearance` |
+| `FKEmptyStateButtonCornerStyle.swift` | Fixed radius vs capsule corner treatment |
 | `FKEmptyStateLayoutEnums.swift` | `FKEmptyStateCustomPlacement`, `FKEmptyStateContentAlignment` |
 
 ### `Internal/`
@@ -58,7 +60,7 @@ Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plu
 
 | File | Role |
 |------|------|
-| `UIView+FKEmptyState.swift` | `fk_applyEmptyState`, `fk_updateVisibleEmptyState`, `fk_hideEmptyState`, `fk_setEmptyState`, visibility |
+| `UIView+FKEmptyState.swift` | `fk_applyEmptyState`, `fk_updateVisibleEmptyState`, `fk_hideEmptyState`, `fk_removeEmptyState`, `fk_setEmptyState`, visibility |
 | `UIScrollView+FKEmptyState.swift` | `fk_updateEmptyState`, list helpers, auto short-content visibility |
 | `UIViewController+FKEmptyState.swift` | `fk_bindEmptyStateActions` / `fk_clearEmptyStateActionObservers` |
 
@@ -147,12 +149,35 @@ case .show(let type):
 
 - `content.image` (`FKEmptyStateImageContent`), `content.customAccessory`, `content.title` / `description`
 - `layout.context` tunes default image size, column width, insets, and alignment when override properties are `nil`
-- `layout.density` scales spacing and typography (`compact` / `regular` / `comfortable`)
+- `layout.density` scales the fallback `verticalSpacing` and typography (`compact` ×0.75, `comfortable` ×1.25); explicit `layout.segmentSpacing` values are **not** scaled
+- `layout.verticalSpacing` — default stack spacing; also the fallback when segment overrides are `nil`
+- `layout.segmentSpacing` — independent gaps after image, title, description, and actions slot (`afterImage`, `afterTitle`, `afterDescription`, `afterActionsSlot`)
 - `layout.axis`: `.vertical` (default) or `.horizontal` (illustration beside text)
 - `presentation.transition`: `.none` (default), `.crossDissolve`, `.fade`, `.scale`, `.slideUp` for in-place content updates
 - `actions` — primary / secondary / tertiary payloads; empty set hides buttons
 - `appearance.buttons.primary` styles the primary chrome; `appearance.buttons.secondary` / `tertiary` override bordered and plain slots
+- `appearance.buttons.primary.cornerStyle` — `.capsule` for a true pill shape, or `.fixed(radius:)` for a constant radius
 - `FKEmptyStateActionKind.link` renders an underlined text action; `isLoading` shows a button activity indicator (iOS 15+)
+
+### Spacing
+
+Use `layout.segmentSpacing` to tune gaps between standard blocks without affecting slot content:
+
+```swift
+var config = FKEmptyStateConfiguration.scenario(.noSearchResult)
+config.layout.segmentSpacing.afterImage = 20
+config.layout.segmentSpacing.afterTitle = 6
+config.layout.segmentSpacing.afterDescription = 24
+config.layout.verticalSpacing = 12 // fallback + density-scaled default stack spacing
+```
+
+### Slots
+
+Slots (`config.slots.header`, `.media`, `.content`, `.actions`, `.footer`) insert custom views at fixed stack positions. Prefer `layout.segmentSpacing` for spacing between image, title, description, and buttons — slots are for supplementary content (badges, hints, custom controls), not invisible spacers.
+
+```swift
+config.slots.actions = myCustomAccessoryView
+```
 
 ### Actions
 
@@ -166,6 +191,7 @@ config.actions.secondary = FKEmptyStateAction(
   kind: .link
 )
 config.appearance.buttons.primary.backgroundColor = .systemIndigo
+config.appearance.buttons.primary.cornerStyle = .capsule
 
 // Or build from scratch
 config.actions = .primary("Refresh", id: "retry")
@@ -201,7 +227,8 @@ Full release notes: root [`CHANGELOG.md`](../../../../CHANGELOG.md) **`[Unreleas
 - `fk_applyEmptyState(_:animated:actionHandler:)` — single trailing closure (preferred when no background tap handler).
 - `fk_updateVisibleEmptyState(_:animated:actionHandler:viewTapHandler:)` — in-place content update when overlay is already visible; falls back to `fk_applyEmptyState` otherwise.
 - `fk_setEmptyState(phase:…)` / `fk_setEmptyState(animated:configure:)` — template-based shortcuts.
-- `fk_hideEmptyState(animated:)`
+- `fk_hideEmptyState(animated:)` — hides and keeps the overlay for reuse.
+- `fk_removeEmptyState(animated:)` — removes the overlay and clears host storage; the next `fk_applyEmptyState` recreates it.
 - `fk_emptyStateView`, `fk_emptyStateConfiguration`, `fk_isEmptyStateOverlayVisible`
 - `FKEmptyStatePresentable` — `fk_presentEmptyState` / `fk_dismissEmptyState` aliases for test seams and protocol-oriented hosts.
 
@@ -240,7 +267,7 @@ Under `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/EmptyState/`:
 
 - **`Support/`** — shared factory and view-controller helpers.
 - **`Basics/`** — empty, search miss, error/retry, offline, permission.
-- **`Advanced/`** — loading transition, layout comparison, custom illustration, capabilities (density/axis/link), action styles & transitions, dark mode, RTL, i18n, resolver.
+- **`Advanced/`** — loading transition, layout comparison, custom illustration, capabilities (density/axis/link), action styles & transitions, dark mode, RTL, i18n, resolver, **layout playground**.
 
 Entry: `FKEmptyStateExamplesHubViewController`.
 

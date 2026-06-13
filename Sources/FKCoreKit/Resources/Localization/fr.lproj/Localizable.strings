@@ -53,6 +53,10 @@
 "fkcore.network.error.unknown_server_message" = "Erreur inconnue";
 "fkcore.permission.error.pre_prompt_cancelled" = "Pré-invite annulée.";
 "fkcore.permission.error.unavailable" = "Permission indisponible sur cet appareil.";
+"fkcore.qrcode.error.content_too_long" = "Le contenu QR dépasse la longueur maximale (%d octets).";
+"fkcore.qrcode.error.empty_content" = "Le contenu QR ne doit pas être vide.";
+"fkcore.qrcode.error.filter_failed" = "Échec de la génération du code QR.";
+"fkcore.qrcode.error.image_conversion_failed" = "Échec de la conversion de l'image QR.";
 "fkcore.security.detail.aes_iv_length" = "AES-CBC nécessite un IV de 16 octets.";
 "fkcore.security.detail.aes_key_length" = "La clé AES doit faire 16/24/32 octets.";
 "fkcore.security.detail.alphabet_empty" = "L'alphabet ne doit pas être vide.";

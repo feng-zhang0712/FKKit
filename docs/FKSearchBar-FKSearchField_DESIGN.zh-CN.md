@@ -5,7 +5,6 @@ FKKit **搜索输入控件**的实现指导文档：可配置的 **`FKSearchBar`
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
 **路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §1.3  
-**English version:** [FKSearchBar-FKSearchField_DESIGN.md](FKSearchBar-FKSearchField_DESIGN.md)
 
 ---
 
@@ -133,6 +132,10 @@ FKKit 采用 **容器 + `UITextField`** — 与多数生产 App 一致。
 | `FKCornerShadow` / `FKBlurView` | FKUIKit | 可选条背景 |
 | `FKUIKitI18n` | FKUIKit | 取消/清除/搜索提示 |
 | `FKEmptyState` `.noSearchResult` | FKUIKit | 文档化配对 |
+
+### 3.4 FKCoreKit 复用要求（强制）
+
+SearchBar/SearchField **必须**使用 **`FKDebouncer`**（`FKCoreKit/Components/Async`）实现防抖；**禁止**自写 `Timer` 防抖。查询规范化、trim 使用 **`String.fk_trimmed`** 等 Extension。详见 [COMPONENT_ROADMAP.zh-CN.md — 勿重复造轮子](COMPONENT_ROADMAP.zh-CN.md#勿重复造轮子--复用对照表)。
 
 ---
 
@@ -642,7 +645,6 @@ Sources/FKUIKit/Components/SearchBar/
 
 ## 相关文档
 
-- [FKSearchBar-FKSearchField_DESIGN.md](FKSearchBar-FKSearchField_DESIGN.md) — 英文版
 - [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md) — 列表筛选集成
 - [TextField README](../Sources/FKUIKit/Components/TextField/README.md)
 - [FKDebouncer](../Sources/FKCoreKit/Components/Async/DebounceThrottle/Debouncer.swift)

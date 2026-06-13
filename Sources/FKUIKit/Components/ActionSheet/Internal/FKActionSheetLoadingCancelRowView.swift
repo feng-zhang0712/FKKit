@@ -15,7 +15,6 @@ final class FKActionSheetLoadingCancelRowView: UIView {
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
     titleLabel.textAlignment = .center
     titleLabel.numberOfLines = 0
-    titleLabel.adjustsFontForContentSizeCategory = true
     addSubview(titleLabel)
 
     let minimumHeight = titleLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 44)

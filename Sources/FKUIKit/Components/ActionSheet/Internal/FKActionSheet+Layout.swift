@@ -17,7 +17,6 @@ extension FKActionSheet {
     NSLayoutConstraint.deactivate(installedLayoutConstraints)
     installedLayoutConstraints.removeAll()
     panelWidthConstraint = nil
-    panelCenterYConstraint = nil
 
     installedPanelLayout = target
 
@@ -104,13 +103,10 @@ extension FKActionSheet {
     let width = panelView.widthAnchor.constraint(equalToConstant: contentLayoutWidth(for: effectiveLayoutWidth()))
     panelWidthConstraint = width
 
-    let centerY = panelView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-    panelCenterYConstraint = centerY
-
     installedLayoutConstraints = [
       width,
       panelView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      centerY,
+      panelView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
       panelHeightConstraint,
     ]
   }

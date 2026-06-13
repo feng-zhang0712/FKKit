@@ -47,6 +47,23 @@ public extension String {
     if count <= maxLength { return self }
     return String(prefix(maxLength))
   }
+
+  /// Middle ellipsis truncation preserving `prefixLength` leading and `suffixLength` trailing characters.
+  ///
+  /// Example: `"A128839F2"` with prefix 5 and suffix 3 → `"A1288…9F2"`.
+  func fk_middleTruncated(
+    prefixLength: Int,
+    suffixLength: Int,
+    separator: String = "…"
+  ) -> String {
+    guard prefixLength > 0, suffixLength > 0 else { return self }
+    let separatorCount = separator.count
+    guard count > prefixLength + suffixLength + separatorCount else { return self }
+    let head = fk_limitedPrefix(prefixLength)
+    let tailStart = count - suffixLength
+    let tail = fk_substring(location: tailStart, length: suffixLength)
+    return head + separator + tail
+  }
 }
 
 // MARK: - Encoding & conversion

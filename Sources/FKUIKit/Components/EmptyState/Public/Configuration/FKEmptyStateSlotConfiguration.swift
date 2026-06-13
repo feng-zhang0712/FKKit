@@ -2,7 +2,11 @@ import UIKit
 
 /// Optional composition slots inserted into the empty-state stack.
 ///
-/// Slots are never force-sized by the library; callers own intrinsic size or constraints inside the slot view.
+/// Slots host custom views at fixed positions (header, media, content, actions, footer).
+/// The library does not force-size slot content; callers own intrinsic size or internal constraints.
+///
+/// Prefer ``FKEmptyStateLayoutConfiguration/segmentSpacing`` for spacing between standard blocks
+/// (image, title, description, buttons). Slots are for supplementary content, not layout spacers.
 public struct FKEmptyStateSlotConfiguration {
   public var header: UIView?
   public var media: UIView?

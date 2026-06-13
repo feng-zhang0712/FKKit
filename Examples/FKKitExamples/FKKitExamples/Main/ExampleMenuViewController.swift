@@ -27,6 +27,11 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Alert",
           subtitle: "Hub: centered confirm, text input, queue/dedup, dangerous actions, presentation policy, SwiftUI",
           make: { FKAlertExamplesHubViewController() }
+          ),
+          ExampleMenuItem(
+          title: "Avatar",
+          subtitle: "Hub: FKAvatar, FKAvatarGroup, FKPresenceIndicator — sizes, initials, URL, reuse, presence, badge, SwiftUI",
+          make: { FKAvatarExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "ActionSheet",
@@ -57,6 +62,31 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Carousel",
           subtitle: "Hub: FKImageBanner heroes, FKCarousel layouts, indicators, auto-scroll, SwiftUI, RTL",
           make: { FKCarouselExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "Chip",
+          subtitle: "Hub: FKChip, FKTag, FKChipGroup — modes, filter bar, input tokens, variants, flow, SwiftUI",
+          make: { FKChipExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "CopyChip",
+          subtitle: "Hub: FKCopyChip — order ID truncation, toast/haptic/silent feedback, callbacks, SwiftUI",
+          make: { FKCopyChipExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "IconView",
+          subtitle: "Hub: FKIconView — sizes, backgrounds, symbol/image, badge, list row, WidgetIcon, SwiftUI",
+          make: { FKIconViewExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "Marquee",
+          subtitle: "Hub: FKMarqueeLabel — ticker scroll, fade, drag/pause, Reduce Motion, RTL, SwiftUI",
+          make: { FKMarqueeLabelExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "StatusPill",
+          subtitle: "Hub: FKStatusPill — workflow styles, dot, custom enum, sizes, Tag combo, SwiftUI",
+          make: { FKStatusPillExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "CornerShadow",
@@ -99,9 +129,19 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKImageViewExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "ListKit",
+          subtitle: "Hub: FKDiffableTable/Collection VC — refresh, pagination, empty/error/skeleton, presets, swipe, FKImageView prefetch",
+          make: { FKListKitExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "PhotoPicker",
           subtitle: "Hub: library/camera pick, presets, multi-select, delivery, video, permissions, SwiftUI",
           make: { FKPhotoPickerExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "QRCode Scanner",
+          subtitle: "Hub: FKQRCodeScannerViewController — modes, debounce, torch, permissions, navigation policy, SwiftUI",
+          make: { FKQRCodeScannerExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "PagingController",
@@ -142,6 +182,11 @@ final class ExampleMenuViewController: UITableViewController {
           title: "TabBar",
           subtitle: "Segmented tab bar with indicators, dynamic data, width policies, and a11y/i18n examples",
           make: { FKTabBarExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
+          title: "Theme",
+          subtitle: "Hub: FKTheme design tokens, registry, resolver, Button/Toast integration, SwiftUI environment",
+          make: { FKThemeExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "TextField",
@@ -203,6 +248,11 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Permissions",
           subtitle: "Unified permission status/query/request, batch, denied handling, settings jump",
           make: { FKPermissionsExampleViewController() }
+        ),
+        ExampleMenuItem(
+          title: "QRCode",
+          subtitle: "Hub: FKQRCodeGenerator & FKQRCodeParser — correction, logo, CIImage, errors, payloads",
+          make: { FKQRCodeExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Pluggable",

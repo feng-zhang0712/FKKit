@@ -74,7 +74,10 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   private var imageHeightConstraint: NSLayoutConstraint?
   private var containerMaxWidthConstraint: NSLayoutConstraint?
   private var keyboardBottomConstraint: NSLayoutConstraint?
-  private var containerCenterYConstraint: NSLayoutConstraint?
+  private var containerCenterYToSafeAreaConstraint: NSLayoutConstraint?
+  private var containerCenterXToSafeAreaConstraint: NSLayoutConstraint?
+  private var containerCenterYToBoundsConstraint: NSLayoutConstraint?
+  private var containerCenterXToBoundsConstraint: NSLayoutConstraint?
   private var containerTopConstraint: NSLayoutConstraint?
   private var lastAnnouncementSignature: String?
 
@@ -93,6 +96,11 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   public override func layoutSubviews() {
     super.layoutSubviews()
     gradientLayer?.frame = bounds
+  }
+
+  public override func didMoveToSuperview() {
+    super.didMoveToSuperview()
+    updateScrollViewportAnchoring()
   }
 
   // MARK: Public API
@@ -265,10 +273,23 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     containerMaxWidthConstraint = containerView.widthAnchor.constraint(lessThanOrEqualToConstant: 320)
     containerMaxWidthConstraint?.isActive = true
 
-    let centerY = containerView.centerYAnchor.constraint(equalTo: safeAreaLayoutGuide.centerYAnchor)
-    centerY.priority = UILayoutPriority(750)
-    centerY.isActive = true
-    containerCenterYConstraint = centerY
+    let centerYToSafeArea = containerView.centerYAnchor.constraint(equalTo: safeAreaLayoutGuide.centerYAnchor)
+    centerYToSafeArea.priority = UILayoutPriority(750)
+    centerYToSafeArea.isActive = true
+    containerCenterYToSafeAreaConstraint = centerYToSafeArea
+
+    let centerYToBounds = containerView.centerYAnchor.constraint(equalTo: centerYAnchor)
+    centerYToBounds.priority = UILayoutPriority(750)
+    centerYToBounds.isActive = false
+    containerCenterYToBoundsConstraint = centerYToBounds
+
+    let centerXToSafeArea = containerView.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor)
+    centerXToSafeArea.isActive = true
+    containerCenterXToSafeAreaConstraint = centerXToSafeArea
+
+    let centerXToBounds = containerView.centerXAnchor.constraint(equalTo: centerXAnchor)
+    centerXToBounds.isActive = false
+    containerCenterXToBoundsConstraint = centerXToBounds
 
     let topConstraint = containerView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor)
     topConstraint.priority = UILayoutPriority(500)
@@ -281,7 +302,6 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
       blockingDimmingView.trailingAnchor.constraint(equalTo: trailingAnchor),
       blockingDimmingView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-      containerView.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor),
       containerView.leadingAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.leadingAnchor),
       containerView.trailingAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.trailingAnchor),
 
@@ -373,6 +393,8 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     updateContentPosition(resolved: resolved, model: model)
 
     applySlots(model: model)
+    refreshSlotContainerVisibility()
+    applySegmentSpacing(model: model, resolved: resolved)
     applyAccessibility(model: model)
     announceIfNeeded(model: model)
   }
@@ -705,8 +727,13 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   /// Applies corner radius and optional border through configuration background (layer properties do not affect configuration chrome).
   private func applyConfigurationChrome(_ style: FKEmptyStateButtonStyle, to configuration: inout UIButton.Configuration) {
-    configuration.cornerStyle = .fixed
-    configuration.background.cornerRadius = style.cornerRadius
+    switch style.cornerStyle {
+    case .capsule:
+      configuration.cornerStyle = .capsule
+    case .fixed(let radius):
+      configuration.cornerStyle = .fixed
+      configuration.background.cornerRadius = radius
+    }
     if style.borderWidth > 0, let borderColor = style.borderColor {
       configuration.background.strokeColor = borderColor
       configuration.background.strokeWidth = style.borderWidth
@@ -909,6 +936,68 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     replaceSlot(in: footerSlotContainer, with: model.slots.footer)
   }
 
+  /// Updates slot container visibility after slot content is applied (`rebuildStack` runs earlier with empty slots).
+  private func refreshSlotContainerVisibility() {
+    for container in [
+      headerSlotContainer,
+      mediaSlotContainer,
+      contentSlotContainer,
+      actionsSlotContainer,
+      footerSlotContainer,
+    ] {
+      container.isHidden = container.subviews.isEmpty
+    }
+  }
+
+  /// Applies per-segment stack spacing; explicit values skip density scaling (see ``FKEmptyStateSpacingConfiguration``).
+  private func applySegmentSpacing(model: FKEmptyStateConfiguration, resolved: FKEmptyStateResolvedLayout) {
+    let metrics = FKEmptyStateLayoutMetrics(density: model.layout.density)
+    let fallback = resolved.verticalSpacing
+    let segments = model.layout.segmentSpacing
+
+    func spacing(_ explicit: CGFloat?) -> CGFloat {
+      metrics.segmentSpacing(explicit, fallback: fallback)
+    }
+
+    if model.layout.axis == .horizontal {
+      if !titleLabel.isHidden {
+        horizontalTextStack.setCustomSpacing(spacing(segments.afterTitle), after: titleLabel)
+      }
+      if !descriptionLabel.isHidden {
+        horizontalTextStack.setCustomSpacing(spacing(segments.afterDescription), after: descriptionLabel)
+      }
+      if !horizontalRowStack.isHidden, stackView.arrangedSubviews.contains(horizontalRowStack) {
+        stackView.setCustomSpacing(spacing(segments.afterImage), after: horizontalRowStack)
+      }
+    } else {
+      if let imageAnchor = imageSpacingAnchor() {
+        stackView.setCustomSpacing(spacing(segments.afterImage), after: imageAnchor)
+      }
+      if !titleLabel.isHidden, stackView.arrangedSubviews.contains(titleLabel) {
+        stackView.setCustomSpacing(spacing(segments.afterTitle), after: titleLabel)
+      }
+      if !descriptionLabel.isHidden, stackView.arrangedSubviews.contains(descriptionLabel) {
+        stackView.setCustomSpacing(spacing(segments.afterDescription), after: descriptionLabel)
+      }
+    }
+
+    if !actionsSlotContainer.isHidden, stackView.arrangedSubviews.contains(actionsSlotContainer) {
+      stackView.setCustomSpacing(spacing(segments.afterActionsSlot), after: actionsSlotContainer)
+    }
+  }
+
+  /// Last visible arranged subview before the title block; used for ``FKEmptyStateSpacingConfiguration/afterImage``.
+  private func imageSpacingAnchor() -> UIView? {
+    let arranged = stackView.arrangedSubviews
+    guard let titleIndex = arranged.firstIndex(where: { $0 === titleLabel }) else { return nil }
+    guard titleIndex > 0 else { return nil }
+    for index in stride(from: titleIndex - 1, through: 0, by: -1) {
+      let candidate = arranged[index]
+      if !candidate.isHidden { return candidate }
+    }
+    return nil
+  }
+
   private func replaceSlot(in container: UIView, with view: UIView?) {
     container.subviews.forEach { $0.removeFromSuperview() }
     guard let view else { return }
@@ -987,14 +1076,31 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   private func updateContentPosition(resolved: FKEmptyStateResolvedLayout, model: FKEmptyStateConfiguration) {
     switch resolved.contentAlignment {
     case .center:
-      containerCenterYConstraint?.isActive = true
-      containerCenterYConstraint?.constant = model.layout.verticalOffset
+      updateScrollViewportAnchoring()
+      activeCenterYConstraint()?.constant = model.layout.verticalOffset
       containerTopConstraint?.isActive = false
     case .top:
-      containerCenterYConstraint?.isActive = false
+      containerCenterYToSafeAreaConstraint?.isActive = false
+      containerCenterYToBoundsConstraint?.isActive = false
       containerTopConstraint?.isActive = true
       containerTopConstraint?.constant = model.layout.verticalOffset
     }
+  }
+
+  /// On `UIScrollView` hosts, anchor to bounds center so `contentInset` changes during pull-to-refresh
+  /// do not shift the overlay via `safeAreaLayoutGuide`.
+  private func updateScrollViewportAnchoring() {
+    let usesViewportCenter = superview is UIScrollView
+    containerCenterYToSafeAreaConstraint?.isActive = !usesViewportCenter
+    containerCenterXToSafeAreaConstraint?.isActive = !usesViewportCenter
+    containerCenterYToBoundsConstraint?.isActive = usesViewportCenter
+    containerCenterXToBoundsConstraint?.isActive = usesViewportCenter
+  }
+
+  private func activeCenterYConstraint() -> NSLayoutConstraint? {
+    superview is UIScrollView
+      ? containerCenterYToBoundsConstraint
+      : containerCenterYToSafeAreaConstraint
   }
 
   // MARK: UIGestureRecognizerDelegate

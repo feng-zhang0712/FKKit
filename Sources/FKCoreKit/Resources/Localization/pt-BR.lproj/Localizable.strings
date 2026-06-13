@@ -53,6 +53,10 @@
 "fkcore.network.error.unknown_server_message" = "Erro desconhecido";
 "fkcore.permission.error.pre_prompt_cancelled" = "Pré-aviso cancelado.";
 "fkcore.permission.error.unavailable" = "Permissão indisponível neste dispositivo.";
+"fkcore.qrcode.error.content_too_long" = "O conteúdo QR excede o tamanho máximo (%d bytes).";
+"fkcore.qrcode.error.empty_content" = "O conteúdo QR não pode estar vazio.";
+"fkcore.qrcode.error.filter_failed" = "Falha ao gerar o código QR.";
+"fkcore.qrcode.error.image_conversion_failed" = "Falha na conversão da imagem QR.";
 "fkcore.security.detail.aes_iv_length" = "AES-CBC requer IV de 16 bytes.";
 "fkcore.security.detail.aes_key_length" = "Chave AES deve ter 16/24/32 bytes.";
 "fkcore.security.detail.alphabet_empty" = "Alfabeto não pode estar vazio.";
