@@ -1,13 +1,13 @@
 import FKUIKit
 import UIKit
 
-/// Demonstrates intentional empty list overlay via zero-item snapshot.
-final class FKListKitEmptyStateExampleViewController: FKDiffableTableViewController, FKListDataProviding {
+/// Demonstrates default ``FKListSkeletonPolicy/visibleCells`` until the first snapshot applies.
+final class FKListKitSkeletonVisibleCellsExampleViewController: FKDiffableTableViewController, FKListDataProviding {
   init() {
     var config = FKListDefaults.defaultConfiguration
-    config.empty.scenario = .noSearchResult
-    config.empty.overridesTitle = "No posts yet"
-    config.empty.overridesMessage = "Pull down to refresh when new content is available."
+    config.loading.usesSkeletonForInitialLoad = true
+    config.loading.skeletonPolicy = .visibleCells
+    config.refresh.isPullToRefreshEnabled = false
     config.refresh.isLoadMoreEnabled = false
     super.init(configuration: config)
     dataProvider = self
@@ -19,13 +19,13 @@ final class FKListKitEmptyStateExampleViewController: FKDiffableTableViewControl
   }
 
   override func viewDidLoad() {
+    title = "Skeleton · Visible Cells"
     super.viewDidLoad()
-    title = "Empty State"
   }
 
   func fetchInitial(page: Int) async throws -> FKListFetchResult {
-    try await Task.sleep(nanoseconds: 600_000_000)
-    return FKListFetchResult(snapshot: FKListSnapshot(), hasMorePages: false)
+    let result = try await FKListKitExampleFeedAPI.fetch(page: page, delay: 1.2)
+    return FKListKitExampleFeedAPI.makeFetchResult(titles: result.titles, page: page, hasMorePages: false)
   }
 
   func fetchNextPage(after pagination: FKRefreshPagination) async throws -> FKListFetchResult {
@@ -33,7 +33,6 @@ final class FKListKitEmptyStateExampleViewController: FKDiffableTableViewControl
   }
 
   func fetchRefresh(page: Int) async throws -> FKListFetchResult {
-    let result = try await FKListKitExampleFeedAPI.fetch(page: 1, delay: 0.5)
-    return FKListKitExampleFeedAPI.makeFetchResult(titles: result.titles, page: 1, hasMorePages: false)
+    try await fetchInitial(page: page)
   }
 }

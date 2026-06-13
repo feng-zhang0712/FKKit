@@ -1,8 +1,12 @@
+import FKCoreKit
 import FKUIKit
 import UIKit
 
-/// Demonstrates ``FKListIconRow`` with remote URLs (``FKImageView``) and prefetch delegate.
+/// Demonstrates ``FKListIconRow`` with remote URLs (``FKImageView``) and ``FKImageLoader`` prefetch.
 final class FKListKitIconRemoteRowExampleViewController: FKDiffableTableViewController {
+  /// Matches ``FKListPresetTableCell`` leading thumbnail size for cache key alignment.
+  private static let leadingPrefetchTargetSize = CGSize(width: 28, height: 28)
+
   private var statusLabel: UILabel!
 
   init() {
@@ -34,20 +38,44 @@ final class FKListKitIconRemoteRowExampleViewController: FKDiffableTableViewCont
         kind: .preset(.icon(FKListIconRow(
           leading: .remoteURL(FKListKitExampleIcons.remoteURL(id: photoID)),
           title: "Photo \(photoID)",
-          subtitle: "FKImageView in preset cell"
+          subtitle: "FKImageView · FKImageLoader prefetch"
         )))
       )
     }
     return FKListSnapshot(items: items)
   }
+
+  private func remoteURL(for itemID: FKListItemID) -> URL? {
+    guard let item = currentSnapshot.item(withID: itemID),
+          case .preset(.icon(let row)) = item.kind,
+          case .remoteURL(let url) = row.leading
+    else { return nil }
+    return url
+  }
+
+  private func prefetchRequest(for url: URL) -> FKImageLoadRequest {
+    FKImageLoadRequest(url: url, targetSize: Self.leadingPrefetchTargetSize)
+  }
 }
 
 extension FKListKitIconRemoteRowExampleViewController: FKListDelegate {
   func list(_ list: FKDiffableTableViewController, prefetchItems ids: [FKListItemID]) {
-    FKListKitExampleStatusStrip.append("prefetch \(ids.map(\.rawValue).joined(separator: ", "))", to: statusLabel)
+    let urls = ids.compactMap { remoteURL(for: $0) }
+    guard !urls.isEmpty else { return }
+    Task {
+      await FKImageLoader.shared.prefetch(urls: urls, targetSize: Self.leadingPrefetchTargetSize)
+    }
+    FKListKitExampleStatusStrip.append(
+      "prefetch \(urls.count) · \(ids.map(\.rawValue).joined(separator: ", "))",
+      to: statusLabel
+    )
   }
 
   func list(_ list: FKDiffableTableViewController, cancelPrefetching ids: [FKListItemID]) {
+    for id in ids {
+      guard let url = remoteURL(for: id) else { continue }
+      FKImageLoader.shared.cancelPrefetch(for: prefetchRequest(for: url))
+    }
     FKListKitExampleStatusStrip.append("cancel prefetch \(ids.count)", to: statusLabel)
   }
 }

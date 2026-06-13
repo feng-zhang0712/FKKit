@@ -79,7 +79,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 
 - **基础设施层（FKCoreKit）**：网络、存储、日志、权限、安全、文件、异步、BusinessKit、I18n 等已**生产可用**；部分 Pluggable 组仍**仅协议、无参考实现**。
 - **UI 层（FKUIKit）**：Toast、Sheet、Refresh、TextField、Player、Sheet 呈现等已**非常完整**；2026 上半年补齐了图片、搜索、WebView、生物识别及大量 Widgets。
-- **最大剩余空洞**：**列表页技术栈（FKListKit）**、**独立表单控件族（FKFormControls）**、**自定义居中 Alert（FKAlert）**。
+- **最大剩余空洞**：**独立表单控件族（FKFormControls）**、**自定义居中 Alert（FKAlert）**。（**FKListKit** v1 已交付，见 §5 / §7.1。）
 
 ---
 
@@ -133,7 +133,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 | **TabBar** | `TabBar/` | 生产可用 | CollectionView Tab 头、指示器、角标 | 顶部分类 Tab |
 | **TextField** | `TextField/` | 生产可用 | 格式化输入、OTP、计数、校验、SwiftUI | 表单文本 |
 | **Toast** | `Toast/` | 生产可用 | Toast/HUD/Snackbar 队列、SwiftUI 承载 | 轻提示 |
-| **WebView** | `WebView/` | 生产可用 | 进度、错误页、JS Bridge、SwiftUI | H5、OAuth、协议页 |
+| **ListKit** | `ListKit/` | 生产可用 | Diffable Table/Collection VC、预设行、滑动操作、Refresh/Empty/Skeleton 集成 | 信息流、设置页 |
 
 ### 4.2 Widgets 子库（`Components/Widgets/`）
 
@@ -168,6 +168,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 | §2.4 FKCarousel / FKImageBanner | ✅ 已交付 | `FKUIKit/Carousel` |
 | §2.6 FKPhotoPicker | ✅ 已交付 | `FKUIKit/PhotoPicker` |
 | §2.7 FKStepIndicator / FKTimeline | ✅ 已交付 | `FKUIKit/FlowVisualization` |
+| §1.2 FKListKit | ✅ 已交付 | `FKUIKit/ListKit` — Table/Collection Diffable 基类、预设行、Examples |
 | Tier 3 FKMarquee | ✅ 已交付 | `FKUIKit/Widgets/Marquee` |
 | 小组件扩展 | ✅ 部分交付 | StatusPill、CopyChip、IconView 等 |
 
@@ -177,11 +178,11 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 
 ## 6. 结构性缺口摘要
 
-日常集成摩擦仍主要来自三类结构性空洞：
+日常集成摩擦仍主要来自两类结构性空洞（列表页 **FKListKit v1 已交付**，见 §7.1）：
 
 | 主题 | 缺口描述 | 业务影响 |
 |------|----------|----------|
-| **列表** | Pluggable 有 Cell 协议；Extension 列表辅助较薄；**无 Diffable 列表 Controller、Section 模型、滑动操作封装** | 典型 App 中占比最大的 UI 代码 — 刷新、分页、空态、骨架屏需每项目重复搭建 |
+| **列表** | ~~无 Diffable 列表 Controller~~ → **FKListKit v1 已交付**（`ListKit/`）；UITableView Extension 仍较薄 | 典型 App 列表页可复用基类；Extension 级 Diffable 便利方法仍为可选增强 |
 | **表单控件** | `FKTextField` 强；**无独立 SegmentedControl、Toggle、Checkbox、RadioGroup、Slider** | 设置页、筛选栏、引导页缺乏统一 FK 视觉语言 |
 | **确认对话框** | `FKBusinessAlertManager` 仅封装系统 `UIAlertController`；**无 FK 风格居中 Alert** | 删除确认、带输入弹窗无法品牌化；与 ActionSheet 场景边界不清 |
 
@@ -189,52 +190,29 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 
 ---
 
-## 7. Tier 1 — 最高优先级（仍缺）
+## 7. Tier 1 — 最高优先级（部分仍缺）
 
 > 频率：⭐⭐⭐⭐⭐（几乎每 App）  
+> **FKListKit** 已交付（§7.1）；下列 **FormControls / Alert** 仍为 Tier 1 缺口。  
 > 详细设计：[FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md)、[FKFormControls_DESIGN.zh-CN.md](FKFormControls_DESIGN.zh-CN.md)、[FKAlert_DESIGN.zh-CN.md](FKAlert_DESIGN.zh-CN.md)
 
-### 7.1 FKListKit（Diffable 列表基础设施）
+### 7.1 FKListKit（Diffable 列表基础设施）— ✅ 已交付（v1）
 
-**模块：** 主要在 `FKUIKit`；轻量 Diffable 快照辅助可放 `FKCoreKit/Extension`。
+**模块：** `FKUIKit/Components/ListKit/`  
+**状态：** v1 已实现 — Table + Collection Diffable 基类、预设行、滑动操作（Table）、Refresh/Empty/Skeleton 集成、17+ Examples。  
+**设计文档（活文档）：** [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md)
 
-**问题陈述**
-
-- `FKListTableCellConfigurable` / `FKListCollectionCellConfigurable` 仅规范 Cell 注册/出队；
-- `UITableView` / `UICollectionView` 扩展仅有 `fk_reloadDataWithoutAnimation()` 等薄辅助；
-- 团队反复实现：下拉刷新 + 无限滚动 + 页码重置、骨架屏 → 首帧快照、空态/错误叠加、设置风标准行、左/右滑操作。
-
-**拟议交付物**
+**已交付摘要**
 
 | 类型 | 职责 |
 |------|------|
-| `FKListSection` / `FKListItem` | Diffable 快照用的 `Hashable` 模型 |
-| `FKDiffableTableViewController` | Table + DiffableDataSource + 可选 Refresh 的基类 VC |
-| `FKDiffableCollectionViewController` | Compositional Layout 预设（列表、网格） |
-| `FKListCell` 预设 | 标题/副标题/图标/开关/复选/箭头等标准行 |
-| `FKListSwipeActionConfiguration` | 左/右滑操作封装 |
+| `FKListSection` / `FKListItem` / `FKListSnapshot` | Diffable 模型 + mutation |
+| `FKDiffableTableViewController` | Table 基类 + 刷新/分页/空态/骨架 |
+| `FKDiffableCollectionViewController` | Compositional 预设（list/grid/insetGrouped） |
+| `FKListPresetItem` | 七种预设行 + handler registry |
+| `FKListSwipeActionConfiguration` | Table 滑动操作 |
 
-**必需集成（一等公民）**
-
-- `FKRefresh` / `FKRefreshPagination` — 刷新重置分页、加载更多；
-- `FKEmptyState` — 空态/错误/重试；
-- `FKSkeletonManager` — 首次加载骨架直至首帧快照；
-- `FKImageView` — 列表 Cell 图片；
-- `FKSearchBar` + `FKDebouncer` — 搜索驱动列表；
-- `FKDivider` — 行分隔视觉。
-
-**Examples 最低场景**
-
-- 单 Section 信息流：下拉刷新 + 无限滚动；
-- 多 Section 设置风列表 + 开关；
-- Collection 网格 + 空态；
-- 错误态 + 重试；
-- 与 SearchBar 联动的实时筛选。
-
-**非目标（v1 避免范围膨胀）**
-
-- 不做完整 App 框架或 MVVM 脚手架；
-- 不替代业务自定义复杂 Cell — 仅提供薄基类 + 可选预设。
+**后续演进（非 v1 阻塞）：** FKCellKit 预设映射、Collection swipe、`presetRows` skeleton、SwiftUI Bridge — 见设计文档 §26。
 
 ---
 
@@ -486,7 +464,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 | **FKBadge** | `FKBadgeRepresentable` | P2 | Tab/导航角标 |
 | **FKSkeleton** | `FKSkeletonRepresentable` | P2 | 加载占位 |
 | **FKDivider** | `FKDividerRepresentable` | P3 | 相对简单 |
-| **FKListKit**（待建） | 宿主封装或 Cell Builder | P2 | 第二阶段 |
+| **FKListKit** | 宿主封装或 Cell Builder | P2 | SwiftUI Bridge 第二阶段 |
 
 **原则：** Bridge 保持轻薄；业务逻辑留在 UIKit 类型中；共享 `Sendable` 配置结构体。
 
@@ -508,7 +486,7 @@ flowchart TB
 
   subgraph ui [FKUIKit]
     ImageView[FKImageView ✅]
-    ListKit[FKListKit 待建]
+    ListKit[FKListKit ✅]
     SearchBar[FKSearchBar ✅]
     FormControls[FormControls 待建]
     Alert[FKAlert 待建]
@@ -550,7 +528,7 @@ flowchart TB
 
 | 顺序 | 交付物 | 理由 |
 |------|--------|------|
-| 1 | **FKListKit** | 列表是 App UI 代码量最大的一块；ImageView/Refresh/EmptyState/Skeleton 已就绪 |
+| 1 | ~~**FKListKit**~~ | ✅ 已交付（2026-06） |
 | 2 | **FKFormControls**（Segment + Toggle 优先） | 设置/筛选页刚需；可与 ListKit 预设 Cell 联动 |
 | 3 | **FKAlert** | Sheet.center 已稳定；补齐确认流 |
 | 4 | **FKBanner**、**FKDatePicker/Picker**、**FKKeyboardToolbar** | 完善通知与表单体验 |
@@ -566,8 +544,8 @@ flowchart TB
 | 阶段 | 交付物 | 主题 | 状态（2026-06） |
 |------|--------|------|-----------------|
 | **A** | FKImageLoader、FKImageView | 图片能力 | ✅ 已完成 |
-| **B** | FKListKit（Table）、FKSearchBar | 列表页 MVP | SearchBar ✅；ListKit ⏳ |
-| **C** | FKListKit（Collection）、FKSegmentedControl、FKToggle | 列表 + 基础表单 | ⏳ |
+| **B** | FKListKit（Table）、FKSearchBar | 列表页 MVP | ✅ 已完成 |
+| **C** | FKListKit（Collection）、FKSegmentedControl、FKToggle | 列表 + 基础表单 | ListKit Collection ✅；FormControls ⏳ |
 | **D** | FKCheckbox、FKRadioGroup、FKSlider、FKAlert | 表单 + 确认流 | ⏳ |
 | **E** | FKWebView、FKBiometricAuth | 混合内容 + 安全 | ✅ 已完成 |
 | **F** | FKBanner、FKChip、ZIP 补全 | 通知条 + 修复 | Chip ✅；Banner/ZIP ⏳ |
@@ -593,7 +571,7 @@ flowchart TB
 | 持久顶部/底部通知条 | — | 待 **`FKBanner`** |
 | 加载占位 | `FKSkeleton` | — |
 | 下拉刷新 / 加载更多 | `FKRefresh` + `FKRefreshPagination` | — |
-| Diffable 列表 VC 基类 | — | 待 **`FKListKit`** |
+| Diffable 列表 VC 基类 | **`FKListKit`**（`FKDiffableTableViewController` / Collection） | — |
 | 空态 / 错误 / 加载叠加 | `FKEmptyState` | — |
 | Tab + 滑动分页 | `FKTabBar` + `FKPagingController` | — |
 | 搜索 + 防抖 | `FKSearchBar` / `FKSearchField` | — |
@@ -616,7 +594,7 @@ flowchart TB
 
 | ID | 主题 | 风险 | 缓解 |
 |----|------|------|------|
-| R1 | FKListKit 范围膨胀 | 易做成完整 App 框架 | 先交付最小 Diffable 基类；预设增量添加 |
+| R1 | FKListKit 范围膨胀 | 易做成完整 App 框架 | v1 已交付薄基类；预设增量 / CellKit 映射见设计文档 §26 |
 | R2 | ZIP 支持 | Archive.framework 可用性 | 特性检测；未完成前保留 `.zipUnavailable` 文档 |
 | R3 | Alert / ActionSheet / Toast 边界 | 集成方选型混淆 | README 决策树（§15） |
 | R4 | SwiftUI 双栈维护 | API 面扩大 | 轻薄 Representable；共享配置结构体 |
@@ -624,7 +602,7 @@ flowchart TB
 
 **维护者待决（摘自路线图）：**
 
-1. `FKListKit` 单文件夹 vs 拆分为 `List/` + `ListCells/`？
+1. ~~`FKListKit` 单文件夹 vs 拆分？~~ → **已决：`ListKit/`**（见 [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md) §27）
 2. `FKAlert` 是否替换 `FKBusinessAlertManager` 实现，还是长期共存？
 3. SwiftUI Bridge 回填的最低清单（P1）何时作为发版门槛？
 

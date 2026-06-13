@@ -1,15 +1,15 @@
 import FKUIKit
 import UIKit
 
-/// Demonstrates ``FKListDataProviding``, pull-to-refresh, load-more, and ``FKListDelegate``.
-final class FKListKitFeedRefreshLoadMoreExampleViewController: FKDiffableTableViewController, FKListDataProviding {
+/// Demonstrates ``FKListCollectionDelegate`` lifecycle hooks on a collection feed.
+final class FKListKitCollectionDelegateExampleViewController: FKDiffableCollectionViewController, FKListDataProviding {
   private var statusLabel: UILabel!
 
   init() {
     var config = FKListDefaults.defaultConfiguration
     config.refresh.loadMorePreloadOffset = 120
     config.refresh.autohidesLoadMoreFooterWhenNotScrollable = false
-    super.init(configuration: config)
+    super.init(configuration: config, layoutPreset: .list)
     dataProvider = self
     delegate = self
   }
@@ -20,14 +20,15 @@ final class FKListKitFeedRefreshLoadMoreExampleViewController: FKDiffableTableVi
   }
 
   override func viewDidLoad() {
-    statusLabel = FKListKitExampleStatusStrip.install(on: self, above: tableView)
-    title = "Feed · Refresh & Load More"
+    statusLabel = FKListKitExampleStatusStrip.install(on: self, above: collectionView)
+    title = "Collection · Delegate"
     super.viewDidLoad()
   }
 
   func fetchInitial(page: Int) async throws -> FKListFetchResult {
     let result = try await FKListKitExampleFeedAPI.fetch(
       page: page,
+      delay: 0.5,
       itemsPerPage: FKListKitExampleFeedAPI.paginationDemoPageSize
     )
     return FKListKitExampleFeedAPI.makeFetchResult(titles: result.titles, page: page, hasMorePages: result.hasMorePages)
@@ -48,34 +49,34 @@ final class FKListKitFeedRefreshLoadMoreExampleViewController: FKDiffableTableVi
   func fetchRefresh(page: Int) async throws -> FKListFetchResult {
     let result = try await FKListKitExampleFeedAPI.fetch(
       page: page,
-      delay: 0.6,
+      delay: 0.4,
       itemsPerPage: FKListKitExampleFeedAPI.paginationDemoPageSize
     )
     return FKListKitExampleFeedAPI.makeFetchResult(titles: result.titles, page: page, hasMorePages: result.hasMorePages)
   }
 }
 
-extension FKListKitFeedRefreshLoadMoreExampleViewController: FKListDelegate {
-  func list(_ list: FKDiffableTableViewController, presentationStateChanged state: FKListPresentationState) {
+extension FKListKitCollectionDelegateExampleViewController: FKListCollectionDelegate {
+  func list(_ list: FKDiffableCollectionViewController, presentationStateChanged state: FKListPresentationState) {
     FKListKitExampleStatusStrip.append("state → \(describe(state))", to: statusLabel)
   }
 
-  func list(_ list: FKDiffableTableViewController, didRefresh success: Bool) {
-    FKListKitExampleStatusStrip.append("didRefresh success=\(success) page=\(pagination.page)", to: statusLabel)
+  func list(_ list: FKDiffableCollectionViewController, didRefresh success: Bool) {
+    FKListKitExampleStatusStrip.append("didRefresh success=\(success)", to: statusLabel)
   }
 
-  func list(_ list: FKDiffableTableViewController, willLoadPage page: Int) {
+  func list(_ list: FKDiffableCollectionViewController, willLoadPage page: Int) {
     FKListKitExampleStatusStrip.append("willLoadPage \(page)", to: statusLabel)
   }
 
-  func list(_ list: FKDiffableTableViewController, didLoadPage page: Int, result: FKListFetchResult) {
+  func list(_ list: FKDiffableCollectionViewController, didLoadPage page: Int, result: FKListFetchResult) {
     FKListKitExampleStatusStrip.append(
-      "didLoadPage \(page) items=\(result.snapshot.totalItemCount) hasMore=\(result.hasMorePages)",
+      "didLoadPage \(page) items=\(result.snapshot.totalItemCount)",
       to: statusLabel
     )
   }
 
-  func list(_ list: FKDiffableTableViewController, didReachEnd: Void) {
+  func list(_ list: FKDiffableCollectionViewController, didReachEnd: Void) {
     FKListKitExampleStatusStrip.append("didReachEnd", to: statusLabel)
   }
 

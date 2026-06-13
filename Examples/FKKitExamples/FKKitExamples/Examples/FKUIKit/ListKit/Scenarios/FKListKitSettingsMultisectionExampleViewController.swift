@@ -63,6 +63,17 @@ final class FKListKitSettingsMultisectionExampleViewController: FKDiffableTableV
             title: "Profile",
             subtitle: "Name, email, avatar"
           )))),
+          FKListItem(id: "selected", kind: .preset(.disclosure(FKListDisclosureRow(
+            leading: .symbol(name: "star.fill"),
+            title: "Symbol leading row",
+            subtitle: "FKListLeadingContent.symbol (SF Symbol)",
+            accessory: .checkmark
+          )))),
+          FKListItem(
+            id: "metadata-disabled",
+            kind: .preset(.text(FKListTextRow(title: "Disabled via metadata", isEnabled: true, isSelectable: true))),
+            metadata: FKListItemMetadata(isEnabled: false, isSelectable: false)
+          ),
           FKListItem(id: "disabled", kind: .preset(.text(FKListTextRow(
             title: "Disabled row",
             isEnabled: false,
@@ -106,6 +117,11 @@ final class FKListKitSettingsMultisectionExampleViewController: FKDiffableTableV
       FKListSection(
         id: "about",
         items: [
+          FKListItem(id: "icon", kind: .preset(.icon(FKListIconRow(
+            leading: .symbol(name: "star.fill"),
+            title: "Icon preset row",
+            subtitle: "All preset kinds in this demo"
+          )))),
           FKListItem(id: "version", kind: .preset(.customValue(FKListValueRow(
             title: "Version",
             value: "1.0.0 (demo)"

@@ -8,11 +8,21 @@ enum FKListSnapshotApplier {
       snapshot = newSnapshot
 
     case .appendItems(let items, let sectionID):
-      guard let index = snapshot.sections.firstIndex(where: { $0.id == sectionID }) else { return }
+      guard let index = snapshot.sections.firstIndex(where: { $0.id == sectionID }) else {
+        #if DEBUG
+        assertionFailure("FKListKit appendItems: section '\(sectionID)' not found")
+        #endif
+        return
+      }
       snapshot.sections[index].items.append(contentsOf: items)
 
     case .insertItems(let pairs, let sectionID):
-      guard let sectionIndex = snapshot.sections.firstIndex(where: { $0.id == sectionID }) else { return }
+      guard let sectionIndex = snapshot.sections.firstIndex(where: { $0.id == sectionID }) else {
+        #if DEBUG
+        assertionFailure("FKListKit insertItems: section '\(sectionID)' not found")
+        #endif
+        return
+      }
       for (item, afterID) in pairs {
         if let afterID,
            let anchorIndex = snapshot.sections[sectionIndex].items.firstIndex(where: { $0.id == afterID }) {

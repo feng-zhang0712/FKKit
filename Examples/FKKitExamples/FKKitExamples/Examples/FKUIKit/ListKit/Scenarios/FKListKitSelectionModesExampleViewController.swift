@@ -1,8 +1,8 @@
 import FKUIKit
 import UIKit
 
-/// Demonstrates selection modes, programmatic selection, and preserved selection across updates.
-final class FKListKitSelectionModesExampleViewController: FKDiffableTableViewController {
+/// Demonstrates selection modes, programmatic selection, delegate callbacks, and preserved selection across updates.
+final class FKListKitSelectionModesExampleViewController: FKDiffableTableViewController, FKListDelegate {
   private var modeControl: UISegmentedControl?
   private var selectionStatusLabel: UILabel?
   private var didInstallModeHeader = false
@@ -13,6 +13,7 @@ final class FKListKitSelectionModesExampleViewController: FKDiffableTableViewCon
     config.refresh.isPullToRefreshEnabled = false
     config.refresh.isLoadMoreEnabled = false
     super.init(configuration: config)
+    delegate = self
   }
 
   @available(*, unavailable)
@@ -25,15 +26,10 @@ final class FKListKitSelectionModesExampleViewController: FKDiffableTableViewCon
     title = "Selection Modes"
     navigationItem.rightBarButtonItems = [
       UIBarButtonItem(title: "Select 1st", style: .plain, target: self, action: #selector(selectFirstRow)),
+      UIBarButtonItem(title: "Deselect 1st", style: .plain, target: self, action: #selector(deselectFirstRow)),
       UIBarButtonItem(title: "Reload", style: .plain, target: self, action: #selector(reloadSnapshot)),
     ]
     applySnapshot(buildSnapshot(), animatingDifferences: false)
-    didSelectItem = { [weak self] id in
-      self?.updateSelectionStatus("Selected: \(id.rawValue)")
-    }
-    didDeselectItem = { [weak self] id in
-      self?.updateSelectionStatus("Deselected: \(id.rawValue)")
-    }
   }
 
   override func viewDidLayoutSubviews() {
@@ -53,7 +49,7 @@ final class FKListKitSelectionModesExampleViewController: FKDiffableTableViewCon
   }
 
   private func installModeHeader() {
-    let control = UISegmentedControl(items: ["Single", "Multiple", "None"])
+    let control = UISegmentedControl(items: ["Single", "Single·2nd tap", "Multiple", "None"])
     control.selectedSegmentIndex = 0
     control.translatesAutoresizingMaskIntoConstraints = false
     control.addTarget(self, action: #selector(modeChanged), for: .valueChanged)
@@ -90,6 +86,8 @@ final class FKListKitSelectionModesExampleViewController: FKDiffableTableViewCon
     case 0:
       configuration.selection.mode = .single(deselectOnSecondTap: false)
     case 1:
+      configuration.selection.mode = .single(deselectOnSecondTap: true)
+    case 2:
       configuration.selection.mode = .multiple
     default:
       configuration.selection.mode = .none
@@ -105,6 +103,10 @@ final class FKListKitSelectionModesExampleViewController: FKDiffableTableViewCon
     selectItem(withID: FKListItemID("row-1"), animated: true, scrollPosition: .middle)
   }
 
+  @objc private func deselectFirstRow() {
+    deselectItem(withID: FKListItemID("row-1"), animated: true)
+  }
+
   @objc private func reloadSnapshot() {
     applySnapshot(buildSnapshot(), animatingDifferences: true)
   }
@@ -114,5 +116,15 @@ final class FKListKitSelectionModesExampleViewController: FKDiffableTableViewCon
       FKListItem.text(id: FKListItemID("row-\(index)"), title: "Selectable row \(index)")
     }
     return FKListSnapshot(items: items)
+  }
+}
+
+extension FKListKitSelectionModesExampleViewController {
+  func list(_ list: FKDiffableTableViewController, didSelect item: FKListItemID) {
+    updateSelectionStatus("Delegate didSelect: \(item.rawValue)")
+  }
+
+  func list(_ list: FKDiffableTableViewController, didDeselect item: FKListItemID) {
+    updateSelectionStatus("Delegate didDeselect: \(item.rawValue)")
   }
 }

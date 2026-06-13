@@ -61,9 +61,6 @@ open class FKDiffableTableViewController: UIViewController {
     registerAdditionalCells(in: tableView)
     applyConfiguration()
     installRefreshControlsIfNeeded()
-    if configuration.prefetch.isEnabled {
-      tableView.prefetchDataSource = self
-    }
     if configuration.loading.usesSkeletonForInitialLoad {
       transitionPresentationState(to: .initialLoading)
       presentInitialSkeletonIfNeeded()
@@ -87,11 +84,7 @@ open class FKDiffableTableViewController: UIViewController {
     } else if case .initialLoading = presentationState, configuration.loading.usesSkeletonForInitialLoad {
       view.fk_bringSkeletonOverlayToFrontIfNeeded()
     }
-    if case .empty = presentationState {
-      tableView.fk_refreshEmptyStateAutomatically { [weak self] action in
-        if action.kind == .primary { self?.reloadInitialContent() }
-      }
-    }
+    syncEmptyStateOverlayIfNeeded()
   }
 
   // MARK: - Public API
@@ -326,6 +319,7 @@ open class FKDiffableTableViewController: UIViewController {
       tableView.estimatedRowHeight = height
     }
     applySelectionConfiguration()
+    tableView.prefetchDataSource = configuration.prefetch.isEnabled ? self : nil
   }
 
   private func installRefreshControlsIfNeeded() {
@@ -482,6 +476,24 @@ open class FKDiffableTableViewController: UIViewController {
     view.fk_bringSkeletonOverlayToFrontIfNeeded()
   }
 
+  private func syncEmptyStateOverlayIfNeeded() {
+    let policy = configuration.layout.emptyPresentationPolicy
+    if currentSnapshot.totalItemCount > 0 {
+      guard tableView.fk_emptyStateView != nil else { return }
+      presentationCoordinator.hideEmptyState(
+        on: tableView,
+        hostView: view,
+        policy: policy,
+        animatesPresentation: false
+      )
+      return
+    }
+    guard case .empty = presentationState else { return }
+    tableView.fk_refreshEmptyStateAutomatically { [weak self] action in
+      if action.kind == .primary { self?.reloadInitialContent() }
+    }
+  }
+
   private func updatePresentationAfterSnapshotApply() {
     needsInitialSkeletonPresentation = false
     presentationCoordinator.hideSkeleton(
@@ -562,6 +574,11 @@ open class FKDiffableTableViewController: UIViewController {
   private func handlePullToRefresh(context: FKRefreshActionContext) async {
     delegate?.list(self, willRefresh: context)
     transitionPresentationState(to: .refreshing)
+    presentationCoordinator.hideEmptyStateForRefreshIfNeeded(
+      on: tableView,
+      hostView: view,
+      policy: configuration.layout.emptyPresentationPolicy
+    )
     if configuration.refresh.resetsPaginationOnRefresh {
       pagination.resetForNewRequest()
       loadCoordinator.resetPaginationState()
@@ -570,7 +587,9 @@ open class FKDiffableTableViewController: UIViewController {
       loadCoordinator.cancelLoadMore()
     }
     if configuration.refresh.clearsSnapshotOnRefreshStart {
-      applySnapshot(FKListSnapshot(), animatingDifferences: false)
+      // Avoid `updatePresentationAfterSnapshotApply` while `.refreshing` — empty overlay
+      // must stay hidden until the refresh request finishes.
+      replaceSnapshotWithoutPresentationUpdate(FKListSnapshot(), animatingDifferences: false)
     }
     let token = loadCoordinator.begin(.refresh)
     do {
@@ -588,15 +607,20 @@ open class FKDiffableTableViewController: UIViewController {
       tableView.fk_pullToRefresh?.endRefreshing(token: context.token)
       tableView.fk_loadMore?.resetToIdle()
       delegate?.list(self, didRefresh: true)
+      presentationCoordinator.announceRefreshCompletionIfNeeded(configuration: configuration, succeeded: true)
     } catch {
       guard loadCoordinator.isCurrent(token: token, for: .refresh) else { return }
       if configuration.refresh.refreshFailureKeepsContent {
         transitionPresentationState(to: currentSnapshot.totalItemCount > 0 ? .content : .empty)
+        if currentSnapshot.totalItemCount == 0 {
+          updatePresentationAfterSnapshotApply()
+        }
         tableView.fk_pullToRefresh?.endRefreshingWithError(error, token: context.token)
       } else {
         handleLoadFailure(error, operation: .refresh)
       }
       delegate?.list(self, didRefresh: false)
+      presentationCoordinator.announceRefreshCompletionIfNeeded(configuration: configuration, succeeded: false)
     }
   }
 
@@ -641,11 +665,19 @@ open class FKDiffableTableViewController: UIViewController {
   }
 
   private func appendLoadMoreItems(from snapshot: FKListSnapshot) {
+    var working = currentSnapshot
+    var changed = false
     for section in snapshot.sections where !section.items.isEmpty {
-      if currentSnapshot.section(withID: section.id) != nil {
-        applyMutation(.appendItems(section.items, toSection: section.id), animatingDifferences: true)
+      if let index = working.sections.firstIndex(where: { $0.id == section.id }) {
+        working.sections[index].items.append(contentsOf: section.items)
+        changed = true
+      } else {
+        working.sections.append(section)
+        changed = true
       }
     }
+    guard changed else { return }
+    applySnapshot(working, animatingDifferences: true)
   }
 
   private func assertDuplicateItemIDsIfNeeded(_ snapshot: FKListSnapshot) {

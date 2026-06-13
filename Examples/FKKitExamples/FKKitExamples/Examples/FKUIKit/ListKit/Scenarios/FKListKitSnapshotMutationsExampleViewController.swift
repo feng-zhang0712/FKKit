@@ -25,9 +25,11 @@ final class FKListKitSnapshotMutationsExampleViewController: FKDiffableTableView
       primaryAction: nil,
       menu: UIMenu(children: [
         UIAction(title: "Append row") { [weak self] _ in self?.appendRow() },
+        UIAction(title: "Insert after first") { [weak self] _ in self?.insertAfterFirst() },
         UIAction(title: "Delete last") { [weak self] _ in self?.deleteLast() },
         UIAction(title: "Reload first item") { [weak self] _ in self?.reloadFirst() },
         UIAction(title: "Reload section") { [weak self] _ in self?.reloadSection() },
+        UIAction(title: "Replace snapshot") { [weak self] _ in self?.replaceSnapshot() },
       ])
     )
     applySnapshot(initialSnapshot(), animatingDifferences: false)
@@ -61,5 +63,31 @@ final class FKListKitSnapshotMutationsExampleViewController: FKDiffableTableView
 
   private func reloadSection() {
     applyMutation(.reloadSections(["demo"]))
+  }
+
+  private func insertAfterFirst() {
+    guard let first = currentSnapshot.section(withID: "demo")?.items.first else { return }
+    let id = FKListItemID("item-\(nextID)")
+    nextID += 1
+    applyMutation(
+      .insertItems(
+        [(FKListItem.text(id: id, title: "Inserted \(id.rawValue)"), after: first.id)],
+        inSection: "demo"
+      )
+    )
+  }
+
+  private func replaceSnapshot() {
+    let replacement = FKListSnapshot(sections: [
+      FKListSection(
+        id: "demo",
+        items: [
+          FKListItem.text(id: "replaced-a", title: "Replaced row A"),
+          FKListItem.text(id: "replaced-b", title: "Replaced row B"),
+        ],
+        header: .title("Replaced section content")
+      ),
+    ])
+    applyMutation(.replace(replacement))
   }
 }

@@ -63,17 +63,30 @@ applySnapshot(FKListSnapshot(items: [.custom(id: itemID, cellTypeIdentifier: "My
 
 FKKitExamples hub: `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/ListKit/Hub/FKListKitExamplesHubViewController.swift`
 
+The hub lists every runnable scenario (feed, refresh edge cases, skeleton policies, empty/error variants, collection layouts, delegate hooks, and more). Key entry points:
+
 | Scenario | Demonstrates |
 |----------|----------------|
 | Feed · refresh & load more | `FKListDataProviding`, pagination, delegate |
+| Refresh edge cases | `clearsSnapshotOnRefreshStart`, `refreshFailureKeepsContent` |
 | Host-driven initial load | `loadInitialContent(handler:)` |
-| Snapshot mutations | `applyMutation` variants |
-| Skeleton / empty / error | Presentation state machine |
-| Settings · presets | All `FKListPresetItem` cases |
-| Swipe / selection / search | Interaction APIs |
-| Collection layouts | `.list`, `.grid`, `.insetGroupedList` |
+| Snapshot mutations | All `applyMutation` variants including `insertItems` and `replace` |
+| Skeleton / empty / error | Presentation state machine; both skeleton policies |
+| Settings · presets | All `FKListPresetItem` cases, asset leading, accessories, metadata |
+| Swipe / selection / search | Interaction APIs; `FKListDelegate` selection callbacks |
+| Row height / advanced hooks | `rowHeightProvider`, `configurePresetCell`, `makeEmptyStateConfiguration` |
+| Collection layouts | `.list`, `.grid`, `.insetGroupedList`, layout hints, custom cells, delegate |
+
+## Table vs collection
+
+| Capability | Table | Collection |
+|------------|-------|------------|
+| Swipe actions | Yes | Not yet — registry is reserved |
+| Section footer | Yes | Not yet — use headers or custom supplementary views |
+| Row separators (`FKDivider`) | Yes | N/A (layout-driven spacing) |
+| `configurePresetCell` / `rowHeightProvider` | Yes | Collection uses compositional estimated heights |
 
 ## Related
 
-- Design: `docs/FKListKit_DESIGN.md`
+- Design: `docs/FKListKit_DESIGN.zh-CN.md`
 - Pluggable: `Sources/FKCoreKit/Components/Pluggable/`

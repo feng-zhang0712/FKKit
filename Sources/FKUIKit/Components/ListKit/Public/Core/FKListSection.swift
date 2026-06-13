@@ -52,6 +52,7 @@ public struct FKListSection: Hashable, Sendable {
   public var id: FKListSectionID
   public var items: [FKListItem]
   public var header: FKListSectionHeaderFooter?
+  /// Table-only today: rendered by ``FKDiffableTableViewController``; ignored by collection lists.
   public var footer: FKListSectionHeaderFooter?
   public var layoutHints: FKListSectionLayoutHints?
 

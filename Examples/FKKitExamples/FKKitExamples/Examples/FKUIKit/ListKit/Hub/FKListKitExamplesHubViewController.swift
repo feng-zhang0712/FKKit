@@ -29,8 +29,13 @@ final class FKListKitExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Snapshot mutations",
-          subtitle: "appendItems · deleteItems · reloadItems · reloadSections",
+          subtitle: "append · insert · delete · reload · replace",
           make: { FKListKitSnapshotMutationsExampleViewController() }
+        ),
+        Row(
+          title: "Refresh edge cases",
+          subtitle: "clearsSnapshotOnRefreshStart · refreshFailureKeepsContent",
+          make: { FKListKitRefreshEdgeCasesExampleViewController() }
         ),
       ]
     ),
@@ -43,14 +48,24 @@ final class FKListKitExamplesHubViewController: UITableViewController {
           make: { FKListKitSkeletonInitialLoadExampleViewController() }
         ),
         Row(
+          title: "Skeleton · visible cells",
+          subtitle: "Default FKListSkeletonPolicy.visibleCells overlay",
+          make: { FKListKitSkeletonVisibleCellsExampleViewController() }
+        ),
+        Row(
           title: "Empty state",
           subtitle: "Zero-item snapshot · FKEmptyState overlay · retry",
           make: { FKListKitEmptyStateExampleViewController() }
         ),
         Row(
           title: "Error & retry",
-          subtitle: "Failed fetch · error overlay · preservesContentOnError option",
+          subtitle: "Failed fetch · error overlay · preservesContentOnError = false",
           make: { FKListKitErrorRetryExampleViewController() }
+        ),
+        Row(
+          title: "Error · preserved content",
+          subtitle: "preservesContentOnError = true · rows stay under overlay",
+          make: { FKListKitErrorPreservedContentExampleViewController() }
         ),
         Row(
           title: "Empty policy · replace content",
@@ -69,7 +84,7 @@ final class FKListKitExamplesHubViewController: UITableViewController {
       rows: [
         Row(
           title: "Settings · multi-section presets",
-          subtitle: "All preset rows · section headers · switch/checkbox handlers",
+          subtitle: "All preset rows · SF Symbol leading · checkmark · metadata",
           make: { FKListKitSettingsMultisectionExampleViewController() }
         ),
         Row(
@@ -79,7 +94,7 @@ final class FKListKitExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Selection modes",
-          subtitle: "single · multiple · programmatic select · preservesSelection",
+          subtitle: "single · deselectOnSecondTap · multiple · FKListDelegate",
           make: { FKListKitSelectionModesExampleViewController() }
         ),
         Row(
@@ -89,13 +104,23 @@ final class FKListKitExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Icon · remote image row",
-          subtitle: "FKListIconRow · FKImageView · prefetch delegate",
+          subtitle: "FKListIconRow · FKImageView(profile: .listCell) · FKImageLoader prefetch",
           make: { FKListKitIconRemoteRowExampleViewController() }
         ),
         Row(
           title: "Custom cell",
           subtitle: "FKListTableCellConfigurable · payload store · register(_:forPayloadType:)",
           make: { FKListKitCustomCellExampleViewController() }
+        ),
+        Row(
+          title: "Row height",
+          subtitle: "FKListRowHeightPolicy.fixed · rowHeightProvider override",
+          make: { FKListKitRowHeightExampleViewController() }
+        ),
+        Row(
+          title: "Advanced hooks",
+          subtitle: "configurePresetCell · makeEmptyStateConfiguration",
+          make: { FKListKitAdvancedHooksExampleViewController() }
         ),
       ]
     ),
@@ -108,6 +133,11 @@ final class FKListKitExamplesHubViewController: UITableViewController {
           make: { FKListKitCollectionListExampleViewController() }
         ),
         Row(
+          title: "Collection · delegate",
+          subtitle: "FKListCollectionDelegate · refresh · pagination hooks",
+          make: { FKListKitCollectionDelegateExampleViewController() }
+        ),
+        Row(
           title: "Collection · grid preset",
           subtitle: ".grid(columns:spacing:) · preset cells",
           make: { FKListKitCollectionGridExampleViewController() }
@@ -116,6 +146,16 @@ final class FKListKitExamplesHubViewController: UITableViewController {
           title: "Collection · inset grouped",
           subtitle: ".insetGroupedList · section headers",
           make: { FKListKitCollectionInsetGroupedExampleViewController() }
+        ),
+        Row(
+          title: "Collection · custom cell",
+          subtitle: "FKListCollectionCellConfigurable · payload store",
+          make: { FKListKitCollectionCustomCellExampleViewController() }
+        ),
+        Row(
+          title: "Collection · layout hints",
+          subtitle: "FKListSectionLayoutHints · compositionalLayoutProvider",
+          make: { FKListKitCollectionLayoutHintsExampleViewController() }
         ),
       ]
     ),

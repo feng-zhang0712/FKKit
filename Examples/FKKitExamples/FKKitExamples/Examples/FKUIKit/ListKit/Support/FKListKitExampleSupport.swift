@@ -6,13 +6,20 @@ import UIKit
 /// Simulated paginated feed for ListKit refresh/load-more demos.
 enum FKListKitExampleFeedAPI {
   static let pageSize = 8
+  /// Fills modern phone viewports so the load-more footer is visible and auto-trigger can arm.
+  static let paginationDemoPageSize = 15
   static let maxPages = 4
 
-  static func fetch(page: Int, delay: TimeInterval = 0.75) async throws -> (titles: [String], hasMorePages: Bool) {
+  static func fetch(
+    page: Int,
+    delay: TimeInterval = 0.75,
+    itemsPerPage: Int = pageSize
+  ) async throws -> (titles: [String], hasMorePages: Bool) {
     let nanos = UInt64(max(0, delay) * 1_000_000_000)
     try await Task.sleep(nanoseconds: nanos)
     guard page >= 1 else { return ([], false) }
-    let titles = (1 ... pageSize).map { "Page \(page) · Item \($0)" }
+    let count = max(1, itemsPerPage)
+    let titles = (1 ... count).map { "Page \(page) · Item \($0)" }
     let hasMore = page < maxPages
     return (titles, hasMore)
   }

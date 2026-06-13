@@ -7,6 +7,7 @@ public enum FKListAccessory: Hashable, Sendable {
   case none
   case disclosureIndicator
   case checkmark
+  /// Reserved for a future accessory provider registry; currently renders like ``none``.
   case customView(id: String)
 }
 

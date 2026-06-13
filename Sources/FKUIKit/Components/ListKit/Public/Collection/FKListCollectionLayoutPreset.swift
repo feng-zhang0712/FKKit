@@ -47,6 +47,10 @@ public enum FKListCollectionLayoutFactory {
       if sectionHasHeader(snapshot: snapshot, sectionIndex: sectionIndex) {
         section.boundarySupplementaryItems = [sectionHeaderSupplementaryItem()]
       }
+      if snapshot.sections.indices.contains(sectionIndex),
+         let spacing = snapshot.sections[sectionIndex].layoutHints?.interGroupSpacing {
+        section.interGroupSpacing = spacing
+      }
       return section
     }
   }
@@ -67,6 +71,10 @@ public enum FKListCollectionLayoutFactory {
       section.interGroupSpacing = spacing
       if sectionHasHeader(snapshot: snapshot, sectionIndex: sectionIndex) {
         section.boundarySupplementaryItems = [sectionHeaderSupplementaryItem()]
+      }
+      if snapshot.sections.indices.contains(sectionIndex),
+         let hintSpacing = snapshot.sections[sectionIndex].layoutHints?.interGroupSpacing {
+        section.interGroupSpacing = hintSpacing
       }
       return section
     }
@@ -99,9 +107,13 @@ public enum FKListCollectionLayoutFactory {
       let horizontalInset: CGFloat = 16
       section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: horizontalInset, bottom: 8, trailing: horizontalInset)
       if snapshot.sections.indices.contains(sectionIndex),
-         let hints = snapshot.sections[sectionIndex].layoutHints,
-         let insets = hints.contentInsets {
-        section.contentInsets = insets.directionalEdgeInsets
+         let hints = snapshot.sections[sectionIndex].layoutHints {
+        if let insets = hints.contentInsets {
+          section.contentInsets = insets.directionalEdgeInsets
+        }
+        if let spacing = hints.interGroupSpacing {
+          section.interGroupSpacing = spacing
+        }
       }
       if sectionHasHeader(snapshot: snapshot, sectionIndex: sectionIndex) {
         section.boundarySupplementaryItems = [sectionHeaderSupplementaryItem()]
@@ -116,6 +128,25 @@ public enum FKListCollectionLayoutFactory {
 /// Decoration kind for inset grouped section backgrounds.
 enum FKListCollectionBackgroundDecoration {
   static let kind = "FKListCollectionBackgroundDecoration"
+}
+
+/// Inputs that affect compositional layout construction (excluding item payloads).
+struct FKListCollectionLayoutStructureSignature: Equatable {
+  let preset: FKListCollectionLayoutPreset
+  let sections: [Section]
+
+  struct Section: Equatable {
+    let id: FKListSectionID
+    let hasHeader: Bool
+    let layoutHints: FKListSectionLayoutHints?
+  }
+
+  init(preset: FKListCollectionLayoutPreset, snapshot: FKListSnapshot) {
+    self.preset = preset
+    self.sections = snapshot.sections.map {
+      Section(id: $0.id, hasHeader: $0.header != nil, layoutHints: $0.layoutHints)
+    }
+  }
 }
 
 /// Rounded background for inset grouped collection sections.

@@ -45,7 +45,7 @@ public final class FKListPresetTableCell: UITableViewCell, FKListTableCellConfig
   private let subtitleLabel = UILabel()
   private let valueLabel = UILabel()
   private let leadingImageView = UIImageView()
-  private let remoteImageView = FKImageView()
+  private let remoteImageView = FKImageView(profile: .listCell)
   private let trailingSwitch = UISwitch()
   private let trailingCheckbox = UIImageView()
   private let textStack = UIStackView()
@@ -252,22 +252,25 @@ public final class FKListPresetTableCell: UITableViewCell, FKListTableCellConfig
   private func configureLeading(_ leading: FKListLeadingContent?) {
     guard let leading else {
       leadingImageView.isHidden = true
+      remoteImageView.resetForReuse()
       remoteImageView.isHidden = true
       return
     }
     switch leading {
     case .asset(let name):
+      remoteImageView.resetForReuse()
+      remoteImageView.isHidden = true
       leadingImageView.image = UIImage(named: name)
       leadingImageView.isHidden = leadingImageView.image == nil
-      remoteImageView.isHidden = true
     case .symbol(let name):
+      remoteImageView.resetForReuse()
+      remoteImageView.isHidden = true
       leadingImageView.image = UIImage(systemName: name)
       leadingImageView.isHidden = false
-      remoteImageView.isHidden = true
     case .remoteURL(let url):
-      remoteImageView.url = url
-      remoteImageView.isHidden = false
       leadingImageView.isHidden = true
+      remoteImageView.isHidden = false
+      remoteImageView.url = url
     }
   }
 

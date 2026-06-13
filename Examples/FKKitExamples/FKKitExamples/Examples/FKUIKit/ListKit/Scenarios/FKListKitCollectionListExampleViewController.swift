@@ -6,6 +6,7 @@ final class FKListKitCollectionListExampleViewController: FKDiffableCollectionVi
   init() {
     var config = FKListDefaults.defaultConfiguration
     config.refresh.loadMorePreloadOffset = 120
+    config.refresh.autohidesLoadMoreFooterWhenNotScrollable = false
     super.init(configuration: config, layoutPreset: .list)
     dataProvider = self
   }
@@ -21,12 +22,19 @@ final class FKListKitCollectionListExampleViewController: FKDiffableCollectionVi
   }
 
   func fetchInitial(page: Int) async throws -> FKListFetchResult {
-    let result = try await FKListKitExampleFeedAPI.fetch(page: page, delay: 0.4)
+    let result = try await FKListKitExampleFeedAPI.fetch(
+      page: page,
+      delay: 0.4,
+      itemsPerPage: FKListKitExampleFeedAPI.paginationDemoPageSize
+    )
     return FKListKitExampleFeedAPI.makeFetchResult(titles: result.titles, page: page, hasMorePages: result.hasMorePages)
   }
 
   func fetchNextPage(after pagination: FKRefreshPagination) async throws -> FKListFetchResult {
-    let result = try await FKListKitExampleFeedAPI.fetch(page: pagination.nextPage)
+    let result = try await FKListKitExampleFeedAPI.fetch(
+      page: pagination.nextPage,
+      itemsPerPage: FKListKitExampleFeedAPI.paginationDemoPageSize
+    )
     return FKListKitExampleFeedAPI.makeFetchResult(
       titles: result.titles,
       page: pagination.nextPage,
@@ -35,7 +43,11 @@ final class FKListKitCollectionListExampleViewController: FKDiffableCollectionVi
   }
 
   func fetchRefresh(page: Int) async throws -> FKListFetchResult {
-    let result = try await FKListKitExampleFeedAPI.fetch(page: page, delay: 0.5)
+    let result = try await FKListKitExampleFeedAPI.fetch(
+      page: page,
+      delay: 0.5,
+      itemsPerPage: FKListKitExampleFeedAPI.paginationDemoPageSize
+    )
     return FKListKitExampleFeedAPI.makeFetchResult(titles: result.titles, page: page, hasMorePages: result.hasMorePages)
   }
 }

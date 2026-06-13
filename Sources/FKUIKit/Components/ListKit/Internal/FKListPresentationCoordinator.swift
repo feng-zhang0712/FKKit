@@ -59,9 +59,9 @@ final class FKListPresentationCoordinator {
   ) {
     switch policy {
     case .visibleCells:
-      if tableView.visibleCells.isEmpty {
-        overlayHost.fk_hideSkeleton(animated: true, completion: completion)
-      } else {
+      // Initial load uses a scroll-view overlay when no cells are visible yet; after the
+      // snapshot applies, visible cells may use auto placeholders instead. Hide both paths.
+      overlayHost.fk_hideSkeleton(animated: true) {
         tableView.fk_hideAutoSkeletonOnVisibleCells(animated: true, completion: completion)
       }
     case .fullOverlay, .presetRows:
@@ -92,9 +92,7 @@ final class FKListPresentationCoordinator {
   ) {
     switch policy {
     case .visibleCells:
-      if collectionView.visibleCells.isEmpty {
-        overlayHost.fk_hideSkeleton(animated: true, completion: completion)
-      } else {
+      overlayHost.fk_hideSkeleton(animated: true) {
         collectionView.fk_hideAutoSkeletonOnVisibleCells(animated: true, completion: completion)
       }
     case .fullOverlay, .presetRows:
@@ -143,9 +141,33 @@ final class FKListPresentationCoordinator {
     policy: FKListEmptyPresentationPolicy,
     animatesPresentation: Bool
   ) {
-    scrollView.fk_hideEmptyState(animated: animatesPresentation)
+    removeEmptyState(on: scrollView, animated: animatesPresentation)
     if policy == .replaceContent {
-      hostView.fk_hideEmptyState(animated: animatesPresentation)
+      removeEmptyState(on: hostView, animated: animatesPresentation)
     }
+  }
+
+  /// Hides the empty overlay while pull-to-refresh runs so ``FKRefreshControl`` stays visible.
+  func hideEmptyStateForRefreshIfNeeded(
+    on scrollView: UIScrollView,
+    hostView: UIView,
+    policy: FKListEmptyPresentationPolicy
+  ) {
+    hideEmptyState(
+      on: scrollView,
+      hostView: hostView,
+      policy: policy,
+      animatesPresentation: false
+    )
+  }
+
+  private func removeEmptyState(on host: UIView, animated: Bool) {
+    host.fk_removeEmptyState(animated: animated)
+  }
+
+  func announceRefreshCompletionIfNeeded(configuration: FKListConfiguration, succeeded: Bool) {
+    guard configuration.accessibility.announcesRefreshCompletion else { return }
+    let message = succeeded ? "Refresh completed" : "Refresh failed"
+    UIAccessibility.post(notification: .announcement, argument: message)
   }
 }

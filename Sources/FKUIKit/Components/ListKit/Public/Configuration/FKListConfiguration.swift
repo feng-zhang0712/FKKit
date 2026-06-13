@@ -99,6 +99,7 @@ public struct FKListRefreshConfiguration: Sendable, Equatable {
   public var isLoadMoreEnabled: Bool
   public var loadMoreTriggerMode: FKLoadMoreTriggerMode
   public var loadMorePreloadOffset: CGFloat
+  /// Reserved: list view controllers end refresh explicitly; this flag is not forwarded yet.
   public var automaticallyEndsRefreshingOnAsyncCompletion: Bool
   public var resetsPaginationOnRefresh: Bool
   public var clearsSnapshotOnRefreshStart: Bool
@@ -232,6 +233,7 @@ public struct FKListSelectionConfiguration: Sendable, Equatable {
 
 /// Accessibility options for list infrastructure.
 public struct FKListAccessibilityConfiguration: Sendable, Equatable {
+  /// Posts a VoiceOver announcement when pull-to-refresh completes.
   public var announcesRefreshCompletion: Bool
 
   public init(announcesRefreshCompletion: Bool = false) {
@@ -252,7 +254,10 @@ public struct FKListPrefetchConfiguration: Sendable, Equatable {
 
 // MARK: - Search
 
-/// Optional search-driven list behavior.
+/// Optional search-driven list conventions for host implementations.
+///
+/// List view controllers do not observe search text; read these values in your filter logic
+/// (see FKKitExamples search scenario).
 public struct FKListSearchConfiguration: Sendable, Equatable {
   public var clearsSelectionOnSearch: Bool
   public var emptyScenario: FKEmptyStateScenario
