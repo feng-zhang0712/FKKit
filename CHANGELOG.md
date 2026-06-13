@@ -4,6 +4,59 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.69.0] - 2026-06-13
+
+### Added (FKUIKit — Alert)
+
+- **`FKAlert`** — centered confirmation dialog on ``FKSheetPresentationController`` (`.center` / `centerAlert` preset) with async `confirm` / `prompt`, presets (`destructiveConfirm`, `informational`, `textPrompt`), queue/de-duplication, SwiftUI bridge, and text-input helpers.
+- **`FKAlertPresenter.isPresenting`**, **`FKAlertTextInput.requiresNonEmptyInput`**, and **`FKAlertContent.archiveAttributedMessage(_:)`** for integrator state and attributed message handling.
+- **Examples**: hub scenarios under `Examples/FKUIKit/Alert/`.
+
+### Added (FKUIKit — ListKit)
+
+- **`FKListKit`** — diffable table and collection infrastructure: section/item models, preset cells, swipe actions, pagination hooks, and integration with **FKRefresh**, **FKEmptyState**, and **FKSkeleton**.
+- **`FKDiffableCollectionViewController`**, layout presets, and expanded preset row APIs.
+- **Examples**: table, collection, swipe, and skeleton scenarios under `Examples/FKUIKit/ListKit/`.
+
+### Added (FKCoreKit — QRCode)
+
+- **`FKQRCodeGenerator`** and **`FKQRCodeParser`** — Core Image QR generation and typed payload parsing (URL, text, unknown) with correction levels and optional logo embedding.
+
+### Added (FKUIKit — QRCode)
+
+- **`FKQRCodeScannerViewController`** — camera scanner with scan modes, torch, overlay styling, navigation policy, simulator mock, and SwiftUI bridges.
+- **Examples**: generation, parsing, and scanner scenarios under `Examples/FKUIKit/QRCode/` and `Examples/FKCoreKit/QRCode/`.
+
+### Added (FKUIKit — Theme)
+
+- **`FKTheme`** registry — semantic colors, typography, spacing, shadows, trait-aware resolution, opt-in component defaults (**FKButton**, **FKToast**, **FKDivider**), and SwiftUI environment integration.
+- **Examples**: theme registration and component integration under `Examples/FKUIKit/Theme/`.
+
+### Fixed (FKUIKit — Alert)
+
+- Cancel actions no longer invoke destructive/confirm handlers; cancel button uses content-sized hit targets instead of a full-width transparent tap area.
+- Swipe-to-dismiss is off by default; **`FKAlertPresets.informational()`** allows backdrop tap only.
+
+### Fixed (FKUIKit — Badge)
+
+- Blink animation can be stopped cleanly; internal animation lifecycle cleanup.
+
+### Changed (FKUIKit — ActionSheet)
+
+- Slimmer view hierarchy and internal cleanup without public API changes.
+
+### Changed (Maintenance)
+
+- Alphabetize localization keys in FKCoreKit and FKUIKit `.strings` files.
+
+### Added (Documentation)
+
+- Component gap analysis, roadmap updates, and design specs (Alert, CellKit, planned modules) under `docs/`.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.69.0** (Git tag **`0.69.0`**).
+
 ## [0.68.0] - 2026-06-10
 
 ### Added (FKUIKit — Widgets)
@@ -2692,7 +2745,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.69.0...HEAD
+[0.69.0]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...0.69.0
 [0.68.0]: https://github.com/feng-zhang0712/FKKit/compare/0.67.0...0.68.0
 [0.67.0]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...0.67.0
 [0.66.0]: https://github.com/feng-zhang0712/FKKit/compare/0.65.0...0.66.0
