@@ -4,8 +4,8 @@ FKKit **`FKTheme`** 的实现指导文档：在 `FKUIKit/Core` 层建立**设计
 
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
-**路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) Tier 3 `FKTheme`  
-**缺口分析引用：** [COMPONENT_GAP_ANALYSIS.zh-CN.md](COMPONENT_GAP_ANALYSIS.zh-CN.md) §9  
+**路线图引用：** [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) Tier 3 `FKTheme`  
+**缺口分析引用：** [COMPONENT_GAP_ANALYSIS.md](COMPONENT_GAP_ANALYSIS.md) §9  
 
 ---
 
@@ -414,7 +414,7 @@ public extension EnvironmentValues {
 
 ## 17. 建议源码目录结构
 
-> **目录结构说明（非强制）：** 下列目录树仅为建议起点。详见 [COMPONENT_ROADMAP.zh-CN.md — 组件源码目录规范](COMPONENT_ROADMAP.zh-CN.md#组件源码目录规范)。
+> **目录结构说明（非强制）：** 下列目录树仅为建议起点。详见 [COMPONENT_ROADMAP.md — 组件源码目录规范](COMPONENT_ROADMAP.md#组件源码目录规范)。
 
 ```text
 Sources/FKUIKit/Core/Theme/
@@ -475,6 +475,6 @@ Sources/FKUIKit/Core/Theme/
 
 ## 相关文档
 
-- [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md)
-- [COMPONENT_GAP_ANALYSIS.zh-CN.md](COMPONENT_GAP_ANALYSIS.zh-CN.md)
+- [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md)
+- [COMPONENT_GAP_ANALYSIS.md](COMPONENT_GAP_ANALYSIS.md)
 - [FKButton README](../Sources/FKUIKit/Components/Button/README.md)

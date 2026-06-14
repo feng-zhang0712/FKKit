@@ -100,7 +100,7 @@ Center-card swipe uses ``FKSheetPresentationController`` pan rules: pans cannot 
 
 ## Related docs
 
-- Design: `docs/FKAlert_DESIGN.zh-CN.md`
+- Design: `docs/FKAlert_DESIGN.md`
 - Examples: `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Alert/`
 - Sheet infra: `SheetPresentationController/README.md`
 - BusinessKit alerts: `FKCoreKit/Components/BusinessKit/README.md`

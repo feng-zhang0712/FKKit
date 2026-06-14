@@ -63,6 +63,7 @@ final class AppServices {
 
 - **`Network`**, **`Storage`**, **`BusinessKit`**, and **`Logger`** may provide default implementations that conform to these protocols.
 - **`FKUIKit`** can adopt the same contracts at its public API edge over time.
+- Enhancement plan (reference implementations, bridges, composition root): [`docs/FKPluggable_ENHANCEMENT_DESIGN.md`](../../../../docs/FKPluggable_ENHANCEMENT_DESIGN.md).
 
 ## Versioning
 

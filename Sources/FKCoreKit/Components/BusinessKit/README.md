@@ -662,6 +662,19 @@ FKBusinessKit.shared.version.checkForUpdate(using: provider) { result in
 
 ---
 
+## Roadmap
+
+| Topic | Status | Notes |
+|-------|--------|-------|
+| Alert backend (`systemAlert` / `fkAlert`) | Planned v1.1 | See [FKBusinessKit_DESIGN.md](../../../docs/FKBusinessKit_DESIGN.md) §15 |
+| Pluggable bridges (Lifecycle, Deeplink, Analytics) | Planned | See design doc §16 |
+| Public Top VC resolver | Planned | See design doc §17 |
+| Examples Hub (per-subsystem scenarios) | Planned | See design doc §26 |
+
+Full module design (delivered capabilities + enhancements): [FKBusinessKit_DESIGN.md](../../../docs/FKBusinessKit_DESIGN.md). Enhancement index: [FKBusinessKit_ENHANCEMENT_DESIGN.md](../../../docs/FKBusinessKit_ENHANCEMENT_DESIGN.md).
+
+---
+
 ## License
 
 `FKBusinessKit` is part of `FKKit` and follows the repository license.

@@ -4,8 +4,8 @@ FKKit **胶囊筛选与标签模块**的实现指导文档：三个公开类型 
 
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
-**路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §2.2  
-**所属家族：** [FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md)
+**路线图引用：** [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) §2.2  
+**所属家族：** [FKSmallComponents_DESIGN.md](FKSmallComponents_DESIGN.md)
 
 ---
 
@@ -105,7 +105,7 @@ FKKit **胶囊筛选与标签模块**的实现指导文档：三个公开类型 
 | 移除 ✕ | 可选 | 无 | — |
 | 典型场景 | 筛选、搜索 token | 卡片「NEW」「VIP」 | 筛选条、多选标签 |
 
-**与 FKBusinessKit `TabBarFilter`：** TabBarFilter 是**锚点 + Sheet 面板**的复合筛选 UX；本模块提供**行内胶囊原子**。Business 层可组合 TabBarFilter + ChipGroup，但 Chip/Tag 本体应在 **FKUIKit**（见 [FKSmallComponents — 仓库归属](FKSmallComponents_DESIGN.zh-CN.md#附录仓库归属fkuikit-vs-fkbusinesskit)）。
+**与 FKBusinessKit `TabBarFilter`：** TabBarFilter 是**锚点 + Sheet 面板**的复合筛选 UX；本模块提供**行内胶囊原子**。Business 层可组合 TabBarFilter + ChipGroup，但 Chip/Tag 本体应在 **FKUIKit**（见 [FKSmallComponents — 仓库归属](FKSmallComponents_DESIGN.md#附录仓库归属fkuikit-vs-fkbusinesskit)）。
 
 ---
 
@@ -446,9 +446,9 @@ Sources/FKUIKit/Components/Widgets/
 
 ## 相关文档
 
-- [FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md)
-- [FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.zh-CN.md](FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.zh-CN.md)
-- [FKStatusPill_DESIGN.zh-CN.md](FKStatusPill_DESIGN.zh-CN.md)
-- [FKIconView_DESIGN.zh-CN.md](FKIconView_DESIGN.zh-CN.md)
-- [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md)
-- [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md)
+- [FKSmallComponents_DESIGN.md](FKSmallComponents_DESIGN.md)
+- [FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.md](FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.md)
+- [FKStatusPill_DESIGN.md](FKStatusPill_DESIGN.md)
+- [FKIconView_DESIGN.md](FKIconView_DESIGN.md)
+- [FKListKit_DESIGN.md](FKListKit_DESIGN.md)
+- [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md)

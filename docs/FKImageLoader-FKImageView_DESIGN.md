@@ -4,7 +4,7 @@ FKKit 图片加载栈的实现指导文档：**FKCoreKit** 中的默认 `FKImage
 
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
-**路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §1.1  
+**路线图引用：** [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) §1.1  
 
 ---
 
@@ -862,7 +862,7 @@ imageView.imageLoader = CDNImageLoader()
 
 ## 24. 建议源码目录结构
 
-> **目录结构说明（非强制）：** 下列目录树仅为**建议起点**，并非必须严格遵守的模板。实际封装时可按组件复杂度与邻近 FKKit 组件**灵活调整**，但必须保持**可发现性**、在组件 `README.md` 中**文档化**，并符合 FKKit 规范（公开/内部边界清晰、英文 `///`、Swift 6 并发）。详见 [COMPONENT_ROADMAP.zh-CN.md — 组件源码目录规范](COMPONENT_ROADMAP.zh-CN.md#组件源码目录规范)。
+> **目录结构说明（非强制）：** 下列目录树仅为**建议起点**，并非必须严格遵守的模板。实际封装时可按组件复杂度与邻近 FKKit 组件**灵活调整**，但必须保持**可发现性**、在组件 `README.md` 中**文档化**，并符合 FKKit 规范（公开/内部边界清晰、英文 `///`、Swift 6 并发）。详见 [COMPONENT_ROADMAP.md — 组件源码目录规范](COMPONENT_ROADMAP.md#组件源码目录规范)。
 
 ### FKCoreKit
 
@@ -949,6 +949,6 @@ Hub：**ImageView**，副标题说明 Loader + View 栈。
 
 ## 相关文档
 
-- [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) — 项目路线图（中文）
+- [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) — 项目路线图（中文）
 - [Pluggable FKImageLoading](../Sources/FKCoreKit/Components/Pluggable/Media/FKImageLoading.swift) — 协议契约
 - [FKSkeleton README](../Sources/FKUIKit/Components/Skeleton/README.md) — 骨架屏集成

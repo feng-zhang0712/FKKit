@@ -88,5 +88,5 @@ The hub lists every runnable scenario (feed, refresh edge cases, skeleton polici
 
 ## Related
 
-- Design: `docs/FKListKit_DESIGN.zh-CN.md`
+- Design: `docs/FKListKit_DESIGN.md`
 - Pluggable: `Sources/FKCoreKit/Components/Pluggable/`

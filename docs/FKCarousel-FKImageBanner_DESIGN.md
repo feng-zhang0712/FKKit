@@ -4,7 +4,7 @@ FKKit **横向分页轮播**控件实现指南：**`FKCarousel`**（通用页面
 
 **文档类型：** 设计需求（对实现者的规范性说明）  
 **状态：** 草案  
-**路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §2.4  
+**路线图引用：** [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) §2.4  
 
 ---
 
@@ -781,7 +781,7 @@ public struct FKCarouselRepresentable: UIViewRepresentable {
 
 ## 27. 建议源码目录结构
 
-> **目录结构说明（非强制）：** 下列目录树仅为**建议起点**，并非必须严格遵守的模板。实际封装时可按组件复杂度与邻近 FKKit 组件**灵活调整**，但必须保持**可发现性**、在组件 `README.md` 中**文档化**，并符合 FKKit 规范（公开/内部边界清晰、英文 `///`、Swift 6 并发）。详见 [COMPONENT_ROADMAP.zh-CN.md — 组件源码目录规范](COMPONENT_ROADMAP.zh-CN.md#组件源码目录规范)。
+> **目录结构说明（非强制）：** 下列目录树仅为**建议起点**，并非必须严格遵守的模板。实际封装时可按组件复杂度与邻近 FKKit 组件**灵活调整**，但必须保持**可发现性**、在组件 `README.md` 中**文档化**，并符合 FKKit 规范（公开/内部边界清晰、英文 `///`、Swift 6 并发）。详见 [COMPONENT_ROADMAP.md — 组件源码目录规范](COMPONENT_ROADMAP.md#组件源码目录规范)。
 
 ```text
 Sources/FKUIKit/Components/Carousel/
@@ -871,7 +871,7 @@ Sources/FKUIKit/Components/Carousel/
 
 ## 相关文档
 
-- [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) — 中文版路线图
-- [FKImageLoader-FKImageView_DESIGN.zh-CN.md](FKImageLoader-FKImageView_DESIGN.zh-CN.md) — 图片加载依赖
-- [FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md) — 相关原子组件（Badge、Marquee）
+- [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) — 中文版路线图
+- [FKImageLoader-FKImageView_DESIGN.md](FKImageLoader-FKImageView_DESIGN.md) — 图片加载依赖
+- [FKSmallComponents_DESIGN.md](FKSmallComponents_DESIGN.md) — 相关原子组件（Badge、Marquee）
 - [FKPagingController README](../Sources/FKUIKit/Components/PagingController/README.md) — 全屏分页边界说明

@@ -180,7 +180,7 @@ let request = FKDownloadRequest(
   allowsBackground: true
 )
 
-let taskID = try await manager.startDownload(
+let taskID = try await manager.download(
   request,
   progress: { progress in
     print("Download:", progress.progress)
@@ -212,7 +212,7 @@ let upload = FKUploadRequest(
   formFields: ["userId": "1001"]
 )
 
-let uploadID = try await manager.startUpload(
+let uploadID = try await manager.upload(
   upload,
   progress: { progress in
     print("Upload:", progress.progress)
@@ -286,10 +286,10 @@ Content serialization:
 
 Transfer:
 
-- `startDownload(_:progress:completion:)` (async + closure)
+- `download(_:progress:completion:)` (async + closure)
 - `pauseDownload(taskID:)`
 - `resumeDownload(taskID:)`
-- `startUpload(_:progress:completion:)` (async + closure)
+- `upload(_:progress:completion:)` (async + closure)
 - `cancel(taskID:)`
 - `cancelAll()`
 - `persistedTransfers()`
@@ -359,7 +359,8 @@ let manager = FKFileManager(configuration: config)
 
 ## Notes
 
-- This module currently exposes ZIP API surfaces, but ZIP execution may return `.zipUnavailable` depending on runtime support path.
+- Full module design (delivered capabilities, ZIP, background recovery): [`docs/FKFileManager_DESIGN.md`](../../../../docs/FKFileManager_DESIGN.md).
+- ZIP APIs are public; execution may return `.zipUnavailable` until Archive-based implementation ships (see design doc §13).
 - Transfer persistence stores snapshots (`FKPersistedTransfer`) for task restoration metadata.
 - iOS helper APIs for share/preview are only compiled on iOS.
 - Ensure your upload and download endpoints support resumed transfers if you rely on breakpoint recovery semantics.

@@ -1,10 +1,12 @@
 # FKBusinessKit × FKUIKit Widgets — 组合用法设计片段
 
+> **BusinessKit 完整模块设计（七子系统 + 增强 + Widgets 边界 §18）：** [FKBusinessKit_DESIGN.md](FKBusinessKit_DESIGN.md)
+
 FKBusinessKit 如何**组合** FKUIKit Widgets（小组件库）的指导片段。**完整正文见 FKBusinessKit 仓库：**
 
-[`FKBusinessKit/docs/FKWidgets-Integration_DESIGN.zh-CN.md`](https://github.com/feng-zhang0712/FKBusinessKit/blob/main/docs/FKWidgets-Integration_DESIGN.zh-CN.md)
+[`FKBusinessKit/docs/FKWidgets-Integration_DESIGN.md`](https://github.com/feng-zhang0712/FKBusinessKit/blob/main/docs/FKWidgets-Integration_DESIGN.md)
 
-本地 side-by-side 开发时路径：`../FKBusinessKit/docs/FKWidgets-Integration_DESIGN.zh-CN.md`
+本地 side-by-side 开发时路径：`../FKBusinessKit/docs/FKWidgets-Integration_DESIGN.md`
 
 ---
 

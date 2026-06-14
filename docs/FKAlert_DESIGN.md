@@ -4,7 +4,7 @@ FKKit **`FKAlert`** 的实现指导文档：基于 **`FKSheetPresentationControl
 
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 已实现（v1，活文档 — 与 `Sources/FKUIKit/Components/Alert/` 对齐）  
-**路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §1.5  
+**路线图引用：** [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) §1.5  
 **组件 README：** [Alert README](../Sources/FKUIKit/Components/Alert/README.md)
 
 ---
@@ -672,8 +672,10 @@ Hub：`FKAlertExamplesHubViewController`
 
 ## 相关文档
 
-- [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) — 项目路线图
+- [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) — 项目路线图
 - [Alert README](../Sources/FKUIKit/Components/Alert/README.md) — 公开 API 与选型树
 - [FKSheetPresentationController README](../Sources/FKUIKit/Components/SheetPresentationController/README.md)
 - [FKActionSheet README](../Sources/FKUIKit/Components/ActionSheet/README.md)
 - [FKBusinessKit README](../Sources/FKCoreKit/Components/BusinessKit/README.md)
+- [FKBusinessKit_DESIGN.md](FKBusinessKit_DESIGN.md) — BusinessKit 完整设计（§15 Alert 后端、`FKBusinessAlertBackend`）
+- [FKBusinessKit_ENHANCEMENT_DESIGN.md](FKBusinessKit_ENHANCEMENT_DESIGN.md) — 增量增强索引

@@ -4,7 +4,7 @@ FKKit **搜索输入控件**的实现指导文档：可配置的 **`FKSearchBar`
 
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
-**路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §1.3  
+**路线图引用：** [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) §1.3  
 
 ---
 
@@ -135,7 +135,7 @@ FKKit 采用 **容器 + `UITextField`** — 与多数生产 App 一致。
 
 ### 3.4 FKCoreKit 复用要求（强制）
 
-SearchBar/SearchField **必须**使用 **`FKDebouncer`**（`FKCoreKit/Components/Async`）实现防抖；**禁止**自写 `Timer` 防抖。查询规范化、trim 使用 **`String.fk_trimmed`** 等 Extension。详见 [COMPONENT_ROADMAP.zh-CN.md — 勿重复造轮子](COMPONENT_ROADMAP.zh-CN.md#勿重复造轮子--复用对照表)。
+SearchBar/SearchField **必须**使用 **`FKDebouncer`**（`FKCoreKit/Components/Async`）实现防抖；**禁止**自写 `Timer` 防抖。查询规范化、trim 使用 **`String.fk_trimmed`** 等 Extension。详见 [COMPONENT_ROADMAP.md — 勿重复造轮子](COMPONENT_ROADMAP.md#勿重复造轮子--复用对照表)。
 
 ---
 
@@ -583,7 +583,7 @@ FKSearchBarDefaults.defaultConfiguration.debounce.debounceInterval = 0.5
 
 ## 23. 建议源码目录结构
 
-> **目录结构说明（非强制）：** 下列目录树仅为**建议起点**，并非必须严格遵守的模板。实际封装时可按组件复杂度与邻近 FKKit 组件**灵活调整**，但必须保持**可发现性**、在组件 `README.md` 中**文档化**，并符合 FKKit 规范（公开/内部边界清晰、英文 `///`、Swift 6 并发）。详见 [COMPONENT_ROADMAP.zh-CN.md — 组件源码目录规范](COMPONENT_ROADMAP.zh-CN.md#组件源码目录规范)。
+> **目录结构说明（非强制）：** 下列目录树仅为**建议起点**，并非必须严格遵守的模板。实际封装时可按组件复杂度与邻近 FKKit 组件**灵活调整**，但必须保持**可发现性**、在组件 `README.md` 中**文档化**，并符合 FKKit 规范（公开/内部边界清晰、英文 `///`、Swift 6 并发）。详见 [COMPONENT_ROADMAP.md — 组件源码目录规范](COMPONENT_ROADMAP.md#组件源码目录规范)。
 
 ```text
 Sources/FKUIKit/Components/SearchBar/
@@ -645,6 +645,7 @@ Sources/FKUIKit/Components/SearchBar/
 
 ## 相关文档
 
-- [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md) — 列表筛选集成
+- [FKListKit_DESIGN.md](FKListKit_DESIGN.md) — 列表筛选集成
+- [FKSearchViewController_DESIGN.md](FKSearchViewController_DESIGN.md) — 搜索页组合 VC（推荐）
 - [TextField README](../Sources/FKUIKit/Components/TextField/README.md)
 - [FKDebouncer](../Sources/FKCoreKit/Components/Async/DebounceThrottle/Debouncer.swift)

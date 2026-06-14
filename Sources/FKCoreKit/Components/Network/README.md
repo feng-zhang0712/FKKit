@@ -429,10 +429,14 @@ struct MockUserRequest: Requestable {
 
 ## Roadmap
 
-- Add stricter SSL pinning examples
+增量增强与完整模块设计见 [`docs/FKNetwork_DESIGN.md`](../../../../docs/FKNetwork_DESIGN.md)（§12–§15）。当前待交付项：
+
+- Add stricter SSL pinning (public key / certificate validation)
 - Add multipart upload helper utilities
-- Add unit test fixtures and mock session templates
-- Add more production-ready retry policy presets
+- Add production-ready HTTP retry policy presets
+- Add mock `URLSession` / `NetworkSession` templates for Examples
+- Add Pluggable bridges (`FKAPIClientProviding`, Reachability dual conformance)
+- Add baseline FKKitExamples for cache, deduplication, 401 refresh, offline preflight
 
 ---
 

@@ -4,8 +4,8 @@ FKKit **`FKStatusPill`** 的实现指导文档：短**流程状态**文案胶囊
 
 **文档类型：** 设计需求（对实现者具有规范约束力）  
 **状态：** 草案  
-**路线图引用：** [COMPONENT_ROADMAP.zh-CN.md](COMPONENT_ROADMAP.zh-CN.md) §2.2–2.3  
-**所属家族：** [FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md)
+**路线图引用：** [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) §2.2–2.3  
+**所属家族：** [FKSmallComponents_DESIGN.md](FKSmallComponents_DESIGN.md)
 
 ---
 
@@ -215,6 +215,6 @@ Sources/FKUIKit/Components/Widgets/StatusPill/
 
 ## 相关文档
 
-- [FKChip-FKTag-FKChipGroup_DESIGN.zh-CN.md](FKChip-FKTag-FKChipGroup_DESIGN.zh-CN.md)
-- [FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.zh-CN.md](FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.zh-CN.md)
-- [FKSmallComponents_DESIGN.zh-CN.md](FKSmallComponents_DESIGN.zh-CN.md)
+- [FKChip-FKTag-FKChipGroup_DESIGN.md](FKChip-FKTag-FKChipGroup_DESIGN.md)
+- [FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.md](FKAvatar-FKAvatarGroup-FKPresenceIndicator_DESIGN.md)
+- [FKSmallComponents_DESIGN.md](FKSmallComponents_DESIGN.md)
