@@ -99,7 +99,7 @@ final class FKListKitExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Search filter",
-          subtitle: "Debounced UISearchBar · applySnapshot filtered",
+          subtitle: "Debounced UISearchBar · applySnapshot filtered · see SearchViewController hub for FKKit path",
           make: { FKListKitSearchFilterExampleViewController() }
         ),
         Row(

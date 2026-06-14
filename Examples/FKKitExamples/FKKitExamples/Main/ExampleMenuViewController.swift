@@ -159,6 +159,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKSearchExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "SearchViewController",
+          subtitle: "Hub: FKSearchViewController — local/remote, placements, empty/error, cancel, callbacks, custom cells",
+          make: { FKSearchViewControllerExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "SheetPresentationController",
           subtitle: "Custom SheetPresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
           make: { FKSheetPresentationControllerExamplesHubViewController() }
