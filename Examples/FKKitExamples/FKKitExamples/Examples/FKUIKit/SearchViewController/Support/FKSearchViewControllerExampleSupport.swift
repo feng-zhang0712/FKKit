@@ -142,7 +142,7 @@ enum FKSearchViewControllerExampleSupport {
   }
 }
 
-/// Minimal placeholder discovery page for presentation demos — PYSearch-style UI belongs in FKBusinessKit.
+/// Minimal placeholder discovery page for presentation demos — rich idle UI belongs in the host app or FKBusinessKit.
 final class FKSearchViewControllerExampleDiscoveryViewController: UIViewController {
   private let titleText: String
   private let items: [String]

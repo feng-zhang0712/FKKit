@@ -22,7 +22,7 @@ Composable search page for FKUIKit: orchestrates **FKSearchBar**, **FKListKit**,
 | `Public/FKSearchQueryDispatch.swift` | Built-in search vs host-handled dispatch |
 | `Public/FKSearchViewControllerConfiguration.swift` | Layered configuration and `FKSearchViewControllerDefaults` |
 | `Public/FKSearchMode.swift` | Local filter vs remote search |
-| `Public/FKSearchBarPlacement.swift` | Navigation bar, sticky header, table header |
+| `Public/FKSearchBarPlacement.swift` | Navigation bar, sticky header, table header, sticky footer (keyboard-aware) |
 | `Public/FKSearchPresentationState.swift` | idle / editing / loading / results / empty / error |
 | `Public/FKSearchLocalFilterProviding.swift` | In-memory filter protocol |
 | `Public/FKSearchResultsProviding.swift` | Async remote search protocol |
@@ -97,7 +97,8 @@ extension RemoteSearchViewController: FKSearchResultsProviding {
 - `configureSearchBar(_:)` — extra setup after default wiring
 - `emptyConfiguration(for:)` — override empty/error copy for embedded list
 - `willPerformSearch(query:)` — logging or analytics
-- `retryCurrentSearch()` — re-run current query (error CTA)
+- `retryCurrentSearch()` — re-run current query (error CTA); reads ``currentQuery``
+- `currentQuery` — last query processed by the orchestrator (read-only)
 
 ## Presentation customization
 
@@ -110,11 +111,15 @@ Default behavior is unchanged: `configuration.presentation = .unified` (embedded
 | `.customIdleHostHandledResults` | Custom search page; host pushes or presents results (WeChat-style) |
 | `.customResultsViewController` | Custom results child via `makeResultsViewController()` / `FKSearchResultsDisplaying` |
 
-Host-handled results: set `resultsMode` to `.hostHandled` (or preset above), then implement `callbacks.onHostSearchRequested` or `FKSearchViewControllerDelegate.hostSearchRequested`.
+Host-handled results: set `resultsMode` to `.hostHandled` (or preset above), then implement `callbacks.onHostSearchRequested` or `FKSearchViewControllerDelegate.hostSearchRequested`. Host notification runs on **Return / submit** and **`setQuery(_:options: .withSearchQuery)`** — not on every debounced keystroke (entry pages with custom idle chrome stay visible while typing).
 
 Custom results surfaces conform to `FKSearchResultsDisplaying` and receive `FKSearchResultsPresentationUpdate` from the search orchestrator.
 
-**Note:** PYSearch-style hot search / history UI is intentionally **not** bundled in FKKit — build it in FKBusinessKit (or your app) using `makeSearchContentViewController()` and related hooks.
+**Note:** Hot-search tags / history UI is intentionally **not** bundled in FKKit — build it in FKBusinessKit (or your app) using `makeSearchContentViewController()` and related hooks.
+
+## Bottom search bar
+
+Use `FKSearchBarPlacement.stickyFooter` to pin the search chrome above the home indicator and **keyboard**. When the keyboard is hidden, the bar stays at the safe-area bottom; when visible, it tracks `keyboardLayoutGuide`.
 
 ## Navigation bar notes
 
@@ -127,7 +132,7 @@ FKKitExamples hub: `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Search
 
 | Scenario | Demonstrates |
 |----------|----------------|
-| Local · sticky / table header / navigation bar | `FKSearchMode`, `FKSearchBarPlacement`, `FKSearchLocalFilterProviding` |
+| Local · sticky / table header / navigation bar / bottom | `FKSearchMode`, `FKSearchBarPlacement`, `FKSearchLocalFilterProviding` |
 | Remote · loading & cancel | `FKSearchResultsProviding`, loading skeleton, stale-result guard |
 | Remote · error & retry | `FKSearchError`, `retryCurrentSearch()` |
 | Remote · idle placeholder | `showsResultsOnEmptyQuery`, `remoteIdleSnapshot` |
@@ -138,7 +143,7 @@ FKKitExamples hub: `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Search
 | Custom empty copy | `emptyConfiguration(for:)` |
 | Callbacks / delegate | `FKSearchViewControllerCallbacks`, `FKSearchViewControllerDelegate`, `setQuery` |
 | Custom search page | `FKSearchPresentationConfiguration.customIdleEmbeddedResults`, `makeSearchContentViewController()` |
-| PYSearch-style layout | Custom idle (hot tags + history) + push `FKPagingController` `contentTop` results (`hostHandled`) |
+| Hot tags + history layout | Custom idle (hot tags + history) + push `FKPagingController` `contentTop` results (`hostHandled`) |
 | Custom results surface | `FKSearchResultsDisplaying`, `makeResultsViewController()` |
 | Host-handled push results | `.hostHandled`, `onHostSearchRequested` |
 

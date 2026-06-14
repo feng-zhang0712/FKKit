@@ -14,6 +14,8 @@ open class FKSearchViewController: UIViewController {
   public private(set) var resultsViewController: UIViewController!
   public private(set) var searchContentViewController: UIViewController?
   public private(set) var presentationState: FKSearchPresentationState = .idle
+  /// Query string last processed by the search orchestrator (as emitted by ``FKSearchBar``).
+  public private(set) var currentQuery = ""
 
   /// Embedded ListKit child when ``FKSearchResultsPresentationMode/embeddedList`` or results VC is a list subclass.
   public var listViewController: FKDiffableTableViewController? {
@@ -34,8 +36,6 @@ open class FKSearchViewController: UIViewController {
   private let sessionCoordinator = FKSearchSessionCoordinator()
   private var contentContainer: FKSearchContentContainer!
   private var chromeContainer: FKSearchChromeContainerView?
-  private var accessoryHostView: UIView?
-  private var currentQuery = ""
   private var didInstallInitialContent = false
   private var didFocusSearchOnAppear = false
   private var isShowingSearchSkeleton = false
@@ -70,9 +70,9 @@ open class FKSearchViewController: UIViewController {
     resultsViewController = makeResultsViewController()
     if let list = listViewController {
       list.delegate = self
-      if let resultsList = list as? FKSearchResultsListViewController {
-        resultsList.searchHost = self
-      }
+    }
+    if let resultsList = resultsViewController as? FKSearchResultsListViewController {
+      resultsList.searchHost = self
     }
 
     configureSearchBar(searchBar)
@@ -118,21 +118,28 @@ open class FKSearchViewController: UIViewController {
 
   // MARK: - Public API
 
-  /// Re-runs the current normalized query (used by error retry and programmatic refresh).
+  /// Re-runs the current query (used by error retry and programmatic refresh).
   public func retryCurrentSearch() {
-    handleSearchQueryChanged(currentQuery)
+    let trigger: SearchQueryTrigger = configuration.presentation.resultsMode == .hostHandled ? .submit : .debouncedChange
+    handleSearchQueryChanged(currentQuery, trigger: trigger)
   }
 
   /// Programmatically updates the query; respects ``FKSearchTextUpdateOptions``.
+  ///
+  /// When ``FKSearchTextUpdateOptions/triggerSearchQueryChanged`` is `true`, host-handled presentation
+  /// notifies the host immediately (same as Return / submit).
   public func setQuery(_ query: String, options: FKSearchTextUpdateOptions = .withSearchQuery) {
-    searchBar.setText(query, options: options)
+    if options.triggerSearchQueryChanged {
+      searchBar.setText(query, options: .silent)
+      handleSearchQueryChanged(query, trigger: .programmatic)
+    } else {
+      searchBar.setText(query, options: options)
+    }
   }
 
   /// Override to customize the embedded ListKit table used for unified or list-backed results.
   open func makeListViewController() -> FKDiffableTableViewController {
-    let list = FKSearchResultsListViewController(configuration: configuration.list)
-    list.searchHost = self
-    return list
+    FKSearchResultsListViewController(configuration: configuration.list)
   }
 
   /// Override to supply the results child. Default forwards to ``makeListViewController()``.
@@ -205,11 +212,11 @@ open class FKSearchViewController: UIViewController {
     }
 
     searchBar.callbacks.onSearchQueryChanged = { [weak self] query in
-      self?.handleSearchQueryChanged(query)
+      self?.handleSearchQueryChanged(query, trigger: .debouncedChange)
     }
 
     searchBar.callbacks.onSubmit = { [weak self] query in
-      self?.handleSearchQueryChanged(query)
+      self?.handleSearchQueryChanged(query, trigger: .submit)
     }
 
     searchBar.callbacks.onCancel = { [weak self] in
@@ -224,12 +231,45 @@ open class FKSearchViewController: UIViewController {
   }
 
   private func installChromeAndContent() {
-    let topAnchor = installSearchChrome()
+    switch configuration.placement {
+    case .stickyFooter:
+      installStickyFooterChromeAndContent()
+    default:
+      let topAnchor = installSearchChrome()
+      contentContainer = FKSearchContentContainer(
+        resultsViewController: resultsViewController,
+        searchContentViewController: searchContentViewController
+      )
+      contentContainer.embed(in: self, below: topAnchor, in: view)
+    }
+  }
+
+  private func installStickyFooterChromeAndContent() {
+    let accessory = makeSearchAccessoryView()
+    let chrome = FKSearchChromeContainerView(searchBar: searchBar, accessoryView: accessory)
+    chrome.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(chrome)
+    chromeContainer = chrome
+
     contentContainer = FKSearchContentContainer(
       resultsViewController: resultsViewController,
       searchContentViewController: searchContentViewController
     )
-    contentContainer.embed(in: self, below: topAnchor, in: view)
+    contentContainer.embed(
+      in: self,
+      topAnchor: view.safeAreaLayoutGuide.topAnchor,
+      bottomAnchor: chrome.topAnchor,
+      in: view
+    )
+
+    NSLayoutConstraint.activate([
+      chrome.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      chrome.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      chrome.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
+    ])
+    let followKeyboard = chrome.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor)
+    followKeyboard.priority = UILayoutPriority(999)
+    followKeyboard.isActive = true
   }
 
   private func installSearchChrome() -> NSLayoutYAxisAnchor {
@@ -251,7 +291,6 @@ open class FKSearchViewController: UIViewController {
           accessory.trailingAnchor.constraint(equalTo: host.trailingAnchor, constant: -16),
           accessory.bottomAnchor.constraint(equalTo: host.bottomAnchor, constant: -8),
         ])
-        accessoryHostView = host
         return host.bottomAnchor
       }
       return view.safeAreaLayoutGuide.topAnchor
@@ -267,12 +306,15 @@ open class FKSearchViewController: UIViewController {
         chrome.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       ])
       return chrome.bottomAnchor
+
+    case .stickyFooter:
+      return view.safeAreaLayoutGuide.topAnchor
     }
   }
 
   private func installSearchPlacement() {
     switch configuration.placement {
-    case .navigationBar, .stickyHeader:
+    case .navigationBar, .stickyHeader, .stickyFooter:
       break
     case .tableHeader:
       guard !didInstallTableHeader, let tableView = listViewController?.tableView else { return }
@@ -300,7 +342,13 @@ open class FKSearchViewController: UIViewController {
 
   // MARK: - Search handling
 
-  private func handleSearchQueryChanged(_ query: String) {
+  private enum SearchQueryTrigger {
+    case debouncedChange
+    case submit
+    case programmatic
+  }
+
+  private func handleSearchQueryChanged(_ query: String, trigger: SearchQueryTrigger = .debouncedChange) {
     currentQuery = query
     willPerformSearch(query: query)
     let isEmptyQuery = isEffectivelyEmptyQuery(query)
@@ -313,10 +361,15 @@ open class FKSearchViewController: UIViewController {
       return
     }
 
+    if configuration.presentation.resultsMode == .hostHandled {
+      handleHostHandledQuery(query, trigger: trigger)
+      return
+    }
+
     let dispatch = resolveSearchQueryDispatch(for: query)
     if dispatch == .handledByHost {
       notifyHostSearchRequested(query: query)
-      updatePresentationState(.loading(query: query))
+      updatePresentationState(.editing)
       updateContentVisibility(isEmptyQuery: false)
       hideSearchLoading()
       hideSearchSkeleton()
@@ -331,6 +384,21 @@ open class FKSearchViewController: UIViewController {
     case .remote:
       performRemoteSearch(query: query)
     }
+  }
+
+  private func handleHostHandledQuery(_ query: String, trigger: SearchQueryTrigger) {
+    updateContentVisibility(isEmptyQuery: false)
+    sessionCoordinator.cancelAll()
+    hideSearchLoading()
+    hideSearchSkeleton()
+
+    guard trigger == .submit || trigger == .programmatic else {
+      updatePresentationState(.editing)
+      return
+    }
+
+    notifyHostSearchRequested(query: query)
+    updatePresentationState(.editing)
   }
 
   private func handleSearchCancel() {
@@ -373,7 +441,7 @@ open class FKSearchViewController: UIViewController {
       snapshot = provider.baselineSnapshot
       updatePresentationState(.idle)
       applyResultsUpdate(.idle)
-      applySnapshotToResults(snapshot, query: query, animatingDifferences: configuration.behavior.animatesSnapshotChanges)
+      applySnapshotToResults(snapshot, animatingDifferences: configuration.behavior.animatesSnapshotChanges)
       listViewController?.activeEmptyScenarioOverride = nil
     } else {
       snapshot = provider.filteredSnapshot(for: query)
@@ -387,7 +455,7 @@ open class FKSearchViewController: UIViewController {
         applyResultsUpdate(.results(query: query, snapshot: snapshot))
         listViewController?.activeEmptyScenarioOverride = nil
       }
-      applySnapshotToResults(snapshot, query: query, animatingDifferences: configuration.behavior.animatesSnapshotChanges)
+      applySnapshotToResults(snapshot, animatingDifferences: configuration.behavior.animatesSnapshotChanges)
     }
   }
 
@@ -441,7 +509,7 @@ open class FKSearchViewController: UIViewController {
       updatePresentationState(.results(query: query, itemCount: snapshot.totalItemCount))
       applyResultsUpdate(.results(query: query, snapshot: snapshot))
     }
-    applySnapshotToResults(snapshot, query: query, animatingDifferences: configuration.behavior.animatesSnapshotChanges)
+    applySnapshotToResults(snapshot, animatingDifferences: configuration.behavior.animatesSnapshotChanges)
   }
 
   private func applyRemoteIdleState() {
@@ -456,10 +524,10 @@ open class FKSearchViewController: UIViewController {
       if snapshot.totalItemCount == 0, configuration.empty.remoteIdleScenario == nil {
         listViewController?.activeEmptyScenarioOverride = nil
       }
-      applySnapshotToResults(snapshot, query: "", animatingDifferences: configuration.behavior.animatesSnapshotChanges)
+      applySnapshotToResults(snapshot, animatingDifferences: configuration.behavior.animatesSnapshotChanges)
     } else {
       listViewController?.activeEmptyScenarioOverride = configuration.empty.remoteIdleScenario
-      applySnapshotToResults(FKListSnapshot(), query: "", animatingDifferences: configuration.behavior.animatesSnapshotChanges)
+      applySnapshotToResults(FKListSnapshot(), animatingDifferences: configuration.behavior.animatesSnapshotChanges)
       if configuration.empty.remoteIdleScenario == nil {
         listViewController?.activeEmptyScenarioOverride = nil
       }
@@ -470,7 +538,7 @@ open class FKSearchViewController: UIViewController {
     listViewController?.activeEmptyScenarioOverride = .loadFailed
     updatePresentationState(.error(query: query, error: error))
     applyResultsUpdate(.error(query: query, error: error))
-    applySnapshotToResults(FKListSnapshot(), query: query, animatingDifferences: false)
+    applySnapshotToResults(FKListSnapshot(), animatingDifferences: false)
   }
 
   // MARK: - Results routing
@@ -485,9 +553,6 @@ open class FKSearchViewController: UIViewController {
   }
 
   private func resolveSearchQueryDispatch(for query: String) -> FKSearchQueryDispatch {
-    if configuration.presentation.resultsMode == .hostHandled {
-      return .handledByHost
-    }
     if let handler = callbacks.onSearchQueryDispatch {
       return handler(query, self)
     }
@@ -508,22 +573,8 @@ open class FKSearchViewController: UIViewController {
     }
   }
 
-  private func applySnapshotToResults(
-    _ snapshot: FKListSnapshot,
-    query: String,
-    animatingDifferences: Bool
-  ) {
-    if let list = listViewController {
-      list.applySnapshot(snapshot, animatingDifferences: animatingDifferences)
-      return
-    }
-    if snapshot.totalItemCount == 0 {
-      if case .empty = presentationState {
-        // custom display handles via applyResultsUpdate
-      }
-    } else {
-      applyResultsUpdate(.results(query: query, snapshot: snapshot))
-    }
+  private func applySnapshotToResults(_ snapshot: FKListSnapshot, animatingDifferences: Bool) {
+    listViewController?.applySnapshot(snapshot, animatingDifferences: animatingDifferences)
   }
 
   private func updateContentVisibility(isEmptyQuery: Bool) {

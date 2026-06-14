@@ -11,24 +11,36 @@ final class FKSearchContentContainer {
 
   private(set) var resultsViewController: UIViewController
   private(set) var searchContentViewController: UIViewController?
+
   private let containerView = UIView()
-  private var embeddedChildren: [UIViewController] = []
 
   init(resultsViewController: UIViewController, searchContentViewController: UIViewController?) {
     self.resultsViewController = resultsViewController
     self.searchContentViewController = searchContentViewController
   }
 
-  var container: UIView { containerView }
-
   func embed(in parent: UIViewController, below topAnchor: NSLayoutYAxisAnchor, in hostView: UIView) {
+    embed(
+      in: parent,
+      topAnchor: topAnchor,
+      bottomAnchor: hostView.bottomAnchor,
+      in: hostView
+    )
+  }
+
+  func embed(
+    in parent: UIViewController,
+    topAnchor: NSLayoutYAxisAnchor,
+    bottomAnchor: NSLayoutYAxisAnchor,
+    in hostView: UIView
+  ) {
     containerView.translatesAutoresizingMaskIntoConstraints = false
     hostView.addSubview(containerView)
     NSLayoutConstraint.activate([
       containerView.topAnchor.constraint(equalTo: topAnchor),
       containerView.leadingAnchor.constraint(equalTo: hostView.leadingAnchor),
       containerView.trailingAnchor.constraint(equalTo: hostView.trailingAnchor),
-      containerView.bottomAnchor.constraint(equalTo: hostView.bottomAnchor),
+      containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
     ])
 
     embedChild(resultsViewController, in: parent)
@@ -36,23 +48,6 @@ final class FKSearchContentContainer {
       embedChild(searchContentViewController, in: parent)
     }
     setVisibleSurface(.results)
-  }
-
-  func replaceResultsViewController(_ viewController: UIViewController, in parent: UIViewController) {
-    removeChild(resultsViewController)
-    resultsViewController = viewController
-    embedChild(viewController, in: parent)
-    setVisibleSurface(.results)
-  }
-
-  func replaceSearchContentViewController(_ viewController: UIViewController?, in parent: UIViewController) {
-    if let existing = searchContentViewController {
-      removeChild(existing)
-    }
-    searchContentViewController = viewController
-    if let viewController {
-      embedChild(viewController, in: parent)
-    }
   }
 
   func setVisibleSurface(_ surface: VisibleSurface) {
@@ -79,13 +74,5 @@ final class FKSearchContentContainer {
       child.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
     ])
     child.didMove(toParent: parent)
-    embeddedChildren.append(child)
-  }
-
-  private func removeChild(_ child: UIViewController) {
-    child.willMove(toParent: nil)
-    child.view.removeFromSuperview()
-    child.removeFromParent()
-    embeddedChildren.removeAll { $0 === child }
   }
 }

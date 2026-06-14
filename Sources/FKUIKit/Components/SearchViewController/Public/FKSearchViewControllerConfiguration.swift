@@ -30,6 +30,7 @@ public struct FKSearchBehaviorConfiguration: Sendable, Equatable {
 /// Loading presentation during remote queries in ``FKSearchViewController``.
 public struct FKSearchViewControllerLoadingConfiguration: Sendable, Equatable {
   public var useSkeleton: Bool
+  /// Reserved for future row-placeholder skeleton APIs; v1 overlay mode ignores this value.
   public var skeletonRowCount: Int
   /// Drives ``FKSearchBar/setLoading(_:animated:)`` during remote queries.
   public var searchBarLoading: Bool
@@ -105,7 +106,7 @@ public enum FKSearchViewControllerDefaults {
   public static func localFilter(
     placement: FKSearchBarPlacement = .stickyHeader
   ) -> FKSearchViewControllerConfiguration {
-    var config = FKSearchViewControllerConfiguration(
+    FKSearchViewControllerConfiguration(
       mode: .localFilter,
       placement: placement,
       searchBar: searchBarConfiguration(for: placement),
@@ -113,7 +114,6 @@ public enum FKSearchViewControllerDefaults {
       loading: FKSearchViewControllerLoadingConfiguration(useSkeleton: false, searchBarLoading: false),
       behavior: FKSearchBehaviorConfiguration()
     )
-    return config
   }
 
   /// Remote async search with loading chrome enabled by default.
@@ -149,6 +149,8 @@ public enum FKSearchViewControllerDefaults {
     case .navigationBar:
       return FKSearchBarDefaults.navigationBar()
     case .stickyHeader, .tableHeader:
+      return FKSearchBarDefaults.inlineCard()
+    case .stickyFooter:
       return FKSearchBarDefaults.inlineCard()
     }
   }

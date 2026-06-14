@@ -37,6 +37,11 @@ final class FKSearchViewControllerExamplesHubViewController: UITableViewControll
         factory: { FKSearchViewControllerExampleLocalTableHeaderViewController() }
       ),
       DemoItem(
+        title: "Bottom · keyboard aware",
+        subtitle: "FKSearchBarPlacement.stickyFooter · pins above keyboardLayoutGuide",
+        factory: { FKSearchViewControllerExampleBottomStickySearchViewController() }
+      ),
+      DemoItem(
         title: "Navigation bar placement",
         subtitle: "FKSearchBarNavigationHosting in titleView · cancel-on-focus preset",
         factory: { FKSearchViewControllerExampleNavigationBarViewController() }
@@ -88,9 +93,9 @@ final class FKSearchViewControllerExamplesHubViewController: UITableViewControll
     ]),
     DemoSection(title: "Presentation customization", items: [
       DemoItem(
-        title: "PYSearch-style layout",
-        subtitle: "Hot tags + history idle · push tabbed FKPagingController results (hostHandled)",
-        factory: { FKSearchViewControllerExamplePYSearchLayoutViewController() }
+        title: "Hot tags + history layout",
+        subtitle: "Custom idle (hot tags + history) · host-handled push · FKPagingController tabbed results",
+        factory: { FKSearchViewControllerExampleHotTagsHistoryLayoutViewController() }
       ),
       DemoItem(
         title: "Custom search page",

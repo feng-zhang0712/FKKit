@@ -1,12 +1,12 @@
 import FKUIKit
 import UIKit
 
-/// PYSearch-style demo: hot tags + history on the entry page; tabbed results pushed on a separate screen.
+/// Hot tags + history on the entry page; tabbed results pushed on a separate screen.
 ///
 /// Illustrates host-handled navigation — the search VC owns input and idle chrome; the host pushes
 /// a custom results page (``FKPagingController`` ``FKPagingTabBarPlacement/contentTop``).
-final class FKSearchViewControllerExamplePYSearchLayoutViewController: FKSearchViewController {
-  private let historyStore = FKSearchViewControllerExamplePYSearchHistoryStore()
+final class FKSearchViewControllerExampleHotTagsHistoryLayoutViewController: FKSearchViewController {
+  private let historyStore = FKSearchViewControllerExampleSearchHistoryStore()
 
   init() {
     var config = FKSearchViewControllerDefaults.localFilter(placement: .stickyHeader)
@@ -21,10 +21,9 @@ final class FKSearchViewControllerExamplePYSearchLayoutViewController: FKSearchV
   }
 
   override func makeSearchContentViewController() -> UIViewController? {
-    let idle = FKSearchViewControllerExamplePYSearchIdleViewController(historyStore: historyStore)
+    let idle = FKSearchViewControllerExampleHotTagsIdleViewController(historyStore: historyStore)
     idle.onSelectTerm = { [weak self] term in
-      self?.searchBar.setText(term, options: .silent)
-      self?.pushResults(for: term)
+      self?.setQuery(term, options: .withSearchQuery)
     }
     idle.onDeleteHistory = { [weak self] index in
       self?.historyStore.remove(at: index)
@@ -37,10 +36,7 @@ final class FKSearchViewControllerExamplePYSearchLayoutViewController: FKSearchV
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "PYSearch Layout"
-
-    // Entry page stays on idle chrome; navigate only on Return / suggestion tap (not while typing).
-    searchBar.callbacks.onSearchQueryChanged = { _ in }
+    title = "Hot Tags + History"
 
     callbacks.onHostSearchRequested = { [weak self] query, _ in
       self?.pushResults(for: query)
@@ -52,14 +48,14 @@ final class FKSearchViewControllerExamplePYSearchLayoutViewController: FKSearchV
     guard !trimmed.isEmpty else { return }
 
     if let top = navigationController?.topViewController
-      as? FKSearchViewControllerExamplePYSearchPushedResultsViewController,
+      as? FKSearchViewControllerExampleHostPushedTabbedResultsViewController,
       top.query.caseInsensitiveCompare(trimmed) == .orderedSame {
       return
     }
 
     historyStore.record(trimmed)
     navigationController?.pushViewController(
-      FKSearchViewControllerExamplePYSearchPushedResultsViewController(query: trimmed),
+      FKSearchViewControllerExampleHostPushedTabbedResultsViewController(query: trimmed),
       animated: true
     )
   }

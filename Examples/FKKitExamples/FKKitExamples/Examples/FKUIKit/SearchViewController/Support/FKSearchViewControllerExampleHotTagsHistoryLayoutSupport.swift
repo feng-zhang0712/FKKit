@@ -1,8 +1,8 @@
 import FKUIKit
 import UIKit
 
-/// Fixtures and helpers for the PYSearch-style layout demo (Examples only — not shipped in FKKit).
-enum FKSearchViewControllerExamplePYSearchLayoutSupport {
+/// Fixtures and helpers for the hot-tags + history layout demo (Examples only).
+enum FKSearchViewControllerExampleHotTagsHistoryLayoutSupport {
 
   static let hotSearchTerms: [String] = [
     "Java", "Python", "Objective-C", "Swift", "C", "C++", "PHP", "C#",
@@ -44,9 +44,9 @@ enum FKSearchViewControllerExamplePYSearchLayoutSupport {
   }
 }
 
-/// In-memory recent-search store for the PYSearch-style idle page.
+/// In-memory recent-search store for the hot-tags idle page.
 @MainActor
-final class FKSearchViewControllerExamplePYSearchHistoryStore {
+final class FKSearchViewControllerExampleSearchHistoryStore {
   private(set) var items: [String]
 
   var onChange: (() -> Void)?
@@ -79,20 +79,22 @@ final class FKSearchViewControllerExamplePYSearchHistoryStore {
   }
 }
 
-/// PYSearch-style idle page: hot tag cloud + searchable history list.
+/// Idle page: hot tag cloud + searchable history list.
 @MainActor
-final class FKSearchViewControllerExamplePYSearchIdleViewController: UITableViewController {
+final class FKSearchViewControllerExampleHotTagsIdleViewController: UITableViewController {
   var onSelectTerm: ((String) -> Void)?
   var onDeleteHistory: ((Int) -> Void)?
   var onClearHistory: (() -> Void)?
 
-  private let historyStore: FKSearchViewControllerExamplePYSearchHistoryStore
+  private let historyStore: FKSearchViewControllerExampleSearchHistoryStore
   private let hotTerms: [String]
+  private var hotSearchHeaderView: UIView?
   private var chipGroup: FKChipGroup?
+  private var lastHotHeaderSize = CGSize.zero
 
   init(
-    historyStore: FKSearchViewControllerExamplePYSearchHistoryStore,
-    hotTerms: [String] = FKSearchViewControllerExamplePYSearchLayoutSupport.hotSearchTerms
+    historyStore: FKSearchViewControllerExampleSearchHistoryStore,
+    hotTerms: [String] = FKSearchViewControllerExampleHotTagsHistoryLayoutSupport.hotSearchTerms
   ) {
     self.historyStore = historyStore
     self.hotTerms = hotTerms
@@ -109,7 +111,7 @@ final class FKSearchViewControllerExamplePYSearchIdleViewController: UITableView
     view.backgroundColor = .systemBackground
     tableView.separatorInset = UIEdgeInsets(top: 0, left: 52, bottom: 0, right: 16)
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "history")
-    tableView.tableHeaderView = makeHotSearchHeader()
+    installHotSearchHeader()
     tableView.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 24))
 
     historyStore.onChange = { [weak self] in
@@ -119,7 +121,7 @@ final class FKSearchViewControllerExamplePYSearchIdleViewController: UITableView
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    resizeTableHeaderIfNeeded()
+    resizeHotSearchHeaderIfNeeded()
   }
 
   override func numberOfSections(in tableView: UITableView) -> Int { 1 }
@@ -201,12 +203,12 @@ final class FKSearchViewControllerExamplePYSearchIdleViewController: UITableView
     onSelectTerm?(historyStore.items[indexPath.row])
   }
 
-  private func makeHotSearchHeader() -> UIView {
-    let container = UIView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.width, height: 10))
-    container.backgroundColor = .systemBackground
+  private func installHotSearchHeader() {
+    let width = resolvedTableWidth()
+    let header = UIView(frame: CGRect(x: 0, y: 0, width: width, height: 44))
+    header.backgroundColor = .systemBackground
 
     let title = UILabel()
-    title.translatesAutoresizingMaskIntoConstraints = false
     title.text = "Hot Searches"
     title.font = .preferredFont(forTextStyle: .footnote)
     title.textColor = .secondaryLabel
@@ -217,50 +219,66 @@ final class FKSearchViewControllerExamplePYSearchIdleViewController: UITableView
 
     let chips = hotTerms.map { FKChipItem(id: $0.lowercased(), title: $0) }
     let group = FKChipGroup(configuration: groupConfig, chips: chips, selectionMode: .none)
-    group.translatesAutoresizingMaskIntoConstraints = false
     group.onChipPrimaryAction = { [weak self] id in
       guard let self else { return }
       let term = self.hotTerms.first { $0.lowercased() == id } ?? id
       self.onSelectTerm?(term)
     }
-    chipGroup = group
 
-    container.addSubview(title)
-    container.addSubview(group)
-    NSLayoutConstraint.activate([
-      title.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
-      title.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
-      title.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-      group.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 10),
-      group.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
-      group.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-      group.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12),
-    ])
-    return container
+    header.addSubview(title)
+    header.addSubview(group)
+    hotSearchHeaderView = header
+    chipGroup = group
+    layoutHotSearchHeader(header, width: width)
+    lastHotHeaderSize = header.frame.size
+    tableView.tableHeaderView = header
   }
 
-  private func resizeTableHeaderIfNeeded() {
-    guard let header = tableView.tableHeaderView else { return }
-    let width = tableView.bounds.width
+  private func resizeHotSearchHeaderIfNeeded() {
+    guard let header = hotSearchHeaderView else { return }
+    let width = resolvedTableWidth()
     guard width > 0 else { return }
-    header.frame.size.width = width
-    let targetSize = CGSize(width: width, height: UIView.layoutFittingCompressedSize.height)
-    let height = header.systemLayoutSizeFitting(
-      targetSize,
-      withHorizontalFittingPriority: .required,
-      verticalFittingPriority: .fittingSizeLevel
-    ).height
-    guard abs(header.frame.height - height) > 0.5 else { return }
-    header.frame.size.height = height
+    layoutHotSearchHeader(header, width: width)
+    let size = header.frame.size
+    guard abs(size.width - lastHotHeaderSize.width) > 0.5
+      || abs(size.height - lastHotHeaderSize.height) > 0.5 else { return }
+    lastHotHeaderSize = size
     tableView.tableHeaderView = header
-    chipGroup?.setNeedsLayout()
-    chipGroup?.invalidateIntrinsicContentSize()
+  }
+
+  private func layoutHotSearchHeader(_ header: UIView, width: CGFloat) {
+    let horizontalInset: CGFloat = 16
+    let contentWidth = max(width - horizontalInset * 2, 1)
+
+    let title = header.subviews.compactMap { $0 as? UILabel }.first
+    let group = chipGroup
+
+    title?.frame = CGRect(x: horizontalInset, y: 12, width: contentWidth, height: 18)
+
+    guard let group else {
+      header.frame.size = CGSize(width: width, height: 44)
+      return
+    }
+
+    let chipTop = (title?.frame.maxY ?? 12) + 10
+    let chipSize = group.sizeThatFits(CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height))
+    let chipHeight = max(chipSize.height, 1)
+    group.frame = CGRect(x: horizontalInset, y: chipTop, width: contentWidth, height: chipHeight)
+
+    let height = ceil(group.frame.maxY + 12)
+    header.frame.size = CGSize(width: width, height: height)
+  }
+
+  private func resolvedTableWidth() -> CGFloat {
+    if tableView.bounds.width > 0 { return tableView.bounds.width }
+    if let width = view.window?.bounds.width, width > 0 { return width }
+    return UIScreen.main.bounds.width
   }
 }
 
 /// Single tab page listing programming-language matches.
 @MainActor
-final class FKSearchViewControllerExamplePYSearchResultsListPageViewController: UITableViewController {
+final class FKSearchViewControllerExampleHotTagsResultsListPageViewController: UITableViewController {
   var languageNames: [String] = [] {
     didSet { tableView.reloadData() }
   }
@@ -292,7 +310,7 @@ final class FKSearchViewControllerExamplePYSearchResultsListPageViewController: 
     let cell = tableView.dequeueReusableCell(withIdentifier: "result", for: indexPath)
     var config = cell.defaultContentConfiguration()
     config.text = languageNames[indexPath.row]
-    config.secondaryText = FKSearchViewControllerExamplePYSearchLayoutSupport.subtitle(for: languageNames[indexPath.row])
+    config.secondaryText = FKSearchViewControllerExampleHotTagsHistoryLayoutSupport.subtitle(for: languageNames[indexPath.row])
     config.secondaryTextProperties.color = .secondaryLabel
     cell.contentConfiguration = config
     cell.accessoryType = .disclosureIndicator
@@ -321,13 +339,13 @@ final class FKSearchViewControllerExamplePYSearchResultsListPageViewController: 
 
 /// Tabbed results page pushed after a query (``FKPagingTabBarPlacement/contentTop``).
 @MainActor
-final class FKSearchViewControllerExamplePYSearchPushedResultsViewController: UIViewController {
+final class FKSearchViewControllerExampleHostPushedTabbedResultsViewController: UIViewController {
   let query: String
 
   private let pagingController: FKPagingController
-  private let allPage = FKSearchViewControllerExamplePYSearchResultsListPageViewController(pageTitle: "All matches")
-  private let systemsPage = FKSearchViewControllerExamplePYSearchResultsListPageViewController(pageTitle: "Systems languages")
-  private let scriptingPage = FKSearchViewControllerExamplePYSearchResultsListPageViewController(pageTitle: "Scripting languages")
+  private let allPage = FKSearchViewControllerExampleHotTagsResultsListPageViewController(pageTitle: "All matches")
+  private let systemsPage = FKSearchViewControllerExampleHotTagsResultsListPageViewController(pageTitle: "Systems languages")
+  private let scriptingPage = FKSearchViewControllerExampleHotTagsResultsListPageViewController(pageTitle: "Scripting languages")
   private let emptyLabel = UILabel()
 
   init(query: String) {
@@ -381,7 +399,7 @@ final class FKSearchViewControllerExamplePYSearchPushedResultsViewController: UI
   }
 
   private func applyResults() {
-    let names = FKSearchViewControllerExamplePYSearchLayoutSupport.filteredLanguages(for: query)
+    let names = FKSearchViewControllerExampleHotTagsHistoryLayoutSupport.filteredLanguages(for: query)
     guard !names.isEmpty else {
       pagingController.view.isHidden = true
       emptyLabel.isHidden = false
@@ -389,7 +407,7 @@ final class FKSearchViewControllerExamplePYSearchPushedResultsViewController: UI
       return
     }
 
-    let buckets = FKSearchViewControllerExamplePYSearchLayoutSupport.partition(names)
+    let buckets = FKSearchViewControllerExampleHotTagsHistoryLayoutSupport.partition(names)
     allPage.languageNames = buckets.all
     systemsPage.languageNames = buckets.systems
     scriptingPage.languageNames = buckets.scripting

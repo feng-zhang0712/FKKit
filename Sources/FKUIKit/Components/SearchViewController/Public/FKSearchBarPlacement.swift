@@ -8,4 +8,6 @@ public enum FKSearchBarPlacement: Sendable, Equatable {
   case stickyHeader
   /// Installed as `UITableView.tableHeaderView` with frame-managed sizing.
   case tableHeader
+  /// Pinned above the keyboard / home indicator; follows ``UIView/keyboardLayoutGuide`` when the keyboard is visible.
+  case stickyFooter
 }

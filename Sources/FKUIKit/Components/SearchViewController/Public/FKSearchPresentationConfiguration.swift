@@ -26,7 +26,7 @@ public struct FKSearchPresentationConfiguration: Sendable, Equatable {
     )
   }
 
-  /// Custom idle page; host handles result navigation (WeChat / PYSearch push style).
+  /// Custom idle page; host handles result navigation (WeChat-style host push).
   public static var customIdleHostHandledResults: FKSearchPresentationConfiguration {
     FKSearchPresentationConfiguration(
       resultsMode: .hostHandled,
