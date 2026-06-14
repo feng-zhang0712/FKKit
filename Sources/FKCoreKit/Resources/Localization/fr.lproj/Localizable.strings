@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "Erreur serveur (%d) : %@";
 "fkcore.network.error.signing_failed" = "Échec de la signature de la requête.";
 "fkcore.network.error.ssl_validation_failed" = "Échec de la validation SSL.";
+"fkcore.network.error.ssl_pinning_failed" = "Échec de l'épinglage SSL pour l'hôte : %@.";
+"fkcore.network.error.ssl_pinning_not_configured" = "Épinglage SSL non configuré pour l'hôte : %@.";
+"fkcore.network.error.retry_exhausted" = "Nombre de tentatives épuisé : %@";
 "fkcore.network.error.token_refresh_failed" = "Échec du rafraîchissement du jeton.";
 "fkcore.network.error.unknown_server_message" = "Erreur inconnue";
 "fkcore.permission.error.pre_prompt_cancelled" = "Pré-invite annulée.";

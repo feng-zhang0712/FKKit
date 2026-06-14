@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "Ошибка сервера (%d): %@";
 "fkcore.network.error.signing_failed" = "Не удалось подписать запрос.";
 "fkcore.network.error.ssl_validation_failed" = "Проверка SSL не удалась.";
+"fkcore.network.error.ssl_pinning_failed" = "Сбой SSL pinning для хоста: %@.";
+"fkcore.network.error.ssl_pinning_not_configured" = "SSL pinning не настроен для хоста: %@.";
+"fkcore.network.error.retry_exhausted" = "Исчерпаны попытки повтора: %@";
 "fkcore.network.error.token_refresh_failed" = "Не удалось обновить токен.";
 "fkcore.network.error.unknown_server_message" = "Неизвестная ошибка";
 "fkcore.permission.error.pre_prompt_cancelled" = "Предварительный запрос отменён.";

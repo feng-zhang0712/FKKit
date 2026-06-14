@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "サーバーエラー（%d）：%@";
 "fkcore.network.error.signing_failed" = "リクエストの署名に失敗しました。";
 "fkcore.network.error.ssl_validation_failed" = "SSL 検証に失敗しました。";
+"fkcore.network.error.ssl_pinning_failed" = "ホスト %@ の SSL ピン留めに失敗しました。";
+"fkcore.network.error.ssl_pinning_not_configured" = "ホスト %@ の SSL ピン留めが設定されていません。";
+"fkcore.network.error.retry_exhausted" = "再試行回数を使い切りました：%@";
 "fkcore.network.error.token_refresh_failed" = "トークンの更新に失敗しました。";
 "fkcore.network.error.unknown_server_message" = "不明なエラー";
 "fkcore.permission.error.pre_prompt_cancelled" = "権限の事前案内がキャンセルされました。";

@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "Server error (%d): %@";
 "fkcore.network.error.signing_failed" = "Request signing failed.";
 "fkcore.network.error.ssl_validation_failed" = "SSL validation failed.";
+"fkcore.network.error.ssl_pinning_failed" = "SSL pinning failed for host: %@.";
+"fkcore.network.error.ssl_pinning_not_configured" = "SSL pinning is not configured for host: %@.";
+"fkcore.network.error.retry_exhausted" = "Retry attempts exhausted: %@";
 "fkcore.network.error.token_refresh_failed" = "Token refresh failed.";
 "fkcore.network.error.unknown_server_message" = "Unknown error";
 "fkcore.permission.error.pre_prompt_cancelled" = "Permission pre-prompt was cancelled.";

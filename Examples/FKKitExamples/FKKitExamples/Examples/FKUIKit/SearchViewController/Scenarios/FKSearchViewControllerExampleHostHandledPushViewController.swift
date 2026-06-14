@@ -41,7 +41,7 @@ final class FKSearchViewControllerExamplePushedResultsViewController: FKDiffable
 
   init(query: String) {
     self.query = query
-    var config = FKSearchViewControllerDefaults.makeListConfiguration()
+    let config = FKSearchViewControllerDefaults.makeListConfiguration()
     super.init(configuration: config)
   }
 

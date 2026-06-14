@@ -597,6 +597,12 @@ final class FKNetworkExampleViewController: UIViewController {
       return "signingFailed"
     case .encryptionFailed:
       return "encryptionFailed"
+    case let .sslPinningFailed(host):
+      return "sslPinningFailed(\(host))"
+    case let .sslPinningNotConfigured(host):
+      return "sslPinningNotConfigured(\(host))"
+    case let .retryExhausted(lastError):
+      return "retryExhausted(\(lastError.localizedDescription))"
     case let .underlying(underlying):
       return "underlying(\(underlying.localizedDescription))"
     }

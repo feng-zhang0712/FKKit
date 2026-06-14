@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "خطأ في الخادم (%d): %@";
 "fkcore.network.error.signing_failed" = "فشل توقيع الطلب.";
 "fkcore.network.error.ssl_validation_failed" = "فشل التحقق من SSL.";
+"fkcore.network.error.ssl_pinning_failed" = "فشل تثبيت SSL للمضيف: %@.";
+"fkcore.network.error.ssl_pinning_not_configured" = "لم يتم تكوين تثبيت SSL للمضيف: %@.";
+"fkcore.network.error.retry_exhausted" = "استنفدت محاولات إعادة المحاولة: %@";
 "fkcore.network.error.token_refresh_failed" = "فشل تحديث الرمز.";
 "fkcore.network.error.unknown_server_message" = "خطأ غير معروف";
 "fkcore.permission.error.pre_prompt_cancelled" = "تم إلغاء الإشعار المسبق.";

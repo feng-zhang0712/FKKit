@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "Serverfehler (%d): %@";
 "fkcore.network.error.signing_failed" = "Anfrage-Signierung fehlgeschlagen.";
 "fkcore.network.error.ssl_validation_failed" = "SSL-Validierung fehlgeschlagen.";
+"fkcore.network.error.ssl_pinning_failed" = "SSL-Pinning für Host %@ fehlgeschlagen.";
+"fkcore.network.error.ssl_pinning_not_configured" = "SSL-Pinning für Host %@ nicht konfiguriert.";
+"fkcore.network.error.retry_exhausted" = "Wiederholungsversuche erschöpft: %@";
 "fkcore.network.error.token_refresh_failed" = "Token-Aktualisierung fehlgeschlagen.";
 "fkcore.network.error.unknown_server_message" = "Unbekannter Fehler";
 "fkcore.permission.error.pre_prompt_cancelled" = "Vorab-Hinweis abgebrochen.";

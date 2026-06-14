@@ -64,10 +64,10 @@ Module layout (`Sources/FKCoreKit/Components/Network`):
 - `Core`: protocols, network client, request/response pipeline, upload/download
 - `Config`: global runtime configuration and environments
 - `Model`: HTTP definitions, cache policies, endpoint and error models
-- `Tool`: cache, logger, deduplicator, reachability, service helpers
-- `Examples`: ready-to-use sample code
+- `Tool`: cache, logger, deduplicator, reachability, multipart, SSL pinning, retry, mock session
+- `Pluggable/Implementations/Networking`: Pluggable adapters and Keychain credential store
 
-> String hashing helpers such as `fk_md5` live in `Components/Extension/Foundation/` for reuse across modules.
+> String hashing helpers such as `fk_md5` / `fk_sha256` live in `Components/Extension/Foundation/`.
 
 Request flow:
 
@@ -93,7 +93,7 @@ Request flow:
 - Token auto-refresh and transparent retry
 - API signing with `MD5RequestSigner`
 - Upload/download with progress and resume data support
-- Basic SSL challenge handling with host strategy hook
+- SSL pinning (`FKSSLPinningConfiguration`) and legacy host-trust hook (`shouldPinSSLHost`)
 - Mock response data and debug logging
 
 ---
@@ -423,20 +423,26 @@ struct MockUserRequest: Requestable {
 - Download `fileURL` is a temporary file path; move it to your desired location
 - Resume download requires persisting `resumeData`
 - `encryptParameters` is an extension hook; ensure backend compatibility
-- SSL handling is basic challenge handling; extend it for strict certificate pinning if needed
+- Configure `sslPinning` for strict certificate/public-key pinning; use `shouldPinSSLHost` only for legacy trust-all-on-match behavior
+- HTTPS proxies (Charles, Fiddler) require their root CA to be trusted on device/simulator, or TLS will fail with certificate errors
 
 ---
 
 ## Roadmap
 
-增量增强与完整模块设计见 [`docs/FKNetwork_DESIGN.md`](../../../../docs/FKNetwork_DESIGN.md)（§12–§15）。当前待交付项：
+Full module design: [`docs/FKNetwork_DESIGN.md`](../../../../docs/FKNetwork_DESIGN.md).
 
-- Add stricter SSL pinning (public key / certificate validation)
-- Add multipart upload helper utilities
-- Add production-ready HTTP retry policy presets
-- Add mock `URLSession` / `NetworkSession` templates for Examples
-- Add Pluggable bridges (`FKAPIClientProviding`, Reachability dual conformance)
-- Add baseline FKKitExamples for cache, deduplication, 401 refresh, offline preflight
+**Delivered enhancements:**
+
+- Strict SSL pinning (`FKSSLPinningConfiguration`, `FKSSLPinningValidator`)
+- Multipart builder (`FKMultipartFormData`)
+- HTTP retry presets (`FKNetworkRetryPolicy.conservativeGET`, `.aggressiveIdempotent`)
+- Mock transport (`FKMockNetworkSession`) for Examples and integration tests
+- Pluggable bridges (`FKNetworkClientPluggableAdapter`, interceptor/signer/credential adapters)
+- `FKNetworkReachability` dual conformance with `FKNetworkReachabilityProviding`
+- FKKitExamples hub: baseline B1–B8 + enhancement E1–E9
+
+**Examples:** `Examples/FKCoreKit/Network/` — hub lists baseline playground and enhancement scenarios.
 
 ---
 

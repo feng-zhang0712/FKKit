@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "서버 오류 (%d): %@";
 "fkcore.network.error.signing_failed" = "요청 서명에 실패했습니다.";
 "fkcore.network.error.ssl_validation_failed" = "SSL 검증에 실패했습니다.";
+"fkcore.network.error.ssl_pinning_failed" = "호스트 %@의 SSL 고정에 실패했습니다.";
+"fkcore.network.error.ssl_pinning_not_configured" = "호스트 %@에 SSL 고정이 구성되지 않았습니다.";
+"fkcore.network.error.retry_exhausted" = "재시도 횟수를 모두 사용했습니다: %@";
 "fkcore.network.error.token_refresh_failed" = "토큰 갱신에 실패했습니다.";
 "fkcore.network.error.unknown_server_message" = "알 수 없는 오류";
 "fkcore.permission.error.pre_prompt_cancelled" = "권한 사전 안내가 취소되었습니다.";

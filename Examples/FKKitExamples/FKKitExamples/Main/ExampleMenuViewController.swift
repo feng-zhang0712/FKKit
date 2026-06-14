@@ -251,8 +251,8 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "Network",
-          subtitle: "GET/POST, async/await, upload/download, cache, cancel, parsing",
-          make: { FKNetworkExampleViewController() }
+          subtitle: "Hub: baseline + multipart, retry, mock session, SSL pinning, pluggable adapter",
+          make: { FKNetworkExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Permissions",

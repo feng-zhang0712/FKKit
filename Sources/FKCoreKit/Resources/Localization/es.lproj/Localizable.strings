@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "Error del servidor (%d): %@";
 "fkcore.network.error.signing_failed" = "Error al firmar la solicitud.";
 "fkcore.network.error.ssl_validation_failed" = "Error en la validación SSL.";
+"fkcore.network.error.ssl_pinning_failed" = "Error de fijación SSL para el host: %@.";
+"fkcore.network.error.ssl_pinning_not_configured" = "Fijación SSL no configurada para el host: %@.";
+"fkcore.network.error.retry_exhausted" = "Se agotaron los reintentos: %@";
 "fkcore.network.error.token_refresh_failed" = "Error al actualizar el token.";
 "fkcore.network.error.unknown_server_message" = "Error desconocido";
 "fkcore.permission.error.pre_prompt_cancelled" = "Se canceló el aviso previo.";

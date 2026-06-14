@@ -66,6 +66,9 @@
 "fkcore.network.error.server_error" = "伺服器錯誤（%d）：%@";
 "fkcore.network.error.signing_failed" = "請求簽名失敗。";
 "fkcore.network.error.ssl_validation_failed" = "SSL 驗證失敗。";
+"fkcore.network.error.ssl_pinning_failed" = "主機 %@ 的 SSL 固定失敗。";
+"fkcore.network.error.ssl_pinning_not_configured" = "主機 %@ 未設定 SSL 固定。";
+"fkcore.network.error.retry_exhausted" = "重試次數已用盡：%@";
 "fkcore.network.error.token_refresh_failed" = "權杖重新整理失敗。";
 "fkcore.network.error.unknown_server_message" = "未知錯誤";
 "fkcore.permission.error.pre_prompt_cancelled" = "權限引導已取消。";

@@ -58,3 +58,6 @@ public struct FKEndpoint<Response: Decodable & Sendable>: Requestable {
     self.mockData = mockData
   }
 }
+
+/// Type alias matching the design-document name for ``FKEndpoint``.
+public typealias NetworkEndpoint<Response: Decodable & Sendable> = FKEndpoint<Response>
