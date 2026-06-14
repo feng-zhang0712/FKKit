@@ -34,7 +34,6 @@ enum FKSearchTableHeaderInstaller {
     let height = fittedHeight(for: container, width: width)
     container.frame = CGRect(x: 0, y: 0, width: width, height: height)
     tableView.tableHeaderView = container
-    tableView.tableHeaderView = container
   }
 
   private static func layoutSearchBar(in container: UIView, width: CGFloat) {

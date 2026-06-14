@@ -41,29 +41,33 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   // MARK: Private (subviews & state)
 
+  private enum SlotKind: Hashable {
+    case header
+    case media
+    case content
+    case actions
+    case footer
+  }
+
   /// Full-bleed dimming layer between gradient and content (`appearance.background.blockingOverlayAlpha`).
-  private let blockingDimmingView = UIView()
+  private var blockingDimmingView: UIView?
   /// Horizontal + vertical centering container for the stack (respects safe area & keyboard).
   private let containerView = UIView()
   /// Vertical stack for illustration, text, spinner, and button.
   private let stackView = UIStackView()
   /// Illustration + text row used when ``FKEmptyStateLayoutConfiguration/axis`` is `.horizontal`.
-  private let horizontalRowStack = UIStackView()
-  private let horizontalTextStack = UIStackView()
+  private var horizontalRowStack: UIStackView?
+  private var horizontalTextStack: UIStackView?
   /// Hosts ``FKEmptyStateContentConfiguration/customAccessory`` when provided.
-  private let customAccessoryContainer = UIView()
+  private var customAccessoryContainer: UIView?
   private let imageView = UIImageView()
   private let titleLabel = UILabel()
   private let descriptionLabel = UILabel()
-  private let primaryButton = UIButton(type: .system)
-  private let secondaryButton = UIButton(type: .system)
-  private let tertiaryButton = UIButton(type: .system)
+  private var primaryButton: UIButton?
+  private var secondaryButton: UIButton?
+  private var tertiaryButton: UIButton?
   private let actionsStack = UIStackView()
-  private let headerSlotContainer = UIView()
-  private let mediaSlotContainer = UIView()
-  private let contentSlotContainer = UIView()
-  private let actionsSlotContainer = UIView()
-  private let footerSlotContainer = UIView()
+  private var slotContainers: [SlotKind: UIView] = [:]
   private var loadingIndicator = UIActivityIndicatorView(style: .large)
   /// Tracks style to avoid recreating the indicator unnecessarily.
   private var appliedIndicatorStyle: UIActivityIndicatorView.Style?
@@ -180,20 +184,20 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   /// Manually assigns a custom illustration view (e.g. Lottie). `nil` clears the container.
   public func setCustomAccessoryView(_ view: UIView?) {
     fk_emptyStateAssertMainThread()
-    customAccessoryContainer.subviews.forEach { $0.removeFromSuperview() }
     guard let view else {
-      customAccessoryContainer.isHidden = true
+      releaseCustomAccessoryContainer()
       return
     }
+    let container = ensureCustomAccessoryContainer()
+    container.subviews.forEach { $0.removeFromSuperview() }
     view.translatesAutoresizingMaskIntoConstraints = false
-    customAccessoryContainer.addSubview(view)
+    container.addSubview(view)
     NSLayoutConstraint.activate([
-      view.topAnchor.constraint(equalTo: customAccessoryContainer.topAnchor),
-      view.leadingAnchor.constraint(equalTo: customAccessoryContainer.leadingAnchor),
-      view.trailingAnchor.constraint(equalTo: customAccessoryContainer.trailingAnchor),
-      view.bottomAnchor.constraint(equalTo: customAccessoryContainer.bottomAnchor),
+      view.topAnchor.constraint(equalTo: container.topAnchor),
+      view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+      view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+      view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
     ])
-    customAccessoryContainer.isHidden = false
   }
 
   // MARK: Setup
@@ -204,10 +208,6 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     isUserInteractionEnabled = true
     accessibilityIdentifier = "fk.emptyState.root"
 
-    blockingDimmingView.translatesAutoresizingMaskIntoConstraints = false
-    blockingDimmingView.isUserInteractionEnabled = false
-    addSubview(blockingDimmingView)
-
     containerView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(containerView)
 
@@ -217,15 +217,6 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     stackView.spacing = 10
     stackView.translatesAutoresizingMaskIntoConstraints = false
     containerView.addSubview(stackView)
-
-    horizontalRowStack.translatesAutoresizingMaskIntoConstraints = false
-    horizontalRowStack.isHidden = true
-    horizontalTextStack.axis = .vertical
-    horizontalTextStack.alignment = .leading
-    horizontalTextStack.spacing = 8
-    horizontalTextStack.translatesAutoresizingMaskIntoConstraints = false
-
-    customAccessoryContainer.translatesAutoresizingMaskIntoConstraints = false
 
     imageView.contentMode = .scaleAspectFit
     imageView.setContentCompressionResistancePriority(.required, for: .vertical)
@@ -250,16 +241,6 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     actionsStack.spacing = 10
     actionsStack.translatesAutoresizingMaskIntoConstraints = false
     actionsStack.accessibilityIdentifier = "fk.emptyState.actions"
-
-    configureButton(primaryButton, identifier: "fk.emptyState.primaryButton", action: #selector(handlePrimaryTap))
-    configureButton(secondaryButton, identifier: "fk.emptyState.secondaryButton", action: #selector(handleSecondaryTap))
-    configureButton(tertiaryButton, identifier: "fk.emptyState.tertiaryButton", action: #selector(handleTertiaryTap))
-
-    headerSlotContainer.translatesAutoresizingMaskIntoConstraints = false
-    mediaSlotContainer.translatesAutoresizingMaskIntoConstraints = false
-    contentSlotContainer.translatesAutoresizingMaskIntoConstraints = false
-    actionsSlotContainer.translatesAutoresizingMaskIntoConstraints = false
-    footerSlotContainer.translatesAutoresizingMaskIntoConstraints = false
 
     loadingIndicator.hidesWhenStopped = true
     loadingIndicator.accessibilityIdentifier = "fk.emptyState.loading"
@@ -297,11 +278,6 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     containerTopConstraint = topConstraint
 
     NSLayoutConstraint.activate([
-      blockingDimmingView.topAnchor.constraint(equalTo: topAnchor),
-      blockingDimmingView.leadingAnchor.constraint(equalTo: leadingAnchor),
-      blockingDimmingView.trailingAnchor.constraint(equalTo: trailingAnchor),
-      blockingDimmingView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
       containerView.leadingAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.leadingAnchor),
       containerView.trailingAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.trailingAnchor),
 
@@ -315,6 +291,144 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     keyboardBottom.priority = .required
     keyboardBottom.isActive = true
     keyboardBottomConstraint = keyboardBottom
+  }
+
+  private func slotContainer(for kind: SlotKind) -> UIView {
+    if let existing = slotContainers[kind] { return existing }
+    let view = UIView()
+    view.translatesAutoresizingMaskIntoConstraints = false
+    slotContainers[kind] = view
+    return view
+  }
+
+  private func releaseSlotContainer(_ kind: SlotKind) {
+    guard let container = slotContainers.removeValue(forKey: kind) else { return }
+    container.removeFromSuperview()
+  }
+
+  private func syncSlotContainers(with model: FKEmptyStateConfiguration) {
+    let mappings: [(SlotKind, UIView?)] = [
+      (.header, model.slots.header),
+      (.media, model.slots.media),
+      (.content, model.slots.content),
+      (.actions, model.slots.actions),
+      (.footer, model.slots.footer),
+    ]
+    for (kind, view) in mappings {
+      if let view {
+        replaceSlot(in: slotContainer(for: kind), with: view)
+      } else {
+        releaseSlotContainer(kind)
+      }
+    }
+  }
+
+  private func prefixSlotBlocks(for model: FKEmptyStateConfiguration) -> [UIView] {
+    var blocks: [UIView] = []
+    if model.slots.header != nil { blocks.append(slotContainer(for: .header)) }
+    if model.slots.media != nil { blocks.append(slotContainer(for: .media)) }
+    return blocks
+  }
+
+  private func suffixSlotBlocks(for model: FKEmptyStateConfiguration, includeActionsStack: Bool) -> [UIView] {
+    var blocks: [UIView] = []
+    if model.slots.content != nil { blocks.append(slotContainer(for: .content)) }
+    if model.slots.actions != nil { blocks.append(slotContainer(for: .actions)) }
+    if includeActionsStack, !actionsStack.isHidden {
+      blocks.append(actionsStack)
+    }
+    if model.slots.footer != nil { blocks.append(slotContainer(for: .footer)) }
+    return blocks
+  }
+
+  private func ensureCustomAccessoryContainer() -> UIView {
+    if let customAccessoryContainer { return customAccessoryContainer }
+    let view = UIView()
+    view.translatesAutoresizingMaskIntoConstraints = false
+    customAccessoryContainer = view
+    return view
+  }
+
+  private func releaseCustomAccessoryContainer() {
+    customAccessoryContainer?.removeFromSuperview()
+    customAccessoryContainer = nil
+  }
+
+  private func syncBlockingDimming(for model: FKEmptyStateConfiguration) {
+    let alpha = model.appearance.background.blockingOverlayAlpha
+    if alpha <= 0 {
+      blockingDimmingView?.removeFromSuperview()
+      blockingDimmingView = nil
+      return
+    }
+
+    let dimmingView: UIView
+    if let blockingDimmingView {
+      dimmingView = blockingDimmingView
+    } else {
+      let view = UIView()
+      view.translatesAutoresizingMaskIntoConstraints = false
+      view.isUserInteractionEnabled = false
+      addSubview(view)
+      NSLayoutConstraint.activate([
+        view.topAnchor.constraint(equalTo: topAnchor),
+        view.leadingAnchor.constraint(equalTo: leadingAnchor),
+        view.trailingAnchor.constraint(equalTo: trailingAnchor),
+        view.bottomAnchor.constraint(equalTo: bottomAnchor),
+      ])
+      blockingDimmingView = view
+      dimmingView = view
+    }
+    dimmingView.backgroundColor = UIColor.black.withAlphaComponent(alpha)
+  }
+
+  private func ensureHorizontalRowStack() -> UIStackView {
+    if let horizontalRowStack { return horizontalRowStack }
+    let stack = UIStackView()
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    horizontalRowStack = stack
+    return stack
+  }
+
+  private func ensureHorizontalTextStack() -> UIStackView {
+    if let horizontalTextStack { return horizontalTextStack }
+    let stack = UIStackView()
+    stack.axis = .vertical
+    stack.alignment = .leading
+    stack.spacing = 8
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    horizontalTextStack = stack
+    return stack
+  }
+
+  private func releaseHorizontalRowLayout() {
+    horizontalRowStack?.removeFromSuperview()
+    horizontalRowStack = nil
+    horizontalTextStack = nil
+  }
+
+  private func ensurePrimaryButton() -> UIButton {
+    if let primaryButton { return primaryButton }
+    let button = UIButton(type: .system)
+    configureButton(button, identifier: "fk.emptyState.primaryButton", action: #selector(handlePrimaryTap))
+    primaryButton = button
+    return button
+  }
+
+  private func ensureSecondaryButton() -> UIButton {
+    if let secondaryButton { return secondaryButton }
+    let button = UIButton(type: .system)
+    configureButton(button, identifier: "fk.emptyState.secondaryButton", action: #selector(handleSecondaryTap))
+    secondaryButton = button
+    return button
+  }
+
+  private func ensureTertiaryButton() -> UIButton {
+    if let tertiaryButton { return tertiaryButton }
+    let button = UIButton(type: .system)
+    configureButton(button, identifier: "fk.emptyState.tertiaryButton", action: #selector(handleTertiaryTap))
+    tertiaryButton = button
+    return button
   }
 
   private func configureButton(_ button: UIButton, identifier: String, action: Selector) {
@@ -333,7 +447,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     backgroundColor = model.appearance.background.color
     updateGradient(with: model)
 
-    blockingDimmingView.backgroundColor = UIColor.black.withAlphaComponent(model.appearance.background.blockingOverlayAlpha)
+    syncBlockingDimming(for: model)
 
     stackView.spacing = metrics.spacing(from: resolved.verticalSpacing)
     actionsStack.spacing = metrics.spacing(from: resolved.verticalSpacing)
@@ -392,8 +506,6 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     keyboardBottomConstraint?.isActive = model.presentation.adjustsPositionForKeyboard
     updateContentPosition(resolved: resolved, model: model)
 
-    applySlots(model: model)
-    refreshSlotContainerVisibility()
     applySegmentSpacing(model: model, resolved: resolved)
     applyAccessibility(model: model)
     announceIfNeeded(model: model)
@@ -402,6 +514,8 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   // MARK: Loading layout
 
   private func applyLoadingPhase(model: FKEmptyStateConfiguration) {
+    syncSlotContainers(with: model)
+
     let message = model.content.loadingMessage ?? model.content.title
     titleLabel.text = message
     titleLabel.isHidden = message?.isEmpty != false
@@ -411,7 +525,7 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
     if model.presentation.loadingBehavior.hidesImage {
       imageView.isHidden = true
-      customAccessoryContainer.isHidden = true
+      releaseCustomAccessoryContainer()
     } else {
       applyImageVisibility(model: model)
     }
@@ -420,50 +534,54 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     loadingIndicator.startAnimating()
 
     actionsStack.isHidden = true
+    releaseHorizontalRowLayout()
 
     rebuildStack(orderedViews: loadingBlocks(model: model))
   }
 
   /// Stack order for the loading phase; respects ``FKEmptyStateLoadingBehavior/hidesImage``.
   private func loadingBlocks(model: FKEmptyStateConfiguration) -> [UIView] {
-    detachLabelsFromHorizontalRow()
-    horizontalRowStack.isHidden = true
+    var blocks = prefixSlotBlocks(for: model)
+    let tail: [UIView] = [loadingIndicator, titleLabel, descriptionLabel]
 
-    let tail: [UIView] = [loadingIndicator, titleLabel, descriptionLabel, footerSlotContainer]
     guard !model.presentation.loadingBehavior.hidesImage else {
       imageView.isHidden = true
-      customAccessoryContainer.isHidden = true
-      return [headerSlotContainer, mediaSlotContainer] + tail
+      releaseCustomAccessoryContainer()
+      blocks.append(contentsOf: tail)
+      blocks.append(contentsOf: suffixSlotBlocks(for: model, includeActionsStack: false))
+      return blocks
     }
 
     applyImageVisibility(model: model)
     let imageBlock = imageView
-    let customBlock = customAccessoryContainer
+    let customBlock = hasVisibleCustomAccessory(for: model) ? ensureCustomAccessoryContainer() : nil
+
     switch customAccessoryPlacement(for: model) {
     case .replaceImage:
-      return [headerSlotContainer, mediaSlotContainer, customBlock, contentSlotContainer] + tail
+      if let customBlock { blocks.append(customBlock) }
     case .aboveImage:
-      return [headerSlotContainer, mediaSlotContainer, customBlock, imageBlock, contentSlotContainer] + tail
+      if let customBlock { blocks.append(customBlock) }
+      blocks.append(imageBlock)
     case .belowImage:
-      return [headerSlotContainer, mediaSlotContainer, imageBlock, customBlock, contentSlotContainer] + tail
+      blocks.append(imageBlock)
+      if let customBlock { blocks.append(customBlock) }
     case .belowDescription:
-      return [
-        headerSlotContainer,
-        mediaSlotContainer,
-        imageBlock,
-        contentSlotContainer,
-        loadingIndicator,
-        titleLabel,
-        descriptionLabel,
-        customBlock,
-        footerSlotContainer,
-      ]
+      blocks.append(imageBlock)
+      blocks.append(contentsOf: tail)
+      if let customBlock { blocks.append(customBlock) }
+      blocks.append(contentsOf: suffixSlotBlocks(for: model, includeActionsStack: false))
+      return blocks
     }
+
+    blocks.append(contentsOf: tail)
+    blocks.append(contentsOf: suffixSlotBlocks(for: model, includeActionsStack: false))
+    return blocks
   }
 
   // MARK: Empty / error layout
 
   private func applyContentPhase(model: FKEmptyStateConfiguration, resolved: FKEmptyStateResolvedLayout) {
+    syncSlotContainers(with: model)
     loadingIndicator.stopAnimating()
 
     titleLabel.text = model.content.title
@@ -473,12 +591,12 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     descriptionLabel.isHidden = model.content.description?.isEmpty != false
 
     applyImageVisibility(model: model)
-
     applyActions(model: model)
 
     if model.layout.axis == .horizontal {
       rebuildStack(orderedViews: horizontalContentBlocks(model: model, resolved: resolved))
     } else {
+      releaseHorizontalRowLayout()
       rebuildStack(orderedViews: contentBlocks(model: model))
     }
   }
@@ -486,29 +604,24 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   /// Builds stack order for horizontal axis (illustration beside title/description).
   private func horizontalContentBlocks(model: FKEmptyStateConfiguration, resolved: FKEmptyStateResolvedLayout) -> [UIView] {
     prepareHorizontalRow(model: model, resolved: resolved)
-    var blocks: [UIView] = [headerSlotContainer, mediaSlotContainer]
+    var blocks = prefixSlotBlocks(for: model)
 
-    if customAccessoryPlacement(for: model) == .aboveImage, !customAccessoryContainer.isHidden {
-      blocks.append(customAccessoryContainer)
+    if customAccessoryPlacement(for: model) == .aboveImage, hasVisibleCustomAccessory(for: model) {
+      blocks.append(ensureCustomAccessoryContainer())
     }
 
-    blocks.append(horizontalRowStack)
+    blocks.append(ensureHorizontalRowStack())
 
     switch customAccessoryPlacement(for: model) {
     case .belowImage, .belowDescription:
-      if !customAccessoryContainer.isHidden {
-        blocks.append(customAccessoryContainer)
+      if hasVisibleCustomAccessory(for: model) {
+        blocks.append(ensureCustomAccessoryContainer())
       }
     case .replaceImage, .aboveImage:
       break
     }
 
-    blocks.append(contentsOf: [
-      contentSlotContainer,
-      actionsSlotContainer,
-      actionsStack,
-      footerSlotContainer,
-    ])
+    blocks.append(contentsOf: suffixSlotBlocks(for: model, includeActionsStack: true))
     return blocks
   }
 
@@ -516,43 +629,49 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     detachLabelsFromHorizontalRow()
 
     let metrics = FKEmptyStateLayoutMetrics(density: model.layout.density)
-    horizontalTextStack.spacing = metrics.spacing(from: resolved.verticalSpacing)
-    horizontalTextStack.addArrangedSubview(titleLabel)
-    horizontalTextStack.addArrangedSubview(descriptionLabel)
+    let textStack = ensureHorizontalTextStack()
+    let rowStack = ensureHorizontalRowStack()
 
-    horizontalRowStack.arrangedSubviews.forEach {
-      horizontalRowStack.removeArrangedSubview($0)
+    textStack.spacing = metrics.spacing(from: resolved.verticalSpacing)
+    textStack.addArrangedSubview(titleLabel)
+    textStack.addArrangedSubview(descriptionLabel)
+
+    rowStack.arrangedSubviews.forEach {
+      rowStack.removeArrangedSubview($0)
       $0.removeFromSuperview()
     }
-    horizontalRowStack.axis = .horizontal
-    horizontalRowStack.alignment = .center
-    horizontalRowStack.spacing = metrics.horizontalRowSpacing(from: 16)
-    horizontalRowStack.isHidden = false
+    rowStack.axis = .horizontal
+    rowStack.alignment = .center
+    rowStack.spacing = metrics.horizontalRowSpacing(from: 16)
 
     let textAlignment = model.appearance.typography.textAlignment
     titleLabel.textAlignment = textAlignment == .center ? .natural : textAlignment
     descriptionLabel.textAlignment = textAlignment == .center ? .natural : textAlignment
-    horizontalTextStack.alignment = textAlignment == .center ? .center : .leading
+    textStack.alignment = textAlignment == .center ? .center : .leading
 
     let illustration: UIView? = {
       switch customAccessoryPlacement(for: model) {
-      case .replaceImage where !customAccessoryContainer.isHidden:
-        return customAccessoryContainer
+      case .replaceImage where hasVisibleCustomAccessory(for: model):
+        return ensureCustomAccessoryContainer()
       default:
         return imageView.isHidden ? nil : imageView
       }
     }()
     if let illustration {
-      horizontalRowStack.addArrangedSubview(illustration)
+      rowStack.addArrangedSubview(illustration)
     }
-    horizontalRowStack.addArrangedSubview(horizontalTextStack)
+    rowStack.addArrangedSubview(textStack)
   }
 
   private func detachLabelsFromHorizontalRow() {
-    horizontalTextStack.arrangedSubviews.forEach {
-      horizontalTextStack.removeArrangedSubview($0)
+    horizontalTextStack?.arrangedSubviews.forEach {
+      horizontalTextStack?.removeArrangedSubview($0)
       $0.removeFromSuperview()
     }
+  }
+
+  private func hasVisibleCustomAccessory(for model: FKEmptyStateConfiguration) -> Bool {
+    customAccessoryView(for: model) != nil || !(customAccessoryContainer?.subviews.isEmpty ?? true)
   }
 
   private func applyImagePresentation(model: FKEmptyStateConfiguration) {
@@ -581,63 +700,32 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   /// Builds stack order for empty/error based on custom accessory placement.
   private func contentBlocks(model: FKEmptyStateConfiguration) -> [UIView] {
-    detachLabelsFromHorizontalRow()
-    horizontalRowStack.isHidden = true
+    var blocks = prefixSlotBlocks(for: model)
     let imageBlock = imageView
-    let customBlock = customAccessoryContainer
+    let customBlock = hasVisibleCustomAccessory(for: model) ? ensureCustomAccessoryContainer() : nil
+    let textBlocks: [UIView] = [titleLabel, descriptionLabel]
+    let suffix = suffixSlotBlocks(for: model, includeActionsStack: true)
+
     switch customAccessoryPlacement(for: model) {
     case .replaceImage:
-      return [
-        headerSlotContainer,
-        mediaSlotContainer,
-        customBlock,
-        contentSlotContainer,
-        titleLabel,
-        descriptionLabel,
-        actionsSlotContainer,
-        actionsStack,
-        footerSlotContainer,
-      ]
+      if let customBlock { blocks.append(customBlock) }
     case .aboveImage:
-      return [
-        headerSlotContainer,
-        mediaSlotContainer,
-        customBlock,
-        imageBlock,
-        contentSlotContainer,
-        titleLabel,
-        descriptionLabel,
-        actionsSlotContainer,
-        actionsStack,
-        footerSlotContainer,
-      ]
+      if let customBlock { blocks.append(customBlock) }
+      blocks.append(imageBlock)
     case .belowImage:
-      return [
-        headerSlotContainer,
-        mediaSlotContainer,
-        imageBlock,
-        customBlock,
-        contentSlotContainer,
-        titleLabel,
-        descriptionLabel,
-        actionsSlotContainer,
-        actionsStack,
-        footerSlotContainer,
-      ]
+      blocks.append(imageBlock)
+      if let customBlock { blocks.append(customBlock) }
     case .belowDescription:
-      return [
-        headerSlotContainer,
-        mediaSlotContainer,
-        imageBlock,
-        contentSlotContainer,
-        titleLabel,
-        descriptionLabel,
-        customBlock,
-        actionsSlotContainer,
-        actionsStack,
-        footerSlotContainer,
-      ]
+      blocks.append(imageBlock)
+      blocks.append(contentsOf: textBlocks)
+      if let customBlock { blocks.append(customBlock) }
+      blocks.append(contentsOf: suffix)
+      return blocks
     }
+
+    blocks.append(contentsOf: textBlocks)
+    blocks.append(contentsOf: suffix)
+    return blocks
   }
 
   private func rebuildStack(orderedViews: [UIView]) {
@@ -645,14 +733,11 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
       stackView.removeArrangedSubview($0)
       $0.removeFromSuperview()
     }
-    for v in orderedViews {
-      if v === headerSlotContainer || v === mediaSlotContainer || v === contentSlotContainer || v === actionsSlotContainer || v === footerSlotContainer {
-        v.isHidden = v.subviews.isEmpty
+    for view in orderedViews {
+      if view === actionsStack {
+        view.isHidden = actionsStack.arrangedSubviews.isEmpty || actionsStack.isHidden
       }
-      if v === actionsStack {
-        v.isHidden = actionsStack.arrangedSubviews.isEmpty || actionsStack.isHidden
-      }
-      stackView.addArrangedSubview(v)
+      stackView.addArrangedSubview(view)
     }
   }
 
@@ -774,14 +859,18 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   private func applyImageVisibility(model: FKEmptyStateConfiguration) {
     let imageHiddenFlag = model.content.image == nil
-    let customMissing = customAccessoryView(for: model) == nil && customAccessoryContainer.subviews.isEmpty
+    let customMissing = !hasVisibleCustomAccessory(for: model)
     switch customAccessoryPlacement(for: model) {
     case .replaceImage:
       imageView.isHidden = true
-      customAccessoryContainer.isHidden = customMissing
+      if customMissing {
+        releaseCustomAccessoryContainer()
+      }
     default:
       imageView.isHidden = imageHiddenFlag
-      customAccessoryContainer.isHidden = customMissing
+      if customMissing {
+        releaseCustomAccessoryContainer()
+      }
     }
   }
 
@@ -913,40 +1002,22 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     let actions = resolvedActions(for: model)
 
     if let p = actions.primary {
-      applyActionStyle(model: model, button: primaryButton, action: p)
-      actionsStack.addArrangedSubview(primaryButton)
+      let button = ensurePrimaryButton()
+      applyActionStyle(model: model, button: button, action: p)
+      actionsStack.addArrangedSubview(button)
     }
     if let s = actions.secondary {
-      applyActionStyle(model: model, button: secondaryButton, action: s)
-      actionsStack.addArrangedSubview(secondaryButton)
+      let button = ensureSecondaryButton()
+      applyActionStyle(model: model, button: button, action: s)
+      actionsStack.addArrangedSubview(button)
     }
     if let t = actions.tertiary {
-      applyActionStyle(model: model, button: tertiaryButton, action: t)
-      actionsStack.addArrangedSubview(tertiaryButton)
+      let button = ensureTertiaryButton()
+      applyActionStyle(model: model, button: button, action: t)
+      actionsStack.addArrangedSubview(button)
     }
 
     actionsStack.isHidden = actionsStack.arrangedSubviews.isEmpty
-  }
-
-  private func applySlots(model: FKEmptyStateConfiguration) {
-    replaceSlot(in: headerSlotContainer, with: model.slots.header)
-    replaceSlot(in: mediaSlotContainer, with: model.slots.media)
-    replaceSlot(in: contentSlotContainer, with: model.slots.content)
-    replaceSlot(in: actionsSlotContainer, with: model.slots.actions)
-    replaceSlot(in: footerSlotContainer, with: model.slots.footer)
-  }
-
-  /// Updates slot container visibility after slot content is applied (`rebuildStack` runs earlier with empty slots).
-  private func refreshSlotContainerVisibility() {
-    for container in [
-      headerSlotContainer,
-      mediaSlotContainer,
-      contentSlotContainer,
-      actionsSlotContainer,
-      footerSlotContainer,
-    ] {
-      container.isHidden = container.subviews.isEmpty
-    }
   }
 
   /// Applies per-segment stack spacing; explicit values skip density scaling (see ``FKEmptyStateSpacingConfiguration``).
@@ -959,14 +1030,14 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
       metrics.segmentSpacing(explicit, fallback: fallback)
     }
 
-    if model.layout.axis == .horizontal {
+    if model.layout.axis == .horizontal, let horizontalTextStack, let horizontalRowStack {
       if !titleLabel.isHidden {
         horizontalTextStack.setCustomSpacing(spacing(segments.afterTitle), after: titleLabel)
       }
       if !descriptionLabel.isHidden {
         horizontalTextStack.setCustomSpacing(spacing(segments.afterDescription), after: descriptionLabel)
       }
-      if !horizontalRowStack.isHidden, stackView.arrangedSubviews.contains(horizontalRowStack) {
+      if stackView.arrangedSubviews.contains(horizontalRowStack) {
         stackView.setCustomSpacing(spacing(segments.afterImage), after: horizontalRowStack)
       }
     } else {
@@ -981,7 +1052,9 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
       }
     }
 
-    if !actionsSlotContainer.isHidden, stackView.arrangedSubviews.contains(actionsSlotContainer) {
+    if model.slots.actions != nil,
+       let actionsSlotContainer = slotContainers[.actions],
+       stackView.arrangedSubviews.contains(actionsSlotContainer) {
       stackView.setCustomSpacing(spacing(segments.afterActionsSlot), after: actionsSlotContainer)
     }
   }

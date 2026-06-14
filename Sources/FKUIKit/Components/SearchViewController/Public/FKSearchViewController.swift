@@ -165,25 +165,12 @@ open class FKSearchViewController: UIViewController {
   open func emptyConfiguration(for state: FKListPresentationState) -> FKEmptyStateConfiguration? {
     switch state {
     case .empty:
-      var model = FKEmptyStateConfiguration.scenario(configuration.empty.searchNoResultsScenario)
-      model.phase = .empty
-      if let title = configuration.empty.overridesTitle {
-        model.content.title = title
-      }
-      if let message = configuration.empty.overridesMessage {
-        model.content.description = message
-      }
-      return model
+      return makeSearchEmptyStateConfiguration(
+        scenario: configuration.empty.searchNoResultsScenario,
+        phase: .empty
+      )
     case .error:
-      var model = FKEmptyStateConfiguration.scenario(.loadFailed)
-      model.phase = .error
-      if let title = configuration.empty.overridesTitle {
-        model.content.title = title
-      }
-      if let message = configuration.empty.overridesMessage {
-        model.content.description = message
-      }
-      return model
+      return makeSearchEmptyStateConfiguration(scenario: .loadFailed, phase: .error)
     default:
       return nil
     }
@@ -262,14 +249,55 @@ open class FKSearchViewController: UIViewController {
       in: view
     )
 
+    installStickyFooterChromeBottomConstraints(for: chrome)
+  }
+
+  private func installStickyFooterChromeBottomConstraints(for chrome: UIView) {
+    if #available(iOS 17.0, *) {
+      view.keyboardLayoutGuide.usesBottomSafeArea = true
+    }
+
     NSLayoutConstraint.activate([
       chrome.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       chrome.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       chrome.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
     ])
+
     let followKeyboard = chrome.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor)
     followKeyboard.priority = UILayoutPriority(999)
     followKeyboard.isActive = true
+
+    let restingBottom = chrome.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+    restingBottom.priority = UILayoutPriority(998)
+    restingBottom.isActive = true
+  }
+
+  /// Empty/error overlays sit above sticky-footer chrome; keyboard tracking stays on chrome placement.
+  private func applyStickyFooterEmptyStatePresentationIfNeeded(_ model: inout FKEmptyStateConfiguration) {
+    guard configuration.placement == .stickyFooter else { return }
+    model.presentation.adjustsPositionForKeyboard = false
+  }
+
+  private func makeSearchEmptyStateConfiguration(
+    scenario: FKEmptyStateScenario,
+    phase: FKEmptyStatePhase
+  ) -> FKEmptyStateConfiguration {
+    var model = FKEmptyStateConfiguration.scenario(scenario)
+    model.phase = phase
+    if let title = configuration.empty.overridesTitle {
+      model.content.title = title
+    }
+    if let message = configuration.empty.overridesMessage {
+      model.content.description = message
+    }
+    applyStickyFooterEmptyStatePresentationIfNeeded(&model)
+    return model
+  }
+
+  /// Lazy-mounted results/search content is added after chrome; keep footer chrome above content.
+  private func bringStickyFooterChromeToFrontIfNeeded() {
+    guard configuration.placement == .stickyFooter, let chromeContainer else { return }
+    view.bringSubviewToFront(chromeContainer)
   }
 
   private func installSearchChrome() -> NSLayoutYAxisAnchor {
@@ -308,7 +336,7 @@ open class FKSearchViewController: UIViewController {
       return chrome.bottomAnchor
 
     case .stickyFooter:
-      return view.safeAreaLayoutGuide.topAnchor
+      fatalError("stickyFooter placement uses installStickyFooterChromeAndContent(), not installSearchChrome().")
     }
   }
 
@@ -332,6 +360,9 @@ open class FKSearchViewController: UIViewController {
     searchBar.apply(configuration.searchBar)
     listViewController?.configuration = configuration.list
     chromeContainer?.setAccessoryView(makeSearchAccessoryView())
+    if configuration.placement == .stickyFooter {
+      listViewController?.tableView.contentInsetAdjustmentBehavior = .never
+    }
   }
 
   private func installInitialContentIfNeeded() {
@@ -578,6 +609,8 @@ open class FKSearchViewController: UIViewController {
   }
 
   private func updateContentVisibility(isEmptyQuery: Bool) {
+    defer { bringStickyFooterChromeToFrontIfNeeded() }
+
     let presentation = configuration.presentation
 
     if isEmptyQuery {

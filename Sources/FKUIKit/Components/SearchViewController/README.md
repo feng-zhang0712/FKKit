@@ -30,9 +30,9 @@ Composable search page for FKUIKit: orchestrates **FKSearchBar**, **FKListKit**,
 | `Public/FKSearchViewControllerDelegate.swift` | Optional delegate |
 | `Public/FKSearchError.swift` | Provider and cancellation errors |
 | `Internal/FKSearchSessionCoordinator.swift` | Task cancel and stale-result guard |
-| `Internal/FKSearchChromeContainerView.swift` | Sticky header chrome layout |
+| `Internal/FKSearchChromeContainerView.swift` | Sticky header/footer chrome (`FKSearchBar` + optional accessory) |
 | `Internal/FKSearchTableHeaderInstaller.swift` | Frame-managed `tableHeaderView` helper |
-| `Internal/FKSearchContentContainer.swift` | Swaps search-content vs results child visibility |
+| `Internal/FKSearchContentContainer.swift` | Lazy-mounts one child VC at a time (search content vs results) via `UILayoutGuide` |
 | `Internal/FKSearchResultsListViewController.swift` | List child forwarding retry to search VC |
 | `Extension/FKSearchViewController+ListDelegate.swift` | Selection forwarding |
 

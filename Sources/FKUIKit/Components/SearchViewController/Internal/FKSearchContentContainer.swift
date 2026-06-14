@@ -1,9 +1,9 @@
 import UIKit
 
-/// Swaps visibility between optional search-page and results child view controllers.
+/// Mounts one visible child view controller at a time for search content vs results.
 @MainActor
 final class FKSearchContentContainer {
-  enum VisibleSurface {
+  enum VisibleSurface: Equatable {
     case searchContent
     case results
     case none
@@ -12,7 +12,11 @@ final class FKSearchContentContainer {
   private(set) var resultsViewController: UIViewController
   private(set) var searchContentViewController: UIViewController?
 
-  private let containerView = UIView()
+  private let contentLayoutGuide = UILayoutGuide()
+  private weak var parent: UIViewController?
+  private weak var hostView: UIView?
+  private var mountedSurface: VisibleSurface?
+  private var mountedViewController: UIViewController?
 
   init(resultsViewController: UIViewController, searchContentViewController: UIViewController?) {
     self.resultsViewController = resultsViewController
@@ -34,45 +38,64 @@ final class FKSearchContentContainer {
     bottomAnchor: NSLayoutYAxisAnchor,
     in hostView: UIView
   ) {
-    containerView.translatesAutoresizingMaskIntoConstraints = false
-    hostView.addSubview(containerView)
+    self.parent = parent
+    self.hostView = hostView
+
+    hostView.addLayoutGuide(contentLayoutGuide)
     NSLayoutConstraint.activate([
-      containerView.topAnchor.constraint(equalTo: topAnchor),
-      containerView.leadingAnchor.constraint(equalTo: hostView.leadingAnchor),
-      containerView.trailingAnchor.constraint(equalTo: hostView.trailingAnchor),
-      containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+      contentLayoutGuide.topAnchor.constraint(equalTo: topAnchor),
+      contentLayoutGuide.leadingAnchor.constraint(equalTo: hostView.leadingAnchor),
+      contentLayoutGuide.trailingAnchor.constraint(equalTo: hostView.trailingAnchor),
+      contentLayoutGuide.bottomAnchor.constraint(equalTo: bottomAnchor),
     ])
 
-    embedChild(resultsViewController, in: parent)
-    if let searchContentViewController {
-      embedChild(searchContentViewController, in: parent)
-    }
     setVisibleSurface(.results)
   }
 
   func setVisibleSurface(_ surface: VisibleSurface) {
-    searchContentViewController?.view.isHidden = surface != .searchContent
-    resultsViewController.view.isHidden = surface != .results
+    guard mountedSurface != surface else { return }
+
     switch surface {
-    case .searchContent:
-      containerView.isHidden = searchContentViewController == nil
-    case .results:
-      containerView.isHidden = false
     case .none:
-      containerView.isHidden = true
+      unmountCurrentChild()
+    case .results:
+      mountChild(resultsViewController)
+    case .searchContent:
+      guard let searchContentViewController else {
+        unmountCurrentChild()
+        mountedSurface = VisibleSurface.none
+        return
+      }
+      mountChild(searchContentViewController)
     }
+
+    mountedSurface = surface
   }
 
-  private func embedChild(_ child: UIViewController, in parent: UIViewController) {
+  private func mountChild(_ child: UIViewController) {
+    guard mountedViewController !== child else { return }
+    unmountCurrentChild()
+
+    guard let parent, let hostView else { return }
+
     parent.addChild(child)
     child.view.translatesAutoresizingMaskIntoConstraints = false
-    containerView.addSubview(child.view)
+    hostView.addSubview(child.view)
     NSLayoutConstraint.activate([
-      child.view.topAnchor.constraint(equalTo: containerView.topAnchor),
-      child.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-      child.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-      child.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+      child.view.topAnchor.constraint(equalTo: contentLayoutGuide.topAnchor),
+      child.view.leadingAnchor.constraint(equalTo: contentLayoutGuide.leadingAnchor),
+      child.view.trailingAnchor.constraint(equalTo: contentLayoutGuide.trailingAnchor),
+      child.view.bottomAnchor.constraint(equalTo: contentLayoutGuide.bottomAnchor),
     ])
     child.didMove(toParent: parent)
+    mountedViewController = child
+  }
+
+  private func unmountCurrentChild() {
+    guard let child = mountedViewController else { return }
+    child.willMove(toParent: nil)
+    child.view.removeFromSuperview()
+    child.removeFromParent()
+    mountedViewController = nil
   }
 }
