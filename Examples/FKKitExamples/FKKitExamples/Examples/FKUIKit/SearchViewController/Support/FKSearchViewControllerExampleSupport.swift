@@ -141,3 +141,56 @@ enum FKSearchViewControllerExampleSupport {
     child.didMove(toParent: host)
   }
 }
+
+/// Minimal placeholder discovery page for presentation demos — PYSearch-style UI belongs in FKBusinessKit.
+final class FKSearchViewControllerExampleDiscoveryViewController: UIViewController {
+  private let titleText: String
+  private let items: [String]
+  private let onSelect: (String) -> Void
+
+  init(titleText: String, items: [String], onSelect: @escaping (String) -> Void) {
+    self.titleText = titleText
+    self.items = items
+    self.onSelect = onSelect
+    super.init(nibName: nil, bundle: nil)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    view.backgroundColor = .systemBackground
+
+    let heading = UILabel()
+    heading.text = titleText
+    heading.font = .preferredFont(forTextStyle: .headline)
+
+    let stack = UIStackView()
+    stack.axis = .vertical
+    stack.spacing = 12
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    stack.isLayoutMarginsRelativeArrangement = true
+    stack.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+
+    stack.addArrangedSubview(heading)
+    for item in items {
+      let button = UIButton(type: .system)
+      button.setTitle(item, for: .normal)
+      button.contentHorizontalAlignment = .leading
+      button.addAction(UIAction { [weak self] _ in
+        self?.onSelect(item)
+      }, for: .touchUpInside)
+      stack.addArrangedSubview(button)
+    }
+
+    view.addSubview(stack)
+    NSLayoutConstraint.activate([
+      stack.topAnchor.constraint(equalTo: view.topAnchor),
+      stack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      stack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+    ])
+  }
+}

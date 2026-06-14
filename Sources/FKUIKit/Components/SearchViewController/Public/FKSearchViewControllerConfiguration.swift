@@ -76,6 +76,7 @@ public struct FKSearchViewControllerConfiguration: Sendable, Equatable {
   public var loading: FKSearchViewControllerLoadingConfiguration
   public var empty: FKSearchEmptyConfiguration
   public var behavior: FKSearchBehaviorConfiguration
+  public var presentation: FKSearchPresentationConfiguration
 
   public init(
     mode: FKSearchMode = .localFilter,
@@ -84,7 +85,8 @@ public struct FKSearchViewControllerConfiguration: Sendable, Equatable {
     list: FKListConfiguration = FKSearchViewControllerDefaults.makeListConfiguration(),
     loading: FKSearchViewControllerLoadingConfiguration = FKSearchViewControllerLoadingConfiguration(),
     empty: FKSearchEmptyConfiguration = FKSearchEmptyConfiguration(),
-    behavior: FKSearchBehaviorConfiguration = FKSearchBehaviorConfiguration()
+    behavior: FKSearchBehaviorConfiguration = FKSearchBehaviorConfiguration(),
+    presentation: FKSearchPresentationConfiguration = .unified
   ) {
     self.mode = mode
     self.placement = placement
@@ -93,6 +95,7 @@ public struct FKSearchViewControllerConfiguration: Sendable, Equatable {
     self.loading = loading
     self.empty = empty
     self.behavior = behavior
+    self.presentation = presentation
   }
 }
 

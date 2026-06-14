@@ -86,6 +86,28 @@ final class FKSearchViewControllerExamplesHubViewController: UITableViewControll
         factory: { FKSearchViewControllerExampleMinimumQueryLengthViewController() }
       ),
     ]),
+    DemoSection(title: "Presentation customization", items: [
+      DemoItem(
+        title: "PYSearch-style layout",
+        subtitle: "Hot tags + history idle · push tabbed FKPagingController results (hostHandled)",
+        factory: { FKSearchViewControllerExamplePYSearchLayoutViewController() }
+      ),
+      DemoItem(
+        title: "Custom search page",
+        subtitle: "FKSearchPresentationConfiguration.customIdleEmbeddedResults · makeSearchContentViewController()",
+        factory: { FKSearchViewControllerExampleCustomSearchContentViewController() }
+      ),
+      DemoItem(
+        title: "Custom results surface",
+        subtitle: "FKSearchResultsDisplaying · makeResultsViewController() · remote updates",
+        factory: { FKSearchViewControllerExampleCustomResultsDisplayViewController() }
+      ),
+      DemoItem(
+        title: "Host-handled push results",
+        subtitle: "resultsMode .hostHandled · onHostSearchRequested · separate results VC",
+        factory: { FKSearchViewControllerExampleHostHandledPushViewController() }
+      ),
+    ]),
     DemoSection(title: "Subclass hooks & callbacks", items: [
       DemoItem(
         title: "Custom list cells",
