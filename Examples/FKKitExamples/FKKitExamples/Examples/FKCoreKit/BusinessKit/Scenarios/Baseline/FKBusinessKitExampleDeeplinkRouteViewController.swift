@@ -5,7 +5,7 @@ import FKCoreKit
 final class FKBusinessKitExampleDeeplinkRouteViewController: FKBusinessKitExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B6 DeeplinkRoute"
+    title = "DeeplinkRoute"
     kit.deeplink.register(
       FKDeeplinkRoute(id: "product", host: "example.com", pathPattern: "/product/*") { [weak self] context in
         Task { @MainActor in

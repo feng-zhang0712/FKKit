@@ -5,7 +5,7 @@ import FKCoreKit
 final class FKBusinessKitExampleVersionForceUpdateViewController: FKBusinessKitExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B2 VersionForceUpdate"
+    title = "VersionForceUpdate"
     addInfoLabel("Mock remote marks isForceUpdate=true.")
     addActionButton("Check (closure) + present force prompt") { [weak self] in
       guard let self else { return }

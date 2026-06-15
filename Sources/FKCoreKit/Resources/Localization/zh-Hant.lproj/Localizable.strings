@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "通知觸發器無效：%@";
 "fkcore.local_notification.error.not_authorized" = "未授予通知權限。請先透過 FKPermissions 申請。";
 "fkcore.local_notification.error.system" = "通知系統錯誤：%@";
+"fkcore.background_task.error.already_installed" = "背景任務註冊已完成，無法重複安裝。";
+"fkcore.background_task.error.duplicate_registration" = "背景任務識別碼已註冊：%@";
+"fkcore.background_task.error.not_installed" = "背景任務尚未安裝，請先呼叫 installRegistrations。";
+"fkcore.background_task.error.not_permitted" = "背景任務識別碼未獲允許，請將其加入 BGTaskSchedulerPermittedIdentifiers：%@";
+"fkcore.background_task.error.scheduling_failed" = "背景任務排程失敗（錯誤碼 %@）。";
+"fkcore.background_task.error.unregistered" = "背景任務識別碼未註冊：%@";
+"fkcore.background_task.error.work_unavailable" = "背景續跑不可用。";
 "fkcore.business.error.cancelled" = "已取消";
 "fkcore.business.error.invalid_argument" = "無效參數：%@";
 "fkcore.business.error.missing_configuration" = "缺少設定：%@";

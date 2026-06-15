@@ -5,7 +5,7 @@ import FKCoreKit
 final class FKBusinessKitExampleVersionCheckViewController: FKBusinessKitExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B1 VersionCheck"
+    title = "VersionCheck"
     addInfoLabel("Uses DemoRemoteVersionProvider in optionalUpdate mode.")
     addActionButton("Check (async) + present prompt") { [weak self] in
       guard let self else { return }

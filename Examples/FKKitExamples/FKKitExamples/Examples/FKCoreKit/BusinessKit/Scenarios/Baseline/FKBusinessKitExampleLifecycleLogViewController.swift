@@ -7,7 +7,7 @@ final class FKBusinessKitExampleLifecycleLogViewController: FKBusinessKitExample
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B5 LifecycleLog"
+    title = "LifecycleLog"
     addInfoLabel("Send app to background/foreground to see transitions.")
     lifecycleToken = kit.lifecycle.observe { [weak self] state in
       Task { @MainActor in

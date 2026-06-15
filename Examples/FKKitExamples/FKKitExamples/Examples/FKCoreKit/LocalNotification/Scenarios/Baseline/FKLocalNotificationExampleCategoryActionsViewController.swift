@@ -5,7 +5,7 @@ import UIKit
 final class FKLocalNotificationExampleCategoryActionsViewController: FKLocalNotificationExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B4 Category Actions"
+    title = "Category Actions"
 
     FKLocalNotificationExampleSupport.installDelegate { [weak self] in self?.appendLog($0) }
     FKLocalNotificationExampleSupport.wireResponseHandler { [weak self] in self?.appendLog($0) }

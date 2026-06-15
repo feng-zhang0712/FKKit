@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleCacheSizeAndClearViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B5 CacheSizeAndClear"
+    title = "CacheSizeAndClear"
     addInfoLabel("clearCaches() removes the entire Caches sandbox — demo uses size before/after.")
     addActionButton("Measure Caches size") { [weak self] in
       Task { @MainActor [weak self] in

@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "通知トリガーが無効です: %@";
 "fkcore.local_notification.error.not_authorized" = "通知の許可がありません。先に FKPermissions でリクエストしてください。";
 "fkcore.local_notification.error.system" = "通知システムエラー: %@";
+"fkcore.background_task.error.already_installed" = "バックグラウンドタスクの登録はすでにインストール済みです。";
+"fkcore.background_task.error.duplicate_registration" = "バックグラウンドタスク識別子はすでに登録されています: %@";
+"fkcore.background_task.error.not_installed" = "バックグラウンドタスクがインストールされていません。先に installRegistrations を呼び出してください。";
+"fkcore.background_task.error.not_permitted" = "バックグラウンドタスク識別子が許可されていません。BGTaskSchedulerPermittedIdentifiers に追加してください: %@";
+"fkcore.background_task.error.scheduling_failed" = "バックグラウンドタスクのスケジュールに失敗しました（コード %@）。";
+"fkcore.background_task.error.unregistered" = "バックグラウンドタスク識別子が登録されていません: %@";
+"fkcore.background_task.error.work_unavailable" = "バックグラウンド作業の延長は利用できません。";
 "fkcore.business.error.cancelled" = "キャンセルされました";
 "fkcore.business.error.invalid_argument" = "無効な引数：%@";
 "fkcore.business.error.missing_configuration" = "設定がありません：%@";

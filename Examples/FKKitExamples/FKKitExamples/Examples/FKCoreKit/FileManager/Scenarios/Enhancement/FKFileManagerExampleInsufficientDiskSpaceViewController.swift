@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleInsufficientDiskSpaceViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E5 InsufficientDiskSpace"
+    title = "InsufficientDiskSpace"
     addInfoLabel("Uses an extreme zipDiskSpaceSafetyFactor to trigger pre-zip disk checks.")
     addActionButton("Zip with inflated disk requirement") { [weak self] in
       Task { @MainActor [weak self] in

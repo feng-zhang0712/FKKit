@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleDiskSpaceGuardViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B6 DiskSpaceGuard"
+    title = "DiskSpaceGuard"
     addInfoLabel("Default threshold comes from FKFileManagerConfiguration.minimumRequiredDiskSpace (50 MB).")
     addActionButton("ensureSufficientDiskSpace() default") { [weak self] in
       guard let self else { return }

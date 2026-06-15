@@ -5,7 +5,7 @@ import FKCoreKit
 final class FKBusinessKitExampleMaskAndFormatViewController: FKBusinessKitExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B7 MaskAndFormat"
+    title = "MaskAndFormat"
     addActionButton("Run formatters + mask") { [weak self] in
       guard let self else { return }
       let now = Date()

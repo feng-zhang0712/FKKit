@@ -8,7 +8,7 @@ final class FKLocalNotificationExampleCancelReplaceViewController: FKLocalNotifi
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B5 Cancel & Query"
+    title = "Cancel & Query"
 
     addInfoLabel("Demonstrates identifier replace semantics, batch schedule/cancel, and query/remove APIs.")
 

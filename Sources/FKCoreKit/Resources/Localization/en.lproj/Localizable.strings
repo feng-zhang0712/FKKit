@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "Invalid notification trigger: %@";
 "fkcore.local_notification.error.not_authorized" = "Notification permission is not granted. Request access via FKPermissions first.";
 "fkcore.local_notification.error.system" = "Notification system error: %@";
+"fkcore.background_task.error.already_installed" = "Background task registrations are already installed.";
+"fkcore.background_task.error.duplicate_registration" = "Background task identifier is already registered: %@";
+"fkcore.background_task.error.not_installed" = "Background task registrations are not installed. Call installRegistrations first.";
+"fkcore.background_task.error.not_permitted" = "Background task identifier is not permitted. Add it to BGTaskSchedulerPermittedIdentifiers: %@";
+"fkcore.background_task.error.scheduling_failed" = "Background task scheduling failed (code %@).";
+"fkcore.background_task.error.unregistered" = "Background task identifier is not registered: %@";
+"fkcore.background_task.error.work_unavailable" = "Background work extension is unavailable.";
 "fkcore.business.error.cancelled" = "Cancelled";
 "fkcore.business.error.invalid_argument" = "Invalid argument: %@";
 "fkcore.business.error.missing_configuration" = "Missing configuration: %@";

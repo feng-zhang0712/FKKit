@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleBackgroundRecoveryViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E7 BackgroundRecovery"
+    title = "BackgroundRecovery"
     addInfoLabel(
       """
       Production wiring:

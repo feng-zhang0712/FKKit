@@ -7,7 +7,7 @@ final class FKFileManagerExampleDownloadPauseResumeViewController: FKFileManager
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B3 DownloadPauseResume"
+    title = "DownloadPauseResume"
     addInfoLabel("Downloads a small public file, then pause/resume/cancel using task IDs.")
     addActionButton("Start background download") { [weak self] in
       Task { @MainActor [weak self] in

@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "Déclencheur de notification invalide : %@";
 "fkcore.local_notification.error.not_authorized" = "Autorisation de notification non accordée. Demandez l'accès via FKPermissions.";
 "fkcore.local_notification.error.system" = "Erreur système de notification : %@";
+"fkcore.background_task.error.already_installed" = "Les enregistrements de tâches d'arrière-plan sont déjà installés.";
+"fkcore.background_task.error.duplicate_registration" = "L'identifiant de tâche d'arrière-plan est déjà enregistré : %@";
+"fkcore.background_task.error.not_installed" = "Les tâches d'arrière-plan ne sont pas installées. Appelez installRegistrations d'abord.";
+"fkcore.background_task.error.not_permitted" = "L'identifiant de tâche n'est pas autorisé. Ajoutez-le à BGTaskSchedulerPermittedIdentifiers : %@";
+"fkcore.background_task.error.scheduling_failed" = "Échec de la planification de la tâche d'arrière-plan (code %@).";
+"fkcore.background_task.error.unregistered" = "L'identifiant de tâche d'arrière-plan n'est pas enregistré : %@";
+"fkcore.background_task.error.work_unavailable" = "L'extension de travail d'arrière-plan n'est pas disponible.";
 "fkcore.business.error.cancelled" = "Annulé";
 "fkcore.business.error.invalid_argument" = "Argument non valide : %@";
 "fkcore.business.error.missing_configuration" = "Configuration manquante : %@";

@@ -5,7 +5,7 @@ import FKCoreKit
 final class FKBusinessKitExampleAlertPresentOnceViewController: FKBusinessKitExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B9 AlertPresentOnce"
+    title = "AlertPresentOnce"
     kit.updateConfiguration { $0.alertBackend = .systemAlert }
     addInfoLabel("Tap rapidly — only one alert shows per id until dismissed.")
     addActionButton("Present once (system alert)") { [weak self] in

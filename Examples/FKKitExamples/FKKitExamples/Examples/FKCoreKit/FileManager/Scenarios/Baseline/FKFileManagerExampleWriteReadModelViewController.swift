@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleWriteReadModelViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B2 WriteReadModel"
+    title = "WriteReadModel"
     addInfoLabel("Persists a Sendable Codable model as JSON under the demo folder.")
     addActionButton("writeModel → readModel") { [weak self] in
       Task { @MainActor [weak self] in

@@ -7,7 +7,7 @@ final class FKLocalNotificationExampleDeeplinkTapViewController: FKLocalNotifica
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B7 Deeplink Tap"
+    title = "Deeplink Tap"
 
     FKLocalNotificationExampleSupport.installDelegate { [weak self] in self?.appendLog($0) }
     registerDemoRoutes()

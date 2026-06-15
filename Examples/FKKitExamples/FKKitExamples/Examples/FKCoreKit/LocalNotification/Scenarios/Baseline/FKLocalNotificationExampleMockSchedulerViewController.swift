@@ -7,7 +7,7 @@ final class FKLocalNotificationExampleMockSchedulerViewController: FKLocalNotifi
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B8 Mock & Pluggable"
+    title = "Mock & Pluggable"
 
     addInfoLabel(
       "FKMockLocalNotificationScheduler exercises scheduling logic without UNUserNotificationCenter or system permission prompts."

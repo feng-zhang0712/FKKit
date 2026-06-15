@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleMultipartUploadViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B4 MultipartUpload"
+    title = "MultipartUpload"
     addInfoLabel("Posts two local files plus form fields to httpbin.org (requires network).")
     addActionButton("Upload two files + fields") { [weak self] in
       Task { @MainActor [weak self] in

@@ -16,6 +16,7 @@ private func readmeExcludes(moduleDirectories: [String]) -> [String] {
 /// FKCoreKit component docs (`Sources/FKCoreKit/Components/<name>/README.md`).
 private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/Async",
+  "Components/BackgroundTask",
   "Components/BiometricAuth",
   "Components/BusinessKit",
   "Components/FileManager",

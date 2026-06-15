@@ -5,7 +5,7 @@ import UIKit
 final class FKLocalNotificationExampleBadgeViewController: FKLocalNotificationExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B6 Badge"
+    title = "Badge"
 
     addInfoLabel(
       "setBadgeCount uses UNUserNotificationCenter.setBadgeCount on iOS 16+ and UIApplication.applicationIconBadgeNumber on iOS 15."

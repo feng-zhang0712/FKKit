@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleShareZippedExportViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E8 ShareZippedExport"
+    title = "ShareZippedExport"
     addInfoLabel("Creates a ZIP under Documents, then makeShareController(for:).")
     addActionButton("Zip demo folder and share") { [weak self] in
       Task { @MainActor [weak self] in

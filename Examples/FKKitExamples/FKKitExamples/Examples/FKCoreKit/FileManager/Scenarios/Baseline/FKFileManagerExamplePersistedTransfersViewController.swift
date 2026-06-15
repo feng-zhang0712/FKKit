@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExamplePersistedTransfersViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B7 PersistedTransfers"
+    title = "PersistedTransfers"
     addInfoLabel("Start a transfer in B3/B4, then refresh snapshots here.")
     addActionButton("Refresh persistedTransfers()") { [weak self] in
       Task { @MainActor [weak self] in

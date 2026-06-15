@@ -5,7 +5,7 @@ import UIKit
 final class FKLocalNotificationExampleScheduleIntervalViewController: FKLocalNotificationExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B2 Interval & Content"
+    title = "Interval & Content"
 
     addInfoLabel(
       "Install the delegate so notifications appear as banners while the app stays in the foreground. Background the app to see lock-screen delivery."

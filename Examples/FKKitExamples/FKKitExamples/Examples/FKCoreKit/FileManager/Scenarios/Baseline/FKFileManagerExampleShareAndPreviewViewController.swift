@@ -8,7 +8,7 @@ final class FKFileManagerExampleShareAndPreviewViewController: FKFileManagerExam
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B8 ShareAndPreview"
+    title = "ShareAndPreview"
     addInfoLabel("makeShareController / makePreviewController require a local file URL.")
     addActionButton("Share demo text file") { [weak self] in
       Task { @MainActor [weak self] in

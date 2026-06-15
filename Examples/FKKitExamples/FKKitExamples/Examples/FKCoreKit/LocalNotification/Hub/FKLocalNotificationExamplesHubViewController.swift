@@ -18,7 +18,7 @@ final class FKLocalNotificationExamplesHubViewController: UITableViewController 
       title: "Permission & authorization",
       rows: [
         Row(
-          title: "B1 — Permission gate",
+          title: "Permission gate",
           subtitle: "FKPermissions pre-prompt → system authorization → canScheduleNotifications → schedule",
           make: { FKLocalNotificationExamplePermissionGateViewController() }
         ),
@@ -28,12 +28,12 @@ final class FKLocalNotificationExamplesHubViewController: UITableViewController 
       title: "Scheduling & triggers",
       rows: [
         Row(
-          title: "B2 — Interval, immediate & content",
+          title: "Interval, immediate & content",
           subtitle: "10s delay, immediate delivery, rich content fields, repeating interval (≥60s), foreground delegate",
           make: { FKLocalNotificationExampleScheduleIntervalViewController() }
         ),
         Row(
-          title: "B3 — Calendar daily repeat",
+          title: "Calendar daily repeat",
           subtitle: "FKLocalNotificationCalendarTrigger with timezone; inspect pendingRequests()",
           make: { FKLocalNotificationExampleScheduleCalendarViewController() }
         ),
@@ -43,7 +43,7 @@ final class FKLocalNotificationExamplesHubViewController: UITableViewController 
       title: "Categories & presentation",
       rows: [
         Row(
-          title: "B4 — Category actions",
+          title: "Category actions",
           subtitle: "registerCategories, Mark Read / Snooze actions, custom dismiss, response handler",
           make: { FKLocalNotificationExampleCategoryActionsViewController() }
         ),
@@ -58,12 +58,12 @@ final class FKLocalNotificationExamplesHubViewController: UITableViewController 
       title: "Lifecycle, query & badge",
       rows: [
         Row(
-          title: "B5 — Cancel, replace & query",
+          title: "Cancel, replace & query",
           subtitle: "Same-id replace, batch schedule/cancel, pending & delivered queries, removeDelivered",
           make: { FKLocalNotificationExampleCancelReplaceViewController() }
         ),
         Row(
-          title: "B6 — Badge count",
+          title: "Badge count",
           subtitle: "setBadgeCount, clearBadge (iOS 16+ API with iOS 15 fallback)",
           make: { FKLocalNotificationExampleBadgeViewController() }
         ),
@@ -73,12 +73,12 @@ final class FKLocalNotificationExamplesHubViewController: UITableViewController 
       title: "Routing & testing",
       rows: [
         Row(
-          title: "B7 — Deeplink on tap",
+          title: "Deeplink on tap",
           subtitle: "userInfo deeplink URL, useBusinessKitDeeplink, custom router, route-before-handler config",
           make: { FKLocalNotificationExampleDeeplinkTapViewController() }
         ),
         Row(
-          title: "B8 — Mock & Pluggable",
+          title: "Mock & Pluggable",
           subtitle: "FKMockLocalNotificationScheduler, protocol injection, validation errors, LocalizedError catalog",
           make: { FKLocalNotificationExampleMockSchedulerViewController() }
         ),

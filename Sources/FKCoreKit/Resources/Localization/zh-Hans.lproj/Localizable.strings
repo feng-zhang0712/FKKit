@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "通知触发器无效：%@";
 "fkcore.local_notification.error.not_authorized" = "未授予通知权限。请先通过 FKPermissions 申请。";
 "fkcore.local_notification.error.system" = "通知系统错误：%@";
+"fkcore.background_task.error.already_installed" = "后台任务注册已完成，无法重复安装。";
+"fkcore.background_task.error.duplicate_registration" = "后台任务标识符已注册：%@";
+"fkcore.background_task.error.not_installed" = "后台任务尚未安装，请先调用 installRegistrations。";
+"fkcore.background_task.error.not_permitted" = "后台任务标识符未获允许，请将其加入 BGTaskSchedulerPermittedIdentifiers：%@";
+"fkcore.background_task.error.scheduling_failed" = "后台任务调度失败（错误码 %@）。";
+"fkcore.background_task.error.unregistered" = "后台任务标识符未注册：%@";
+"fkcore.background_task.error.work_unavailable" = "后台续跑不可用。";
 "fkcore.business.error.cancelled" = "已取消";
 "fkcore.business.error.invalid_argument" = "无效参数：%@";
 "fkcore.business.error.missing_configuration" = "缺少配置：%@";

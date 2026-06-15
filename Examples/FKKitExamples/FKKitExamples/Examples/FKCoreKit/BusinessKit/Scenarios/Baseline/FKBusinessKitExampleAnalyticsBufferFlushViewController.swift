@@ -7,7 +7,7 @@ final class FKBusinessKitExampleAnalyticsBufferFlushViewController: FKBusinessKi
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B3 AnalyticsBufferFlush"
+    title = "AnalyticsBufferFlush"
     kit.updateConfiguration { $0.analyticsFlushInterval = 5 }
     kit.track.setUploader(FKBusinessKitDemoAnalyticsUploader(logger: { [weak self] in self?.appendLog($0) }))
     kit.track.setCommonParametersProvider(FKBusinessKitDemoAnalyticsCommonParamsProvider())

@@ -15,7 +15,7 @@ final class FKNetworkExamplesHubViewController: UITableViewController {
 
   private let sections: [Section] = [
     Section(
-      title: "Baseline (B1–B8)",
+      title: "Baseline",
       rows: [
         Row(
           title: "Core client playground",
@@ -25,7 +25,7 @@ final class FKNetworkExamplesHubViewController: UITableViewController {
       ]
     ),
     Section(
-      title: "Enhancements (E1–E9)",
+      title: "Enhancements",
       rows: [
         Row(
           title: "Multipart, retry, mock session, pinning, pluggable",

@@ -5,7 +5,7 @@ import FKCoreKit
 final class FKBusinessKitExampleBannerVersionComposeViewController: FKBusinessKitExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E3 BannerVersionCompose"
+    title = "BannerVersionCompose"
     addInfoLabel(
       """
       BusinessKit detects updates; the host shows FKBanner (when available) instead of presentUpdatePromptIfNeeded.

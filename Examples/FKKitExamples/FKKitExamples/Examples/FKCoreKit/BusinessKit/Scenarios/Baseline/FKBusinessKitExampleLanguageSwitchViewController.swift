@@ -7,7 +7,7 @@ final class FKBusinessKitExampleLanguageSwitchViewController: FKBusinessKitExamp
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B4 LanguageSwitch"
+    title = "LanguageSwitch"
     languageToken = kit.i18n.observeLanguageChange { [weak self] code in
       Task { @MainActor in
         self?.appendLog("Language observer: \(code)")

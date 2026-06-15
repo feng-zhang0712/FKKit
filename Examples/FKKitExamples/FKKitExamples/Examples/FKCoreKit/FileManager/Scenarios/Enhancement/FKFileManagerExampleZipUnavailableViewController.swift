@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleZipUnavailableViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E4 ZipUnavailableFallback"
+    title = "ZipUnavailableFallback"
     addInfoLabel("Uses FKFileManager(configuration: .init(isZipEnabled: false)).")
     addActionButton("Attempt zipItem with isZipEnabled = false") { [weak self] in
       Task { @MainActor [weak self] in

@@ -15,6 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     FKI18nExampleSupport.configureAtLaunch()
     FKMediaPlayerCoreExampleSetup.configureAtLaunch()
     FKLocalNotificationExampleSupport.configureAtLaunch()
+    FKBackgroundTaskExampleSupport.configureAtLaunch()
     return true
   }
 

@@ -5,7 +5,7 @@ import FKCoreKit
 final class FKBusinessKitExampleStartupTasksViewController: FKBusinessKitExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B8 StartupTasks"
+    title = "StartupTasks"
     addInfoLabel("Tasks run high → normal → low with configured delay.")
     addActionButton("Register + runAll") { [weak self] in
       guard let self else { return }

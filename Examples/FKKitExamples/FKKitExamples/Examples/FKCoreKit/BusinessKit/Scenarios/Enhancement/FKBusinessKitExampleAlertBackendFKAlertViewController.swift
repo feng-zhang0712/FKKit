@@ -30,7 +30,7 @@ final class FKBusinessKitExampleAlertBackendFKAlertViewController: FKBusinessKit
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E1 AlertBackendFKAlert"
+    title = "AlertBackendFKAlert"
     kit.updateConfiguration { $0.alertBackend = .fkAlert }
     kit.alertPresenter = alertBridge
     addInfoLabel("Uses FKBusinessKitConfiguration.alertBackend = .fkAlert with FKAlertPresenter bridge.")

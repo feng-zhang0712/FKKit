@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "Недопустимый триггер уведомления: %@";
 "fkcore.local_notification.error.not_authorized" = "Разрешение на уведомления не предоставлено. Сначала запросите через FKPermissions.";
 "fkcore.local_notification.error.system" = "Системная ошибка уведомлений: %@";
+"fkcore.background_task.error.already_installed" = "Регистрации фоновых задач уже установлены.";
+"fkcore.background_task.error.duplicate_registration" = "Идентификатор фоновой задачи уже зарегистрирован: %@";
+"fkcore.background_task.error.not_installed" = "Фоновые задачи не установлены. Сначала вызовите installRegistrations.";
+"fkcore.background_task.error.not_permitted" = "Идентификатор фоновой задачи не разрешён. Добавьте его в BGTaskSchedulerPermittedIdentifiers: %@";
+"fkcore.background_task.error.scheduling_failed" = "Не удалось запланировать фоновую задачу (код %@).";
+"fkcore.background_task.error.unregistered" = "Идентификатор фоновой задачи не зарегистрирован: %@";
+"fkcore.background_task.error.work_unavailable" = "Продление фоновой работы недоступно.";
 "fkcore.business.error.cancelled" = "Отменено";
 "fkcore.business.error.invalid_argument" = "Недопустимый аргумент: %@";
 "fkcore.business.error.missing_configuration" = "Отсутствует конфигурация: %@";

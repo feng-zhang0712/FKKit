@@ -7,7 +7,7 @@ final class FKBusinessKitExamplePluggableBridgeViewController: FKBusinessKitExam
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E2 PluggableBridge"
+    title = "PluggableBridge"
     let lifecycleAdapter = FKBusinessLifecyclePluggableAdapter(observer: kit.lifecycle)
     lifecycleToken = lifecycleAdapter.observe { [weak self] state in
       Task { @MainActor in

@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "알림 트리거가 유효하지 않습니다: %@";
 "fkcore.local_notification.error.not_authorized" = "알림 권한이 없습니다. FKPermissions로 먼저 요청하세요.";
 "fkcore.local_notification.error.system" = "알림 시스템 오류: %@";
+"fkcore.background_task.error.already_installed" = "백그라운드 작업 등록이 이미 설치되었습니다.";
+"fkcore.background_task.error.duplicate_registration" = "백그라운드 작업 식별자가 이미 등록되었습니다: %@";
+"fkcore.background_task.error.not_installed" = "백그라운드 작업이 설치되지 않았습니다. 먼저 installRegistrations를 호출하세요.";
+"fkcore.background_task.error.not_permitted" = "백그라운드 작업 식별자가 허용되지 않습니다. BGTaskSchedulerPermittedIdentifiers에 추가하세요: %@";
+"fkcore.background_task.error.scheduling_failed" = "백그라운드 작업 예약 실패(코드 %@).";
+"fkcore.background_task.error.unregistered" = "백그라운드 작업 식별자가 등록되지 않았습니다: %@";
+"fkcore.background_task.error.work_unavailable" = "백그라운드 작업 연장을 사용할 수 없습니다.";
 "fkcore.business.error.cancelled" = "취소됨";
 "fkcore.business.error.invalid_argument" = "잘못된 인수: %@";
 "fkcore.business.error.missing_configuration" = "구성 누락: %@";

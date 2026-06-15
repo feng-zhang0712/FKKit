@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleSandboxPathsViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B1 SandboxPaths"
+    title = "SandboxPaths"
     addInfoLabel("Calls directoryURL(_:) for each FKSandboxDirectory case.")
     addActionButton("Print home, documents, caches, temporary") { [weak self] in
       guard let self else { return }

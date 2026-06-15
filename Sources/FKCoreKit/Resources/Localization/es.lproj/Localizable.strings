@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "Disparador de notificación no válido: %@";
 "fkcore.local_notification.error.not_authorized" = "No se concedió permiso de notificaciones. Solicítelo primero con FKPermissions.";
 "fkcore.local_notification.error.system" = "Error del sistema de notificaciones: %@";
+"fkcore.background_task.error.already_installed" = "Las registraciones de tareas en segundo plano ya están instaladas.";
+"fkcore.background_task.error.duplicate_registration" = "El identificador de tarea en segundo plano ya está registrado: %@";
+"fkcore.background_task.error.not_installed" = "Las tareas en segundo plano no están instaladas. Llame primero a installRegistrations.";
+"fkcore.background_task.error.not_permitted" = "El identificador de tarea no está permitido. Agréguelo a BGTaskSchedulerPermittedIdentifiers: %@";
+"fkcore.background_task.error.scheduling_failed" = "Error al programar la tarea en segundo plano (código %@).";
+"fkcore.background_task.error.unregistered" = "El identificador de tarea en segundo plano no está registrado: %@";
+"fkcore.background_task.error.work_unavailable" = "La extensión de trabajo en segundo plano no está disponible.";
 "fkcore.business.error.cancelled" = "Cancelado";
 "fkcore.business.error.invalid_argument" = "Argumento no válido: %@";
 "fkcore.business.error.missing_configuration" = "Configuración faltante: %@";

@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleZipFolderViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E1 ZipFolder"
+    title = "ZipFolder"
     addInfoLabel("FKFileManager.isZipAvailable = \(FKFileManager.isZipAvailable)")
     addActionButton("Seed folder and zipItem") { [weak self] in
       Task { @MainActor [weak self] in

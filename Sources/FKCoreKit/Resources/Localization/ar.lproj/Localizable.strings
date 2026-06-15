@@ -23,6 +23,13 @@
 "fkcore.local_notification.error.invalid_trigger" = "مشغّل إشعار غير صالح: %@";
 "fkcore.local_notification.error.not_authorized" = "لم يتم منح إذن الإشعارات. اطلب الوصول عبر FKPermissions أولاً.";
 "fkcore.local_notification.error.system" = "خطأ في نظام الإشعارات: %@";
+"fkcore.background_task.error.already_installed" = "تم تثبيت تسجيلات مهام الخلفية بالفعل.";
+"fkcore.background_task.error.duplicate_registration" = "معرّف مهمة الخلفية مسجّل بالفعل: %@";
+"fkcore.background_task.error.not_installed" = "مهام الخلفية غير مثبتة. استدعِ installRegistrations أولاً.";
+"fkcore.background_task.error.not_permitted" = "معرّف مهمة الخلفية غير مسموح. أضِفه إلى BGTaskSchedulerPermittedIdentifiers: %@";
+"fkcore.background_task.error.scheduling_failed" = "فشل جدولة مهمة الخلفية (الرمز %@).";
+"fkcore.background_task.error.unregistered" = "معرّف مهمة الخلفية غير مسجّل: %@";
+"fkcore.background_task.error.work_unavailable" = "تمديد العمل في الخلفية غير متاح.";
 "fkcore.business.error.cancelled" = "تم الإلغاء";
 "fkcore.business.error.invalid_argument" = "وسيطة غير صالحة: %@";
 "fkcore.business.error.missing_configuration" = "التكوين مفقود: %@";

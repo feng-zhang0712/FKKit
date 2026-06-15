@@ -1,6 +1,6 @@
 import UIKit
 
-/// Grouped index of baseline (B1–B9) and enhancement (E1–E3) ``FKBusinessKit`` scenarios.
+/// Grouped index of baseline and enhancement ``FKBusinessKit`` scenarios.
 final class FKBusinessKitExamplesHubViewController: UITableViewController {
   private struct Row {
     let title: String
@@ -15,32 +15,32 @@ final class FKBusinessKitExamplesHubViewController: UITableViewController {
 
   private let sections: [Section] = [
     Section(
-      title: "Baseline (B1–B9)",
+      title: "Baseline",
       rows: [
-        Row(title: "B1 VersionCheck", subtitle: "Mock provider + optional update decision", make: { FKBusinessKitExampleVersionCheckViewController() }),
-        Row(title: "B2 VersionForceUpdate", subtitle: "Force update prompt path", make: { FKBusinessKitExampleVersionForceUpdateViewController() }),
-        Row(title: "B3 AnalyticsBufferFlush", subtitle: "Enqueue events + manual/background flush", make: { FKBusinessKitExampleAnalyticsBufferFlushViewController() }),
-        Row(title: "B4 LanguageSwitch", subtitle: "setLanguageCode + relative time refresh", make: { FKBusinessKitExampleLanguageSwitchViewController() }),
-        Row(title: "B5 LifecycleLog", subtitle: "Lifecycle state stream", make: { FKBusinessKitExampleLifecycleLogViewController() }),
-        Row(title: "B6 DeeplinkRoute", subtitle: "register routes + simulate URLs", make: { FKBusinessKitExampleDeeplinkRouteViewController() }),
-        Row(title: "B7 MaskAndFormat", subtitle: "mask + number + time formatters", make: { FKBusinessKitExampleMaskAndFormatViewController() }),
-        Row(title: "B8 StartupTasks", subtitle: "Priority + delay orchestration", make: { FKBusinessKitExampleStartupTasksViewController() }),
-        Row(title: "B9 AlertPresentOnce", subtitle: "System alert de-duplication by id", make: { FKBusinessKitExampleAlertPresentOnceViewController() }),
+        Row(title: "VersionCheck", subtitle: "Mock provider + optional update decision", make: { FKBusinessKitExampleVersionCheckViewController() }),
+        Row(title: "VersionForceUpdate", subtitle: "Force update prompt path", make: { FKBusinessKitExampleVersionForceUpdateViewController() }),
+        Row(title: "AnalyticsBufferFlush", subtitle: "Enqueue events + manual/background flush", make: { FKBusinessKitExampleAnalyticsBufferFlushViewController() }),
+        Row(title: "LanguageSwitch", subtitle: "setLanguageCode + relative time refresh", make: { FKBusinessKitExampleLanguageSwitchViewController() }),
+        Row(title: "LifecycleLog", subtitle: "Lifecycle state stream", make: { FKBusinessKitExampleLifecycleLogViewController() }),
+        Row(title: "DeeplinkRoute", subtitle: "register routes + simulate URLs", make: { FKBusinessKitExampleDeeplinkRouteViewController() }),
+        Row(title: "MaskAndFormat", subtitle: "mask + number + time formatters", make: { FKBusinessKitExampleMaskAndFormatViewController() }),
+        Row(title: "StartupTasks", subtitle: "Priority + delay orchestration", make: { FKBusinessKitExampleStartupTasksViewController() }),
+        Row(title: "AlertPresentOnce", subtitle: "System alert de-duplication by id", make: { FKBusinessKitExampleAlertPresentOnceViewController() }),
       ]
     ),
     Section(
-      title: "Enhancements (E1–E3)",
+      title: "Enhancements",
       rows: [
-        Row(title: "E1 AlertBackendFKAlert", subtitle: "alertBackend .fkAlert + injected presenter", make: { FKBusinessKitExampleAlertBackendFKAlertViewController() }),
-        Row(title: "E2 PluggableBridge", subtitle: "Lifecycle + Analytics Pluggable adapters", make: { FKBusinessKitExamplePluggableBridgeViewController() }),
-        Row(title: "E3 BannerVersionCompose", subtitle: "Doc pattern: check → host FKBanner (when available)", make: { FKBusinessKitExampleBannerVersionComposeViewController() }),
+        Row(title: "AlertBackendFKAlert", subtitle: "alertBackend .fkAlert + injected presenter", make: { FKBusinessKitExampleAlertBackendFKAlertViewController() }),
+        Row(title: "PluggableBridge", subtitle: "Lifecycle + Analytics Pluggable adapters", make: { FKBusinessKitExamplePluggableBridgeViewController() }),
+        Row(title: "BannerVersionCompose", subtitle: "Doc pattern: check → host FKBanner (when available)", make: { FKBusinessKitExampleBannerVersionComposeViewController() }),
       ]
     ),
     Section(
       title: "Catalog",
       rows: [
         Row(
-          title: "H0 All-in-One",
+          title: "All-in-One",
           subtitle: "Single-screen tour of every FKBusinessKit API",
           make: { FKBusinessKitExampleViewController() }
         ),

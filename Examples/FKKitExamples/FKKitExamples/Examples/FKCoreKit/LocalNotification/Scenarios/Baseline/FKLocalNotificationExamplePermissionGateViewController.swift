@@ -5,7 +5,7 @@ import UIKit
 final class FKLocalNotificationExamplePermissionGateViewController: FKLocalNotificationExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B1 Permission Gate"
+    title = "Permission Gate"
 
     addInfoLabel(
       """

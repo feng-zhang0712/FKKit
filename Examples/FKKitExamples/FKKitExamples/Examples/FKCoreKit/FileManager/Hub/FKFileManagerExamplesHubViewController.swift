@@ -1,6 +1,6 @@
 import UIKit
 
-/// Grouped index of baseline (B1–B8) and enhancement (E1–E8) ``FKFileManager`` scenarios.
+/// Grouped index of baseline and enhancement ``FKFileManager`` scenarios.
 final class FKFileManagerExamplesHubViewController: UITableViewController {
   private struct Row {
     let title: String
@@ -15,29 +15,29 @@ final class FKFileManagerExamplesHubViewController: UITableViewController {
 
   private let sections: [Section] = [
     Section(
-      title: "Baseline (B1–B8)",
+      title: "Baseline",
       rows: [
-        Row(title: "B1 SandboxPaths", subtitle: "directoryURL for home, documents, caches, temporary", make: { FKFileManagerExampleSandboxPathsViewController() }),
-        Row(title: "B2 WriteReadModel", subtitle: "writeModel / readModel Codable round-trip", make: { FKFileManagerExampleWriteReadModelViewController() }),
-        Row(title: "B3 DownloadPauseResume", subtitle: "download, pauseDownload, resumeDownload, cancel", make: { FKFileManagerExampleDownloadPauseResumeViewController() }),
-        Row(title: "B4 MultipartUpload", subtitle: "Multiple files + form fields via FKUploadRequest", make: { FKFileManagerExampleMultipartUploadViewController() }),
-        Row(title: "B5 CacheSizeAndClear", subtitle: "directorySize, clearCaches, clearTemporaryFiles", make: { FKFileManagerExampleCacheSizeAndClearViewController() }),
-        Row(title: "B6 DiskSpaceGuard", subtitle: "ensureSufficientDiskSpace threshold check", make: { FKFileManagerExampleDiskSpaceGuardViewController() }),
-        Row(title: "B7 PersistedTransfers", subtitle: "persistedTransfers snapshot list after transfers", make: { FKFileManagerExamplePersistedTransfersViewController() }),
-        Row(title: "B8 ShareAndPreview", subtitle: "makeShareController + makePreviewController", make: { FKFileManagerExampleShareAndPreviewViewController() }),
+        Row(title: "SandboxPaths", subtitle: "directoryURL for home, documents, caches, temporary", make: { FKFileManagerExampleSandboxPathsViewController() }),
+        Row(title: "WriteReadModel", subtitle: "writeModel / readModel Codable round-trip", make: { FKFileManagerExampleWriteReadModelViewController() }),
+        Row(title: "DownloadPauseResume", subtitle: "download, pauseDownload, resumeDownload, cancel", make: { FKFileManagerExampleDownloadPauseResumeViewController() }),
+        Row(title: "MultipartUpload", subtitle: "Multiple files + form fields via FKUploadRequest", make: { FKFileManagerExampleMultipartUploadViewController() }),
+        Row(title: "CacheSizeAndClear", subtitle: "directorySize, clearCaches, clearTemporaryFiles", make: { FKFileManagerExampleCacheSizeAndClearViewController() }),
+        Row(title: "DiskSpaceGuard", subtitle: "ensureSufficientDiskSpace threshold check", make: { FKFileManagerExampleDiskSpaceGuardViewController() }),
+        Row(title: "PersistedTransfers", subtitle: "persistedTransfers snapshot list after transfers", make: { FKFileManagerExamplePersistedTransfersViewController() }),
+        Row(title: "ShareAndPreview", subtitle: "makeShareController + makePreviewController", make: { FKFileManagerExampleShareAndPreviewViewController() }),
       ]
     ),
     Section(
-      title: "Enhancements (E1–E8)",
+      title: "Enhancements",
       rows: [
-        Row(title: "E1 ZipFolder", subtitle: "Zip a directory with FKZipOptions", make: { FKFileManagerExampleZipFolderViewController() }),
-        Row(title: "E2 UnzipAndVerify", subtitle: "Unzip archive and compare SHA-256 hashes", make: { FKFileManagerExampleUnzipAndVerifyViewController() }),
-        Row(title: "E3 ZipSingleFile", subtitle: "Archive one file without root folder name", make: { FKFileManagerExampleZipSingleFileViewController() }),
-        Row(title: "E4 ZipUnavailableFallback", subtitle: "isZipEnabled gate → zipUnavailable", make: { FKFileManagerExampleZipUnavailableViewController() }),
-        Row(title: "E5 InsufficientDiskSpace", subtitle: "Compression blocked when disk guard fails", make: { FKFileManagerExampleInsufficientDiskSpaceViewController() }),
-        Row(title: "E6 ZipSlipBlocked", subtitle: "Malicious ../ entry → zipEntryPathUnsafe", make: { FKFileManagerExampleZipSlipBlockedViewController() }),
-        Row(title: "E7 BackgroundDownloadRecovery", subtitle: "persistedTransfers + AppDelegate wiring guide", make: { FKFileManagerExampleBackgroundRecoveryViewController() }),
-        Row(title: "E8 ShareZippedExport", subtitle: "zipItem then makeShareController", make: { FKFileManagerExampleShareZippedExportViewController() }),
+        Row(title: "ZipFolder", subtitle: "Zip a directory with FKZipOptions", make: { FKFileManagerExampleZipFolderViewController() }),
+        Row(title: "UnzipAndVerify", subtitle: "Unzip archive and compare SHA-256 hashes", make: { FKFileManagerExampleUnzipAndVerifyViewController() }),
+        Row(title: "ZipSingleFile", subtitle: "Archive one file without root folder name", make: { FKFileManagerExampleZipSingleFileViewController() }),
+        Row(title: "ZipUnavailableFallback", subtitle: "isZipEnabled gate → zipUnavailable", make: { FKFileManagerExampleZipUnavailableViewController() }),
+        Row(title: "InsufficientDiskSpace", subtitle: "Compression blocked when disk guard fails", make: { FKFileManagerExampleInsufficientDiskSpaceViewController() }),
+        Row(title: "ZipSlipBlocked", subtitle: "Malicious ../ entry → zipEntryPathUnsafe", make: { FKFileManagerExampleZipSlipBlockedViewController() }),
+        Row(title: "BackgroundDownloadRecovery", subtitle: "persistedTransfers + AppDelegate wiring guide", make: { FKFileManagerExampleBackgroundRecoveryViewController() }),
+        Row(title: "ShareZippedExport", subtitle: "zipItem then makeShareController", make: { FKFileManagerExampleShareZippedExportViewController() }),
       ]
     ),
     Section(

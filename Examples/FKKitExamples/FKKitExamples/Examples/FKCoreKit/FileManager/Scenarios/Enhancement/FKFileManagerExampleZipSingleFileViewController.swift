@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleZipSingleFileViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E3 ZipSingleFile"
+    title = "ZipSingleFile"
     addActionLabel()
     addActionButton("Zip one file (includesRootDirectoryName: false)") { [weak self] in
       Task { @MainActor [weak self] in

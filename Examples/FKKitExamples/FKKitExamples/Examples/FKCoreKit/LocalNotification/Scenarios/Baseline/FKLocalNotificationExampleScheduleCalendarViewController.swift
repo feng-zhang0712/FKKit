@@ -5,7 +5,7 @@ import UIKit
 final class FKLocalNotificationExampleScheduleCalendarViewController: FKLocalNotificationExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "B3 Calendar Daily"
+    title = "Calendar Daily"
 
     addInfoLabel(
       "Schedules a daily repeating notification at the next clock minute (local timezone). Use pendingRequests() to verify the entry."

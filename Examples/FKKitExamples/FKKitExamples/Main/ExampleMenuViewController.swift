@@ -225,6 +225,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKBiometricAuthExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "BackgroundTask",
+          subtitle: "Hub: BGTaskScheduler register/schedule, handler lifecycle, beginBackgroundWork, BusinessKit recipe, mock",
+          make: { FKBackgroundTaskExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "BusinessKit",
           subtitle: "Version, tracking, i18n, lifecycle, deeplink, device info, business utils",
           make: { FKBusinessKitExamplesHubViewController() }
@@ -236,7 +241,7 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "FileManager",
-          subtitle: "Hub: baseline B1–B8, enhancements E1–E8, ZIP, background recovery, share",
+          subtitle: "Hub: sandbox, download, upload, cache, ZIP, background recovery, share",
           make: { FKFileManagerExamplesHubViewController() }
         ),
         ExampleMenuItem(

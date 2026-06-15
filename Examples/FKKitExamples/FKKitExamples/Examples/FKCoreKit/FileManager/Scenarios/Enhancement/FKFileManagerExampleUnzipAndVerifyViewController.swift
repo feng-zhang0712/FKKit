@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleUnzipAndVerifyViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E2 UnzipAndVerify"
+    title = "UnzipAndVerify"
     addInfoLabel("Zips a file, unzips to a fresh directory, compares SHA-256 of extracted content.")
     addActionButton("Zip → unzip → verify hash") { [weak self] in
       Task { @MainActor [weak self] in

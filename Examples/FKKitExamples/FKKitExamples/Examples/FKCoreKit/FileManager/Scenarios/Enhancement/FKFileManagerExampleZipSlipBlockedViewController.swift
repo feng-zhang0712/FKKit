@@ -5,7 +5,7 @@ import UIKit
 final class FKFileManagerExampleZipSlipBlockedViewController: FKFileManagerExampleBaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = "E6 ZipSlipBlocked"
+    title = "ZipSlipBlocked"
     addInfoLabel("Extracts a crafted archive whose entry path contains ../")
     addActionButton("Unzip malicious fixture") { [weak self] in
       Task { @MainActor [weak self] in
