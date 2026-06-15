@@ -4,6 +4,61 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.70.0] - 2026-06-15
+
+### Added (FKCoreKit — Pluggable)
+
+- **Reference implementations** — storage (`FKCodableStoragePluggableAdapter`, `FKInMemoryKeyValueStore`), session (`FKUserSessionStore`), configuration (`FKBuildTimeAppEnvironment`, `FKInMemoryFeatureFlags`, `FKJSONRemoteConfigProvider`), logging (`FKLoggerPluggableAdapter`), and deeplink routing (`FKPluggableDeeplinkRouter`, `FKURLDeeplinkParser`, `FKRouteContext.from(url:)`).
+- **`FKPluggableServices`** — optional composition-root template with `productionDefaults()` for wiring common Pluggable dependencies at launch.
+- **Mock suite** — `FKMockAPIClient`, `FKMockUserSession`, `FKMockReachability`, `FKMockPluggableLogger`, and `FKMockImageLoader` for tests and Examples.
+- **`FKPushNotificationRouting`** — Sendable protocol for host-owned remote push payload routing.
+- **Text input helpers** — `FKEmailTextValidator`, `FKLengthTextValidator`, `FKPhoneNumberTextFormatter`, and `FKBankCardTextFormatter`.
+- **Localization** — user-facing validator and error copy via `FKI18n` keys under `fkcore.pluggable.*` across bundled locales.
+- **Examples**: expanded Pluggable hub scenarios and composition-root demo.
+
+### Added (FKCoreKit — BackgroundTask)
+
+- **`FKBackgroundTaskManager`** — `BGTaskScheduler` (App Refresh / Processing) and `UIApplication.beginBackgroundTask` orchestration with Pluggable `FKBackgroundTaskScheduling`, registration descriptors, and `FKMockBackgroundTaskScheduler`.
+- **Examples**: hub scenarios under `Examples/FKCoreKit/BackgroundTask/`.
+
+### Added (FKCoreKit — LocalNotification)
+
+- **`FKLocalNotificationManager`** — local notification scheduling, categories/actions, foreground presentation, response handling, and Pluggable `FKLocalNotificationScheduling` with `FKMockLocalNotificationScheduler`.
+- **Examples**: hub scenarios under `Examples/FKCoreKit/LocalNotification/`.
+
+### Added (FKCoreKit — BusinessKit)
+
+- Alert backends, Pluggable bridge adapters (lifecycle, deeplink, analytics, i18n), and expanded FKKitExamples hub coverage.
+
+### Added (FKCoreKit — FileManager)
+
+- Native ZIP compress/decompress, background transfer recovery, and expanded FKKitExamples hub.
+
+### Added (FKCoreKit — Network)
+
+- SSL pinning, HTTP retry policy, mock `URLSession` stack, and Pluggable bridge adapters for API client, interceptors, signing, token refresh, and reachability.
+
+### Added (FKUIKit — SearchViewController)
+
+- Composite search page with local and remote modes, idle/results presentation customization, sticky footer placement, and host-handled search refinements.
+- **Examples**: full hub coverage under `Examples/FKUIKit/SearchViewController/`.
+
+### Fixed (FKUIKit — WebView)
+
+- Resolve `WKUIDelegate` signature conflict that failed CI builds.
+
+### Changed (FKUIKit — SearchViewController)
+
+- Slimmer view hierarchy and internal cleanup without public API breakage.
+
+### Added (Documentation)
+
+- Normalize design document naming and expand module coverage under `docs/`.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.70.0** (Git tag **`0.70.0`**).
+
 ## [0.69.0] - 2026-06-13
 
 ### Added (FKUIKit — Alert)
@@ -2745,7 +2800,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.69.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.70.0...HEAD
+[0.70.0]: https://github.com/feng-zhang0712/FKKit/compare/0.69.0...0.70.0
 [0.69.0]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...0.69.0
 [0.68.0]: https://github.com/feng-zhang0712/FKKit/compare/0.67.0...0.68.0
 [0.67.0]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...0.67.0
