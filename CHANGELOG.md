@@ -4,6 +4,32 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.71.0] - 2026-06-15
+
+### Added (FKUIKit — ListKit)
+
+- **Performance & UX (v2)** — `FKListAnimationConfiguration`, `FKListDefaults.feedConfiguration` / `settingsConfiguration`, `FKListDelegate` `willDisplay` / `didEndDisplaying`, `FKListSnapshotMutation.reconfigureItems`, `FKListImagePrefetchHelper`, table `FKListSkeletonPolicy.presetRows`, and refresh `automaticallyEndsRefreshingOnAsyncCompletion` forwarding.
+- **Feed & media (v3)** — `FKListImagePrefetchProviding`, `FKListHeightCache`, `FKListVideoVisibilityCoordinator`, collection `presetRows` skeleton cells, and `FKSearchViewController` + ListKit integration example.
+- **Scale & parity (v4)** — collection swipe actions (`FKListSwipeActionsBuilder`), SwiftUI `FKDiffableTableViewControllerRepresentable` / `FKDiffableCollectionViewControllerRepresentable`, `FKListWindowingConfiguration`, and `fk_applyDiffableDataSourceSnapshot` helpers.
+- **Examples**: feed optimized, complex feed reference, cell visibility, reconfigure, skeleton preset rows (table/collection), windowing, SwiftUI bridge, collection swipe actions, and SearchViewController cross-link scenarios.
+
+### Fixed (FKUIKit — ListKit)
+
+- Skeleton placeholder cells now show/hide skeleton chrome correctly on configure and reuse.
+- Clarify custom cell `cellTypeIdentifier` must match `register(_:forPayloadType:)` registry keys.
+
+### Fixed (FKUIKit — SearchViewController)
+
+- Custom list cells example uses the correct `cellTypeIdentifier` for ListKit cell registration.
+
+### Added (Documentation)
+
+- `docs/FKListKit_ROADMAP.md` — v2–v4 delivery tracker; fix stale `FKListKit_DESIGN.md` links.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.71.0** (Git tag **`0.71.0`**).
+
 ## [0.70.0] - 2026-06-15
 
 ### Added (FKCoreKit — Pluggable)
@@ -2800,7 +2826,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.70.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.71.0...HEAD
+[0.71.0]: https://github.com/feng-zhang0712/FKKit/compare/0.70.0...0.71.0
 [0.70.0]: https://github.com/feng-zhang0712/FKKit/compare/0.69.0...0.70.0
 [0.69.0]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...0.69.0
 [0.68.0]: https://github.com/feng-zhang0712/FKKit/compare/0.67.0...0.68.0

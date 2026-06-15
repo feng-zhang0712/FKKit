@@ -100,7 +100,7 @@ func bootstrapPluggable() -> FKPluggableServices {
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.70.0"),
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.71.0"),
 ],
 targets: [
   .target(name: "MyApp", dependencies: [.product(name: "FKCoreKit", package: "FKKit")]),
