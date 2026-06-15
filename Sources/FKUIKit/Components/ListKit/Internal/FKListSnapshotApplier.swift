@@ -41,6 +41,9 @@ enum FKListSnapshotApplier {
     case .reloadItems:
       break
 
+    case .reconfigureItems:
+      break
+
     case .reloadSections:
       break
     }

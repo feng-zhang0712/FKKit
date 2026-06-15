@@ -48,5 +48,6 @@ public enum FKListSnapshotMutation: Sendable {
   case insertItems([(FKListItem, after: FKListItemID?)], inSection: FKListSectionID)
   case deleteItems([FKListItemID])
   case reloadItems([FKListItemID])
+  case reconfigureItems([FKListItemID])
   case reloadSections([FKListSectionID])
 }

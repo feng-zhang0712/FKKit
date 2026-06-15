@@ -25,21 +25,26 @@ public enum FKListCollectionLayoutPreset: Sendable, Equatable {
 public enum FKListCollectionLayoutFactory {
   public static func makeLayout(
     preset: FKListCollectionLayoutPreset,
-    snapshot: FKListSnapshot
+    snapshot: FKListSnapshot,
+    estimatedItemHeight: CGFloat = 52
   ) -> UICollectionViewLayout {
+    let estimated = max(1, estimatedItemHeight)
     switch preset {
     case .list:
-      return makeListLayout(snapshot: snapshot)
+      return makeListLayout(snapshot: snapshot, estimatedItemHeight: estimated)
     case .grid(let columns, let spacing):
-      return makeGridLayout(columns: columns, spacing: spacing, snapshot: snapshot)
+      return makeGridLayout(columns: columns, spacing: spacing, snapshot: snapshot, estimatedItemHeight: estimated)
     case .insetGroupedList:
-      return makeInsetGroupedLayout(snapshot: snapshot)
+      return makeInsetGroupedLayout(snapshot: snapshot, estimatedItemHeight: estimated)
     }
   }
 
-  private static func makeListLayout(snapshot: FKListSnapshot) -> UICollectionViewLayout {
+  private static func makeListLayout(snapshot: FKListSnapshot, estimatedItemHeight: CGFloat) -> UICollectionViewLayout {
     return UICollectionViewCompositionalLayout { sectionIndex, _ in
-      let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(52))
+      let itemSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1),
+        heightDimension: .estimated(estimatedItemHeight)
+      )
       let item = NSCollectionLayoutItem(layoutSize: itemSize)
       let group = NSCollectionLayoutGroup.vertical(layoutSize: itemSize, subitems: [item])
       let section = NSCollectionLayoutSection(group: group)
@@ -58,13 +63,21 @@ public enum FKListCollectionLayoutFactory {
   private static func makeGridLayout(
     columns: Int,
     spacing: CGFloat,
-    snapshot: FKListSnapshot
+    snapshot: FKListSnapshot,
+    estimatedItemHeight: CGFloat
   ) -> UICollectionViewLayout {
     let count = max(1, columns)
+    let gridEstimate = max(estimatedItemHeight, 120)
     return UICollectionViewCompositionalLayout { sectionIndex, _ in
-      let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(120))
+      let itemSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1),
+        heightDimension: .estimated(gridEstimate)
+      )
       let item = NSCollectionLayoutItem(layoutSize: itemSize)
-      let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(120))
+      let groupSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1),
+        heightDimension: .estimated(gridEstimate)
+      )
       let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: item, count: count)
       group.interItemSpacing = .fixed(spacing)
       let section = NSCollectionLayoutSection(group: group)
@@ -96,11 +109,20 @@ public enum FKListCollectionLayoutFactory {
     return snapshot.sections[sectionIndex].header != nil
   }
 
-  private static func makeInsetGroupedLayout(snapshot: FKListSnapshot) -> UICollectionViewLayout {
+  private static func makeInsetGroupedLayout(
+    snapshot: FKListSnapshot,
+    estimatedItemHeight: CGFloat
+  ) -> UICollectionViewLayout {
     return UICollectionViewCompositionalLayout { sectionIndex, _ in
-      let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(52))
+      let itemSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1),
+        heightDimension: .estimated(estimatedItemHeight)
+      )
       let item = NSCollectionLayoutItem(layoutSize: itemSize)
-      let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(52))
+      let groupSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1),
+        heightDimension: .estimated(estimatedItemHeight)
+      )
       let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
       let section = NSCollectionLayoutSection(group: group)
       section.interGroupSpacing = 0
@@ -133,6 +155,7 @@ enum FKListCollectionBackgroundDecoration {
 /// Inputs that affect compositional layout construction (excluding item payloads).
 struct FKListCollectionLayoutStructureSignature: Equatable {
   let preset: FKListCollectionLayoutPreset
+  let estimatedItemHeight: CGFloat
   let sections: [Section]
 
   struct Section: Equatable {
@@ -141,8 +164,9 @@ struct FKListCollectionLayoutStructureSignature: Equatable {
     let layoutHints: FKListSectionLayoutHints?
   }
 
-  init(preset: FKListCollectionLayoutPreset, snapshot: FKListSnapshot) {
+  init(preset: FKListCollectionLayoutPreset, estimatedItemHeight: CGFloat, snapshot: FKListSnapshot) {
     self.preset = preset
+    self.estimatedItemHeight = estimatedItemHeight
     self.sections = snapshot.sections.map {
       Section(id: $0.id, hasHeader: $0.header != nil, layoutHints: $0.layoutHints)
     }

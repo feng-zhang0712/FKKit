@@ -13,17 +13,41 @@ Diffable list infrastructure for FKUIKit: section/item models, table and collect
 
 | Path | Responsibility |
 |------|----------------|
-| `Public/Core/` | `FKListItem`, `FKListSection`, `FKListSnapshot`, presentation state |
-| `Public/Configuration/` | Layered `FKListConfiguration` and defaults |
+| `Public/Core/` | `FKListItem`, `FKListSection`, `FKListSnapshot`, presentation state, prefetch helper |
+| `Public/Configuration/` | Layered `FKListConfiguration`, animation/layout defaults |
 | `Public/Presets/` | Built-in row models (`FKListPresetItem`, text/switch/disclosure, …) |
 | `Public/Protocols/` | `FKListDataProviding`, `FKListDelegate` |
 | `Public/Swipe/` | Swipe action models and handler registries |
 | `Public/Table/` | `FKDiffableTableViewController` |
 | `Public/Collection/` | `FKDiffableCollectionViewController`, layout presets |
-| `Public/Cells/Table/` | `FKListPresetTableCell`, section header/footer views |
+| `Public/Cells/Table/` | `FKListPresetTableCell`, skeleton placeholder, section header/footer |
 | `Public/Cells/Collection/` | `FKListPresetCollectionCell` |
 | `Internal/` | Load coordinator, cell registry, snapshot applier, presentation coordinator |
-| `Extension/` | Convenience builders for items and snapshots |
+| `Public/Bridge/` | SwiftUI `FKDiffable*ViewControllerRepresentable` |
+| `Extension/` | Convenience builders, diffable apply helpers |
+
+## Quick start (feed)
+
+```swift
+final class FeedViewController: FKDiffableTableViewController, FKListDataProviding {
+  init() {
+    super.init(configuration: FKListDefaults.feedConfiguration)
+    dataProvider = self
+    delegate = self
+  }
+  // …
+}
+
+extension FeedViewController: FKListDelegate {
+  func list(_ list: FKDiffableTableViewController, prefetchItems ids: [FKListItemID]) {
+    FKListImagePrefetchHelper.prefetchLeadingIcons(
+      ids: ids,
+      in: currentSnapshot,
+      targetSize: CGSize(width: 44, height: 44)
+    )
+  }
+}
+```
 
 ## Quick start (table)
 
@@ -59,6 +83,38 @@ setPayload(FKListItemPayload(myModel), for: itemID)
 applySnapshot(FKListSnapshot(items: [.custom(id: itemID, cellTypeIdentifier: "MyCell")]))
 ```
 
+## v4 scale APIs
+
+| API | Use |
+|-----|-----|
+| `FKListWindowingConfiguration` | Cap in-memory item count for long feeds |
+| `FKDiffableTableViewControllerRepresentable` | SwiftUI embedding |
+| `FKDiffableCollectionViewControllerRepresentable` | SwiftUI collection embedding |
+| Collection swipe actions | Same `FKListSwipeActionConfiguration` as table |
+| `fk_applyDiffableDataSourceSnapshot` | Explicit diffable apply on scroll views |
+
+## v3 performance APIs
+
+| API | Use |
+|-----|-----|
+| `FKListImagePrefetchProviding` | Custom payload prefetch contract |
+| `FKListImagePrefetchHelper.prefetchImages` | Preset icons + custom payloads |
+| `FKListHeightCache` | Width-keyed dynamic row height cache |
+| `FKListVideoVisibilityCoordinator` | Optional video auto-play with scroll forwarding |
+| `payload(for:)` | Read custom payloads for prefetch/mutations |
+| `FKListSkeletonPolicy.presetRows` | Table **and** collection placeholder cells |
+
+## v2 performance APIs
+
+| API | Use |
+|-----|-----|
+| `FKListDefaults.feedConfiguration` | Prefetch on, no load-more animation, taller estimates |
+| `FKListAnimationConfiguration` | `defaultRowAnimation`, `animatesLoadMoreDifferences` |
+| `FKListSnapshotMutation.reconfigureItems` | Lightweight in-place cell refresh |
+| `FKListDelegate` `willDisplay` / `didEndDisplaying` | Video pause, exposure, off-screen cancel |
+| `FKListImagePrefetchHelper` | Icon-row prefetch with `FKImageLoader` |
+| `FKListSkeletonPolicy.presetRows` | Table placeholder skeleton cells (not overlay) |
+
 ## Examples
 
 FKKitExamples hub: `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/ListKit/Hub/FKListKitExamplesHubViewController.swift`
@@ -67,6 +123,15 @@ The hub lists every runnable scenario (feed, refresh edge cases, skeleton polici
 
 | Scenario | Demonstrates |
 |----------|----------------|
+| Windowing | `FKListWindowingExampleViewController` |
+| SwiftUI bridge | `FKDiffableTableViewControllerRepresentable` |
+| Collection · swipe actions | Collection `FKListSwipeActionConfiguration` |
+| Feed · complex reference | Full v2+v3 integration path for production-like feeds |
+| Collection · skeleton preset rows | Collection `presetRows` placeholder cells |
+| Feed · optimized | `FKListDefaults.feedConfiguration`, load-more without animation |
+| Cell visibility | `willDisplay` / `didEndDisplaying` delegate hooks |
+| Reconfigure items | `reconfigureItems` mutation |
+| Skeleton · preset rows | `FKListSkeletonPolicy.presetRows(count:)` |
 | Feed · refresh & load more | `FKListDataProviding`, pagination, delegate |
 | Refresh edge cases | `clearsSnapshotOnRefreshStart`, `refreshFailureKeepsContent` |
 | Host-driven initial load | `loadInitialContent(handler:)` |
@@ -81,7 +146,7 @@ The hub lists every runnable scenario (feed, refresh edge cases, skeleton polici
 
 | Capability | Table | Collection |
 |------------|-------|------------|
-| Swipe actions | Yes | Not yet — registry is reserved |
+| Swipe actions | Yes | Yes |
 | Section footer | Yes | Not yet — use headers or custom supplementary views |
 | Row separators (`FKDivider`) | Yes | N/A (layout-driven spacing) |
 | `configurePresetCell` / `rowHeightProvider` | Yes | Collection uses compositional estimated heights |
@@ -89,4 +154,5 @@ The hub lists every runnable scenario (feed, refresh edge cases, skeleton polici
 ## Related
 
 - Design: `docs/FKListKit_DESIGN.zh-CN.md`
+- Roadmap: `docs/FKListKit_ROADMAP.md`
 - Pluggable: `Sources/FKCoreKit/Components/Pluggable/`

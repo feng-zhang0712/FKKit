@@ -27,6 +27,7 @@ final class FKListKitSnapshotMutationsExampleViewController: FKDiffableTableView
         UIAction(title: "Append row") { [weak self] _ in self?.appendRow() },
         UIAction(title: "Insert after first") { [weak self] _ in self?.insertAfterFirst() },
         UIAction(title: "Delete last") { [weak self] _ in self?.deleteLast() },
+        UIAction(title: "Reconfigure first") { [weak self] _ in self?.reconfigureFirst() },
         UIAction(title: "Reload first item") { [weak self] _ in self?.reloadFirst() },
         UIAction(title: "Reload section") { [weak self] _ in self?.reloadSection() },
         UIAction(title: "Replace snapshot") { [weak self] _ in self?.replaceSnapshot() },
@@ -59,6 +60,11 @@ final class FKListKitSnapshotMutationsExampleViewController: FKDiffableTableView
   private func reloadFirst() {
     guard let first = currentSnapshot.section(withID: "demo")?.items.first else { return }
     applyMutation(.reloadItems([first.id]))
+  }
+
+  private func reconfigureFirst() {
+    guard let first = currentSnapshot.section(withID: "demo")?.items.first else { return }
+    applyMutation(.reconfigureItems([first.id]), animatingDifferences: false)
   }
 
   private func reloadSection() {

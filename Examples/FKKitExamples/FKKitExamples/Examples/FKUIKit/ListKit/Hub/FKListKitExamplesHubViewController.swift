@@ -18,6 +18,21 @@ final class FKListKitExamplesHubViewController: UITableViewController {
       title: "Table · data & refresh",
       rows: [
         Row(
+          title: "Windowing",
+          subtitle: "FKListWindowingConfiguration · trim oldest items on load-more",
+          make: { FKListKitWindowingExampleViewController() }
+        ),
+        Row(
+          title: "Feed · complex reference",
+          subtitle: "Custom cell · prefetch · reconfigure · FKListHeightCache · visibility",
+          make: { FKListKitComplexFeedReferenceExampleViewController() }
+        ),
+        Row(
+          title: "Feed · optimized",
+          subtitle: "FKListDefaults.feedConfiguration · no load-more animation · prefetch on",
+          make: { FKListKitFeedOptimizedExampleViewController() }
+        ),
+        Row(
           title: "Feed · refresh & load more",
           subtitle: "FKListDataProviding · pagination · FKRefresh · delegate hooks",
           make: { FKListKitFeedRefreshLoadMoreExampleViewController() }
@@ -42,6 +57,11 @@ final class FKListKitExamplesHubViewController: UITableViewController {
     Section(
       title: "Table · presentation states",
       rows: [
+        Row(
+          title: "Skeleton · preset rows",
+          subtitle: "FKListSkeletonPolicy.presetRows · FKListSkeletonPlaceholderTableCell",
+          make: { FKListKitSkeletonPresetRowsExampleViewController() }
+        ),
         Row(
           title: "Skeleton initial load",
           subtitle: "FKListSkeletonPolicy.fullOverlay until first applySnapshot",
@@ -118,6 +138,21 @@ final class FKListKitExamplesHubViewController: UITableViewController {
           make: { FKListKitRowHeightExampleViewController() }
         ),
         Row(
+          title: "SwiftUI bridge",
+          subtitle: "FKDiffableTableViewControllerRepresentable",
+          make: { FKListKitSwiftUIBridgeExampleViewController() }
+        ),
+        Row(
+          title: "Cell visibility",
+          subtitle: "FKListDelegate willDisplay · didEndDisplaying",
+          make: { FKListKitCellVisibilityExampleViewController() }
+        ),
+        Row(
+          title: "Reconfigure items",
+          subtitle: "FKListSnapshotMutation.reconfigureItems · in-place accessory update",
+          make: { FKListKitReconfigureItemsExampleViewController() }
+        ),
+        Row(
           title: "Advanced hooks",
           subtitle: "configurePresetCell · makeEmptyStateConfiguration",
           make: { FKListKitAdvancedHooksExampleViewController() }
@@ -127,6 +162,16 @@ final class FKListKitExamplesHubViewController: UITableViewController {
     Section(
       title: "Collection",
       rows: [
+        Row(
+          title: "Collection · swipe actions",
+          subtitle: "FKListSwipeActionConfiguration on collection list preset",
+          make: { FKListKitCollectionSwipeActionsExampleViewController() }
+        ),
+        Row(
+          title: "Collection · skeleton preset rows",
+          subtitle: "FKListSkeletonPolicy.presetRows on collection list layout",
+          make: { FKListKitCollectionSkeletonPresetRowsExampleViewController() }
+        ),
         Row(
           title: "Collection · list preset",
           subtitle: "FKDiffableCollectionViewController · .list layout",

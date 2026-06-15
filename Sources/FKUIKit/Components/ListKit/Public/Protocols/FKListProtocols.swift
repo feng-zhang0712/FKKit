@@ -25,6 +25,8 @@ public protocol FKListDelegate: AnyObject {
   func list(_ list: FKDiffableTableViewController, presentationStateChanged state: FKListPresentationState)
   func list(_ list: FKDiffableTableViewController, prefetchItems ids: [FKListItemID])
   func list(_ list: FKDiffableTableViewController, cancelPrefetching ids: [FKListItemID])
+  func list(_ list: FKDiffableTableViewController, willDisplay item: FKListItemID, at indexPath: IndexPath)
+  func list(_ list: FKDiffableTableViewController, didEndDisplaying item: FKListItemID, at indexPath: IndexPath)
 }
 
 public extension FKListDelegate {
@@ -38,6 +40,8 @@ public extension FKListDelegate {
   func list(_ list: FKDiffableTableViewController, presentationStateChanged state: FKListPresentationState) {}
   func list(_ list: FKDiffableTableViewController, prefetchItems ids: [FKListItemID]) {}
   func list(_ list: FKDiffableTableViewController, cancelPrefetching ids: [FKListItemID]) {}
+  func list(_ list: FKDiffableTableViewController, willDisplay item: FKListItemID, at indexPath: IndexPath) {}
+  func list(_ list: FKDiffableTableViewController, didEndDisplaying item: FKListItemID, at indexPath: IndexPath) {}
 }
 
 // MARK: - Collection delegate
@@ -55,6 +59,8 @@ public protocol FKListCollectionDelegate: AnyObject {
   func list(_ list: FKDiffableCollectionViewController, presentationStateChanged state: FKListPresentationState)
   func list(_ list: FKDiffableCollectionViewController, prefetchItems ids: [FKListItemID])
   func list(_ list: FKDiffableCollectionViewController, cancelPrefetching ids: [FKListItemID])
+  func list(_ list: FKDiffableCollectionViewController, willDisplay item: FKListItemID, at indexPath: IndexPath)
+  func list(_ list: FKDiffableCollectionViewController, didEndDisplaying item: FKListItemID, at indexPath: IndexPath)
 }
 
 public extension FKListCollectionDelegate {
@@ -68,4 +74,6 @@ public extension FKListCollectionDelegate {
   func list(_ list: FKDiffableCollectionViewController, presentationStateChanged state: FKListPresentationState) {}
   func list(_ list: FKDiffableCollectionViewController, prefetchItems ids: [FKListItemID]) {}
   func list(_ list: FKDiffableCollectionViewController, cancelPrefetching ids: [FKListItemID]) {}
+  func list(_ list: FKDiffableCollectionViewController, willDisplay item: FKListItemID, at indexPath: IndexPath) {}
+  func list(_ list: FKDiffableCollectionViewController, didEndDisplaying item: FKListItemID, at indexPath: IndexPath) {}
 }

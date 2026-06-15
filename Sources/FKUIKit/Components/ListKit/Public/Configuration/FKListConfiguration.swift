@@ -26,6 +26,56 @@ public enum FKListSelectionMode: Sendable, Equatable {
   case multiple
 }
 
+// MARK: - Row animation
+
+/// UITableView row animation mapping for diffable apply operations.
+public enum FKListRowAnimation: Sendable, Equatable {
+  case automatic
+  case none
+  case fade
+  case right
+  case left
+  case middle
+  case top
+  case bottom
+
+  /// Maps to ``UITableView/RowAnimation``.
+  public var tableViewAnimation: UITableView.RowAnimation {
+    switch self {
+    case .automatic: return .automatic
+    case .none: return .none
+    case .fade: return .fade
+    case .right: return .right
+    case .left: return .left
+    case .middle: return .middle
+    case .top: return .top
+    case .bottom: return .bottom
+    }
+  }
+}
+
+// MARK: - Animation
+
+/// Diffable snapshot animation policies for feed vs settings lists.
+public struct FKListAnimationConfiguration: Sendable, Equatable {
+  /// Applied to ``UITableViewDiffableDataSource/defaultRowAnimation``.
+  public var defaultRowAnimation: FKListRowAnimation
+  /// When `false`, load-more appends skip diffable animations (recommended for feeds).
+  public var animatesLoadMoreDifferences: Bool
+  /// Controls pull-to-refresh snapshot replace animation.
+  public var animatesRefreshDifferences: Bool
+
+  public init(
+    defaultRowAnimation: FKListRowAnimation = .fade,
+    animatesLoadMoreDifferences: Bool = false,
+    animatesRefreshDifferences: Bool = true
+  ) {
+    self.defaultRowAnimation = defaultRowAnimation
+    self.animatesLoadMoreDifferences = animatesLoadMoreDifferences
+    self.animatesRefreshDifferences = animatesRefreshDifferences
+  }
+}
+
 // MARK: - Layout
 
 /// Layout and structural table settings.
@@ -33,6 +83,10 @@ public struct FKListLayoutConfiguration: Sendable, Equatable {
   public var contentInsets: UIEdgeInsets
   public var separatorMode: FKListSeparatorMode
   public var rowHeightPolicy: FKListRowHeightPolicy
+  /// Used when ``FKListRowHeightPolicy`` is `.automatic` (table estimated height).
+  public var estimatedRowHeight: CGFloat
+  /// Estimated item height for collection compositional list/grid presets.
+  public var estimatedCollectionItemHeight: CGFloat
   public var sectionHeaderTopPadding: CGFloat
   public var pinsSectionHeaders: Bool
   public var emptyPresentationPolicy: FKListEmptyPresentationPolicy
@@ -41,6 +95,8 @@ public struct FKListLayoutConfiguration: Sendable, Equatable {
     contentInsets: UIEdgeInsets = .zero,
     separatorMode: FKListSeparatorMode = .fkDivider(leadingInset: 16),
     rowHeightPolicy: FKListRowHeightPolicy = .automatic,
+    estimatedRowHeight: CGFloat = 52,
+    estimatedCollectionItemHeight: CGFloat = 52,
     sectionHeaderTopPadding: CGFloat = 0,
     pinsSectionHeaders: Bool = true,
     emptyPresentationPolicy: FKListEmptyPresentationPolicy = .overlayScrollView
@@ -48,6 +104,8 @@ public struct FKListLayoutConfiguration: Sendable, Equatable {
     self.contentInsets = contentInsets
     self.separatorMode = separatorMode
     self.rowHeightPolicy = rowHeightPolicy
+    self.estimatedRowHeight = max(1, estimatedRowHeight)
+    self.estimatedCollectionItemHeight = max(1, estimatedCollectionItemHeight)
     self.sectionHeaderTopPadding = sectionHeaderTopPadding
     self.pinsSectionHeaders = pinsSectionHeaders
     self.emptyPresentationPolicy = emptyPresentationPolicy
@@ -99,7 +157,8 @@ public struct FKListRefreshConfiguration: Sendable, Equatable {
   public var isLoadMoreEnabled: Bool
   public var loadMoreTriggerMode: FKLoadMoreTriggerMode
   public var loadMorePreloadOffset: CGFloat
-  /// Reserved: list view controllers end refresh explicitly; this flag is not forwarded yet.
+  /// Forwarded to ``FKRefreshConfiguration/automaticallyEndsRefreshingOnAsyncCompletion``.
+  /// ListKit still ends refresh explicitly with token guards; when `true`, FKRefresh may also auto-end.
   public var automaticallyEndsRefreshingOnAsyncCompletion: Bool
   public var resetsPaginationOnRefresh: Bool
   public var clearsSnapshotOnRefreshStart: Bool
@@ -138,6 +197,14 @@ public struct FKListRefreshConfiguration: Sendable, Equatable {
     config.loadMoreTriggerMode = loadMoreTriggerMode
     config.loadMorePreloadOffset = loadMorePreloadOffset
     config.autohidesFooterWhenNotScrollable = autohidesLoadMoreFooterWhenNotScrollable
+    config.automaticallyEndsRefreshingOnAsyncCompletion = automaticallyEndsRefreshingOnAsyncCompletion
+    return config
+  }
+
+  /// Builds a pull-to-refresh configuration from list refresh settings.
+  public func pullToRefreshConfiguration() -> FKRefreshConfiguration {
+    var config = FKRefreshSettings.pullToRefresh
+    config.automaticallyEndsRefreshingOnAsyncCompletion = automaticallyEndsRefreshingOnAsyncCompletion
     return config
   }
 }
@@ -271,12 +338,40 @@ public struct FKListSearchConfiguration: Sendable, Equatable {
   }
 }
 
+// MARK: - Windowing
+
+/// Strategy for trimming in-memory list content when windowing is enabled.
+public enum FKListWindowingTrimStrategy: Sendable, Equatable {
+  /// Removes the oldest items from the head of the first section.
+  case removeOldestItemsFromHead
+}
+
+/// Optional cap on in-memory diffable items for very long feeds.
+public struct FKListWindowingConfiguration: Sendable, Equatable {
+  /// When `true`, snapshots are trimmed after load-more and full apply when over ``maxItemCount``.
+  public var isEnabled: Bool
+  /// Maximum number of items retained in memory across all sections.
+  public var maxItemCount: Int
+  public var trimStrategy: FKListWindowingTrimStrategy
+
+  public init(
+    isEnabled: Bool = false,
+    maxItemCount: Int = 500,
+    trimStrategy: FKListWindowingTrimStrategy = .removeOldestItemsFromHead
+  ) {
+    self.isEnabled = isEnabled
+    self.maxItemCount = max(1, maxItemCount)
+    self.trimStrategy = trimStrategy
+  }
+}
+
 // MARK: - Aggregate
 
 /// Root configuration for ``FKDiffableTableViewController`` and ``FKDiffableCollectionViewController``.
 public struct FKListConfiguration: Sendable, Equatable {
   public var layout: FKListLayoutConfiguration
   public var appearance: FKListAppearanceConfiguration
+  public var animation: FKListAnimationConfiguration
   public var refresh: FKListRefreshConfiguration
   public var loading: FKListLoadingConfiguration
   public var empty: FKListEmptyConfiguration
@@ -284,11 +379,13 @@ public struct FKListConfiguration: Sendable, Equatable {
   public var selection: FKListSelectionConfiguration
   public var accessibility: FKListAccessibilityConfiguration
   public var prefetch: FKListPrefetchConfiguration
+  public var windowing: FKListWindowingConfiguration
   public var search: FKListSearchConfiguration?
 
   public init(
     layout: FKListLayoutConfiguration = FKListLayoutConfiguration(),
     appearance: FKListAppearanceConfiguration = FKListAppearanceConfiguration(),
+    animation: FKListAnimationConfiguration = FKListAnimationConfiguration(),
     refresh: FKListRefreshConfiguration = FKListRefreshConfiguration(),
     loading: FKListLoadingConfiguration = FKListLoadingConfiguration(),
     empty: FKListEmptyConfiguration = FKListEmptyConfiguration(),
@@ -296,10 +393,12 @@ public struct FKListConfiguration: Sendable, Equatable {
     selection: FKListSelectionConfiguration = FKListSelectionConfiguration(),
     accessibility: FKListAccessibilityConfiguration = FKListAccessibilityConfiguration(),
     prefetch: FKListPrefetchConfiguration = FKListPrefetchConfiguration(),
+    windowing: FKListWindowingConfiguration = FKListWindowingConfiguration(),
     search: FKListSearchConfiguration? = nil
   ) {
     self.layout = layout
     self.appearance = appearance
+    self.animation = animation
     self.refresh = refresh
     self.loading = loading
     self.empty = empty
@@ -307,6 +406,7 @@ public struct FKListConfiguration: Sendable, Equatable {
     self.selection = selection
     self.accessibility = accessibility
     self.prefetch = prefetch
+    self.windowing = windowing
     self.search = search
   }
 }
@@ -315,7 +415,29 @@ public struct FKListConfiguration: Sendable, Equatable {
 
 /// Shared default configuration for list view controllers.
 public enum FKListDefaults {
+  /// Settings-style list defaults (prefetch off, standard animations).
   public static var defaultConfiguration: FKListConfiguration {
     FKListConfiguration()
+  }
+
+  /// Feed-style defaults: prefetch on, no load-more animation, no row fade.
+  public static var feedConfiguration: FKListConfiguration {
+    var config = FKListConfiguration()
+    config.prefetch.isEnabled = true
+    config.animation.defaultRowAnimation = .none
+    config.animation.animatesLoadMoreDifferences = false
+    config.animation.animatesRefreshDifferences = false
+    config.layout.estimatedRowHeight = 72
+    config.layout.estimatedCollectionItemHeight = 72
+    return config
+  }
+
+  /// Explicit settings list preset (same as default; named for clarity at call sites).
+  public static var settingsConfiguration: FKListConfiguration {
+    var config = FKListConfiguration()
+    config.prefetch.isEnabled = false
+    config.animation.defaultRowAnimation = .fade
+    config.animation.animatesLoadMoreDifferences = false
+    return config
   }
 }

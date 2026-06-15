@@ -32,6 +32,9 @@ open class FKDiffableTableViewController: UIViewController {
   /// Invoked by ``reloadInitialContent()`` when ``dataProvider`` is nil.
   public var hostReloadHandler: (@MainActor (FKDiffableTableViewController) async throws -> Void)?
 
+  /// Optional video visibility coordinator; receives `scrollViewDidScroll` forwarding.
+  public var videoVisibilityCoordinator: FKListVideoVisibilityCoordinator?
+
   private var dataSource: UITableViewDiffableDataSource<FKListSectionID, FKListItemID>!
   private let loadCoordinator = FKListLoadCoordinator()
   private let presentationCoordinator = FKListPresentationCoordinator()
@@ -39,6 +42,7 @@ open class FKDiffableTableViewController: UIViewController {
   private let cellRegistry = FKListTableCellRegistry()
   private var sectionViewProviders: [String: @MainActor () -> UIView] = [:]
   private var needsInitialSkeletonPresentation = false
+  private var isDisplayingSkeletonPlaceholder = false
 
   public init(configuration: FKListConfiguration = FKListDefaults.defaultConfiguration, style: UITableView.Style = .plain) {
     self.configuration = configuration
@@ -58,6 +62,7 @@ open class FKDiffableTableViewController: UIViewController {
     setupTableView()
     setupDataSource()
     registerPresetCells()
+    registerSkeletonPlaceholderCellIfNeeded()
     registerAdditionalCells(in: tableView)
     applyConfiguration()
     installRefreshControlsIfNeeded()
@@ -115,9 +120,13 @@ open class FKDiffableTableViewController: UIViewController {
     var working = currentSnapshot
     var reloadIDs: [FKListItemID] = []
     var reloadSectionIDs: [FKListSectionID] = []
+    var reconfigureIDs: [FKListItemID] = []
     switch mutation {
     case .reloadItems(let ids):
       reloadIDs = ids
+      FKListSnapshotApplier.apply(mutation, to: &working)
+    case .reconfigureItems(let ids):
+      reconfigureIDs = ids
       FKListSnapshotApplier.apply(mutation, to: &working)
     case .reloadSections(let sectionIDs):
       reloadSectionIDs = sectionIDs
@@ -133,6 +142,7 @@ open class FKDiffableTableViewController: UIViewController {
       animatingDifferences: animatingDifferences,
       reloadIDs: effectiveReloadIDs,
       reloadSectionIDs: reloadSectionIDs,
+      reconfigureIDs: reconfigureIDs,
       completion: completion
     )
     updatePresentationAfterSnapshotApply()
@@ -141,6 +151,11 @@ open class FKDiffableTableViewController: UIViewController {
   /// Stores a custom cell payload for `id`.
   public func setPayload(_ payload: FKListItemPayload, for id: FKListItemID) {
     itemStore.setPayload(payload, for: id)
+  }
+
+  /// Returns a stored custom payload for prefetch and host-side mutations.
+  public func payload(for id: FKListItemID) -> FKListItemPayload? {
+    itemStore.payload(for: id)
   }
 
   /// Registers a custom configurable cell type.
@@ -243,6 +258,13 @@ open class FKDiffableTableViewController: UIViewController {
     with item: FKListItem
   ) {}
 
+  /// Override to customize host-registered custom cells after payload configuration.
+  open func configureCustomCell(
+    _ cell: UITableViewCell,
+    at indexPath: IndexPath,
+    with item: FKListItem
+  ) {}
+
   /// Override to register host custom cells.
   open func registerAdditionalCells(in tableView: UITableView) {}
 
@@ -284,7 +306,11 @@ open class FKDiffableTableViewController: UIViewController {
       guard let self else { return UITableViewCell() }
       return self.dequeueConfiguredCell(tableView: tableView, indexPath: indexPath, itemID: itemID)
     }
-    dataSource.defaultRowAnimation = .fade
+    dataSource.defaultRowAnimation = configuration.animation.defaultRowAnimation.tableViewAnimation
+  }
+
+  private func registerSkeletonPlaceholderCellIfNeeded() {
+    register(FKListSkeletonPlaceholderTableCell.self, forPayloadType: FKListSkeletonPlaceholder.Context.self)
   }
 
   private func registerPresetCells() {
@@ -313,18 +339,21 @@ open class FKDiffableTableViewController: UIViewController {
     switch configuration.layout.rowHeightPolicy {
     case .automatic:
       tableView.rowHeight = UITableView.automaticDimension
-      tableView.estimatedRowHeight = 52
+      tableView.estimatedRowHeight = configuration.layout.estimatedRowHeight
     case .fixed(let height):
       tableView.rowHeight = height
       tableView.estimatedRowHeight = height
     }
+    dataSource?.defaultRowAnimation = configuration.animation.defaultRowAnimation.tableViewAnimation
     applySelectionConfiguration()
     tableView.prefetchDataSource = configuration.prefetch.isEnabled ? self : nil
   }
 
   private func installRefreshControlsIfNeeded() {
     if configuration.refresh.isPullToRefreshEnabled {
-      tableView.fk_addPullToRefresh(contextAsyncAction: { [weak self] context in
+      tableView.fk_addPullToRefresh(
+        configuration: configuration.refresh.pullToRefreshConfiguration(),
+        contextAsyncAction: { [weak self] context in
         await self?.handlePullToRefresh(context: context)
       })
     }
@@ -345,15 +374,18 @@ open class FKDiffableTableViewController: UIViewController {
     animatingDifferences: Bool,
     reloadIDs: [FKListItemID],
     reloadSectionIDs: [FKListSectionID],
+    reconfigureIDs: [FKListItemID] = [],
     completion: (() -> Void)?
   ) {
-    currentSnapshot = snapshot
-    itemStore.prune(keeping: Set(snapshot.sections.flatMap { $0.items.map(\.id) }))
+    let windowed = FKListSnapshotWindowing.apply(to: snapshot, configuration: configuration.windowing)
+    currentSnapshot = windowed.snapshot
+    itemStore.prune(keeping: Set(windowed.snapshot.sections.flatMap { $0.items.map(\.id) }))
     applyDiffableSnapshot(
-      from: snapshot,
+      from: windowed.snapshot,
       animatingDifferences: animatingDifferences,
       reloadIDs: reloadIDs,
       reloadSectionIDs: reloadSectionIDs,
+      reconfigureIDs: reconfigureIDs,
       completion: completion
     )
   }
@@ -377,6 +409,7 @@ open class FKDiffableTableViewController: UIViewController {
     animatingDifferences: Bool,
     reloadIDs: [FKListItemID],
     reloadSectionIDs: [FKListSectionID],
+    reconfigureIDs: [FKListItemID] = [],
     completion: (() -> Void)?
   ) {
     let preservedSelection = configuration.selection.preservesSelectionOnUpdates
@@ -389,6 +422,9 @@ open class FKDiffableTableViewController: UIViewController {
     }
     if !reloadIDs.isEmpty {
       diffable.reloadItems(reloadIDs)
+    }
+    if !reconfigureIDs.isEmpty {
+      diffable.reconfigureItems(reconfigureIDs)
     }
     if !reloadSectionIDs.isEmpty {
       diffable.reloadSections(reloadSectionIDs)
@@ -439,6 +475,7 @@ open class FKDiffableTableViewController: UIViewController {
       }
       let cell = tableView.dequeueReusableCell(withIdentifier: entry.reuseIdentifier, for: indexPath)
       entry.configure(cell, payload)
+      configureCustomCell(cell, at: indexPath, with: item)
       return cell
     }
   }
@@ -467,13 +504,30 @@ open class FKDiffableTableViewController: UIViewController {
       needsInitialSkeletonPresentation = true
       return
     }
+    guard view.window != nil else {
+      needsInitialSkeletonPresentation = true
+      return
+    }
     needsInitialSkeletonPresentation = false
+    if case .presetRows(let count) = configuration.loading.skeletonPolicy {
+      applySkeletonPlaceholderSnapshot(count: count)
+      return
+    }
     presentationCoordinator.showSkeleton(
       on: tableView,
       policy: configuration.loading.skeletonPolicy,
       overlayHost: view
     )
     view.fk_bringSkeletonOverlayToFrontIfNeeded()
+  }
+
+  private func applySkeletonPlaceholderSnapshot(count: Int) {
+    let placeholder = FKListSkeletonPlaceholder.makeSnapshot(rowCount: count)
+    for item in placeholder.sections.flatMap(\.items) {
+      setPayload(FKListItemPayload(FKListSkeletonPlaceholder.Context()), for: item.id)
+    }
+    isDisplayingSkeletonPlaceholder = true
+    replaceSnapshotWithoutPresentationUpdate(placeholder, animatingDifferences: false)
   }
 
   private func syncEmptyStateOverlayIfNeeded() {
@@ -495,7 +549,11 @@ open class FKDiffableTableViewController: UIViewController {
   }
 
   private func updatePresentationAfterSnapshotApply() {
+    if isDisplayingSkeletonPlaceholder, case .initialLoading = presentationState {
+      return
+    }
     needsInitialSkeletonPresentation = false
+    isDisplayingSkeletonPlaceholder = false
     presentationCoordinator.hideSkeleton(
       on: tableView,
       policy: configuration.loading.skeletonPolicy,
@@ -603,7 +661,10 @@ open class FKDiffableTableViewController: UIViewController {
       }
       guard loadCoordinator.isCurrent(token: token, for: .refresh) else { return }
       loadCoordinator.updateHasMorePages(result.hasMorePages)
-      applySnapshot(result.snapshot, animatingDifferences: true)
+      applySnapshot(
+        result.snapshot,
+        animatingDifferences: configuration.animation.animatesRefreshDifferences
+      )
       tableView.fk_pullToRefresh?.endRefreshing(token: context.token)
       tableView.fk_loadMore?.resetToIdle()
       delegate?.list(self, didRefresh: true)
@@ -677,7 +738,7 @@ open class FKDiffableTableViewController: UIViewController {
       }
     }
     guard changed else { return }
-    applySnapshot(working, animatingDifferences: true)
+    applySnapshot(working, animatingDifferences: configuration.animation.animatesLoadMoreDifferences)
   }
 
   private func assertDuplicateItemIDsIfNeeded(_ snapshot: FKListSnapshot) {
@@ -693,6 +754,20 @@ open class FKDiffableTableViewController: UIViewController {
 // MARK: - UITableViewDelegate
 
 extension FKDiffableTableViewController: UITableViewDelegate {
+  public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    videoVisibilityCoordinator?.scrollViewDidScroll(scrollView)
+  }
+
+  public func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    guard let itemID = dataSource.itemIdentifier(for: indexPath) else { return }
+    delegate?.list(self, willDisplay: itemID, at: indexPath)
+  }
+
+  public func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    guard let itemID = dataSource.itemIdentifier(for: indexPath) else { return }
+    delegate?.list(self, didEndDisplaying: itemID, at: indexPath)
+  }
+
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     guard let itemID = dataSource.itemIdentifier(for: indexPath) else { return }
     guard let item = currentSnapshot.item(withID: itemID) else { return }
@@ -811,32 +886,13 @@ extension FKDiffableTableViewController: UITableViewDelegate {
     edge: SwipeEdge
   ) -> UISwipeActionsConfiguration? {
     guard let itemID = dataSource.itemIdentifier(for: indexPath),
-          let item = currentSnapshot.item(withID: itemID),
-          let swipeActions = item.swipeActions else { return nil }
-    let actions = edge == .trailing ? swipeActions.trailing : swipeActions.leading
-    guard !actions.isEmpty else { return nil }
-    let contextual = actions.map { action -> UIContextualAction in
-      let uiAction = UIContextualAction(style: mapSwipeStyle(action.style), title: action.title) { [weak self] _, _, completion in
-        self?.swipeActionHandlerRegistry.handler(for: action.id)?(itemID)
-        completion(true)
-      }
-      uiAction.accessibilityLabel = action.title
-      if let icon = action.icon {
-        uiAction.image = UIImage(systemName: icon.symbolName)
-      }
-      return uiAction
-    }
-    let config = UISwipeActionsConfiguration(actions: contextual)
-    config.performsFirstActionWithFullSwipe = swipeActions.permitsFullSwipe
-    return config
-  }
-
-  private func mapSwipeStyle(_ style: FKListSwipeActionStyle) -> UIContextualAction.Style {
-    switch style {
-    case .normal: return .normal
-    case .destructive: return .destructive
-    case .cancel: return .normal
-    }
+          let item = currentSnapshot.item(withID: itemID) else { return nil }
+    return FKListSwipeActionsBuilder.configuration(
+      for: item,
+      itemID: itemID,
+      edge: edge == .trailing ? .trailing : .leading,
+      handlerRegistry: swipeActionHandlerRegistry
+    )
   }
 }
 

@@ -21,7 +21,7 @@ open class FKDiffableCollectionViewController: UIViewController {
   public weak var delegate: FKListCollectionDelegate?
   public weak var dataProvider: FKListDataProviding?
 
-  /// Swipe action handler registry; **table lists only** — collection lists do not wire swipe actions yet.
+  /// Swipe action handler registry for table and collection lists.
   public let swipeActionHandlerRegistry = FKListSwipeActionHandlerRegistry()
   public let switchHandlerRegistry = FKListSwitchHandlerRegistry()
   public let checkboxHandlerRegistry = FKListCheckboxHandlerRegistry()
@@ -38,6 +38,9 @@ open class FKDiffableCollectionViewController: UIViewController {
   /// Optional custom compositional layout builder when preset is insufficient.
   public var compositionalLayoutProvider: ((FKListSnapshot) -> UICollectionViewLayout)?
 
+  /// Optional video visibility coordinator; receives `scrollViewDidScroll` forwarding.
+  public var videoVisibilityCoordinator: FKListVideoVisibilityCoordinator?
+
   private var dataSource: UICollectionViewDiffableDataSource<FKListSectionID, FKListItemID>!
   private let loadCoordinator = FKListLoadCoordinator()
   private let presentationCoordinator = FKListPresentationCoordinator()
@@ -45,6 +48,7 @@ open class FKDiffableCollectionViewController: UIViewController {
   private let cellRegistry = FKListCollectionCellRegistry()
   private var sectionViewProviders: [String: @MainActor (UICollectionView, IndexPath) -> UICollectionReusableView] = [:]
   private var needsInitialSkeletonPresentation = false
+  private var isDisplayingSkeletonPlaceholder = false
   private var lastLayoutStructureSignature: FKListCollectionLayoutStructureSignature?
 
   public init(
@@ -68,6 +72,7 @@ open class FKDiffableCollectionViewController: UIViewController {
     setupCollectionView()
     setupDataSource()
     registerPresetCells()
+    registerSkeletonPlaceholderCellIfNeeded()
     registerAdditionalCells(in: collectionView)
     applyConfiguration()
     installRefreshControlsIfNeeded()
@@ -122,9 +127,13 @@ open class FKDiffableCollectionViewController: UIViewController {
     var working = currentSnapshot
     var reloadIDs: [FKListItemID] = []
     var reloadSectionIDs: [FKListSectionID] = []
+    var reconfigureIDs: [FKListItemID] = []
     switch mutation {
     case .reloadItems(let ids):
       reloadIDs = ids
+      FKListSnapshotApplier.apply(mutation, to: &working)
+    case .reconfigureItems(let ids):
+      reconfigureIDs = ids
       FKListSnapshotApplier.apply(mutation, to: &working)
     case .reloadSections(let sectionIDs):
       reloadSectionIDs = sectionIDs
@@ -141,6 +150,7 @@ open class FKDiffableCollectionViewController: UIViewController {
       animatingDifferences: animatingDifferences,
       reloadIDs: effectiveReloadIDs,
       reloadSectionIDs: reloadSectionIDs,
+      reconfigureIDs: reconfigureIDs,
       completion: completion
     )
     updatePresentationAfterSnapshotApply()
@@ -148,6 +158,11 @@ open class FKDiffableCollectionViewController: UIViewController {
 
   public func setPayload(_ payload: FKListItemPayload, for id: FKListItemID) {
     itemStore.setPayload(payload, for: id)
+  }
+
+  /// Returns a stored custom payload for prefetch and host-side mutations.
+  public func payload(for id: FKListItemID) -> FKListItemPayload? {
+    itemStore.payload(for: id)
   }
 
   open func register<Cell: FKListCollectionCellConfigurable>(
@@ -341,6 +356,10 @@ open class FKDiffableCollectionViewController: UIViewController {
     )
   }
 
+  private func registerSkeletonPlaceholderCellIfNeeded() {
+    register(FKListSkeletonPlaceholderCollectionCell.self, forPayloadType: FKListSkeletonPlaceholder.Context.self)
+  }
+
   /// Registers a custom collection section header provider.
   ///
   /// The provider must dequeue and return exactly one supplementary view for the requested `indexPath`.
@@ -356,11 +375,14 @@ open class FKDiffableCollectionViewController: UIViewController {
     collectionView.scrollIndicatorInsets = configuration.layout.contentInsets
     applySelectionConfiguration()
     collectionView.prefetchDataSource = configuration.prefetch.isEnabled ? self : nil
+    rebuildLayout(snapshot: currentSnapshot)
   }
 
   private func installRefreshControlsIfNeeded() {
     if configuration.refresh.isPullToRefreshEnabled {
-      collectionView.fk_addPullToRefresh(contextAsyncAction: { [weak self] context in
+      collectionView.fk_addPullToRefresh(
+        configuration: configuration.refresh.pullToRefreshConfiguration(),
+        contextAsyncAction: { [weak self] context in
         await self?.handlePullToRefresh(context: context)
       })
     }
@@ -379,15 +401,18 @@ open class FKDiffableCollectionViewController: UIViewController {
     animatingDifferences: Bool,
     reloadIDs: [FKListItemID],
     reloadSectionIDs: [FKListSectionID],
+    reconfigureIDs: [FKListItemID] = [],
     completion: (() -> Void)?
   ) {
-    currentSnapshot = snapshot
-    itemStore.prune(keeping: Set(snapshot.sections.flatMap { $0.items.map(\.id) }))
+    let windowed = FKListSnapshotWindowing.apply(to: snapshot, configuration: configuration.windowing)
+    currentSnapshot = windowed.snapshot
+    itemStore.prune(keeping: Set(windowed.snapshot.sections.flatMap { $0.items.map(\.id) }))
     applyDiffableSnapshot(
-      from: snapshot,
+      from: windowed.snapshot,
       animatingDifferences: animatingDifferences,
       reloadIDs: reloadIDs,
       reloadSectionIDs: reloadSectionIDs,
+      reconfigureIDs: reconfigureIDs,
       completion: completion
     )
   }
@@ -411,6 +436,7 @@ open class FKDiffableCollectionViewController: UIViewController {
     animatingDifferences: Bool,
     reloadIDs: [FKListItemID],
     reloadSectionIDs: [FKListSectionID],
+    reconfigureIDs: [FKListItemID] = [],
     completion: (() -> Void)?
   ) {
     let preservedSelection = configuration.selection.preservesSelectionOnUpdates
@@ -423,6 +449,9 @@ open class FKDiffableCollectionViewController: UIViewController {
     }
     if !reloadIDs.isEmpty {
       diffable.reloadItems(reloadIDs)
+    }
+    if !reconfigureIDs.isEmpty {
+      diffable.reconfigureItems(reconfigureIDs)
     }
     if !reloadSectionIDs.isEmpty {
       diffable.reloadSections(reloadSectionIDs)
@@ -473,7 +502,7 @@ open class FKDiffableCollectionViewController: UIViewController {
       }
     }
     guard changed else { return }
-    applySnapshot(working, animatingDifferences: true)
+    applySnapshot(working, animatingDifferences: configuration.animation.animatesLoadMoreDifferences)
   }
 
   private func rebuildLayoutIfNeeded(for snapshot: FKListSnapshot) {
@@ -481,18 +510,27 @@ open class FKDiffableCollectionViewController: UIViewController {
       rebuildLayout(snapshot: snapshot)
       return
     }
-    let signature = FKListCollectionLayoutStructureSignature(preset: layoutPreset, snapshot: snapshot)
+    let signature = FKListCollectionLayoutStructureSignature(
+      preset: layoutPreset,
+      estimatedItemHeight: configuration.layout.estimatedCollectionItemHeight,
+      snapshot: snapshot
+    )
     guard signature != lastLayoutStructureSignature else { return }
     lastLayoutStructureSignature = signature
     rebuildLayout(snapshot: snapshot)
   }
 
-  private func rebuildLayout(snapshot: FKListSnapshot) {
+  private func rebuildLayout(snapshot: FKListSnapshot, estimatedItemHeight: CGFloat? = nil) {
+    let estimate = max(1, estimatedItemHeight ?? configuration.layout.estimatedCollectionItemHeight)
     let layout: UICollectionViewLayout
     if let provider = compositionalLayoutProvider {
       layout = provider(snapshot)
     } else {
-      layout = FKListCollectionLayoutFactory.makeLayout(preset: layoutPreset, snapshot: snapshot)
+      layout = FKListCollectionLayoutFactory.makeLayout(
+        preset: layoutPreset,
+        snapshot: snapshot,
+        estimatedItemHeight: estimate
+      )
     }
     collectionView.setCollectionViewLayout(layout, animated: false)
     registerLayoutSupplementaryAssets(on: layout)
@@ -511,13 +549,43 @@ open class FKDiffableCollectionViewController: UIViewController {
       needsInitialSkeletonPresentation = true
       return
     }
+    guard view.window != nil else {
+      needsInitialSkeletonPresentation = true
+      return
+    }
     needsInitialSkeletonPresentation = false
+    if case .presetRows(let count) = configuration.loading.skeletonPolicy {
+      applySkeletonPlaceholderSnapshot(count: count)
+      return
+    }
     presentationCoordinator.showSkeleton(
       on: collectionView,
       policy: configuration.loading.skeletonPolicy,
       overlayHost: view
     )
     view.fk_bringSkeletonOverlayToFrontIfNeeded()
+  }
+
+  private func applySkeletonPlaceholderSnapshot(count: Int) {
+    let placeholder = FKListSkeletonPlaceholder.makeSnapshot(
+      rowCount: count,
+      cellTypeIdentifier: FKListSkeletonPlaceholder.collectionCellTypeIdentifier
+    )
+    for item in placeholder.sections.flatMap(\.items) {
+      setPayload(FKListItemPayload(FKListSkeletonPlaceholder.Context()), for: item.id)
+    }
+    isDisplayingSkeletonPlaceholder = true
+    let skeletonEstimate = max(
+      configuration.layout.estimatedCollectionItemHeight,
+      FKListSkeletonPlaceholder.recommendedItemHeight
+    )
+    lastLayoutStructureSignature = FKListCollectionLayoutStructureSignature(
+      preset: layoutPreset,
+      estimatedItemHeight: skeletonEstimate,
+      snapshot: placeholder
+    )
+    rebuildLayout(snapshot: placeholder, estimatedItemHeight: skeletonEstimate)
+    replaceSnapshotWithoutPresentationUpdate(placeholder, animatingDifferences: false)
   }
 
   private func syncEmptyStateOverlayIfNeeded() {
@@ -539,7 +607,11 @@ open class FKDiffableCollectionViewController: UIViewController {
   }
 
   private func updatePresentationAfterSnapshotApply() {
+    if isDisplayingSkeletonPlaceholder, case .initialLoading = presentationState {
+      return
+    }
     needsInitialSkeletonPresentation = false
+    isDisplayingSkeletonPlaceholder = false
     presentationCoordinator.hideSkeleton(
       on: collectionView,
       policy: configuration.loading.skeletonPolicy,
@@ -644,7 +716,10 @@ open class FKDiffableCollectionViewController: UIViewController {
       }
       guard loadCoordinator.isCurrent(token: token, for: .refresh) else { return }
       loadCoordinator.updateHasMorePages(result.hasMorePages)
-      applySnapshot(result.snapshot, animatingDifferences: true)
+      applySnapshot(
+        result.snapshot,
+        animatingDifferences: configuration.animation.animatesRefreshDifferences
+      )
       collectionView.fk_pullToRefresh?.endRefreshing(token: context.token)
       collectionView.fk_loadMore?.resetToIdle()
       delegate?.list(self, didRefresh: true)
@@ -716,6 +791,28 @@ open class FKDiffableCollectionViewController: UIViewController {
 }
 
 extension FKDiffableCollectionViewController: UICollectionViewDelegate {
+  public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    videoVisibilityCoordinator?.scrollViewDidScroll(scrollView)
+  }
+
+  public func collectionView(
+    _ collectionView: UICollectionView,
+    willDisplay cell: UICollectionViewCell,
+    forItemAt indexPath: IndexPath
+  ) {
+    guard let itemID = dataSource.itemIdentifier(for: indexPath) else { return }
+    delegate?.list(self, willDisplay: itemID, at: indexPath)
+  }
+
+  public func collectionView(
+    _ collectionView: UICollectionView,
+    didEndDisplaying cell: UICollectionViewCell,
+    forItemAt indexPath: IndexPath
+  ) {
+    guard let itemID = dataSource.itemIdentifier(for: indexPath) else { return }
+    delegate?.list(self, didEndDisplaying: itemID, at: indexPath)
+  }
+
   public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     guard let itemID = dataSource.itemIdentifier(for: indexPath),
           let item = currentSnapshot.item(withID: itemID) else { return }
@@ -746,6 +843,39 @@ extension FKDiffableCollectionViewController: UICollectionViewDelegate {
     guard let itemID = dataSource.itemIdentifier(for: indexPath) else { return }
     didDeselectItem?(itemID)
     delegate?.list(self, didDeselect: itemID)
+  }
+
+  public func collectionView(
+    _ collectionView: UICollectionView,
+    trailingSwipeActionsConfigurationForItemAt indexPath: IndexPath
+  ) -> UISwipeActionsConfiguration? {
+    swipeActionsConfiguration(at: indexPath, edge: .trailing)
+  }
+
+  public func collectionView(
+    _ collectionView: UICollectionView,
+    leadingSwipeActionsConfigurationForItemAt indexPath: IndexPath
+  ) -> UISwipeActionsConfiguration? {
+    swipeActionsConfiguration(at: indexPath, edge: .leading)
+  }
+
+  private enum SwipeEdge {
+    case leading
+    case trailing
+  }
+
+  private func swipeActionsConfiguration(
+    at indexPath: IndexPath,
+    edge: SwipeEdge
+  ) -> UISwipeActionsConfiguration? {
+    guard let itemID = dataSource.itemIdentifier(for: indexPath),
+          let item = currentSnapshot.item(withID: itemID) else { return nil }
+    return FKListSwipeActionsBuilder.configuration(
+      for: item,
+      itemID: itemID,
+      edge: edge == .trailing ? .trailing : .leading,
+      handlerRegistry: swipeActionHandlerRegistry
+    )
   }
 }
 

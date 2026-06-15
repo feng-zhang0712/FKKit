@@ -1,4 +1,3 @@
-import FKCoreKit
 import FKUIKit
 import UIKit
 
@@ -38,44 +37,33 @@ final class FKListKitIconRemoteRowExampleViewController: FKDiffableTableViewCont
         kind: .preset(.icon(FKListIconRow(
           leading: .remoteURL(FKListKitExampleIcons.remoteURL(id: photoID)),
           title: "Photo \(photoID)",
-          subtitle: "FKImageView · FKImageLoader prefetch"
+          subtitle: "FKImageView · FKListImagePrefetchHelper"
         )))
       )
     }
     return FKListSnapshot(items: items)
   }
-
-  private func remoteURL(for itemID: FKListItemID) -> URL? {
-    guard let item = currentSnapshot.item(withID: itemID),
-          case .preset(.icon(let row)) = item.kind,
-          case .remoteURL(let url) = row.leading
-    else { return nil }
-    return url
-  }
-
-  private func prefetchRequest(for url: URL) -> FKImageLoadRequest {
-    FKImageLoadRequest(url: url, targetSize: Self.leadingPrefetchTargetSize)
-  }
 }
 
 extension FKListKitIconRemoteRowExampleViewController: FKListDelegate {
   func list(_ list: FKDiffableTableViewController, prefetchItems ids: [FKListItemID]) {
-    let urls = ids.compactMap { remoteURL(for: $0) }
-    guard !urls.isEmpty else { return }
-    Task {
-      await FKImageLoader.shared.prefetch(urls: urls, targetSize: Self.leadingPrefetchTargetSize)
-    }
+    FKListImagePrefetchHelper.prefetchLeadingIcons(
+      ids: ids,
+      in: currentSnapshot,
+      targetSize: Self.leadingPrefetchTargetSize
+    )
     FKListKitExampleStatusStrip.append(
-      "prefetch \(urls.count) · \(ids.map(\.rawValue).joined(separator: ", "))",
+      "prefetch \(ids.count) via FKListImagePrefetchHelper",
       to: statusLabel
     )
   }
 
   func list(_ list: FKDiffableTableViewController, cancelPrefetching ids: [FKListItemID]) {
-    for id in ids {
-      guard let url = remoteURL(for: id) else { continue }
-      FKImageLoader.shared.cancelPrefetch(for: prefetchRequest(for: url))
-    }
+    FKListImagePrefetchHelper.cancelPrefetchLeadingIcons(
+      ids: ids,
+      in: currentSnapshot,
+      targetSize: Self.leadingPrefetchTargetSize
+    )
     FKListKitExampleStatusStrip.append("cancel prefetch \(ids.count)", to: statusLabel)
   }
 }
