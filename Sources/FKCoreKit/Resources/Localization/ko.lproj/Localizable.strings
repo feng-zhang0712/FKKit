@@ -17,6 +17,12 @@
 "fkcore.biometric.error.watch_not_available" = "Apple Watch를 인증에 사용할 수 없습니다.";
 "fkcore.biometric.reason.confirm_action" = "이 작업 확인";
 "fkcore.biometric.reason.unlock_app" = "계속하려면 잠금 해제";
+"fkcore.local_notification.error.attachment_unavailable" = "첨부 파일을 사용할 수 없습니다: %@";
+"fkcore.local_notification.error.badge_update_failed" = "앱 배지를 업데이트하지 못했습니다.";
+"fkcore.local_notification.error.invalid_content" = "알림 콘텐츠가 유효하지 않습니다: %@";
+"fkcore.local_notification.error.invalid_trigger" = "알림 트리거가 유효하지 않습니다: %@";
+"fkcore.local_notification.error.not_authorized" = "알림 권한이 없습니다. FKPermissions로 먼저 요청하세요.";
+"fkcore.local_notification.error.system" = "알림 시스템 오류: %@";
 "fkcore.business.error.cancelled" = "취소됨";
 "fkcore.business.error.invalid_argument" = "잘못된 인수: %@";
 "fkcore.business.error.missing_configuration" = "구성 누락: %@";

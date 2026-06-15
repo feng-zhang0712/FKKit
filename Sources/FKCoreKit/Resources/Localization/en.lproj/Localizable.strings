@@ -17,6 +17,12 @@
 "fkcore.biometric.error.watch_not_available" = "Apple Watch is not available for authentication.";
 "fkcore.biometric.reason.confirm_action" = "Confirm this action";
 "fkcore.biometric.reason.unlock_app" = "Unlock to continue";
+"fkcore.local_notification.error.attachment_unavailable" = "Attachment unavailable: %@";
+"fkcore.local_notification.error.badge_update_failed" = "Failed to update the app icon badge.";
+"fkcore.local_notification.error.invalid_content" = "Invalid notification content: %@";
+"fkcore.local_notification.error.invalid_trigger" = "Invalid notification trigger: %@";
+"fkcore.local_notification.error.not_authorized" = "Notification permission is not granted. Request access via FKPermissions first.";
+"fkcore.local_notification.error.system" = "Notification system error: %@";
 "fkcore.business.error.cancelled" = "Cancelled";
 "fkcore.business.error.invalid_argument" = "Invalid argument: %@";
 "fkcore.business.error.missing_configuration" = "Missing configuration: %@";

@@ -245,6 +245,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKI18nExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "LocalNotification",
+          subtitle: "Hub: permission gate, triggers, categories, delegate, cancel/query, badge, deeplink, mock",
+          make: { FKLocalNotificationExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Logger",
           subtitle: "5-level logs, config, file persistence, crash capture, export/clear",
           make: { FKLoggerExampleViewController() }

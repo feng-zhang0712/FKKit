@@ -17,6 +17,12 @@
 "fkcore.biometric.error.watch_not_available" = "Apple Watch недоступны для аутентификации.";
 "fkcore.biometric.reason.confirm_action" = "Подтвердить это действие";
 "fkcore.biometric.reason.unlock_app" = "Разблокировать для продолжения";
+"fkcore.local_notification.error.attachment_unavailable" = "Вложение недоступно: %@";
+"fkcore.local_notification.error.badge_update_failed" = "Не удалось обновить значок приложения.";
+"fkcore.local_notification.error.invalid_content" = "Недопустимое содержимое уведомления: %@";
+"fkcore.local_notification.error.invalid_trigger" = "Недопустимый триггер уведомления: %@";
+"fkcore.local_notification.error.not_authorized" = "Разрешение на уведомления не предоставлено. Сначала запросите через FKPermissions.";
+"fkcore.local_notification.error.system" = "Системная ошибка уведомлений: %@";
 "fkcore.business.error.cancelled" = "Отменено";
 "fkcore.business.error.invalid_argument" = "Недопустимый аргумент: %@";
 "fkcore.business.error.missing_configuration" = "Отсутствует конфигурация: %@";

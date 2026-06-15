@@ -17,6 +17,12 @@
 "fkcore.biometric.error.watch_not_available" = "Apple Watch は認証に利用できません。";
 "fkcore.biometric.reason.confirm_action" = "この操作を確認";
 "fkcore.biometric.reason.unlock_app" = "続行するにはロック解除";
+"fkcore.local_notification.error.attachment_unavailable" = "添付ファイルを利用できません: %@";
+"fkcore.local_notification.error.badge_update_failed" = "アプリバッジの更新に失敗しました。";
+"fkcore.local_notification.error.invalid_content" = "通知コンテンツが無効です: %@";
+"fkcore.local_notification.error.invalid_trigger" = "通知トリガーが無効です: %@";
+"fkcore.local_notification.error.not_authorized" = "通知の許可がありません。先に FKPermissions でリクエストしてください。";
+"fkcore.local_notification.error.system" = "通知システムエラー: %@";
 "fkcore.business.error.cancelled" = "キャンセルされました";
 "fkcore.business.error.invalid_argument" = "無効な引数：%@";
 "fkcore.business.error.missing_configuration" = "設定がありません：%@";

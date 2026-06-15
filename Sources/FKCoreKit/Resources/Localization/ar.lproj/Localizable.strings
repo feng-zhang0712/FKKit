@@ -17,6 +17,12 @@
 "fkcore.biometric.error.watch_not_available" = "Apple Watch غير متاح للمصادقة.";
 "fkcore.biometric.reason.confirm_action" = "تأكيد هذا الإجراء";
 "fkcore.biometric.reason.unlock_app" = "افتح القفل للمتابعة";
+"fkcore.local_notification.error.attachment_unavailable" = "المرفق غير متاح: %@";
+"fkcore.local_notification.error.badge_update_failed" = "فشل تحديث شارة أيقونة التطبيق.";
+"fkcore.local_notification.error.invalid_content" = "محتوى إشعار غير صالح: %@";
+"fkcore.local_notification.error.invalid_trigger" = "مشغّل إشعار غير صالح: %@";
+"fkcore.local_notification.error.not_authorized" = "لم يتم منح إذن الإشعارات. اطلب الوصول عبر FKPermissions أولاً.";
+"fkcore.local_notification.error.system" = "خطأ في نظام الإشعارات: %@";
 "fkcore.business.error.cancelled" = "تم الإلغاء";
 "fkcore.business.error.invalid_argument" = "وسيطة غير صالحة: %@";
 "fkcore.business.error.missing_configuration" = "التكوين مفقود: %@";

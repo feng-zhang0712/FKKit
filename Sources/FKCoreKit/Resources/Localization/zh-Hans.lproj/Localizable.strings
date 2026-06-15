@@ -17,6 +17,12 @@
 "fkcore.biometric.error.watch_not_available" = "Apple Watch 不可用于认证。";
 "fkcore.biometric.reason.confirm_action" = "确认此操作";
 "fkcore.biometric.reason.unlock_app" = "解锁以继续";
+"fkcore.local_notification.error.attachment_unavailable" = "附件不可用：%@";
+"fkcore.local_notification.error.badge_update_failed" = "更新应用角标失败。";
+"fkcore.local_notification.error.invalid_content" = "通知内容无效：%@";
+"fkcore.local_notification.error.invalid_trigger" = "通知触发器无效：%@";
+"fkcore.local_notification.error.not_authorized" = "未授予通知权限。请先通过 FKPermissions 申请。";
+"fkcore.local_notification.error.system" = "通知系统错误：%@";
 "fkcore.business.error.cancelled" = "已取消";
 "fkcore.business.error.invalid_argument" = "无效参数：%@";
 "fkcore.business.error.missing_configuration" = "缺少配置：%@";
