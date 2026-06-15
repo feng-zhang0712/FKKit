@@ -1,0 +1,5 @@
+{
+  "support_email": "support@example.com",
+  "force_update": "false",
+  "welcome_message": "Hello from bundled remote config"
+}

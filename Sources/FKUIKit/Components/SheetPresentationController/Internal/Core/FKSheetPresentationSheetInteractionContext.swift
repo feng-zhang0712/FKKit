@@ -51,4 +51,33 @@ enum FKSheetPresentationSheetInteractionContext {
       touchLocationInScrollView: touchInScroll
     )
   }
+
+  static func shouldCenterPanDismissBegin(
+    recognizer: UIPanGestureRecognizer,
+    wrapperView: UIView,
+    contentContainerFrame: CGRect,
+    trackedScrollView: UIScrollView?,
+    hostedContentView: UIView?,
+    verticalVelocity: CGFloat
+  ) -> Bool {
+    FKSheetPresentationInteractionEngine.shouldCenterPanDismissBegin(
+      recognizer: recognizer,
+      wrapperView: wrapperView,
+      contentContainerFrame: contentContainerFrame,
+      trackedScrollView: trackedScrollView,
+      hostedContentView: hostedContentView,
+      verticalVelocity: verticalVelocity
+    )
+  }
+
+  static func shouldCenterPanDeferToScrollView(
+    trackedScrollView: UIScrollView?,
+    translationY: CGFloat
+  ) -> Bool {
+    guard let trackedScrollView else { return false }
+    return FKSheetPresentationInteractionEngine.shouldCenterPanDeferToScrollView(
+      scrollView: trackedScrollView,
+      translationY: translationY
+    )
+  }
 }

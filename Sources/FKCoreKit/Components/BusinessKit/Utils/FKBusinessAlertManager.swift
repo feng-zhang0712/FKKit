@@ -3,22 +3,30 @@ import UIKit
 
 /// Default implementation of ``FKBusinessAlertManaging`` with de-duplication.
 public final class FKBusinessAlertManager: FKBusinessAlertManaging, @unchecked Sendable {
+  /// Supplies runtime alert backend configuration.
+  private let configurationProvider: @Sendable () -> FKBusinessKitConfiguration
+  /// Supplies optional host-provided FKAlert bridge.
+  private let alertPresenterProvider: @Sendable () -> (any FKBusinessAlertPresenting)?
+
   /// Lock protecting de-duplication state when ``presentOnce`` schedules UI work.
   private let lock = NSLock()
   /// IDs of alerts currently being presented.
   private var presentingIDs: Set<String> = []
 
   /// Creates alert manager.
-  public init() {}
-
-  /// Presents a single alert instance for a given identifier.
   ///
   /// - Parameters:
-  ///   - id: Stable identifier for duplicate suppression.
-  ///   - title: Alert title.
-  ///   - message: Alert message.
-  ///   - actions: Action descriptors. Empty array falls back to a single "OK" action.
-  ///   - presenter: Optional presenter view controller.
+  ///   - configurationProvider: Supplies alert backend selection.
+  ///   - alertPresenterProvider: Supplies optional custom presenter for ``FKBusinessAlertBackend/fkAlert``.
+  public init(
+    configurationProvider: @escaping @Sendable () -> FKBusinessKitConfiguration = { FKBusinessKitConfiguration() },
+    alertPresenterProvider: @escaping @Sendable () -> (any FKBusinessAlertPresenting)? = { nil }
+  ) {
+    self.configurationProvider = configurationProvider
+    self.alertPresenterProvider = alertPresenterProvider
+  }
+
+  /// Presents a single alert instance for a given identifier.
   public func presentOnce(
     id: String,
     title: String?,
@@ -36,55 +44,40 @@ public final class FKBusinessAlertManager: FKBusinessAlertManaging, @unchecked S
     presentingIDs.insert(id)
     lock.unlock()
 
-    Task { @MainActor [weak self] in
-      self?.presentAlertOnMain(id: id, title: title, message: message, actions: actions, presenter: presenter)
-    }
-  }
+    let backend = configurationProvider().alertBackend
+    let customPresenter = alertPresenterProvider()
+    let resolvedActions = actions.isEmpty
+      ? [FKAlertAction(title: FKI18n.string("fkcore.common.ok"), style: .default, handler: nil)]
+      : actions
 
-  @MainActor
-  private func presentAlertOnMain(
-    id: String,
-    title: String?,
-    message: String?,
-    actions: [FKAlertAction],
-    presenter: UIViewController?
-  ) {
-    let vc = presenter ?? FKTopViewControllerResolver.topMostViewController()
-    guard let vc else {
-      finish(id: id)
-      return
-    }
+    Task { @MainActor in
+      let wrappedActions = resolvedActions.map { action in
+        FKAlertAction(title: action.title, style: action.style) { [weak self] in
+          action.handler?()
+          self?.finish(id: id)
+        }
+      }
 
-    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-    let resolvedActions = actions.isEmpty ? [FKAlertAction(title: FKI18n.string("fkcore.common.ok"), style: .default, handler: nil)] : actions
-    for action in resolvedActions {
-      alert.addAction(UIAlertAction(title: action.title, style: Self.mapStyle(action.style)) { _ in
-        action.handler?()
+      FKBusinessAlertPresentation.presentOnce(
+        id: id,
+        title: title,
+        message: message,
+        actions: wrappedActions,
+        presenter: presenter,
+        backend: backend,
+        customPresenter: customPresenter
+      )
+
+      if presenter == nil, UIViewController.fk_topMostViewController() == nil {
         self.finish(id: id)
-      })
+      }
     }
-
-    vc.present(alert, animated: true)
   }
 
   /// Marks alert identifier as finished so it can be presented again.
-  ///
-  /// - Parameter id: Alert identifier.
   private func finish(id: String) {
     lock.lock()
     presentingIDs.remove(id)
     lock.unlock()
-  }
-
-  /// Converts toolkit alert style to `UIAlertAction.Style`.
-  ///
-  /// - Parameter style: Toolkit alert style.
-  /// - Returns: UIKit alert style.
-  private static func mapStyle(_ style: FKAlertAction.Style) -> UIAlertAction.Style {
-    switch style {
-    case .default: return .default
-    case .cancel: return .cancel
-    case .destructive: return .destructive
-    }
   }
 }

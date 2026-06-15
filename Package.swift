@@ -16,11 +16,13 @@ private func readmeExcludes(moduleDirectories: [String]) -> [String] {
 /// FKCoreKit component docs (`Sources/FKCoreKit/Components/<name>/README.md`).
 private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/Async",
+  "Components/BackgroundTask",
   "Components/BiometricAuth",
   "Components/BusinessKit",
   "Components/FileManager",
   "Components/I18n",
   "Components/ImageLoader",
+  "Components/LocalNotification",
   "Components/Logger",
   "Components/Network",
   "Components/Permissions",
@@ -39,6 +41,7 @@ private let fkUIKitCoreDocDirectories: [String] = [
 /// FKUIKit component docs (`Sources/FKUIKit/Components/…/README.md`), including nested Player modules.
 private let fkUIKitComponentDocDirectories: [String] = [
   "Components/ActionSheet",
+  "Components/Alert",
   "Components/Badge",
   "Components/BlurView",
   "Components/Button",
@@ -61,6 +64,7 @@ private let fkUIKitComponentDocDirectories: [String] = [
   "Components/RatingControl",
   "Components/Refresh",
   "Components/SearchBar",
+  "Components/SearchViewController",
   "Components/SheetPresentationController",
   "Components/Skeleton",
   "Components/TabBar",

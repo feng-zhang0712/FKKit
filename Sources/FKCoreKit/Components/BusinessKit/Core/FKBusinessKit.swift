@@ -3,7 +3,7 @@ import Foundation
 /// Main entry point for high-frequency business capabilities.
 ///
 /// FKBusinessKit is designed to be:
-/// - Pure Swift (Swift 5.9+), iOS 13+
+/// - Pure Swift, iOS 15+
 /// - No third-party dependencies
 /// - Thread-safe and non-blocking
 /// - Easy to plug into any architecture (MVVM/MVP/etc.)
@@ -43,6 +43,12 @@ public final class FKBusinessKit: @unchecked Sendable {
   /// Common business utilities.
   public let utils: FKBusinessUtilitiesProviding
 
+  /// Host-provided alert presenter used when ``FKBusinessKitConfiguration/alertBackend`` is ``FKBusinessAlertBackend/fkAlert``.
+  public var alertPresenter: (any FKBusinessAlertPresenting)? {
+    get { configurationStore.alertPresenter }
+    set { configurationStore.alertPresenter = newValue }
+  }
+
   /// Creates the kit with custom collaborators.
   ///
   /// - Parameters:
@@ -80,7 +86,15 @@ public final class FKBusinessKit: @unchecked Sendable {
     let deeplinkRouter = deeplink ?? FKBusinessDeeplinkRouter()
     self.deeplink = deeplinkRouter
 
-    let versionManager = version ?? FKBusinessVersionManager(infoProvider: infoProvider)
+    let alertManager = FKBusinessAlertManager(
+      configurationProvider: { store.configuration },
+      alertPresenterProvider: { store.alertPresenter }
+    )
+
+    let versionManager = version ?? FKBusinessVersionManager(
+      infoProvider: infoProvider,
+      alertManager: alertManager
+    )
     self.version = versionManager
 
     let trackManager = track ?? FKBusinessAnalyticsTracker(
@@ -91,7 +105,7 @@ public final class FKBusinessKit: @unchecked Sendable {
 
     let utilities = utils ?? FKBusinessUtilities(
       i18n: i18nManager,
-      infoProvider: infoProvider
+      alertManager: alertManager
     )
     self.utils = utilities
   }
@@ -109,6 +123,9 @@ protocol FKBusinessConfigurationStoring: AnyObject {
   /// Current toolkit configuration.
   var configuration: FKBusinessKitConfiguration { get set }
 
+  /// Optional host-provided alert presenter for ``FKBusinessAlertBackend/fkAlert``.
+  var alertPresenter: (any FKBusinessAlertPresenting)? { get set }
+
   /// Mutates current configuration in a thread-safe way.
   ///
   /// - Parameter transform: Mutation closure applied atomically.
@@ -122,6 +139,9 @@ final class FKBusinessConfigurationStore: FKBusinessConfigurationStoring, @unche
 
   /// Backing storage for the mutable configuration object.
   private var _configuration: FKBusinessKitConfiguration
+
+  /// Host-provided FKAlert bridge (not part of equatable configuration).
+  private var _alertPresenter: (any FKBusinessAlertPresenting)?
 
   /// Creates a store with an initial configuration value.
   ///
@@ -149,6 +169,20 @@ final class FKBusinessConfigurationStore: FKBusinessConfigurationStoring, @unche
     lock.lock()
     transform(&_configuration)
     lock.unlock()
+  }
+
+  var alertPresenter: (any FKBusinessAlertPresenting)? {
+    get {
+      lock.lock()
+      let value = _alertPresenter
+      lock.unlock()
+      return value
+    }
+    set {
+      lock.lock()
+      _alertPresenter = newValue
+      lock.unlock()
+    }
   }
 }
 

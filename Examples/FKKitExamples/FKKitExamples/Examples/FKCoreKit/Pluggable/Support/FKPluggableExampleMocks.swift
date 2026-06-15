@@ -8,18 +8,6 @@ typealias FKPluggableExampleLogHandler = @Sendable (String) -> Void
 
 // MARK: - Networking
 
-final class DemoAPIClient: FKAPIClientProviding, @unchecked Sendable {
-  var onPerform: FKPluggableExampleLogHandler?
-
-  func perform(_ request: FKAPIRequest) async throws -> FKAPIResponse {
-    let line =
-      "API \(request.method.rawValue) \(request.url.absoluteString) body=\(request.body?.count ?? 0)B"
-    onPerform?(line)
-    let payload = Data("{\"ok\":true}".utf8)
-    return FKAPIResponse(data: payload, httpResponse: nil)
-  }
-}
-
 struct DemoAuthHeaderInterceptor: FKRequestIntercepting {
   let credentials: DemoCredentialStore
 
@@ -58,10 +46,6 @@ struct DemoTokenRefresher: FKTokenRefreshing {
     }
     return "demo-access-\(UUID().uuidString.prefix(8))"
   }
-}
-
-struct DemoNetworkReachability: FKNetworkReachabilityProviding {
-  var isReachable = true
 }
 
 // MARK: - Analytics
@@ -145,111 +129,6 @@ final class PluggableDemoAnalyticsTracker: FKPluggableAnalyticsTracking, @unchec
   }
 }
 
-// MARK: - Storage
-
-final class DemoMemoryStorage: FKCodableStoring, @unchecked Sendable {
-  private var store: [String: Data] = [:]
-  private let lock = NSLock()
-
-  func data(forKey key: String) throws -> Data? {
-    lock.lock()
-    defer { lock.unlock() }
-    return store[key]
-  }
-
-  func set(_ data: Data?, forKey key: String) throws {
-    lock.lock()
-    defer { lock.unlock() }
-    if let data { store[key] = data } else { store.removeValue(forKey: key) }
-  }
-
-  func remove(forKey key: String) throws {
-    try set(nil, forKey: key)
-  }
-
-  func contains(key: String) -> Bool {
-    lock.lock()
-    defer { lock.unlock() }
-    return store[key] != nil
-  }
-
-}
-
-// MARK: - Session
-
-final class DemoUserSession: FKUserSessionProviding, FKUserSessionObserving, @unchecked Sendable {
-  private let lock = NSLock()
-  private var observers: [UUID: @Sendable (Bool) -> Void] = [:]
-  private(set) var isAuthenticated = false
-  private(set) var userID: String?
-
-  func signIn(userID: String) {
-    lock.lock()
-    isAuthenticated = true
-    self.userID = userID
-    let handlers = Array(observers.values)
-    lock.unlock()
-    handlers.forEach { $0(true) }
-  }
-
-  func signOut() throws {
-    lock.lock()
-    isAuthenticated = false
-    userID = nil
-    let handlers = Array(observers.values)
-    lock.unlock()
-    handlers.forEach { $0(false) }
-  }
-
-  @discardableResult
-  func observeAuthenticationChange(_ handler: @escaping @Sendable (Bool) -> Void) -> FKPluggableObservationToken {
-    let id = UUID()
-    lock.lock()
-    observers[id] = handler
-    let authenticated = isAuthenticated
-    lock.unlock()
-    handler(authenticated)
-    return FKPluggableObservationToken { [weak self] in
-      self?.lock.lock()
-      self?.observers.removeValue(forKey: id)
-      self?.lock.unlock()
-    }
-  }
-}
-
-// MARK: - Configuration
-
-struct DemoAppEnvironment: FKAppEnvironmentProviding {
-  var environment: FKAppEnvironment
-  var apiBaseURL: URL
-  var webBaseURL: URL?
-}
-
-struct DemoFeatureFlags: FKFeatureFlagProviding {
-  var flags: [String: Bool] = ["new_checkout": true, "beta_player": false]
-  var payloads: [String: String] = ["home_banner": "spring_sale"]
-
-  func isEnabled(_ key: String) -> Bool { flags[key] ?? false }
-  func stringValue(for key: String) -> String? { payloads[key] }
-}
-
-final class DemoRemoteConfig: FKRemoteConfigProviding, @unchecked Sendable {
-  private var values: [String: String] = [
-    "support_email": "support@example.com",
-    "force_update": "false",
-  ]
-
-  func fetch() async throws {
-    values["fetched_at"] = ISO8601DateFormatter().string(from: Date())
-  }
-
-  func string(forKey key: String) -> String? { values[key] }
-  func bool(forKey key: String) -> Bool? {
-    guard let raw = values[key] else { return nil }
-    return (raw as NSString).boolValue
-  }
-}
-
 // MARK: - Localization
 
 final class DemoLocalizer: FKLocalizing, @unchecked Sendable {
@@ -318,18 +197,7 @@ struct DemoTranslator: FKTranslating {
   }
 }
 
-// MARK: - Routing
-
-struct DemoDeeplinkParser: FKDeeplinkParsing {
-  func parse(url: URL) -> FKRouteContext? {
-    let parts = url.path.split(separator: "/").map(String.init)
-    var query: [String: String] = [:]
-    URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.forEach {
-      if let value = $0.value { query[$0.name] = value }
-    }
-    return FKRouteContext(url: url, pathComponents: parts, queryItems: query)
-  }
-}
+// MARK: - Routing (feature handlers only — router/parser live in FKCoreKit)
 
 struct DemoProductRouteHandler: FKRouteHandling {
   let onHandle: @MainActor (FKRouteContext) -> Void
@@ -360,43 +228,6 @@ struct DemoPromoRouteHandler: FKRouteHandling {
   func handle(_ context: FKRouteContext) -> FKRouteHandlingResult {
     onHandle(context)
     return .handled
-  }
-}
-
-@MainActor
-final class DemoDeeplinkRouter: FKDeeplinkRouting {
-  private let parser: any FKDeeplinkParsing
-  private var handlers: [any FKRouteHandling] = []
-
-  init(parser: any FKDeeplinkParsing = DemoDeeplinkParser()) {
-    self.parser = parser
-  }
-
-  func register(_ handler: any FKRouteHandling) {
-    handlers.append(handler)
-  }
-
-  func open(url: URL) -> FKRouteHandlingResult {
-    guard let context = parser.parse(url: url) else {
-      return .failed(message: "Parser returned nil for \(url.absoluteString)")
-    }
-    for handler in handlers where handler.canHandle(context) {
-      let result = handler.handle(context)
-      if result != .notHandled { return result }
-    }
-    return .notHandled
-  }
-}
-
-// MARK: - Logging
-
-final class DemoPluggableLogger: FKPluggableLogging, @unchecked Sendable {
-  var minimumLevel: FKPluggableLogLevel = .debug
-  var onLog: FKPluggableExampleLogHandler?
-
-  func log(level: FKPluggableLogLevel, _ message: @autoclosure () -> String, file: String, function: String, line: UInt) {
-    guard level >= minimumLevel else { return }
-    onLog?("[\(level)] \(message()) (\(file):\(line))")
   }
 }
 
@@ -467,31 +298,6 @@ final class DemoImageCache: FKImageCaching {
 }
 
 // MARK: - Text input
-
-struct DemoPhoneFormatRule: Sendable {
-  var maxDigits: Int = 11
-}
-
-struct DemoPhoneFormatter: FKTextFormatting {
-  func format(text: String, rule: DemoPhoneFormatRule) -> FKTextFormattingResult {
-    let digits = String(text.filter(\.isNumber).prefix(rule.maxDigits))
-    var display = ""
-    for (index, char) in digits.enumerated() {
-      if index == 3 || index == 7 { display.append(" ") }
-      display.append(char)
-    }
-    return FKTextFormattingResult(rawText: digits, displayText: display)
-  }
-}
-
-struct DemoPhoneValidator: FKTextValidating {
-  func validate(rawText: String, displayText: String, rule: DemoPhoneFormatRule) -> FKTextValidationResult {
-    _ = displayText
-    _ = rule
-    if rawText.count == 11 { return .valid }
-    return .invalid(message: "Phone must be 11 digits (raw=\(rawText.count))")
-  }
-}
 
 struct DemoAsyncValidationRule: Sendable {}
 

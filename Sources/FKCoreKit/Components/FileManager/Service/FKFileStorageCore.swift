@@ -3,10 +3,24 @@ import Foundation
 /// Concrete service for sandbox and file content operations.
 @MainActor
 final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
+  private let configuration: FKFileManagerConfiguration
   private let fileManager: Foundation.FileManager
+  private let zipService: any FKZipOperating
 
-  init(fileManager: Foundation.FileManager = .default) {
+  init(
+    configuration: FKFileManagerConfiguration = .init(),
+    fileManager: Foundation.FileManager = .default,
+    zipService: (any FKZipOperating)? = nil
+  ) {
+    self.configuration = configuration
     self.fileManager = fileManager
+    if let zipService {
+      self.zipService = zipService
+    } else if configuration.isZipEnabled, FKNativeZipService.isSupported {
+      self.zipService = FKNativeZipService()
+    } else {
+      self.zipService = FKUnavailableZipService()
+    }
   }
 
   /// Resolves standard sandbox directory URL.
@@ -189,18 +203,47 @@ final class FKFileStorageCore: FKFileOperating, FKFileContentStoring {
     }
   }
 
-  /// Public ZIP API placeholder for future native ZIP integration.
-  func zipItem(at sourceURL: URL, to destinationURL: URL) async throws {
-    _ = destinationURL
+  /// Compresses a file or directory into a ZIP archive.
+  func zipItem(at sourceURL: URL, to destinationURL: URL, options: FKZipOptions = .init()) async throws {
+    guard configuration.isZipEnabled else { throw FKFileManagerError.zipUnavailable }
     guard fileManager.fileExists(atPath: sourceURL.path) else { throw FKFileManagerError.fileNotFound(path: sourceURL.path) }
-    throw FKFileManagerError.zipUnavailable
+    guard fileManager.fileExists(atPath: destinationURL.path) == false else {
+      throw FKFileManagerError.fileAlreadyExists(path: destinationURL.path)
+    }
+
+    let sourceSize = try await estimatedSourceSize(at: sourceURL)
+    let requiredBytes = Int64(Double(sourceSize) * configuration.zipDiskSpaceSafetyFactor)
+    try ensureSufficientDiskSpace(requiredBytes: requiredBytes)
+
+    try await zipService.zipItem(at: sourceURL, to: destinationURL, options: options)
   }
 
-  /// Public unzip API placeholder for future native ZIP integration.
-  func unzipItem(at sourceURL: URL, to destinationURL: URL) async throws {
-    _ = destinationURL
+  /// Expands a ZIP archive into a destination directory.
+  func unzipItem(at sourceURL: URL, to destinationURL: URL, options: FKUnzipOptions = .init()) async throws {
+    guard configuration.isZipEnabled else { throw FKFileManagerError.zipUnavailable }
     guard fileManager.fileExists(atPath: sourceURL.path) else { throw FKFileManagerError.fileNotFound(path: sourceURL.path) }
-    throw FKFileManagerError.zipUnavailable
+    try await zipService.unzipItem(at: sourceURL, to: destinationURL, options: options)
+  }
+
+  private func estimatedSourceSize(at sourceURL: URL) async throws -> Int64 {
+    var isDirectory: ObjCBool = false
+    guard fileManager.fileExists(atPath: sourceURL.path, isDirectory: &isDirectory) else {
+      throw FKFileManagerError.fileNotFound(path: sourceURL.path)
+    }
+    if isDirectory.boolValue {
+      return try await sizeOfDirectory(at: sourceURL)
+    }
+    let values = try sourceURL.resourceValues(forKeys: [.fileSizeKey])
+    return Int64(values.fileSize ?? 0)
+  }
+
+  private func ensureSufficientDiskSpace(requiredBytes: Int64) throws {
+    let homeURL = directoryURL(.home)
+    let values = try? homeURL.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+    let available = Int64(values?.volumeAvailableCapacityForImportantUsage ?? 0)
+    if available < requiredBytes {
+      throw FKFileManagerError.insufficientDiskSpace(required: requiredBytes, available: available)
+    }
   }
 
   private func ensureParentDirectory(for url: URL) throws {

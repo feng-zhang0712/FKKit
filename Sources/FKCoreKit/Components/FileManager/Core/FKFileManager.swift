@@ -14,10 +14,20 @@ public final class FKFileManager: FKFileOperating, FKFileContentStoring, FKTrans
   /// Creates manager with custom configuration.
   public init(configuration: FKFileManagerConfiguration = .init()) {
     self.configuration = configuration
-    let storage = FKFileStorageCore()
+    let storage = FKFileStorageCore(configuration: configuration)
     self.storageService = storage
     self.downloadService = FKDownloadService(configuration: configuration, storageService: storage)
     self.uploadService = FKUploadServiceCore(configuration: configuration)
+  }
+
+  /// Whether ZIP compression and extraction are supported on the current platform.
+  public static var isZipAvailable: Bool {
+    FKNativeZipService.isSupported
+  }
+
+  /// Whether ZIP is enabled for this manager instance.
+  public var isZipEnabled: Bool {
+    configuration.isZipEnabled && Self.isZipAvailable
   }
 
   // MARK: - Sandbox
@@ -102,12 +112,30 @@ public final class FKFileManager: FKFileOperating, FKFileContentStoring, FKTrans
 
   /// Compresses an item to a ZIP archive.
   public func zipItem(at sourceURL: URL, to destinationURL: URL) async throws {
-    try await storageService.zipItem(at: sourceURL, to: destinationURL)
+    try await zipItem(at: sourceURL, to: destinationURL, options: .init())
+  }
+
+  /// Compresses an item to a ZIP archive with custom options.
+  public func zipItem(at sourceURL: URL, to destinationURL: URL, options: FKZipOptions) async throws {
+    try await storageService.zipItem(at: sourceURL, to: destinationURL, options: options)
   }
 
   /// Decompresses a ZIP archive to target directory.
   public func unzipItem(at sourceURL: URL, to destinationURL: URL) async throws {
-    try await storageService.unzipItem(at: sourceURL, to: destinationURL)
+    try await unzipItem(at: sourceURL, to: destinationURL, options: .init())
+  }
+
+  /// Decompresses a ZIP archive to target directory with custom options.
+  public func unzipItem(at sourceURL: URL, to destinationURL: URL, options: FKUnzipOptions) async throws {
+    try await storageService.unzipItem(at: sourceURL, to: destinationURL, options: options)
+  }
+
+  /// Stores the system completion handler until background URLSession events finish.
+  public func registerBackgroundSessionCompletionHandler(
+    _ handler: @escaping @Sendable () -> Void,
+    forSessionWithIdentifier identifier: String
+  ) {
+    downloadService.registerBackgroundSessionCompletionHandler(handler, forSessionWithIdentifier: identifier)
   }
 
   /// Checks available disk capacity and throws when below configuration threshold.

@@ -35,9 +35,17 @@ final class FKUploadServiceCore: NSObject, URLSessionTaskDelegate, URLSessionDat
     completion: (@Sendable (Result<FKUploadResult, FKFileManagerError>) -> Void)?
   ) async throws -> Int {
     var urlRequest = request.urlRequest
-    let boundary = "FKBoundary-\(UUID().uuidString)"
-    urlRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-    let payload = try buildMultipartBody(for: request, boundary: boundary)
+    var formData = FKMultipartFormData()
+    for field in request.formFields {
+      formData.append(field.value, name: field.key)
+    }
+    for file in request.files {
+      let data = try Data(contentsOf: file.fileURL)
+      formData.append(data, name: file.fieldName, fileName: file.fileName, mimeType: file.mimeType)
+    }
+    let encoded = formData.encode()
+    urlRequest.setValue(encoded.contentType, forHTTPHeaderField: "Content-Type")
+    let payload = encoded.body
     let task = session.uploadTask(with: urlRequest, from: payload)
 
     contexts[task.taskIdentifier] = UploadContext(progress: progress, completion: completion, buffer: Data())
@@ -127,25 +135,6 @@ final class FKUploadServiceCore: NSObject, URLSessionTaskDelegate, URLSessionDat
       self.snapshots.removeValue(forKey: task.taskIdentifier)
       await self.persistSnapshots()
     }
-  }
-
-  private func buildMultipartBody(for request: FKUploadRequest, boundary: String) throws -> Data {
-    var body = Data()
-    for field in request.formFields {
-      body.append("--\(boundary)\r\n".data(using: .utf8)!)
-      body.append("Content-Disposition: form-data; name=\"\(field.key)\"\r\n\r\n".data(using: .utf8)!)
-      body.append("\(field.value)\r\n".data(using: .utf8)!)
-    }
-    for file in request.files {
-      let data = try Data(contentsOf: file.fileURL)
-      body.append("--\(boundary)\r\n".data(using: .utf8)!)
-      body.append("Content-Disposition: form-data; name=\"\(file.fieldName)\"; filename=\"\(file.fileName)\"\r\n".data(using: .utf8)!)
-      body.append("Content-Type: \(file.mimeType)\r\n\r\n".data(using: .utf8)!)
-      body.append(data)
-      body.append("\r\n".data(using: .utf8)!)
-    }
-    body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-    return body
   }
 
   private func persistSnapshots() async {

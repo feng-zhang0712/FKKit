@@ -68,6 +68,10 @@ public final class FKNetworkConfiguration: @unchecked Sendable {
   public var encryptParameters: (([String: Any]) throws -> [String: Any])?
   /// Controls whether callback is dispatched to main queue.
   public var callbackOnMainQueue: Bool
+  /// Optional strict SSL pinning configuration.
+  public var sslPinning: FKSSLPinningConfiguration?
+  /// HTTP retry policy applied after token refresh handling.
+  public var retryPolicy: FKNetworkRetryPolicy
 
   /// Guards access to computed properties that read mutable config maps.
   private let lock = NSLock()
@@ -89,6 +93,8 @@ public final class FKNetworkConfiguration: @unchecked Sendable {
   ///   - shouldPinSSLHost: Optional SSL host strategy hook.
   ///   - encryptParameters: Optional parameter encryption hook.
   ///   - callbackOnMainQueue: Completion queue policy.
+  ///   - sslPinning: Optional strict SSL pinning configuration.
+  ///   - retryPolicy: HTTP retry policy.
   public init(
     environment: FKNetworkEnvironment = .development,
     environmentMap: [FKNetworkEnvironment: FKEnvironmentConfig] = [:],
@@ -103,7 +109,9 @@ public final class FKNetworkConfiguration: @unchecked Sendable {
     enableMock: Bool = false,
     shouldPinSSLHost: ((String) -> Bool)? = nil,
     encryptParameters: (([String: Any]) throws -> [String: Any])? = nil,
-    callbackOnMainQueue: Bool = true
+    callbackOnMainQueue: Bool = true,
+    sslPinning: FKSSLPinningConfiguration? = nil,
+    retryPolicy: FKNetworkRetryPolicy = .none
   ) {
     self.environment = environment
     self.environmentMap = environmentMap
@@ -119,6 +127,8 @@ public final class FKNetworkConfiguration: @unchecked Sendable {
     self.shouldPinSSLHost = shouldPinSSLHost
     self.encryptParameters = encryptParameters
     self.callbackOnMainQueue = callbackOnMainQueue
+    self.sslPinning = sslPinning
+    self.retryPolicy = retryPolicy
   }
 
   /// Returns active environment configuration in a thread-safe manner.

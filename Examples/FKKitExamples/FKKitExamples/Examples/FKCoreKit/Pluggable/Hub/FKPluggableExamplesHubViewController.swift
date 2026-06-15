@@ -11,6 +11,11 @@ final class FKPluggableExamplesHubViewController: UITableViewController {
 
   private let rows: [Row] = [
     Row(
+      title: "Composition Root",
+      subtitle: "FKPluggableServices.productionDefaults(), FKMockAPIClient",
+      controllerType: FKPluggableCompositionRootExampleViewController.self
+    ),
+    Row(
       title: "Core",
       subtitle: "Contract version, observation tokens, app lifecycle observing",
       controllerType: FKPluggableCoreExampleViewController.self

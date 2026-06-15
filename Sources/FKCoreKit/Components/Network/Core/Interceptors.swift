@@ -24,27 +24,33 @@ public struct AuthHeaderInterceptor: RequestInterceptor {
   }
 }
 
-/// Response interceptor placeholder for JSON responses.
+/// Pass-through response interceptor for JSON pipelines.
 ///
-/// This interceptor currently performs content-type guard only and returns
-/// original data. It exists as an extension point for envelope normalization
+/// Returns data unchanged and serves as an extension point for envelope normalization
 /// or response decryption.
 public struct JSONResponseInterceptor: ResponseInterceptor {
   /// Creates a JSON response interceptor.
   public init() {}
 
-  /// Validates JSON content type and returns data unchanged.
-  ///
-  /// - Parameters:
-  ///   - data: Raw response data.
-  ///   - response: HTTP response metadata.
-  /// - Returns: Original data.
+  /// Returns response data unchanged.
   public func intercept(data: Data, response: HTTPURLResponse) throws -> Data {
-    let contentType = (response.allHeaderFields["Content-Type"] as? String) ?? ""
-    guard contentType.contains("application/json") else {
-      return data
-    }
-    return data
+    data
+  }
+}
+
+/// Request interceptor that logs outbound request summaries through ``NetworkLogger``.
+public struct LoggingRequestInterceptor: RequestInterceptor {
+  private let logger: NetworkLogger
+
+  /// Creates a logging interceptor.
+  public init(logger: NetworkLogger) {
+    self.logger = logger
+  }
+
+  /// Logs method and URL without sensitive body content.
+  public func intercept(_ request: URLRequest) throws -> URLRequest {
+    logger.log("➡️ \(request.httpMethod ?? "GET") \(request.url?.absoluteString ?? "")")
+    return request
   }
 }
 

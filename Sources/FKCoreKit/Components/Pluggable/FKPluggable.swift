@@ -3,7 +3,8 @@
 /// This module defines **narrow, swappable boundaries** (networking, analytics, storage,
 /// session, configuration, localization, routing, logging, images, and list cells).
 /// Implementations live in the host application or other FKCoreKit areas; this folder
-/// ships **protocols and shared value types only** (no third-party dependencies).
+/// ships **protocols, shared value types, opt-in reference implementations, bridges, and mocks**
+/// (see `Implementations/` and `Mock/`).
 ///
 /// ## Design principles
 /// - **Protocol-oriented**: depend on abstractions at module boundaries.
