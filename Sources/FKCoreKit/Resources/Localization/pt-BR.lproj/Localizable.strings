@@ -89,6 +89,15 @@
 "fkcore.network.error.unknown_server_message" = "Erro desconhecido";
 "fkcore.permission.error.pre_prompt_cancelled" = "Pré-aviso cancelado.";
 "fkcore.permission.error.unavailable" = "Permissão indisponível neste dispositivo.";
+"fkcore.pluggable.error.remote_config.fetch_failed" = "Falha ao buscar configuração remota: %@.";
+"fkcore.pluggable.error.remote_config.invalid_payload" = "Dados de configuração remota inválidos.";
+"fkcore.pluggable.error.remote_config.missing_source" = "Fonte de configuração remota não configurada.";
+"fkcore.pluggable.error.session.not_authenticated" = "Usuário não autenticado.";
+"fkcore.pluggable.error.session.storage_failure" = "Falha ao salvar a sessão: %@.";
+"fkcore.pluggable.validation.email.invalid" = "Digite um endereço de e-mail válido.";
+"fkcore.pluggable.validation.email.required" = "O e-mail é obrigatório.";
+"fkcore.pluggable.validation.length.maximum" = "Comprimento máximo: %d caracteres.";
+"fkcore.pluggable.validation.length.minimum" = "Comprimento mínimo: %d caracteres.";
 "fkcore.qrcode.error.content_too_long" = "O conteúdo QR excede o tamanho máximo (%d bytes).";
 "fkcore.qrcode.error.empty_content" = "O conteúdo QR não pode estar vazio.";
 "fkcore.qrcode.error.filter_failed" = "Falha ao gerar o código QR.";

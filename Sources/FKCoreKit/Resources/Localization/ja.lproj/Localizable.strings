@@ -89,6 +89,15 @@
 "fkcore.network.error.unknown_server_message" = "不明なエラー";
 "fkcore.permission.error.pre_prompt_cancelled" = "権限の事前案内がキャンセルされました。";
 "fkcore.permission.error.unavailable" = "このデバイスでは利用できません。";
+"fkcore.pluggable.error.remote_config.fetch_failed" = "リモート設定の取得に失敗しました：%@。";
+"fkcore.pluggable.error.remote_config.invalid_payload" = "リモート設定のデータが無効です。";
+"fkcore.pluggable.error.remote_config.missing_source" = "リモート設定のソースが構成されていません。";
+"fkcore.pluggable.error.session.not_authenticated" = "ユーザーは認証されていません。";
+"fkcore.pluggable.error.session.storage_failure" = "セッションの保存に失敗しました：%@。";
+"fkcore.pluggable.validation.email.invalid" = "有効なメールアドレスを入力してください。";
+"fkcore.pluggable.validation.email.required" = "メールアドレスを入力してください。";
+"fkcore.pluggable.validation.length.maximum" = "最大 %d 文字まで入力できます。";
+"fkcore.pluggable.validation.length.minimum" = "最低 %d 文字必要です。";
 "fkcore.qrcode.error.content_too_long" = "QR コンテンツが最大長（%d バイト）を超えています。";
 "fkcore.qrcode.error.empty_content" = "QR コンテンツを空にすることはできません。";
 "fkcore.qrcode.error.filter_failed" = "QR コードの生成に失敗しました。";

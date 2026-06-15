@@ -89,6 +89,15 @@
 "fkcore.network.error.unknown_server_message" = "未知錯誤";
 "fkcore.permission.error.pre_prompt_cancelled" = "權限引導已取消。";
 "fkcore.permission.error.unavailable" = "此裝置不支援該權限。";
+"fkcore.pluggable.error.remote_config.fetch_failed" = "遠端設定拉取失敗：%@。";
+"fkcore.pluggable.error.remote_config.invalid_payload" = "遠端設定資料無效。";
+"fkcore.pluggable.error.remote_config.missing_source" = "未設定遠端設定資料來源。";
+"fkcore.pluggable.error.session.not_authenticated" = "使用者未登入。";
+"fkcore.pluggable.error.session.storage_failure" = "工作階段儲存失敗：%@。";
+"fkcore.pluggable.validation.email.invalid" = "請輸入有效的電子郵件地址。";
+"fkcore.pluggable.validation.email.required" = "請輸入電子郵件。";
+"fkcore.pluggable.validation.length.maximum" = "最多允許 %d 個字元。";
+"fkcore.pluggable.validation.length.minimum" = "最少需要 %d 個字元。";
 "fkcore.qrcode.error.content_too_long" = "QR 內容超過最大長度（%d 位元組）。";
 "fkcore.qrcode.error.empty_content" = "QR 內容不能為空。";
 "fkcore.qrcode.error.filter_failed" = "QR 碼產生失敗。";

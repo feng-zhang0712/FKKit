@@ -25,7 +25,7 @@ public final class FKBusinessDeeplinkPluggableAdapter: FKDeeplinkRouting, @unche
 
   /// Opens a URL through Pluggable handlers, then BusinessKit fallback routing.
   public func open(url: URL) -> FKRouteHandlingResult {
-    let context = Self.makeContext(from: url)
+    let context = FKRouteContext.from(url: url)
     for handler in handlers {
       guard handler.canHandle(context) else { continue }
       let result = handler.handle(context)
@@ -40,17 +40,6 @@ public final class FKBusinessDeeplinkPluggableAdapter: FKDeeplinkRouting, @unche
     }
 
     return router.route(url, source: .unknown) ? .handled : .notHandled
-  }
-
-  private static func makeContext(from url: URL) -> FKRouteContext {
-    let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-    var queryItems: [String: String] = [:]
-    for item in components?.queryItems ?? [] {
-      guard let value = item.value else { continue }
-      queryItems[item.name] = value
-    }
-    let pathComponents = url.path.split(separator: "/").map(String.init)
-    return FKRouteContext(url: url, pathComponents: pathComponents, queryItems: queryItems)
   }
 }
 

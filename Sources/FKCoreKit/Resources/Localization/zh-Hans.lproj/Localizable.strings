@@ -89,6 +89,15 @@
 "fkcore.network.error.unknown_server_message" = "未知错误";
 "fkcore.permission.error.pre_prompt_cancelled" = "权限引导已取消。";
 "fkcore.permission.error.unavailable" = "此设备不支持该权限。";
+"fkcore.pluggable.error.remote_config.fetch_failed" = "远程配置拉取失败：%@。";
+"fkcore.pluggable.error.remote_config.invalid_payload" = "远程配置数据无效。";
+"fkcore.pluggable.error.remote_config.missing_source" = "未配置远程配置数据源。";
+"fkcore.pluggable.error.session.not_authenticated" = "用户未登录。";
+"fkcore.pluggable.error.session.storage_failure" = "会话存储失败：%@。";
+"fkcore.pluggable.validation.email.invalid" = "请输入有效的邮箱地址。";
+"fkcore.pluggable.validation.email.required" = "请输入邮箱。";
+"fkcore.pluggable.validation.length.maximum" = "最多允许 %d 个字符。";
+"fkcore.pluggable.validation.length.minimum" = "最少需要 %d 个字符。";
 "fkcore.qrcode.error.content_too_long" = "QR 内容超过最大长度（%d 字节）。";
 "fkcore.qrcode.error.empty_content" = "QR 内容不能为空。";
 "fkcore.qrcode.error.filter_failed" = "QR 码生成失败。";

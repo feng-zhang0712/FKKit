@@ -89,6 +89,15 @@
 "fkcore.network.error.unknown_server_message" = "Неизвестная ошибка";
 "fkcore.permission.error.pre_prompt_cancelled" = "Предварительный запрос отменён.";
 "fkcore.permission.error.unavailable" = "Разрешение недоступно на этом устройстве.";
+"fkcore.pluggable.error.remote_config.fetch_failed" = "Не удалось загрузить удалённую конфигурацию: %@.";
+"fkcore.pluggable.error.remote_config.invalid_payload" = "Недопустимые данные удалённой конфигурации.";
+"fkcore.pluggable.error.remote_config.missing_source" = "Источник удалённой конфигурации не настроен.";
+"fkcore.pluggable.error.session.not_authenticated" = "Пользователь не авторизован.";
+"fkcore.pluggable.error.session.storage_failure" = "Ошибка сохранения сессии: %@.";
+"fkcore.pluggable.validation.email.invalid" = "Введите действительный адрес электронной почты.";
+"fkcore.pluggable.validation.email.required" = "Укажите адрес электронной почты.";
+"fkcore.pluggable.validation.length.maximum" = "Максимальная длина: %d символов.";
+"fkcore.pluggable.validation.length.minimum" = "Минимальная длина: %d символов.";
 "fkcore.qrcode.error.content_too_long" = "Содержимое QR превышает максимальную длину (%d байт).";
 "fkcore.qrcode.error.empty_content" = "Содержимое QR не может быть пустым.";
 "fkcore.qrcode.error.filter_failed" = "Не удалось сгенерировать QR-код.";

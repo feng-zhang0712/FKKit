@@ -89,6 +89,15 @@
 "fkcore.network.error.unknown_server_message" = "Unbekannter Fehler";
 "fkcore.permission.error.pre_prompt_cancelled" = "Vorab-Hinweis abgebrochen.";
 "fkcore.permission.error.unavailable" = "Berechtigung auf diesem Gerät nicht verfügbar.";
+"fkcore.pluggable.error.remote_config.fetch_failed" = "Remote-Konfiguration konnte nicht geladen werden: %@.";
+"fkcore.pluggable.error.remote_config.invalid_payload" = "Remote-Konfigurationsdaten sind ungültig.";
+"fkcore.pluggable.error.remote_config.missing_source" = "Remote-Konfigurationsquelle ist nicht eingerichtet.";
+"fkcore.pluggable.error.session.not_authenticated" = "Benutzer ist nicht angemeldet.";
+"fkcore.pluggable.error.session.storage_failure" = "Sitzungsspeicher fehlgeschlagen: %@.";
+"fkcore.pluggable.validation.email.invalid" = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
+"fkcore.pluggable.validation.email.required" = "E-Mail ist erforderlich.";
+"fkcore.pluggable.validation.length.maximum" = "Maximal %d Zeichen erlaubt.";
+"fkcore.pluggable.validation.length.minimum" = "Mindestens %d Zeichen erforderlich.";
 "fkcore.qrcode.error.content_too_long" = "QR-Inhalt überschreitet die maximale Länge (%d Bytes).";
 "fkcore.qrcode.error.empty_content" = "QR-Inhalt darf nicht leer sein.";
 "fkcore.qrcode.error.filter_failed" = "QR-Code-Generierung fehlgeschlagen.";

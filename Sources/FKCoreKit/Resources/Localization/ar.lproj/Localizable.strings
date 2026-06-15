@@ -89,6 +89,15 @@
 "fkcore.network.error.unknown_server_message" = "خطأ غير معروف";
 "fkcore.permission.error.pre_prompt_cancelled" = "تم إلغاء الإشعار المسبق.";
 "fkcore.permission.error.unavailable" = "الإذن غير متاح على هذا الجهاز.";
+"fkcore.pluggable.error.remote_config.fetch_failed" = "فشل جلب الإعدادات البعيدة: %@.";
+"fkcore.pluggable.error.remote_config.invalid_payload" = "بيانات الإعدادات البعيدة غير صالحة.";
+"fkcore.pluggable.error.remote_config.missing_source" = "مصدر الإعدادات البعيدة غير مُكوَّن.";
+"fkcore.pluggable.error.session.not_authenticated" = "المستخدم غير مسجّل الدخول.";
+"fkcore.pluggable.error.session.storage_failure" = "فشل حفظ الجلسة: %@.";
+"fkcore.pluggable.validation.email.invalid" = "يرجى إدخال عنوان بريد إلكتروني صالح.";
+"fkcore.pluggable.validation.email.required" = "البريد الإلكتروني مطلوب.";
+"fkcore.pluggable.validation.length.maximum" = "الحد الأقصى للطول هو %d حرفًا.";
+"fkcore.pluggable.validation.length.minimum" = "الحد الأدنى للطول هو %d حرفًا.";
 "fkcore.qrcode.error.content_too_long" = "محتوى QR يتجاوز الحد الأقصى للطول (%d بايت).";
 "fkcore.qrcode.error.empty_content" = "لا يمكن أن يكون محتوى QR فارغًا.";
 "fkcore.qrcode.error.filter_failed" = "فشل إنشاء رمز QR.";
