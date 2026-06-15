@@ -115,6 +115,11 @@ final class FKSearchViewControllerExamplesHubViewController: UITableViewControll
     ]),
     DemoSection(title: "Subclass hooks & callbacks", items: [
       DemoItem(
+        title: "ListKit · remote prefetch",
+        subtitle: "Embedded FKDiffableTableViewController · FKListDelegate prefetch · see ListKit hub",
+        factory: { FKListKitSearchViewControllerIntegrationExampleViewController() }
+      ),
+      DemoItem(
         title: "Custom list cells",
         subtitle: "makeListViewController() · register(_:forPayloadType:) · setPayload",
         factory: { FKSearchViewControllerExampleCustomListCellsViewController() }

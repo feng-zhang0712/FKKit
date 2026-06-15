@@ -13,6 +13,8 @@ public extension FKListItem {
 
   /// Creates a custom row bound to a registered cell identifier.
   ///
+  /// ``cellTypeIdentifier`` must match the registry key from
+  /// ``FKDiffableTableViewController/register(_:forPayloadType:)`` (typically `String(describing: MyCell.self)`).
   /// Pair with ``FKDiffableTableViewController/setPayload(_:for:)`` before applying the snapshot.
   static func custom(id: FKListItemID, cellTypeIdentifier: String) -> FKListItem {
     FKListItem(id: id, kind: .custom(FKListCustomItem(cellTypeIdentifier: cellTypeIdentifier)))

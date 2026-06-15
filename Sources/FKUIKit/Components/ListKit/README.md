@@ -49,10 +49,10 @@ extension FeedViewController: FKListDelegate {
 }
 ```
 
-## Quick start (table)
+## Quick start (data provider)
 
 ```swift
-final class FeedViewController: FKDiffableTableViewController, FKListDataProviding {
+final class ProductListViewController: FKDiffableTableViewController, FKListDataProviding {
   init() {
     super.init(configuration: FKListDefaults.defaultConfiguration)
     dataProvider = self
@@ -69,19 +69,21 @@ final class FeedViewController: FKDiffableTableViewController, FKListDataProvidi
 }
 ```
 
-## Pagination convention
-
-- Initial and refresh requests use `pagination.page` (starts at **1**).
-- Call `pagination.advance()` **after** a successful load-more response.
-- Pull-to-refresh calls `pagination.resetForNewRequest()`.
-
 ## Custom cells
 
 ```swift
 register(MyCell.self, forPayloadType: MyModel.self)
 setPayload(FKListItemPayload(myModel), for: itemID)
-applySnapshot(FKListSnapshot(items: [.custom(id: itemID, cellTypeIdentifier: "MyCell")]))
+applySnapshot(FKListSnapshot(items: [
+  .custom(id: itemID, cellTypeIdentifier: String(describing: MyCell.self))
+]))
 ```
+
+## Pagination convention
+
+- Initial and refresh requests use `pagination.page` (starts at **1**).
+- Call `pagination.advance()` **after** a successful load-more response.
+- Pull-to-refresh calls `pagination.resetForNewRequest()`.
 
 ## v4 scale APIs
 
@@ -113,7 +115,6 @@ applySnapshot(FKListSnapshot(items: [.custom(id: itemID, cellTypeIdentifier: "My
 | `FKListSnapshotMutation.reconfigureItems` | Lightweight in-place cell refresh |
 | `FKListDelegate` `willDisplay` / `didEndDisplaying` | Video pause, exposure, off-screen cancel |
 | `FKListImagePrefetchHelper` | Icon-row prefetch with `FKImageLoader` |
-| `FKListSkeletonPolicy.presetRows` | Table placeholder skeleton cells (not overlay) |
 
 ## Examples
 
@@ -139,6 +140,7 @@ The hub lists every runnable scenario (feed, refresh edge cases, skeleton polici
 | Skeleton / empty / error | Presentation state machine; both skeleton policies |
 | Settings · presets | All `FKListPresetItem` cases, asset leading, accessories, metadata |
 | Swipe / selection / search | Interaction APIs; `FKListDelegate` selection callbacks |
+| SearchViewController · integration | `FKSearchViewController` + remote icon rows + prefetch (recommended over raw `UISearchBar`) |
 | Row height / advanced hooks | `rowHeightProvider`, `configurePresetCell`, `makeEmptyStateConfiguration` |
 | Collection layouts | `.list`, `.grid`, `.insetGroupedList`, layout hints, custom cells, delegate |
 
@@ -153,6 +155,7 @@ The hub lists every runnable scenario (feed, refresh edge cases, skeleton polici
 
 ## Related
 
-- Design: `docs/FKListKit_DESIGN.zh-CN.md`
+- Search pages: `Sources/FKUIKit/Components/SearchViewController/` — embeds `FKDiffableTableViewController` via `makeListViewController()`
+- Design: `docs/FKListKit_DESIGN.md`
 - Roadmap: `docs/FKListKit_ROADMAP.md`
 - Pluggable: `Sources/FKCoreKit/Components/Pluggable/`

@@ -23,10 +23,12 @@ public final class FKListSkeletonPlaceholderTableCell: UITableViewCell, FKListTa
 
   public func configure(with item: FKListSkeletonPlaceholder.Context) {
     applySkeletonLayoutIfNeeded()
+    skeletonHost.showSkeleton(animated: false)
   }
 
   public override func prepareForReuse() {
     super.prepareForReuse()
+    skeletonHost.hideSkeleton(animated: false)
     skeletonHost.removeAllSkeletonSubviews()
     didApplyLayout = false
   }

@@ -118,8 +118,13 @@ final class FKListKitExamplesHubViewController: UITableViewController {
           make: { FKListKitSelectionModesExampleViewController() }
         ),
         Row(
-          title: "Search filter",
-          subtitle: "Debounced UISearchBar · applySnapshot filtered · see SearchViewController hub for FKKit path",
+          title: "SearchViewController · integration",
+          subtitle: "FKSearchViewController · remote FKListIconRow · FKListDelegate prefetch",
+          make: { FKListKitSearchViewControllerIntegrationExampleViewController() }
+        ),
+        Row(
+          title: "Search filter (legacy)",
+          subtitle: "Raw UISearchBar + applySnapshot — prefer SearchViewController scenario above",
           make: { FKListKitSearchFilterExampleViewController() }
         ),
         Row(

@@ -159,6 +159,8 @@ open class FKDiffableTableViewController: UIViewController {
   }
 
   /// Registers a custom configurable cell type.
+  ///
+  /// Use `String(describing: Cell.self)` as ``FKListItem/custom(id:cellTypeIdentifier:)`` when building snapshots.
   open func register<Cell: FKListTableCellConfigurable>(
     _ cellType: Cell.Type,
     forPayloadType payloadType: Cell.Item.Type

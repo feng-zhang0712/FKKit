@@ -165,6 +165,9 @@ open class FKDiffableCollectionViewController: UIViewController {
     itemStore.payload(for: id)
   }
 
+  /// Registers a custom configurable collection cell type.
+  ///
+  /// Use `String(describing: Cell.self)` as ``FKListItem/custom(id:cellTypeIdentifier:)`` when building snapshots.
   open func register<Cell: FKListCollectionCellConfigurable>(
     _ cellType: Cell.Type,
     forPayloadType payloadType: Cell.Item.Type

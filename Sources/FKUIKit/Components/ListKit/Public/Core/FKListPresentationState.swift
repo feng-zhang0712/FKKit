@@ -47,6 +47,6 @@ public enum FKListSkeletonPolicy: Sendable, Equatable {
   case visibleCells
   /// Full-table overlay via ``FKSkeleton``.
   case fullOverlay
-  /// Placeholder skeleton rows using ``FKListSkeletonPlaceholderTableCell`` (table only).
+  /// Placeholder skeleton rows using ``FKListSkeletonPlaceholderTableCell`` or ``FKListSkeletonPlaceholderCollectionCell``.
   case presetRows(count: Int)
 }

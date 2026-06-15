@@ -72,7 +72,9 @@ final class FKSearchViewControllerExampleCustomListCellsViewController: FKSearch
       (FKListItemID("color-mango"), FKSearchViewControllerExampleColorPayload(title: "Mango", tintHex: "FFA94D")),
     ]
     self.payloads = Dictionary(uniqueKeysWithValues: payloads)
-    let items = payloads.map { id, _ in FKListItem.custom(id: id, cellTypeIdentifier: "ColorCell") }
+    let items = payloads.map { id, _ in
+      FKListItem.custom(id: id, cellTypeIdentifier: String(describing: FKSearchViewControllerExampleColorCell.self))
+    }
     baseline = FKListSnapshot(items: items)
     super.init(
       configuration: FKSearchViewControllerDefaults.localFilter(placement: .stickyHeader),

@@ -140,6 +140,7 @@ FKKitExamples hub: `Examples/FKKitExamples/FKKitExamples/Examples/FKUIKit/Search
 | Cancel policies | `cancelRestoresBaseline` true/false |
 | Focus / minimum query length | `focusesSearchOnAppear`, `minimumQueryLengthForSearchCallback` |
 | Custom list cells | `makeListViewController()`, cell registration |
+| ListKit · remote prefetch | Cross-link: ListKit hub `FKListKitSearchViewControllerIntegrationExampleViewController` |
 | Custom empty copy | `emptyConfiguration(for:)` |
 | Callbacks / delegate | `FKSearchViewControllerCallbacks`, `FKSearchViewControllerDelegate`, `setQuery` |
 | Custom search page | `FKSearchPresentationConfiguration.customIdleEmbeddedResults`, `makeSearchContentViewController()` |

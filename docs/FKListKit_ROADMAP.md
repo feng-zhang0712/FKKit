@@ -2,7 +2,7 @@
 
 Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 
-**Status:** Living document — tracks v2+ delivery against [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md).
+**Status:** Living document — tracks v2+ delivery against [FKListKit_DESIGN.md](FKListKit_DESIGN.md).
 
 ---
 
@@ -54,7 +54,7 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 | v3-3 | Optional `FKListVideoVisibilityCoordinator` hook | Thin wrapper over `FKVideoFeedPlaybackCoordinator` |
 | v3-4 | `presetRows` skeleton for Collection | Collection placeholder cells |
 | v3-5 | Height cache helper (`FKListHeightCache`) | Dynamic feed rows without layout thrash |
-| v3-6 | `FKSearchViewController` + ListKit integration example | **Deferred** — SearchViewController module not in tree yet |
+| v3-6 | `FKSearchViewController` + ListKit integration example | ListKit hub + SearchViewController hub cross-link |
 | v3-7 | `animatesRefreshDifferences` policy tuning | `feedConfiguration` defaults refresh to no animation |
 
 ---
@@ -91,7 +91,7 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 - [x] `FKListVideoVisibilityCoordinator` + scroll forwarding on table/collection
 - [x] Collection `presetRows` skeleton cells
 - [x] `FKListHeightCache` demonstrated in complex feed
-- [ ] `FKSearchViewController` integration (deferred — module absent)
+- [x] `FKSearchViewController` integration (`FKListKitSearchViewControllerIntegrationExampleViewController`)
 - [x] `feedConfiguration` sets `animatesRefreshDifferences = false`
 
 ### v4
@@ -107,7 +107,7 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 
 ## Related
 
-- [FKListKit_DESIGN.zh-CN.md](FKListKit_DESIGN.zh-CN.md)
+- [FKListKit_DESIGN.md](FKListKit_DESIGN.md)
 - [FKCellKit_DESIGN.md](FKCellKit_DESIGN.md) §14.10
 - [COMPONENT_GAP_ANALYSIS.md](COMPONENT_GAP_ANALYSIS.md) §7.1
 
@@ -117,6 +117,7 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 
 | Date | Change |
 |------|--------|
+| 2026-06-15 | v3-6 delivered: FKSearchViewController + ListKit integration example |
 | 2026-06-15 | v4 delivered: collection swipe, SwiftUI bridge, windowing, diffable helpers |
 | 2026-06-15 | v3 delivered: complex feed reference, prefetch protocol, height cache, video coordinator, collection skeleton |
 | 2026-06-15 | v2 delivered; initial roadmap |
