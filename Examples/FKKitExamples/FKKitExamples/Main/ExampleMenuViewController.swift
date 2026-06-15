@@ -227,7 +227,7 @@ final class ExampleMenuViewController: UITableViewController {
         ExampleMenuItem(
           title: "BusinessKit",
           subtitle: "Version, tracking, i18n, lifecycle, deeplink, device info, business utils",
-          make: { FKBusinessKitExampleViewController() }
+          make: { FKBusinessKitExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Extension",

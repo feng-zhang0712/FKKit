@@ -190,12 +190,9 @@ What it includes:
 
 ## Requirements
 
-- Swift 5.9+
-- iOS 13.0+ (API design target)
-- Xcode 15+
-
-> Note: this repository currently declares `iOS 15+` in `Package.swift`.  
-> `FKBusinessKit` is implemented with iOS 13+ compatible APIs, but your package platform setting may need to be aligned with your app target.
+- Swift 6
+- iOS 15.0+
+- Xcode 16+
 
 ---
 
@@ -221,14 +218,18 @@ Module source path:
 
 - `FKBusinessKit` (singleton-style hub)
 - `Core`
-  - `FKBusinessKitConfiguration` (channel/environment/default language/analytics policy)
+  - `FKBusinessKitConfiguration` (channel/environment/default language/analytics policy/alert backend)
   - `FKBusinessProtocols.swift` (all public capability protocols)
   - `FKBusinessInfoProvider` (device/app info)
+- `Alert`
+  - `FKBusinessAlertBackend` (`.systemAlert` / `.fkAlert`)
+  - `FKBusinessAlertPresenting` (host-injected FKAlert bridge)
 - `Version`
   - `FKBusinessVersionManager` (version compare + update prompt)
   - `FKAppStoreRemoteVersionProvider` (App Store lookup provider)
 - `Track`
   - `FKBusinessAnalyticsTracker` (buffer -> batch -> upload -> retry)
+  - `FKBusinessAnalyticsCommonParameters.swift` (shared device/app parameter keys)
 - `I18n`
   - `FKBusinessI18nManager` (in-app language switching)
 - `Lifecycle`
@@ -236,6 +237,7 @@ Module source path:
 - `Deeplink`
   - `FKBusinessDeeplinkRouter` (route registry + dispatch)
 - `Utils`
+  - `FKBusinessUtilities.swift` (facade over time/number/mask/alerts/startup)
   - `FKBusinessTimeFormatter`, `FKBusinessNumberFormatter`, `FKBusinessMasker`
   - `FKBusinessAlertManager` (de-duplication)
   - `FKBusinessStartupTaskManager` (startup task orchestration)
@@ -248,6 +250,7 @@ Key principles:
 
 - **Protocol-oriented** public surface for testability
 - **Pluggable implementations** (e.g., remote version provider, analytics uploader)
+- **Pluggable bridges** in `Pluggable/Implementations/BusinessKit/` (lifecycle, deeplink, analytics)
 - **Thread-safe internals** using `NSLock`/serial queues
 - **Non-blocking APIs**: event tracking and flushing are async by design
 
@@ -655,10 +658,9 @@ FKBusinessKit.shared.version.checkForUpdate(using: provider) { result in
 
 ## Notes
 
-- **Localization resources**: `FKBusinessKit` resolves strings from `Bundle.main` language bundles (standard `xx.lproj` folders). Make sure your app target includes these resources.
+- **Localization resources**: `FKBusinessKit` resolves app strings from `Bundle.main` language bundles (standard `xx.lproj` folders). BusinessKit-owned strings (version prompts, errors, relative time labels) resolve from the FKCoreKit bundle via ``FKI18n`` and follow the same language when you call ``FKBusinessKit/shared/i18n/setLanguageCode(_:)``.
 - **Analytics persistence**: events are stored under the app's caches directory (`Caches/FKBusinessKit/`). iOS may purge caches; design your backend accordingly.
 - **Uploader responsibility**: `FKBusinessKit` does not ship a networking layer for analytics upload. Provide your own `FKAnalyticsUploading` implementation.
-- **Package platform**: this repo currently declares `iOS 15+` in `Package.swift`. If your app targets iOS 13/14, align the package platform accordingly.
 
 ---
 
@@ -666,10 +668,10 @@ FKBusinessKit.shared.version.checkForUpdate(using: provider) { result in
 
 | Topic | Status | Notes |
 |-------|--------|-------|
-| Alert backend (`systemAlert` / `fkAlert`) | Planned v1.1 | See [FKBusinessKit_DESIGN.md](../../../docs/FKBusinessKit_DESIGN.md) §15 |
-| Pluggable bridges (Lifecycle, Deeplink, Analytics) | Planned | See design doc §16 |
-| Public Top VC resolver | Planned | See design doc §17 |
-| Examples Hub (per-subsystem scenarios) | Planned | See design doc §26 |
+| Alert backend (`systemAlert` / `fkAlert`) | ✅ | See [FKBusinessKit_DESIGN.md](../../../docs/FKBusinessKit_DESIGN.md) §15; inject ``FKBusinessAlertPresenting`` |
+| Pluggable bridges (Lifecycle, Deeplink, Analytics) | ✅ | `Pluggable/Implementations/BusinessKit/` — see design doc §16 |
+| Public Top VC resolver | ✅ | ``UIViewController/fk_topMostViewController()`` in CoreKit Extension |
+| Examples Hub (per-subsystem scenarios) | ✅ | See design doc §26 — `Examples/.../BusinessKit/Hub/` |
 
 Full module design (delivered capabilities + enhancements): [FKBusinessKit_DESIGN.md](../../../docs/FKBusinessKit_DESIGN.md). Enhancement index: [FKBusinessKit_ENHANCEMENT_DESIGN.md](../../../docs/FKBusinessKit_ENHANCEMENT_DESIGN.md).
 

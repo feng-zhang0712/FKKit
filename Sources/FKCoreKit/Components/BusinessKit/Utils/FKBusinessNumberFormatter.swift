@@ -21,6 +21,7 @@ public final class FKBusinessNumberFormatter: FKBusinessNumberFormatting, @unche
   public func formatAmount(_ value: Decimal, fractionDigits: Int = 2) -> String {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal
+    formatter.locale = Locale(identifier: languageCodeProvider())
     formatter.minimumFractionDigits = max(0, fractionDigits)
     formatter.maximumFractionDigits = max(0, fractionDigits)
     return formatter.string(from: value as NSDecimalNumber) ?? "\(value)"

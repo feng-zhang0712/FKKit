@@ -139,15 +139,10 @@ public final class FKBusinessAnalyticsTracker: FKBusinessTracking, @unchecked Se
   /// - Parameter input: Event-specific parameters.
   /// - Returns: Merged parameter dictionary.
   private func mergeCommonParameters(_ input: [String: String]) -> [String: String] {
-    var params = input
-    params["bundle_id"] = infoProvider.bundleID
-    params["app_version"] = infoProvider.appVersion
-    params["build"] = infoProvider.buildNumber
-    params["os"] = "iOS"
-    params["os_version"] = infoProvider.systemVersion
-    params["device_model"] = infoProvider.deviceModelIdentifier
-    params["channel"] = infoProvider.channel
-    params["env"] = infoProvider.environment.rawValue
+    var params = FKBusinessAnalyticsCommonParameters.standard(from: infoProvider)
+    for (key, value) in input where params[key] == nil {
+      params[key] = value
+    }
     if let extra = commonProvider?.commonParameters() {
       for (k, v) in extra where params[k] == nil {
         params[k] = v
