@@ -53,6 +53,9 @@
 "fkcore.file.error.transfer_failed" = "فشل النقل: %@";
 "fkcore.file.error.unknown" = "خطأ غير معروف: %@";
 "fkcore.file.error.zip_unavailable" = "عمليات ZIP غير متاحة على هذا الإصدار.";
+"fkcore.file.error.zip_corrupted" = "أرشيف ZIP تالف أو غير قابل للقراءة: %@";
+"fkcore.file.error.zip_entry_path_unsafe" = "مسار إدخال ZIP غير آمن: %@";
+"fkcore.file.error.zip_operation_failed" = "فشلت عملية ZIP: %@";
 "fkcore.network.error.business_error" = "خطأ في العمل (%d): %@";
 "fkcore.network.error.client_released" = "تم تحرير العميل قبل الاكتمال.";
 "fkcore.network.error.decoding_failed" = "فشل فك ترميز الاستجابة: %@";

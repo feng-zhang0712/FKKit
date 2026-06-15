@@ -1,21 +1,5 @@
 import Foundation
 
-/**
- `FKNetworkClient` is the core request dispatcher of FKNetwork.
-
- Design responsibilities:
- - Build URL requests from `Requestable` definitions.
- - Apply request/response interceptors and request signer.
- - Support both callback and async/await APIs.
- - Handle token refresh retry flow on 401.
- - Integrate cache read/write and request deduplication.
- - Provide upload/download with progress callbacks.
-
- Usage notes:
- - Completions are dispatched on `config.callbackOnMainQueue` by default.
- - Shared mutable maps (progress/completion handlers) are lock-protected.
- - This class does not own business-level parsing rules beyond Codable decoding.
- */
 private final class NetworkCompletionBox<T>: @unchecked Sendable {
   private let queue: DispatchQueue
   fileprivate let handler: (Result<T, NetworkError>) -> Void
@@ -39,7 +23,14 @@ private final class RequestBox<R: Requestable>: @unchecked Sendable {
   init(_ value: R) { self.value = value }
 }
 
+/// Core HTTP client: builds requests from ``Requestable``, runs interceptors and signing,
+/// handles 401 token refresh, cache/dedup, optional SSL pinning and HTTP retry, and upload/download tasks.
+///
+/// Completions dispatch on ``FKNetworkConfiguration/callbackOnMainQueue`` by default.
 public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegate, URLSessionDownloadDelegate, @unchecked Sendable {
+  /// Shared client using ``FKNetworkConfiguration/shared``.
+  public static let shared = FKNetworkClient()
+
   /// Runtime configuration source.
   private let config: FKNetworkConfiguration
   /// Backing URLSession used for delegate callbacks and default transport.
@@ -236,14 +227,16 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     completion: @escaping (Result<Data, NetworkError>) -> Void
   ) -> Cancellable {
     let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
-    let task = transport.uploadTask(with: request, fromFile: fileURL) { [weak self] data, response, error in
+    let context = DataTaskContext()
+    var task: URLSessionUploadTask!
+    task = transport.uploadTask(with: request, fromFile: fileURL) { [weak self, context] data, response, error in
       guard let self else {
         resultBox.deliver(.failure(.underlying(NSError(domain: "FKNetworkClient", code: 0))))
         return
       }
       let result: Result<Data, NetworkError>
       if let error {
-        result = .failure(self.mapError(error))
+        result = .failure(self.mapError(error, taskId: context.taskId))
       } else if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
         result = .failure(.serverError(statusCode: http.statusCode, message: nil))
       } else {
@@ -251,6 +244,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
       }
       resultBox.deliver(result)
     }
+    context.taskId = task.taskIdentifier
     if let progress {
       lock.lock()
       uploadProgressHandlers[task.taskIdentifier] = progress

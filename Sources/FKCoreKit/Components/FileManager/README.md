@@ -48,7 +48,12 @@ The component is protocol-oriented, singleton-friendly, and supports both `async
 - Transfer snapshot persistence for relaunch recovery
 - Cache size calculation and one-call cache/temp cleanup
 - Disk-space guard API (`ensureSufficientDiskSpace`)
+- Native ZIP compress/decompress with zip-slip protection (`Archive`-free, system zlib)
+- Background URLSession completion handler registration
+- Shared multipart builder (`FKMultipartFormData`) with FKNetwork
 - iOS share and preview helper APIs
+
+**Examples:** `Examples/FKCoreKit/FileManager/` — hub lists baseline B1–B8, enhancements E1–E8, and a complete API catalog.
 
 ## Core Capabilities
 
@@ -79,8 +84,10 @@ The component is protocol-oriented, singleton-friendly, and supports both `async
 ## Requirements
 
 - Swift 5.9+
-- iOS 13.0+
+- iOS 13.0+ APIs (ZIP and background recovery require iOS 15+ in practice)
 - No third-party dependency
+
+> The repository package platform is iOS 15+ in `Package.swift`. Runtime code avoids APIs above iOS 13 where possible.
 
 ## Installation
 
@@ -110,7 +117,9 @@ Module layout follows a clear layered structure:
 - `Configuration/`
   - Runtime configuration (`FKFileManagerConfiguration`)
 - `Service/`
-  - Storage and utility services
+  - Storage, MIME resolver, ZIP services, transfer persistence
+- `Background/`
+  - Background URLSession completion handler coordination
 - `Download/`
   - URLSession download service
 - `Upload/`
@@ -247,12 +256,21 @@ let source = docs.appendingPathComponent("folder")
 let zip = docs.appendingPathComponent("folder.zip")
 let unzipTarget = docs.appendingPathComponent("unzipped")
 
-do {
-  try await manager.zipItem(at: source, to: zip)
-  try await manager.unzipItem(at: zip, to: unzipTarget)
-} catch {
-  print(error)
+guard FKFileManager.isZipAvailable else {
+  print("ZIP unavailable")
+  return
 }
+
+try await manager.zipItem(
+  at: source,
+  to: zip,
+  options: FKZipOptions(includesRootDirectoryName: true, compressionMethod: .deflate)
+)
+try await manager.unzipItem(
+  at: zip,
+  to: unzipTarget,
+  options: FKUnzipOptions(overwritePolicy: .replaceExisting)
+)
 ```
 
 ## API Reference
@@ -298,6 +316,10 @@ Utility:
 
 - `ensureSufficientDiskSpace(requiredBytes:)`
 - `isImageFile(_:)`
+- `zipItem(at:to:)` / `zipItem(at:to:options:)`
+- `unzipItem(at:to:)` / `unzipItem(at:to:options:)`
+- `FKFileManager.isZipAvailable`
+- `registerBackgroundSessionCompletionHandler(_:forSessionWithIdentifier:)`
 - iOS-only:
   - `makeShareController(for:)`
   - `makePreviewController(for:)`
@@ -313,6 +335,9 @@ All major operations use `FKFileManagerError`:
 - `invalidResponse`
 - `insufficientDiskSpace(required:available:)`
 - `zipUnavailable`
+- `zipCorrupted(archivePath:)`
+- `zipEntryPathUnsafe(entry:)`
+- `zipOperationFailed(message:)`
 - `unknown(_:)`
 
 Example:
@@ -337,6 +362,31 @@ do {
 - Use dedicated subfolders under `Documents`/`Caches` for easier cleanup.
 - Use background mode only for tasks that must continue when app is not foreground.
 
+## Background Transfer Recovery
+
+To reliably finish background download work when iOS relaunches your app:
+
+1. Open **Target → Signing & Capabilities** and enable **Background Modes** as needed.
+2. Configure a unique `backgroundSessionIdentifier` in `FKFileManagerConfiguration`.
+3. Forward AppDelegate events to FKFileManager:
+
+```swift
+func application(
+  _ application: UIApplication,
+  handleEventsForBackgroundURLSession identifier: String,
+  completionHandler: @escaping () -> Void
+) {
+  FKFileManager.shared.registerBackgroundSessionCompletionHandler(
+    completionHandler,
+    forSessionWithIdentifier: identifier
+  )
+}
+```
+
+4. On cold start, call `persistedTransfers()` to rebuild transfer UI state.
+5. Re-bind progress/completion handlers when starting new downloads for recovered tasks.
+6. Remember that the system may delay or terminate background work; users may need to retry manually.
+
 ## Background Modes Configuration
 
 To support background downloads reliably, enable background transfer in your app target:
@@ -360,7 +410,8 @@ let manager = FKFileManager(configuration: config)
 ## Notes
 
 - Full module design (delivered capabilities, ZIP, background recovery): [`docs/FKFileManager_DESIGN.md`](../../../../docs/FKFileManager_DESIGN.md).
-- ZIP APIs are public; execution may return `.zipUnavailable` until Archive-based implementation ships (see design doc §13).
+- ZIP uses native zlib (zero third-party); disable via `FKFileManagerConfiguration.isZipEnabled`.
+- `clearCaches()` removes **all** contents of the Caches sandbox directory — store durable files under a dedicated Documents subfolder.
 - Transfer persistence stores snapshots (`FKPersistedTransfer`) for task restoration metadata.
 - iOS helper APIs for share/preview are only compiled on iOS.
 - Ensure your upload and download endpoints support resumed transfers if you rely on breakpoint recovery semantics.

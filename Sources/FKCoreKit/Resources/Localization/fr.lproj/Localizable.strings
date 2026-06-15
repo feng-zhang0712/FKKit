@@ -53,6 +53,9 @@
 "fkcore.file.error.transfer_failed" = "Échec du transfert : %@";
 "fkcore.file.error.unknown" = "Erreur inconnue : %@";
 "fkcore.file.error.zip_unavailable" = "Les opérations ZIP ne sont pas disponibles sur cette version.";
+"fkcore.file.error.zip_corrupted" = "Archive ZIP corrompue ou illisible : %@";
+"fkcore.file.error.zip_entry_path_unsafe" = "Chemin d'entrée ZIP dangereux : %@";
+"fkcore.file.error.zip_operation_failed" = "Échec de l'opération ZIP : %@";
 "fkcore.network.error.business_error" = "Erreur métier (%d) : %@";
 "fkcore.network.error.client_released" = "Client libéré avant la fin.";
 "fkcore.network.error.decoding_failed" = "Échec du décodage de la réponse : %@";

@@ -53,6 +53,9 @@
 "fkcore.file.error.transfer_failed" = "転送に失敗しました：%@";
 "fkcore.file.error.unknown" = "不明なエラー：%@";
 "fkcore.file.error.zip_unavailable" = "この OS バージョンでは ZIP 操作は利用できません。";
+"fkcore.file.error.zip_corrupted" = "ZIP アーカイブが破損しているか読み取れません：%@";
+"fkcore.file.error.zip_entry_path_unsafe" = "ZIP エントリパスが安全ではありません：%@";
+"fkcore.file.error.zip_operation_failed" = "ZIP 操作に失敗しました：%@";
 "fkcore.network.error.business_error" = "ビジネスエラー（%d）：%@";
 "fkcore.network.error.client_released" = "完了前にクライアントが解放されました。";
 "fkcore.network.error.decoding_failed" = "応答のデコードに失敗しました：%@";

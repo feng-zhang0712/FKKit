@@ -53,6 +53,9 @@
 "fkcore.file.error.transfer_failed" = "Transfer failed: %@";
 "fkcore.file.error.unknown" = "Unknown error: %@";
 "fkcore.file.error.zip_unavailable" = "ZIP operations are unavailable on this OS version.";
+"fkcore.file.error.zip_corrupted" = "ZIP archive is corrupted or unreadable: %@";
+"fkcore.file.error.zip_entry_path_unsafe" = "ZIP entry path is unsafe: %@";
+"fkcore.file.error.zip_operation_failed" = "ZIP operation failed: %@";
 "fkcore.network.error.business_error" = "Business error (%d): %@";
 "fkcore.network.error.client_released" = "Client released before completion.";
 "fkcore.network.error.decoding_failed" = "Failed to decode response: %@";

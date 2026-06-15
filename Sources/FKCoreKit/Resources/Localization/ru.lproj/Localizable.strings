@@ -53,6 +53,9 @@
 "fkcore.file.error.transfer_failed" = "Ошибка передачи: %@";
 "fkcore.file.error.unknown" = "Неизвестная ошибка: %@";
 "fkcore.file.error.zip_unavailable" = "ZIP недоступен в этой версии ОС.";
+"fkcore.file.error.zip_corrupted" = "ZIP-архив повреждён или не читается: %@";
+"fkcore.file.error.zip_entry_path_unsafe" = "Небезопасный путь записи ZIP: %@";
+"fkcore.file.error.zip_operation_failed" = "Ошибка ZIP-операции: %@";
 "fkcore.network.error.business_error" = "Бизнес-ошибка (%d): %@";
 "fkcore.network.error.client_released" = "Клиент освобождён до завершения.";
 "fkcore.network.error.decoding_failed" = "Не удалось декодировать ответ: %@";

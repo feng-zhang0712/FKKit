@@ -236,8 +236,8 @@ final class ExampleMenuViewController: UITableViewController {
         ),
         ExampleMenuItem(
           title: "FileManager",
-          subtitle: "Sandbox/file ops, read/write, resumable download, upload, cache and ZIP APIs",
-          make: { FKFileManagerExampleViewController() }
+          subtitle: "Hub: baseline B1–B8, enhancements E1–E8, ZIP, background recovery, share",
+          make: { FKFileManagerExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "FKI18n",

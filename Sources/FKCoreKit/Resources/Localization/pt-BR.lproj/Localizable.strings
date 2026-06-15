@@ -53,6 +53,9 @@
 "fkcore.file.error.transfer_failed" = "Falha na transferência: %@";
 "fkcore.file.error.unknown" = "Erro desconhecido: %@";
 "fkcore.file.error.zip_unavailable" = "Operações ZIP indisponíveis nesta versão do SO.";
+"fkcore.file.error.zip_corrupted" = "Arquivo ZIP corrompido ou ilegível: %@";
+"fkcore.file.error.zip_entry_path_unsafe" = "Caminho de entrada ZIP inseguro: %@";
+"fkcore.file.error.zip_operation_failed" = "Falha na operação ZIP: %@";
 "fkcore.network.error.business_error" = "Erro de negócio (%d): %@";
 "fkcore.network.error.client_released" = "Cliente liberado antes da conclusão.";
 "fkcore.network.error.decoding_failed" = "Falha ao decodificar a resposta: %@";

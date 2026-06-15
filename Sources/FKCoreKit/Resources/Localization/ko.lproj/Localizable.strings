@@ -53,6 +53,9 @@
 "fkcore.file.error.transfer_failed" = "전송 실패: %@";
 "fkcore.file.error.unknown" = "알 수 없는 오류: %@";
 "fkcore.file.error.zip_unavailable" = "이 OS 버전에서는 ZIP 작업을 사용할 수 없습니다.";
+"fkcore.file.error.zip_corrupted" = "ZIP 아카이브가 손상되었거나 읽을 수 없습니다: %@";
+"fkcore.file.error.zip_entry_path_unsafe" = "ZIP 항목 경로가 안전하지 않습니다: %@";
+"fkcore.file.error.zip_operation_failed" = "ZIP 작업 실패: %@";
 "fkcore.network.error.business_error" = "비즈니스 오류 (%d): %@";
 "fkcore.network.error.client_released" = "완료 전에 클라이언트가 해제되었습니다.";
 "fkcore.network.error.decoding_failed" = "응답 디코딩 실패: %@";

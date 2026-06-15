@@ -53,6 +53,9 @@
 "fkcore.file.error.transfer_failed" = "传输失败：%@";
 "fkcore.file.error.unknown" = "未知错误：%@";
 "fkcore.file.error.zip_unavailable" = "此系统版本不支持 ZIP 操作。";
+"fkcore.file.error.zip_corrupted" = "ZIP 归档损坏或无法读取：%@";
+"fkcore.file.error.zip_entry_path_unsafe" = "ZIP 条目路径不安全：%@";
+"fkcore.file.error.zip_operation_failed" = "ZIP 操作失败：%@";
 "fkcore.network.error.business_error" = "业务错误（%d）：%@";
 "fkcore.network.error.client_released" = "客户端在完成前已释放。";
 "fkcore.network.error.decoding_failed" = "解析响应失败：%@";

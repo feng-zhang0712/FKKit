@@ -5,7 +5,7 @@ public struct FKNetworkClientPluggableAdapter: FKAPIClientProviding, Sendable {
   private let client: FKNetworkClient
 
   /// Creates an adapter around a network client instance.
-  public init(client: FKNetworkClient) {
+  public init(client: FKNetworkClient = .shared) {
     self.client = client
   }
 

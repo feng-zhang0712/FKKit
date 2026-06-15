@@ -24,10 +24,10 @@ public struct AuthHeaderInterceptor: RequestInterceptor {
   }
 }
 
-/// Response interceptor placeholder for JSON responses.
+/// Pass-through response interceptor for JSON pipelines.
 ///
-/// This interceptor is currently a no-op and returns data unchanged. It exists
-/// as an extension point for envelope normalization or response decryption.
+/// Returns data unchanged and serves as an extension point for envelope normalization
+/// or response decryption.
 public struct JSONResponseInterceptor: ResponseInterceptor {
   /// Creates a JSON response interceptor.
   public init() {}
