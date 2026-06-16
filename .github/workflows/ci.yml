@@ -38,6 +38,7 @@ jobs:
           xcode-version: latest-stable
 
       # SWIFT_STRICT_CONCURRENCY=complete matches long-term Swift 6 checking; catches issues CI would miss at minimal/targeted.
+      # Code coverage is intentionally disabled in CI; use scripts/run-tests-with-coverage.sh locally (see docs/TESTING_GUIDE.md §18.3).
       - name: Build and test FKKit-Package (iOS Simulator)
         run: |
           set -eo pipefail

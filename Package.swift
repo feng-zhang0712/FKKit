@@ -115,6 +115,11 @@ let package = Package(
       dependencies: ["FKCoreKit"],
       path: "Tests/FKCoreKitTests"
     ),
+    .testTarget(
+      name: "FKUIKitTests",
+      dependencies: ["FKUIKit"],
+      path: "Tests/FKUIKitTests"
+    ),
   ],
   /// Swift 6 language mode for all targets (region isolation; aligns with strict concurrency work).
   ///

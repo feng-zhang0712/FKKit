@@ -57,7 +57,7 @@ public enum FKRegexMatching {
     public static let passwordStrong = #"^(?=.*[A-Za-z])(?=.*\d)(?=.*[^\w\s]).{8,}$"#
     public static let verificationCode4To8 = #"^\d{4,8}$"#
     public static let licensePlateCN = #"^[\u4e00-\u9fa5][A-Z][A-Z0-9]{5,6}$"#
-    public static let url = #"^https?://[\w.-]+(?:\.[\w\.-]+)+(?:[/\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+)?$"#
+    public static let url = #"^https?://[\w.-]+(?:\.[\w\.-]+)+(?:[/\w\-\._~:/?#\[\]@!\$&'\(\)\*\+,;=.]+)?$"#
     public static let ipV4 = #"^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$"#
     public static let postalCodeCN = #"^\d{6}$"#
     public static let bankCard = #"^\d{12,19}$"#

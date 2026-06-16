@@ -234,7 +234,7 @@ For complete usage and advanced APIs, refer to each module README under `Sources
 
 ## Contributing
 
-Pull requests are welcome. Open PRs against **`develop`**, keep changes focused, and ensure **`FKCoreKit`** tests pass (locally with Xcode / `xcodebuild`, or via CI). Branch naming, git hooks, commit message conventions, and release flow: [Branching & Collaboration (Recommended)](#branching--collaboration-recommended).
+Pull requests are welcome. Open PRs against **`develop`**, keep changes focused, and ensure **`FKCoreKit`** and **`FKUIKit`** tests pass (locally with `bash scripts/run-tests.sh`, Xcode, or CI). Testing policy and layout: [`docs/TESTING_GUIDE.md`](docs/TESTING_GUIDE.md), [`Tests/README.md`](Tests/README.md). Branch naming, git hooks, commit message conventions, and release flow: [Branching & Collaboration (Recommended)](#branching--collaboration-recommended).
 
 ## Support
 

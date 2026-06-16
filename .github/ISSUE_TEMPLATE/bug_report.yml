@@ -1,0 +1,64 @@
+name: Bug report
+description: Report incorrect behavior in FKCoreKit or FKUIKit
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please use English for titles and reproduction steps when possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Clear description of actual vs expected behavior.
+      placeholder: FKNetworkClient returns success when stub is missing…
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal code or scenario; link FKKitExamples hub if relevant.
+      placeholder: |
+        1. Configure FKNetworkConfiguration with …
+        2. Call …
+        3. Observe …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - FKCoreKit
+        - FKUIKit
+        - FKKitExamples
+        - CI / tooling
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: FKKit version or commit
+      placeholder: 0.71.0 or git SHA
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Xcode 16.x, iOS 18 simulator, Swift 6
+
+  - type: checkboxes
+    id: regression
+    attributes:
+      label: Testing (for maintainers)
+      options:
+        - label: I can submit a PR with a regression test in `Tests/` (recommended for logic bugs)
+        - label: This appears UI/visual only (Examples or manual verification may be enough)
