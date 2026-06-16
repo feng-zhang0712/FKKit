@@ -13,7 +13,7 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 3. **Lighter updates** — `reconfigureItems` for in-place row refresh.
 4. **Better first paint** — real skeleton placeholder rows (not overlay-only).
 5. **Clear presets** — `FKListDefaults.feedConfiguration` / `settingsConfiguration`.
-6. **Do not bloat ListKit** — complex row layouts stay in **FKCellKit** (Phase 6).
+6. **Do not bloat ListKit** — complex row layouts stay in host-app or dedicated Cell types outside ListKit.
 
 ---
 
@@ -23,7 +23,7 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 |---------|-------|----------|------------|
 | **v2** | Performance & UX foundations | P0 | — |
 | **v3** | Feed reference & media integration | P1 | v2 |
-| **v4** | Parity, platform bridge, scale | P2 | FKCellKit Phase 6 (partial) |
+| **v4** | Parity, platform bridge, scale | P2 | v3 |
 
 ---
 
@@ -41,7 +41,7 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 | v2-8 | Forward `automaticallyEndsRefreshingOnAsyncCompletion` to FKRefresh | Document ListKit still ends with token guards |
 | v2-9 | Examples: feed optimized, visibility, reconfigure, preset skeleton | Full v2 API coverage |
 
-**Non-goals (v2):** Collection swipe, SwiftUI bridge, FKCellKit preset migration.
+**Non-goals (v2):** Collection swipe, SwiftUI bridge.
 
 ---
 
@@ -63,12 +63,11 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 
 | ID | Item | Rationale |
 |----|------|-----------|
-| v4-1 | FKCellKit preset mapping (Phase 6) | **Deferred** — FKCellKit not in tree |
-| v4-2 | Collection swipe actions UI | Registry wired to collection delegate |
-| v4-3 | SwiftUI bridge | `FKDiffable*ViewControllerRepresentable` |
-| v4-4 | Long-list windowing / trim policy | `FKListWindowingConfiguration` |
-| v4-5 | Drag reorder (optional v4+) | **Deferred** — not requested |
-| v4-6 | UITableView Extension diffable conveniences | `fk_applyDiffableDataSourceSnapshot` |
+| v4-1 | Collection swipe actions UI | Registry wired to collection delegate |
+| v4-2 | SwiftUI bridge | `FKDiffable*ViewControllerRepresentable` |
+| v4-3 | Long-list windowing / trim policy | `FKListWindowingConfiguration` |
+| v4-4 | Drag reorder (optional v4+) | **Deferred** — not requested |
+| v4-5 | UITableView Extension diffable conveniences | `fk_applyDiffableDataSourceSnapshot` |
 
 ---
 
@@ -100,7 +99,6 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 - [x] SwiftUI bridge representables delivered
 - [x] `FKListWindowingConfiguration` with load-more trim
 - [x] Diffable apply convenience on UITableView/UICollectionView
-- [ ] FKCellKit Phase 6 preset mapping (deferred — FKCellKit absent)
 - [ ] Drag reorder (deferred)
 
 ---
@@ -108,7 +106,6 @@ Performance, smoothness, and UX upgrade plan for `FKUIKit/Components/ListKit/`.
 ## Related
 
 - [FKListKit_DESIGN.md](FKListKit_DESIGN.md)
-- [FKCellKit_DESIGN.md](FKCellKit_DESIGN.md) §14.10
 - [COMPONENT_GAP_ANALYSIS.md](COMPONENT_GAP_ANALYSIS.md) §7.1
 
 ---

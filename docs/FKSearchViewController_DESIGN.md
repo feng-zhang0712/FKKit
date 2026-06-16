@@ -178,7 +178,7 @@ onSearchQueryChanged(query)
 | 列表内嵌一行紧凑筛选 | **`FKSearchField`** + 宿主 `applySnapshot` |
 | 单页搜索 + 结果列表（标准搜索页） | **`FKSearchViewController`** |
 | 仅导航栏搜索框，结果在另一 VC | **`FKSearchBar`** + `FKSearchBarNavigationHosting` |
-| 设置页 Section 内搜索行 | **`FKFormCellSearchCell`**（CellKit）+ `FKSearchField` |
+| 设置页 Section 内搜索行 | **`FKSearchField`** + 宿主自定义行或 ListKit preset |
 | 系统 `UISearchController` 样式 / large title 自动折叠 | **非目标** — 用 placement 配置近似 |
 | 底部 Sheet 内搜索 | **`FKSearchField`** in Sheet；完整页用 Search VC |
 
@@ -860,7 +860,6 @@ Sources/FKUIKit/Components/SearchViewController/
 |------|------|
 | [FKSearchBar-FKSearchField_DESIGN.md](FKSearchBar-FKSearchField_DESIGN.md) | 控件层 |
 | [FKListKit_DESIGN.md](FKListKit_DESIGN.md) | §20 搜索驱动列表 |
-| [FKCellKit_DESIGN.md](FKCellKit_DESIGN.md) | 行内搜索 Cell |
 | [EmptyState README](../Sources/FKUIKit/Components/EmptyState/README.md) | `.noSearchResult` |
 | [COMPONENT_GAP_ANALYSIS.md](COMPONENT_GAP_ANALYSIS.md) | §8.5 |
 | [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) | Tier 2 |

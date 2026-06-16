@@ -214,7 +214,7 @@ FKKit 分为两个 SPM/CocoaPods 产品：
 | `FKListPresetItem` | 七种预设行 + handler registry |
 | `FKListSwipeActionConfiguration` | Table 滑动操作 |
 
-**后续演进（非 v1 阻塞）：** FKCellKit 预设映射、Collection swipe、`presetRows` skeleton、SwiftUI Bridge — 见设计文档 §26。
+**后续演进（非 v1 阻塞）：** Collection swipe、`presetRows` skeleton、SwiftUI Bridge — 见设计文档 §26。
 
 ---
 
@@ -627,7 +627,7 @@ flowchart TB
 
 | ID | 主题 | 风险 | 缓解 |
 |----|------|------|------|
-| R1 | FKListKit 范围膨胀 | 易做成完整 App 框架 | v1 已交付薄基类；预设增量 / CellKit 映射见设计文档 §26 |
+| R1 | FKListKit 范围膨胀 | 易做成完整 App 框架 | v1 已交付薄基类；预设增量见设计文档 §26 |
 | R2 | ZIP 支持 | Archive.framework 可用性 | 特性检测；未完成前保留 `.zipUnavailable` 文档 |
 | R3 | Alert / ActionSheet / Toast 边界 | 集成方选型混淆 | README 决策树（§15） |
 | R4 | SwiftUI 双栈维护 | API 面扩大 | 轻薄 Representable；共享配置结构体 |

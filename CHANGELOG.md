@@ -132,7 +132,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ### Added (Documentation)
 
-- Component gap analysis, roadmap updates, and design specs (Alert, CellKit, planned modules) under `docs/`.
+- Component gap analysis, roadmap updates, and design specs (Alert, planned modules) under `docs/`.
 
 ### Changed (CocoaPods)
 

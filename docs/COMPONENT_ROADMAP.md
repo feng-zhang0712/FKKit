@@ -811,7 +811,7 @@ SwiftUI Bridge 应保持轻薄；业务逻辑留在 UIKit 类型中。
 
 | ID | 主题 | 问题 / 风险 | 缓解措施 |
 |----|------|-------------|----------|
-| R1 | **范围膨胀** | FKListKit 可能膨胀为完整 App 框架。 | v1 已交付薄基类；预设增量 / CellKit 映射见 [FKListKit 设计](FKListKit_DESIGN.md) §26。 |
+| R1 | **范围膨胀** | FKListKit 可能膨胀为完整 App 框架。 | v1 已交付薄基类；预设增量见 [FKListKit 设计](FKListKit_DESIGN.md) §26。 |
 | R2 | **ZIP 支持** | Archive.framework 可用性 vs 纯 Swift 回退。 | 特性检测；完成前文档保留 `.zipUnavailable`。 |
 | R3 | **WebView 安全** | JS Bridge 与 Cookie 注入易踩坑。 | 严格文档、Opt-in 处理器、禁止记录密钥。 |
 | R4 | **生物识别 UX** | 锁定与回退因 iOS 版本而异。 | 显式错误映射；真机/模拟器测试。 |

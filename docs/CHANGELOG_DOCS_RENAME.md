@@ -21,7 +21,6 @@
 | `FKBusinessKit_DESIGN.zh-CN.md` | `FKBusinessKit_DESIGN.md` |
 | `FKBusinessKit_ENHANCEMENT_DESIGN.zh-CN.md` | `FKBusinessKit_ENHANCEMENT_DESIGN.md` |
 | `FKCarousel-FKImageBanner_DESIGN.zh-CN.md` | `FKCarousel-FKImageBanner_DESIGN.md` |
-| `FKCellKit_DESIGN.zh-CN.md` | `FKCellKit_DESIGN.md` |
 | `FKChip-FKTag-FKChipGroup_DESIGN.zh-CN.md` | `FKChip-FKTag-FKChipGroup_DESIGN.md` |
 | `FKCopyChip_DESIGN.zh-CN.md` | `FKCopyChip_DESIGN.md` |
 | `FKFileManager_DESIGN.zh-CN.md` | `FKFileManager_DESIGN.md` |
