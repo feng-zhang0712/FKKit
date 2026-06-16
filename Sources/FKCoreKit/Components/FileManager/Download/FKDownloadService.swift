@@ -8,6 +8,8 @@ final class FKDownloadService: NSObject, URLSessionDownloadDelegate, URLSessionT
     let progress: (@Sendable (FKTransferProgress) -> Void)?
     let completion: (@Sendable (Result<FKDownloadResult, FKFileManagerError>) -> Void)?
     var resumeDataURL: URL?
+    /// Set while ``pause(taskID:)`` is cancelling the task to produce resume data.
+    var isPausing: Bool = false
   }
 
   private let fileManager: Foundation.FileManager
@@ -77,6 +79,10 @@ final class FKDownloadService: NSObject, URLSessionDownloadDelegate, URLSessionT
 
   func pause(taskID: Int) async {
     guard let task = await findTask(taskID: taskID) else { return }
+    if var context = contexts[taskID] {
+      context.isPausing = true
+      contexts[taskID] = context
+    }
     let data = await task.cancelByProducingResumeData()
     if let data {
       let url = resumeDataURL(for: taskID)
@@ -93,6 +99,10 @@ final class FKDownloadService: NSObject, URLSessionDownloadDelegate, URLSessionT
         updatedAt: Date()
       )
       snapshots[taskID] = snapshot
+    }
+    if var context = contexts[taskID] {
+      context.isPausing = false
+      contexts[taskID] = context
     }
     await persistSnapshots()
   }
@@ -138,6 +148,21 @@ final class FKDownloadService: NSObject, URLSessionDownloadDelegate, URLSessionT
 
   func persistedTransfers() -> [FKPersistedTransfer] {
     snapshots.values.sorted { $0.id < $1.id }
+  }
+
+  /// Registers a system background session completion handler for AppDelegate wiring.
+  func registerBackgroundSessionCompletionHandler(
+    _ handler: @escaping @Sendable () -> Void,
+    forSessionWithIdentifier identifier: String
+  ) {
+    FKBackgroundSessionCoordinator.shared.register(handler, forSessionWithIdentifier: identifier)
+  }
+
+  nonisolated func urlSessionDidFinishEventsForBackgroundURLSession(_ session: URLSession) {
+    let identifier = session.configuration.identifier ?? ""
+    Task { @MainActor in
+      FKBackgroundSessionCoordinator.shared.invoke(forSessionWithIdentifier: identifier)
+    }
   }
 
   nonisolated func urlSession(
@@ -186,13 +211,22 @@ final class FKDownloadService: NSObject, URLSessionDownloadDelegate, URLSessionT
   nonisolated func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
     guard let error else { return }
     Task { @MainActor in
-      guard let context = self.contexts[task.taskIdentifier] else { return }
+      guard var context = self.contexts[task.taskIdentifier] else { return }
       if let nsError = error as NSError?,
          let resumeData = nsError.userInfo[NSURLSessionDownloadTaskResumeData] as? Data {
         let url = self.resumeDataURL(for: task.taskIdentifier)
         try? resumeData.write(to: url, options: .atomic)
-        self.contexts[task.taskIdentifier]?.resumeDataURL = url
+        context.resumeDataURL = url
+        self.contexts[task.taskIdentifier] = context
       }
+
+      if context.isPausing || self.snapshots[task.taskIdentifier]?.state == .paused {
+        context.isPausing = false
+        self.contexts[task.taskIdentifier] = context
+        await self.persistSnapshots()
+        return
+      }
+
       context.completion?(.failure(.transferFailed(error.localizedDescription)))
       self.snapshots[task.taskIdentifier] = FKPersistedTransfer(
         id: task.taskIdentifier,

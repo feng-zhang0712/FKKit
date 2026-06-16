@@ -20,6 +20,9 @@ public struct FKBusinessKitConfiguration: Sendable, Equatable {
   /// Maximum number of retry attempts for a single batch.
   public var analyticsMaxRetryCount: Int
 
+  /// Alert presentation backend for version prompts and ``FKBusinessAlertManaging``.
+  public var alertBackend: FKBusinessAlertBackend
+
   /// Creates a configuration with sensible defaults.
   public init(
     channel: String = "AppStore",
@@ -27,7 +30,8 @@ public struct FKBusinessKitConfiguration: Sendable, Equatable {
     defaultLanguageCode: String = "en",
     analyticsFlushInterval: TimeInterval = 10,
     analyticsMaxBatchSize: Int = 20,
-    analyticsMaxRetryCount: Int = 3
+    analyticsMaxRetryCount: Int = 3,
+    alertBackend: FKBusinessAlertBackend = .systemAlert
   ) {
     self.channel = channel
     self.environment = environment
@@ -35,6 +39,7 @@ public struct FKBusinessKitConfiguration: Sendable, Equatable {
     self.analyticsFlushInterval = analyticsFlushInterval
     self.analyticsMaxBatchSize = analyticsMaxBatchSize
     self.analyticsMaxRetryCount = analyticsMaxRetryCount
+    self.alertBackend = alertBackend
   }
 }
 

@@ -1,10 +1,10 @@
 import FKCoreKit
 import UIKit
 
-/// Demonstrates `FKDeeplinkParsing`, `FKRouteHandling`, and `FKDeeplinkRouting`.
+/// Demonstrates ``FKPluggableDeeplinkRouter``, ``FKURLDeeplinkParser``, and ``FKRouteHandling``.
 final class FKPluggableRoutingExampleViewController: FKPluggableExampleBaseViewController {
 
-  private let router = DemoDeeplinkRouter()
+  private let router = FKPluggableDeeplinkRouter()
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -21,9 +21,9 @@ final class FKPluggableRoutingExampleViewController: FKPluggableExampleBaseViewC
       }
     )
 
-    addActionButton("1) Parse URL (FKDeeplinkParsing)") { [weak self] in
+    addActionButton("1) FKURLDeeplinkParser.parse") { [weak self] in
       let url = URL(string: "myapp://example.com/product/42?ref=push")!
-      let parser = DemoDeeplinkParser()
+      let parser = FKURLDeeplinkParser()
       if let context = parser.parse(url: url) {
         self?.appendOutput("Parsed path=\(context.pathComponents), query=\(context.queryItems)")
       } else {

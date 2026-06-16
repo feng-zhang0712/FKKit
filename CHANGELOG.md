@@ -4,14 +4,139 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
-### Added (FKUIKit — CellKit Phase 6)
+## [0.71.0] - 2026-06-15
 
-- **Display long-tail (D-49–D-90)** — Activity, StepList, Event, Review, InlineEmpty, Marquee, Device, Network, SubscriptionPlan, ShortcutGrid, Transaction, Task, PollResult, Leaderboard, PlayableMedia, Quote, MonospaceBlock, Language, AppUpdate, SkeletonRow, Indented, InlineActions, LiveBadge, CourseProgress, Reminder, NowPlaying, Conflict, Environment, Comparison cells with `Sendable` configurations and row models under `Public/Display/LongTail/`.
-- **Interactive long-tail (I-08–I-15)** — Checkbox, Favorite, Segment, Slider, Editing, Stepper, and PreviewPicker settings cells; I-14 documented as `FKCellSelectionCell`.
-- **Form long-tail (X-54–X-72, F-14–F-20)** — Extended form cells (email suffix, split field, range, color, rich text, voice, biometric, PIN, drag upload, media grid, inline expand, NPS, emoji, inline wheel, calculated preview, character count footer, system picker, settings link, map radius) plus semantic F-14–F-20 row presets.
-- **Collection parity** — `FKCellCollectionReusable`, `FKCellCollectionRegistration`, `UICollectionView+FKCellKit`, shared Internal layout renderers, and collection variants for disclosure, value disclosure, switch, profile, and conversation rows.
-- **ListKit integration** — `FKListPresetItem` enum and `FKListPresetCellConfigurator` thin mapping to existing CellKit cells (no duplicate Auto Layout).
-- **Helper** — `FKFormCellConditionalVisibility` linkage visibility helper (X-41).
+### Added (FKUIKit — ListKit)
+
+- **Performance & UX (v2)** — `FKListAnimationConfiguration`, `FKListDefaults.feedConfiguration` / `settingsConfiguration`, `FKListDelegate` `willDisplay` / `didEndDisplaying`, `FKListSnapshotMutation.reconfigureItems`, `FKListImagePrefetchHelper`, table `FKListSkeletonPolicy.presetRows`, and refresh `automaticallyEndsRefreshingOnAsyncCompletion` forwarding.
+- **Feed & media (v3)** — `FKListImagePrefetchProviding`, `FKListHeightCache`, `FKListVideoVisibilityCoordinator`, collection `presetRows` skeleton cells, and `FKSearchViewController` + ListKit integration example.
+- **Scale & parity (v4)** — collection swipe actions (`FKListSwipeActionsBuilder`), SwiftUI `FKDiffableTableViewControllerRepresentable` / `FKDiffableCollectionViewControllerRepresentable`, `FKListWindowingConfiguration`, and `fk_applyDiffableDataSourceSnapshot` helpers.
+- **Examples**: feed optimized, complex feed reference, cell visibility, reconfigure, skeleton preset rows (table/collection), windowing, SwiftUI bridge, collection swipe actions, and SearchViewController cross-link scenarios.
+
+### Fixed (FKUIKit — ListKit)
+
+- Skeleton placeholder cells now show/hide skeleton chrome correctly on configure and reuse.
+- Clarify custom cell `cellTypeIdentifier` must match `register(_:forPayloadType:)` registry keys.
+
+### Fixed (FKUIKit — SearchViewController)
+
+- Custom list cells example uses the correct `cellTypeIdentifier` for ListKit cell registration.
+
+### Added (Documentation)
+
+- `docs/FKListKit_ROADMAP.md` — v2–v4 delivery tracker; fix stale `FKListKit_DESIGN.md` links.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.71.0** (Git tag **`0.71.0`**).
+
+## [0.70.0] - 2026-06-15
+
+### Added (FKCoreKit — Pluggable)
+
+- **Reference implementations** — storage (`FKCodableStoragePluggableAdapter`, `FKInMemoryKeyValueStore`), session (`FKUserSessionStore`), configuration (`FKBuildTimeAppEnvironment`, `FKInMemoryFeatureFlags`, `FKJSONRemoteConfigProvider`), logging (`FKLoggerPluggableAdapter`), and deeplink routing (`FKPluggableDeeplinkRouter`, `FKURLDeeplinkParser`, `FKRouteContext.from(url:)`).
+- **`FKPluggableServices`** — optional composition-root template with `productionDefaults()` for wiring common Pluggable dependencies at launch.
+- **Mock suite** — `FKMockAPIClient`, `FKMockUserSession`, `FKMockReachability`, `FKMockPluggableLogger`, and `FKMockImageLoader` for tests and Examples.
+- **`FKPushNotificationRouting`** — Sendable protocol for host-owned remote push payload routing.
+- **Text input helpers** — `FKEmailTextValidator`, `FKLengthTextValidator`, `FKPhoneNumberTextFormatter`, and `FKBankCardTextFormatter`.
+- **Localization** — user-facing validator and error copy via `FKI18n` keys under `fkcore.pluggable.*` across bundled locales.
+- **Examples**: expanded Pluggable hub scenarios and composition-root demo.
+
+### Added (FKCoreKit — BackgroundTask)
+
+- **`FKBackgroundTaskManager`** — `BGTaskScheduler` (App Refresh / Processing) and `UIApplication.beginBackgroundTask` orchestration with Pluggable `FKBackgroundTaskScheduling`, registration descriptors, and `FKMockBackgroundTaskScheduler`.
+- **Examples**: hub scenarios under `Examples/FKCoreKit/BackgroundTask/`.
+
+### Added (FKCoreKit — LocalNotification)
+
+- **`FKLocalNotificationManager`** — local notification scheduling, categories/actions, foreground presentation, response handling, and Pluggable `FKLocalNotificationScheduling` with `FKMockLocalNotificationScheduler`.
+- **Examples**: hub scenarios under `Examples/FKCoreKit/LocalNotification/`.
+
+### Added (FKCoreKit — BusinessKit)
+
+- Alert backends, Pluggable bridge adapters (lifecycle, deeplink, analytics, i18n), and expanded FKKitExamples hub coverage.
+
+### Added (FKCoreKit — FileManager)
+
+- Native ZIP compress/decompress, background transfer recovery, and expanded FKKitExamples hub.
+
+### Added (FKCoreKit — Network)
+
+- SSL pinning, HTTP retry policy, mock `URLSession` stack, and Pluggable bridge adapters for API client, interceptors, signing, token refresh, and reachability.
+
+### Added (FKUIKit — SearchViewController)
+
+- Composite search page with local and remote modes, idle/results presentation customization, sticky footer placement, and host-handled search refinements.
+- **Examples**: full hub coverage under `Examples/FKUIKit/SearchViewController/`.
+
+### Fixed (FKUIKit — WebView)
+
+- Resolve `WKUIDelegate` signature conflict that failed CI builds.
+
+### Changed (FKUIKit — SearchViewController)
+
+- Slimmer view hierarchy and internal cleanup without public API breakage.
+
+### Added (Documentation)
+
+- Normalize design document naming and expand module coverage under `docs/`.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.70.0** (Git tag **`0.70.0`**).
+
+## [0.69.0] - 2026-06-13
+
+### Added (FKUIKit — Alert)
+
+- **`FKAlert`** — centered confirmation dialog on ``FKSheetPresentationController`` (`.center` / `centerAlert` preset) with async `confirm` / `prompt`, presets (`destructiveConfirm`, `informational`, `textPrompt`), queue/de-duplication, SwiftUI bridge, and text-input helpers.
+- **`FKAlertPresenter.isPresenting`**, **`FKAlertTextInput.requiresNonEmptyInput`**, and **`FKAlertContent.archiveAttributedMessage(_:)`** for integrator state and attributed message handling.
+- **Examples**: hub scenarios under `Examples/FKUIKit/Alert/`.
+
+### Added (FKUIKit — ListKit)
+
+- **`FKListKit`** — diffable table and collection infrastructure: section/item models, preset cells, swipe actions, pagination hooks, and integration with **FKRefresh**, **FKEmptyState**, and **FKSkeleton**.
+- **`FKDiffableCollectionViewController`**, layout presets, and expanded preset row APIs.
+- **Examples**: table, collection, swipe, and skeleton scenarios under `Examples/FKUIKit/ListKit/`.
+
+### Added (FKCoreKit — QRCode)
+
+- **`FKQRCodeGenerator`** and **`FKQRCodeParser`** — Core Image QR generation and typed payload parsing (URL, text, unknown) with correction levels and optional logo embedding.
+
+### Added (FKUIKit — QRCode)
+
+- **`FKQRCodeScannerViewController`** — camera scanner with scan modes, torch, overlay styling, navigation policy, simulator mock, and SwiftUI bridges.
+- **Examples**: generation, parsing, and scanner scenarios under `Examples/FKUIKit/QRCode/` and `Examples/FKCoreKit/QRCode/`.
+
+### Added (FKUIKit — Theme)
+
+- **`FKTheme`** registry — semantic colors, typography, spacing, shadows, trait-aware resolution, opt-in component defaults (**FKButton**, **FKToast**, **FKDivider**), and SwiftUI environment integration.
+- **Examples**: theme registration and component integration under `Examples/FKUIKit/Theme/`.
+
+### Fixed (FKUIKit — Alert)
+
+- Cancel actions no longer invoke destructive/confirm handlers; cancel button uses content-sized hit targets instead of a full-width transparent tap area.
+- Swipe-to-dismiss is off by default; **`FKAlertPresets.informational()`** allows backdrop tap only.
+
+### Fixed (FKUIKit — Badge)
+
+- Blink animation can be stopped cleanly; internal animation lifecycle cleanup.
+
+### Changed (FKUIKit — ActionSheet)
+
+- Slimmer view hierarchy and internal cleanup without public API changes.
+
+### Changed (Maintenance)
+
+- Alphabetize localization keys in FKCoreKit and FKUIKit `.strings` files.
+
+### Added (Documentation)
+
+- Component gap analysis, roadmap updates, and design specs (Alert, CellKit, planned modules) under `docs/`.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.69.0** (Git tag **`0.69.0`**).
 
 ## [0.68.0] - 2026-06-10
 
@@ -2701,7 +2826,10 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.71.0...HEAD
+[0.71.0]: https://github.com/feng-zhang0712/FKKit/compare/0.70.0...0.71.0
+[0.70.0]: https://github.com/feng-zhang0712/FKKit/compare/0.69.0...0.70.0
+[0.69.0]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...0.69.0
 [0.68.0]: https://github.com/feng-zhang0712/FKKit/compare/0.67.0...0.68.0
 [0.67.0]: https://github.com/feng-zhang0712/FKKit/compare/0.66.0...0.67.0
 [0.66.0]: https://github.com/feng-zhang0712/FKKit/compare/0.65.0...0.66.0

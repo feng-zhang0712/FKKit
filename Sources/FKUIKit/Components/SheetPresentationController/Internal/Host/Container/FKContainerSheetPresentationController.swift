@@ -203,6 +203,7 @@ final class FKContainerSheetPresentationController: UIPresentationController, UI
   public override func preferredContentSizeDidChange(forChildContentContainer container: any UIContentContainer) {
     super.preferredContentSizeDidChange(forChildContentContainer: container)
     guard let containerView else { return }
+    guard !sheetPanCoordinator.isPanningSheet, !centerPanCoordinator.isInteractivelyDragging else { return }
     resetPinnedHostedContentHeightCache()
     recalculateDetentsIfNeeded()
     let targetFrame = frameOfPresentedViewInContainerView

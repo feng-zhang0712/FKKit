@@ -1,17 +1,23 @@
 import FKCoreKit
 import UIKit
 
-/// Demonstrates `FKKeyValueStoring` and `FKCodableStoring` default JSON helpers.
+/// Demonstrates `FKKeyValueStoring`, `FKCodableStoring`, and Storage-module bridging.
 @MainActor
 final class FKPluggableStorageExampleViewController: FKPluggableExampleBaseViewController {
 
-  private let storage = DemoMemoryStorage()
+  private let storage = FKInMemoryKeyValueStore()
+  private lazy var bridgedStorage: FKCodableStoragePluggableAdapter = {
+    FKCodableStoragePluggableAdapter(
+      storage: FKUserDefaultsStorage(keyPrefix: "fk.examples.pluggable."),
+      keyPrefix: "pluggable"
+    )
+  }()
 
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Pluggable · Storage"
 
-    addActionButton("1) set raw Data (FKKeyValueStoring)") { [weak self] in
+    addActionButton("1) FKInMemoryKeyValueStore — set raw Data") { [weak self] in
       guard let self else { return }
       do {
         try storage.set(Data("hello".utf8), forKey: "greeting")
@@ -30,41 +36,30 @@ final class FKPluggableStorageExampleViewController: FKPluggableExampleBaseViewC
         appendOutput("Error: \(error)")
       }
     }
-    addActionButton("3) Encode + set Data (FKKeyValueStoring)") { [weak self] in
+    addActionButton("3) FKCodableStoring JSON via FKPluggableJSONCodec") { [weak self] in
       guard let self else { return }
       do {
         let profile = DemoStoredProfile(name: "Frank", tier: "gold")
-        try storage.set(profile.encodedData(), forKey: "profile")
-        appendOutput("Stored profile JSON at key 'profile'.")
+        let data = try profile.encodedData()
+        try storage.set(data, forKey: "profile")
+        let decoded = try storage.data(forKey: "profile").flatMap { try DemoStoredProfile.decoded(from: $0) }
+        appendOutput("Stored + decoded: \(decoded?.name ?? "nil") / \(decoded?.tier ?? "nil")")
       } catch {
         appendOutput("Error: \(error)")
       }
     }
-    addActionButton("4) FKPluggableJSONCodec + FKCodableStoring pattern") { [weak self] in
+    addActionButton("4) FKCodableStoragePluggableAdapter bridge") { [weak self] in
       guard let self else { return }
       do {
-        let profile = DemoStoredProfile(name: "Frank", tier: "gold")
-        let data = try FKPluggableJSONCodec.encode(["name": profile.name, "tier": profile.tier])
-        try storage.set(data, forKey: "profile_codec")
-        appendOutput("FKPluggableJSONCodec.encode → \(data.count) bytes")
+        try bridgedStorage.set(Data("bridged".utf8), forKey: "bridge_key")
+        let data = try bridgedStorage.data(forKey: "bridge_key")
+        let text = data.flatMap { String(data: $0, encoding: .utf8) } ?? "(nil)"
+        appendOutput("Bridged read: \(text)")
       } catch {
-        appendOutput("Error: \(error)")
+        appendOutput("Bridge error: \(error)")
       }
     }
-    addActionButton("5) Read + decode profile") { [weak self] in
-      guard let self else { return }
-      do {
-        guard let data = try storage.data(forKey: "profile") else {
-          appendOutput("No data at 'profile'")
-          return
-        }
-        let profile = try DemoStoredProfile.decoded(from: data)
-        appendOutput("Decoded: \(profile)")
-      } catch {
-        appendOutput("Error: \(error)")
-      }
-    }
-    addActionButton("6) remove(forKey:)") { [weak self] in
+    addActionButton("5) remove(forKey:)") { [weak self] in
       guard let self else { return }
       do {
         try storage.remove(forKey: "greeting")

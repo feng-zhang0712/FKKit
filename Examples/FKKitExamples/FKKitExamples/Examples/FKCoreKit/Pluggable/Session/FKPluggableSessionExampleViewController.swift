@@ -1,11 +1,11 @@
 import FKCoreKit
 import UIKit
 
-/// Demonstrates `FKUserSessionProviding` and `FKUserSessionObserving`.
+/// Demonstrates ``FKUserSessionStore`` with persistence and observation.
 @MainActor
 final class FKPluggableSessionExampleViewController: FKPluggableExampleBaseViewController {
 
-  private let session = DemoUserSession()
+  private let session = FKUserSessionStore(storage: FKInMemoryKeyValueStore())
   private var observationToken: FKPluggableObservationToken?
 
   override func viewDidLoad() {
@@ -18,9 +18,11 @@ final class FKPluggableSessionExampleViewController: FKPluggableExampleBaseViewC
       }
     }
 
-    addActionButton("1) signIn(userID:) via demo session") { [weak self] in
-      self?.session.signIn(userID: "user-\(Int.random(in: 1000...9999))")
-      self?.logSession()
+    addActionButton("1) FKUserSessionStore.signIn(userID:)") { [weak self] in
+      guard let self else { return }
+      let id = "user-\(Int.random(in: 1000...9999))"
+      try? session.signIn(userID: id)
+      logSession()
     }
     addActionButton("2) signOut() — FKUserSessionProviding") { [weak self] in
       try? self?.session.signOut()

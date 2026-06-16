@@ -93,9 +93,9 @@ final class FKFileManagerExampleViewController: UIViewController {
         ]
       ),
       (
-        "8. ZIP (placeholders)",
+        "8. ZIP",
         [
-          ("zipItem / unzipItem (expect zipUnavailable on current build)", #selector(demoZipPlaceholders)),
+          ("zipItem / unzipItem (FKZipOptions, isZipAvailable)", #selector(demoZipRoundTrip)),
         ]
       ),
       (
@@ -502,22 +502,24 @@ final class FKFileManagerExampleViewController: UIViewController {
 
   // MARK: - 8) ZIP
 
-  @objc private func demoZipPlaceholders() {
+  @objc private func demoZipRoundTrip() {
     Task { @MainActor [weak self] in
       guard let self else { return }
-      let folder = self.demoDirectoryURL()
-      let zip = self.manager.directoryURL(.documents).appendingPathComponent("FKFileManagerDemoArchive.zip")
+      appendOutput("[isZipAvailable] \(FKFileManager.isZipAvailable)")
+      let folder = demoDirectoryURL()
+      let zip = manager.directoryURL(.documents).appendingPathComponent("FKFileManagerDemoArchive.zip")
+      let unzipped = folder.appendingPathComponent("catalog-unzipped", isDirectory: true)
       do {
-        try await self.manager.zipItem(at: folder, to: zip)
-        appendOutput("[zipItem] Unexpected success at \(zip.path)")
+        try await manager.createDirectory(at: folder, intermediate: true)
+        try await manager.writeContent(.text("catalog zip demo"), to: folder.appendingPathComponent("sample.txt"))
+        if manager.exists(at: zip) { try await manager.removeItem(at: zip) }
+        try await manager.zipItem(at: folder, to: zip, options: FKZipOptions(compressionMethod: .deflate))
+        appendOutput("[zipItem] wrote \(zip.lastPathComponent)")
+        if manager.exists(at: unzipped) { try await manager.removeItem(at: unzipped) }
+        try await manager.unzipItem(at: zip, to: unzipped)
+        appendOutput("[unzipItem] extracted to \(unzipped.lastPathComponent)")
       } catch {
-        appendOutput("[zipItem] \(error.localizedDescription)")
-      }
-      do {
-        try await self.manager.unzipItem(at: zip, to: folder.appendingPathComponent("unzipped", isDirectory: true))
-        appendOutput("[unzipItem] Unexpected success")
-      } catch {
-        appendOutput("[unzipItem] \(error.localizedDescription)")
+        appendOutput("[zip] \(error.localizedDescription)")
       }
     }
   }

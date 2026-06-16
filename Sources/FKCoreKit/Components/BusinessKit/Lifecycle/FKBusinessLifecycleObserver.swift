@@ -32,17 +32,20 @@ public final class FKBusinessLifecycleObserver: FKBusinessLifecycleObserving, @u
   private var observers: [UUID: @Sendable (FKAppLifecycleState) -> Void] = [:]
   /// Notification observer tokens retained for lifecycle monitoring.
   private var notificationTokens: [NSObjectProtocol] = []
+  /// Notification center used during observer registration.
+  private let notificationCenter: NotificationCenter
 
   /// Creates lifecycle observer and installs app notification listeners.
   ///
   /// - Parameter center: Notification center used to observe app events.
   public init(center: NotificationCenter = .default) {
+    notificationCenter = center
     _state = .launching
     install(center: center)
   }
 
   deinit {
-    notificationTokens.forEach { NotificationCenter.default.removeObserver($0) }
+    notificationTokens.forEach { notificationCenter.removeObserver($0) }
   }
 
   /// Adds lifecycle observer and emits current state immediately.

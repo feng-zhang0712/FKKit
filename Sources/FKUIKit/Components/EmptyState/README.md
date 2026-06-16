@@ -60,7 +60,7 @@ Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plu
 
 | File | Role |
 |------|------|
-| `UIView+FKEmptyState.swift` | `fk_applyEmptyState`, `fk_updateVisibleEmptyState`, `fk_hideEmptyState`, `fk_setEmptyState`, visibility |
+| `UIView+FKEmptyState.swift` | `fk_applyEmptyState`, `fk_updateVisibleEmptyState`, `fk_hideEmptyState`, `fk_removeEmptyState`, `fk_setEmptyState`, visibility |
 | `UIScrollView+FKEmptyState.swift` | `fk_updateEmptyState`, list helpers, auto short-content visibility |
 | `UIViewController+FKEmptyState.swift` | `fk_bindEmptyStateActions` / `fk_clearEmptyStateActionObservers` |
 
@@ -227,7 +227,8 @@ Full release notes: root [`CHANGELOG.md`](../../../../CHANGELOG.md) **`[Unreleas
 - `fk_applyEmptyState(_:animated:actionHandler:)` — single trailing closure (preferred when no background tap handler).
 - `fk_updateVisibleEmptyState(_:animated:actionHandler:viewTapHandler:)` — in-place content update when overlay is already visible; falls back to `fk_applyEmptyState` otherwise.
 - `fk_setEmptyState(phase:…)` / `fk_setEmptyState(animated:configure:)` — template-based shortcuts.
-- `fk_hideEmptyState(animated:)`
+- `fk_hideEmptyState(animated:)` — hides and keeps the overlay for reuse.
+- `fk_removeEmptyState(animated:)` — removes the overlay and clears host storage; the next `fk_applyEmptyState` recreates it.
 - `fk_emptyStateView`, `fk_emptyStateConfiguration`, `fk_isEmptyStateOverlayVisible`
 - `FKEmptyStatePresentable` — `fk_presentEmptyState` / `fk_dismissEmptyState` aliases for test seams and protocol-oriented hosts.
 

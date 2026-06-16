@@ -39,9 +39,17 @@
 	<string>The FKPermissions example demonstrates speech recognition authorization.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>The FKPermissions example demonstrates App Tracking Transparency.</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>fkkit.example.refresh.config</string>
+		<string>fkkit.example.refresh.analytics</string>
+		<string>fkkit.example.processing.cleanup</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
+		<string>fetch</string>
+		<string>processing</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

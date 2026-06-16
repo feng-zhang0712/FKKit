@@ -4,19 +4,21 @@ import UIKit
 /// Demonstrates networking pluggable contracts in `FKCoreKit/Pluggable/Networking`.
 final class FKPluggableNetworkingExampleViewController: FKPluggableExampleBaseViewController {
 
-  private let apiClient = DemoAPIClient()
+  private let mockAPIClient = FKMockAPIClient()
   private let credentials = DemoCredentialStore()
   private let tokenRefresher = DemoTokenRefresher()
-  private let reachability = DemoNetworkReachability()
+
+  private let demoAPIURL = URL(string: "https://api.example.com/v1/demo")!
 
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Pluggable · Networking"
-    apiClient.onPerform = { [weak self] line in
-      Task { @MainActor in self?.appendOutput(line) }
-    }
+    mockAPIClient.setResponse(
+      .success(FKAPIResponse(data: Data("{\"ok\":true}".utf8), httpResponse: nil)),
+      forURL: demoAPIURL
+    )
 
-    addActionButton("1) FKAPIClientProviding.perform") { [weak self] in
+    addActionButton("1) FKMockAPIClient.perform") { [weak self] in
       Task { await self?.runAPIClient() }
     }
     addActionButton("2) FKRequestIntercepting (Bearer header)") { [weak self] in
@@ -31,19 +33,25 @@ final class FKPluggableNetworkingExampleViewController: FKPluggableExampleBaseVi
     addActionButton("5) FKCredentialProviding + FKTokenRefreshing") { [weak self] in
       Task { await self?.runTokenFlow() }
     }
-    addActionButton("6) FKNetworkReachabilityProviding") { [weak self] in
-      guard let self else { return }
-      appendOutput("isReachable = \(reachability.isReachable)")
+    addActionButton("6) FKNetworkReachabilityProviding (live)") { [weak self] in
+      let reachability = FKNetworkReachability()
+      self?.appendOutput("FKNetworkReachability.isReachable = \(reachability.isReachable)")
+    }
+    addActionButton("7) FKMockReachability offline") { [weak self] in
+      let offline = FKMockReachability(isReachable: false)
+      self?.appendOutput("FKMockReachability.isReachable = \(offline.isReachable)")
+    }
+    addActionButton("8) FKNetworkClientPluggableAdapter (stub URL)") { [weak self] in
+      Task { await self?.runPluggableNetworkAdapter() }
     }
     addActionButton("Clear log") { [weak self] in self?.clearOutput() }
   }
 
   private func runAPIClient() async {
-    let url = URL(string: "https://api.example.com/v1/demo")!
-    let request = FKAPIRequest(url: url, method: .post, body: Data("{\"ping\":1}".utf8))
+    let request = FKAPIRequest(url: demoAPIURL, method: .post, body: Data("{\"ping\":1}".utf8))
     do {
-      let response = try await apiClient.perform(request)
-      appendOutput("Response bytes: \(response.data.count)")
+      let response = try await mockAPIClient.perform(request)
+      appendOutput("FKMockAPIClient response bytes: \(response.data.count)")
     } catch {
       appendOutput("API error: \(error.localizedDescription)")
     }
@@ -99,6 +107,22 @@ final class FKPluggableNetworkingExampleViewController: FKPluggableExampleBaseVi
       appendOutput("New access token: \(access)")
     } catch {
       appendOutput("Refresh failed: \(error.localizedDescription)")
+    }
+  }
+
+  private func runPluggableNetworkAdapter() async {
+    let mock = FKMockNetworkSession()
+    let url = URL(string: "https://api.example.com/v1/pluggable")!
+    let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!
+    mock.stubbedResponses[url] = (Data("{\"ok\":true}".utf8), response)
+    let client = FKNetworkClient(transport: mock)
+    let adapter = FKNetworkClientPluggableAdapter(client: client)
+    let request = FKAPIRequest(url: url, method: .get, body: nil)
+    do {
+      let apiResponse = try await adapter.perform(request)
+      appendOutput("Adapter response bytes: \(apiResponse.data.count)")
+    } catch {
+      appendOutput("Adapter error: \(error.localizedDescription)")
     }
   }
 }

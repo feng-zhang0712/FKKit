@@ -41,6 +41,9 @@ final class FKPluggableMediaExampleViewController: FKPluggableExampleBaseViewCon
       self?.imagePreview.image = nil
       self?.appendOutput("Cache cleared")
     }
+    addActionButton("6) FKMockImageLoader (offline stub)") { [weak self] in
+      Task { await self?.loadWithMockLoader() }
+    }
     addActionButton("Clear log") { [weak self] in self?.clearOutput() }
   }
 
@@ -57,6 +60,22 @@ final class FKPluggableMediaExampleViewController: FKPluggableExampleBaseViewCon
       appendOutput("UIImage size: \(image.size)")
     } catch {
       appendOutput("Load failed: \(error.localizedDescription)")
+    }
+  }
+
+  private func loadWithMockLoader() async {
+    let mock = FKMockImageLoader()
+    let request = FKImageLoadRequest(
+      url: URL(string: "https://cdn.example.com/offline.png")!,
+      targetWidth: 80,
+      targetHeight: 80
+    )
+    do {
+      let image = try await mock.loadImage(for: request)
+      imagePreview.image = image
+      appendOutput("FKMockImageLoader calls=\(mock.loadCallCount), size=\(image.size)")
+    } catch {
+      appendOutput("Mock load failed: \(error.localizedDescription)")
     }
   }
 }

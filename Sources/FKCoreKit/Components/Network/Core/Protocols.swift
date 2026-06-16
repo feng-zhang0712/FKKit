@@ -26,6 +26,10 @@ public protocol Requestable {
   var behavior: NetworkRequestBehavior { get }
   /// Optional mocked payload used when global mock mode is enabled.
   var mockData: Data? { get }
+  /// When `true`, HTTP retry policies may retry non-GET methods.
+  var isIdempotent: Bool { get }
+  /// Optional pre-encoded body that bypasses parameter encoding.
+  var rawBody: Data? { get }
 }
 
 /// Default request values to keep endpoint definitions concise.
@@ -44,6 +48,10 @@ public extension Requestable {
   var behavior: NetworkRequestBehavior { .normal }
   /// No mock payload by default.
   var mockData: Data? { nil }
+  /// Non-idempotent by default.
+  var isIdempotent: Bool { false }
+  /// No raw body by default.
+  var rawBody: Data? { nil }
 }
 
 /// Abstraction over URLSession task creation.

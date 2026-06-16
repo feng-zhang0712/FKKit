@@ -21,7 +21,12 @@
   - [Error Handling](#error-handling)
   - [Token Auto Refresh](#token-auto-refresh)
   - [API Signing](#api-signing)
+  - [Multipart Upload](#multipart-upload)
+  - [SSL Pinning](#ssl-pinning)
+  - [HTTP Retry Policy](#http-retry-policy)
+  - [Pluggable Integration](#pluggable-integration)
 - [Logging and Debugging](#logging-and-debugging)
+- [Testing and Mocking](#testing-and-mocking)
 - [Best Practices](#best-practices)
 - [Notes](#notes)
 - [Roadmap](#roadmap)
@@ -64,10 +69,10 @@ Module layout (`Sources/FKCoreKit/Components/Network`):
 - `Core`: protocols, network client, request/response pipeline, upload/download
 - `Config`: global runtime configuration and environments
 - `Model`: HTTP definitions, cache policies, endpoint and error models
-- `Tool`: cache, logger, deduplicator, reachability, service helpers
-- `Examples`: ready-to-use sample code
+- `Tool`: cache, logger, deduplicator, reachability, multipart, SSL pinning, retry, mock session
+- `Pluggable/Implementations/Networking`: Pluggable adapters and Keychain credential store
 
-> String hashing helpers such as `fk_md5` live in `Components/Extension/Foundation/` for reuse across modules.
+> String hashing helpers such as `fk_md5` / `fk_sha256` live in `Components/Extension/Foundation/`.
 
 Request flow:
 
@@ -77,7 +82,8 @@ Request flow:
 4. Execute via `URLSession`
 5. Apply response interceptors and validate status code
 6. Auto refresh token and retry once on `401` (if configured)
-7. Decode response and callback (main queue by default)
+7. Apply optional HTTP retry policy (`FKNetworkRetryPolicy`) for transient failures
+8. Decode response and callback (main queue by default)
 
 ---
 
@@ -93,7 +99,7 @@ Request flow:
 - Token auto-refresh and transparent retry
 - API signing with `MD5RequestSigner`
 - Upload/download with progress and resume data support
-- Basic SSL challenge handling with host strategy hook
+- SSL pinning (`FKSSLPinningConfiguration`) and legacy host-trust hook (`shouldPinSSLHost`)
 - Mock response data and debug logging
 
 ---
@@ -326,6 +332,9 @@ task.cancel()
 - `businessError(code:message:)`
 - `offline`
 - `tokenRefreshFailed`
+- `sslPinningFailed(host:)`
+- `sslPinningNotConfigured(host:)`
+- `retryExhausted(lastError:)`
 
 Example:
 
@@ -387,6 +396,83 @@ Default headers injected by signer:
 - `X-Timestamp`
 - `X-Signature`
 
+### Multipart Upload
+
+Build RFC 7578 bodies with `FKMultipartFormData` (MIME types resolve via `FKFileMimeResolver`):
+
+```swift
+var form = FKMultipartFormData()
+form.append("profile photo", name: "description")
+form.append(imageData, name: "file", fileName: "photo.jpg")
+
+let encoded = form.encode()
+let tempBody = FileManager.default.temporaryDirectory.appendingPathComponent("upload-body.bin")
+try encoded.body.write(to: tempBody, options: .atomic)
+
+var request = URLRequest(url: uploadURL)
+request.httpMethod = "POST"
+request.setValue(encoded.contentType, forHTTPHeaderField: "Content-Type")
+
+FKNetworkClient.shared.upload(request, fileURL: tempBody, progress: nil) { result in
+  print(result)
+}
+```
+
+For large files (>10MB), prefer `FKFileManager` multipart upload or stream strategies documented in `FKFileManager`.
+
+### SSL Pinning
+
+Configure strict certificate or public-key pins (opt-in; unlisted hosts keep system trust evaluation):
+
+```swift
+let config = FKNetworkConfiguration.shared
+config.sslPinning = FKSSLPinningConfiguration(
+  pinnedHosts: ["api.example.com"],
+  publicKeyHashes: [
+    "api.example.com": [
+      FKPublicKeyPin(base64Hash: "<sha256-base64-of-SPKI-bytes>")
+    ]
+  ],
+  enforceForSubdomains: true,
+  allowUserTrustEvaluationFallback: false
+)
+```
+
+Pin mismatch surfaces `NetworkError.sslPinningFailed(host:)`. Legacy `shouldPinSSLHost` trusts the server chain and is not true pinning.
+
+### HTTP Retry Policy
+
+HTTP retries run **after** the 401 token-refresh path and only for configured transient errors:
+
+```swift
+FKNetworkConfiguration.shared.retryPolicy = .conservativeGET
+// GET/HEAD: up to 3 retries with exponential backoff on 502/503/504 and transport timeouts
+```
+
+Presets:
+
+- `.none` — disable HTTP retry (default)
+- `.conservativeGET` — GET/HEAD only
+- `.aggressiveIdempotent` — also retries when `Requestable.isIdempotent == true`
+
+Exhausted retries return `NetworkError.retryExhausted(lastError:)`. POST/PUT/PATCH are not retried unless marked idempotent.
+
+### Pluggable Integration
+
+Bridge DI boundaries without duplicating HTTP plumbing:
+
+```swift
+let config = FKNetworkConfiguration.shared
+let apiClient: FKAPIClientProviding = FKNetworkClientPluggableAdapter(client: FKNetworkClient(config: config))
+let response = try await apiClient.perform(FKAPIRequest(url: url, method: .get))
+
+let reachability: FKNetworkReachabilityProviding = FKNetworkReachability()
+config.networkStatusProvider = reachability
+
+config.tokenStore = FKKeychainCredentialStore(service: "com.example.app.network")
+config.requestInterceptors.append(FKRequestInterceptingAdapter(interceptor: myPluggableInterceptor))
+```
+
 ---
 
 ## Logging and Debugging
@@ -403,6 +489,36 @@ struct MockUserRequest: Requestable {
   var mockData: Data? { #"{"id":1,"name":"MockUser"}"#.data(using: .utf8) }
 }
 ```
+
+---
+
+## Testing and Mocking
+
+| Scenario | Approach |
+|----------|----------|
+| Decode/business logic only | `enableMock = true` + `Requestable.mockData` |
+| Full pipeline (interceptors, status codes, retry) | Inject `FKMockNetworkSession` into `FKNetworkClient` |
+| Pluggable boundary | `FKMockAPIClient` or adapter over mock client |
+
+### Request-level mock data
+
+Already covered under [Logging and Debugging](#logging-and-debugging) — skips URLSession and decodes canned JSON.
+
+### Transport-level mock session
+
+```swift
+let mock = FKMockNetworkSession()
+let url = URL(string: "https://api.example.com/v1/user")!
+let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!
+mock.stubbedResponses[url]=(#"{"id":1}"#.data(using: .utf8)!, response)
+
+let client = FKNetworkClient(transport: mock)
+// send/upload/download resolve against stubbedResponses
+```
+
+`FKMockNetworkSession` is **public for Examples and integration tests only** — not a production transport.
+
+See `Examples/FKCoreKit/Network/` for baseline (B1–B8) and enhancement (E1–E9) demos.
 
 ---
 
@@ -423,16 +539,26 @@ struct MockUserRequest: Requestable {
 - Download `fileURL` is a temporary file path; move it to your desired location
 - Resume download requires persisting `resumeData`
 - `encryptParameters` is an extension hook; ensure backend compatibility
-- SSL handling is basic challenge handling; extend it for strict certificate pinning if needed
+- Configure `sslPinning` for strict certificate/public-key pinning; use `shouldPinSSLHost` only for legacy trust-all-on-match behavior
+- HTTPS proxies (Charles, Fiddler) require their root CA to be trusted on device/simulator, or TLS will fail with certificate errors
 
 ---
 
 ## Roadmap
 
-- Add stricter SSL pinning examples
-- Add multipart upload helper utilities
-- Add unit test fixtures and mock session templates
-- Add more production-ready retry policy presets
+Full module design: [`docs/FKNetwork_DESIGN.md`](../../../../docs/FKNetwork_DESIGN.md).
+
+**Delivered enhancements:**
+
+- Strict SSL pinning (`FKSSLPinningConfiguration`, `FKSSLPinningValidator`)
+- Multipart builder (`FKMultipartFormData`)
+- HTTP retry presets (`FKNetworkRetryPolicy.conservativeGET`, `.aggressiveIdempotent`)
+- Mock transport (`FKMockNetworkSession`) for Examples and integration tests
+- Pluggable bridges (`FKNetworkClientPluggableAdapter`, interceptor/signer/credential adapters)
+- `FKNetworkReachability` dual conformance with `FKNetworkReachabilityProviding`
+- FKKitExamples hub: baseline B1–B8 + enhancement E1–E9
+
+**Examples:** `Examples/FKCoreKit/Network/` — hub lists baseline playground and enhancement scenarios.
 
 ---
 

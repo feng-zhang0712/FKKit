@@ -1,26 +1,42 @@
 import Foundation
 
-/**
- `FKNetworkClient` is the core request dispatcher of FKNetwork.
+private final class NetworkCompletionBox<T>: @unchecked Sendable {
+  private let queue: DispatchQueue
+  fileprivate let handler: (Result<T, NetworkError>) -> Void
 
- Design responsibilities:
- - Build URL requests from `Requestable` definitions.
- - Apply request/response interceptors and request signer.
- - Support both callback and async/await APIs.
- - Handle token refresh retry flow on 401.
- - Integrate cache read/write and request deduplication.
- - Provide upload/download with progress callbacks.
+  init(queue: DispatchQueue, handler: @escaping (Result<T, NetworkError>) -> Void) {
+    self.queue = queue
+    self.handler = handler
+  }
 
- Usage notes:
- - Completions are dispatched on `config.callbackOnMainQueue` by default.
- - Shared mutable maps (progress/completion handlers) are lock-protected.
- - This class does not own business-level parsing rules beyond Codable decoding.
- */
+  func deliver(_ result: Result<T, NetworkError>) {
+    queue.async { self.handler(result) }
+  }
+}
+
+private final class DataTaskContext: @unchecked Sendable {
+  var taskId: Int = 0
+}
+
+private final class RequestBox<R: Requestable>: @unchecked Sendable {
+  let value: R
+  init(_ value: R) { self.value = value }
+}
+
+/// Core HTTP client: builds requests from ``Requestable``, runs interceptors and signing,
+/// handles 401 token refresh, cache/dedup, optional SSL pinning and HTTP retry, and upload/download tasks.
+///
+/// Completions dispatch on ``FKNetworkConfiguration/callbackOnMainQueue`` by default.
 public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegate, URLSessionDownloadDelegate, @unchecked Sendable {
+  /// Shared client using ``FKNetworkConfiguration/shared``.
+  public static let shared = FKNetworkClient()
+
   /// Runtime configuration source.
   private let config: FKNetworkConfiguration
-  /// Backing URLSession used for all task types.
-  private var session: URLSession!
+  /// Backing URLSession used for delegate callbacks and default transport.
+  private var urlSession: URLSession!
+  /// Injectable transport used for data/upload/download tasks.
+  private var transport: NetworkSession!
   /// Cache engine used by cache policies.
   private let cache: Cacheable
   /// Deduplicator for idempotent in-flight requests.
@@ -36,6 +52,8 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   private var downloadProgressHandlers: [Int: (Double) -> Void] = [:]
   /// Download completion handlers keyed by task identifier.
   private var downloadCompletions: [Int: (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void] = [:]
+  /// Pinning failures keyed by task identifier.
+  private var pinningFailureByTaskId: [Int: NetworkError] = [:]
   /// Lock guarding mutable handler maps.
   private var lock = NSLock()
 
@@ -44,12 +62,14 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   /// - Parameters:
   ///   - config: Runtime network configuration.
   ///   - sessionConfiguration: URLSession configuration.
+  ///   - transport: Optional custom transport. Defaults to a delegate-backed `URLSession`.
   ///   - cache: Cache implementation.
   ///   - deduplicator: In-flight deduplication helper.
   ///   - decoder: Decoder used for `Requestable.Response`.
   public init(
     config: FKNetworkConfiguration = .shared,
     sessionConfiguration: URLSessionConfiguration = .default,
+    transport: NetworkSession? = nil,
     cache: Cacheable = FKNetworkCache(),
     deduplicator: FKRequestDeduplicator = .init(),
     decoder: JSONDecoder = .init()
@@ -61,42 +81,38 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     callbackQueue = config.callbackOnMainQueue ? .main : .global(qos: .userInitiated)
     sessionConfiguration.timeoutIntervalForRequest = config.current?.timeout ?? 30
     super.init()
-    session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: nil)
+    urlSession = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: nil)
+    self.transport = transport ?? URLSessionAdapter(session: urlSession)
   }
 
   /// Sends a typed request using completion callback.
-  ///
-  /// - Parameters:
-  ///   - request: Request object conforming to `Requestable`.
-  ///   - completion: Completion callback on configured callback queue.
-  /// - Returns: Cancellable token.
   @discardableResult
   public func send<R: Requestable>(
     _ request: R,
     completion: @escaping (Result<R.Response, NetworkError>) -> Void
   ) -> Cancellable {
-    // Dispatch all results to configured callback queue for consistency.
-    let callback: (Result<R.Response, NetworkError>) -> Void = { [callbackQueue] result in
-      callbackQueue.async {
-        completion(result)
-      }
-    }
+    let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
 
-    // Fast-fail before request building when network is known offline.
     if let provider = config.networkStatusProvider, provider.isReachable == false {
-      callback(.failure(.offline))
+      resultBox.deliver(.failure(.offline))
       return NoopCancellable()
     }
 
-    guard let built = try? buildRequest(from: request) else {
-      callback(.failure(.invalidURL))
+    let baseRequest: URLRequest
+    do {
+      baseRequest = try buildBaseRequest(from: request)
+    } catch let error as NetworkError {
+      resultBox.deliver(.failure(error))
+      return NoopCancellable()
+    } catch {
+      resultBox.deliver(.failure(.invalidURL))
       return NoopCancellable()
     }
-    let key = cacheKey(for: built)
 
-    // Cache fast path (memory / disk / memory+disk share the same lookup contract).
+    let key = cacheKey(for: baseRequest)
+
     if let ttl = request.cachePolicy.fk_cacheTTL, let data = cache.value(for: key) {
-      decode(data: data, request: request, statusCode: 200, headers: [:], releaseDedup: {}, completion: callback)
+      decode(data: data, request: request, releaseDedup: {}, resultBox: resultBox)
       config.logger.log("cache hit(\(request.cachePolicy.fk_cacheLabel)), ttl: \(ttl), key: \(key)")
       return NoopCancellable()
     }
@@ -104,7 +120,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     let dedupKeyHeld: Bool
     if request.behavior == .idempotentDeduplicated {
       guard deduplicator.shouldProceed(key: key) else {
-        callback(.failure(.businessError(code: -2, message: FKI18n.string("fkcore.network.error.request_deduplicated"))))
+        resultBox.deliver(.failure(.businessError(code: -2, message: FKI18n.string("fkcore.network.error.request_deduplicated"))))
         return NoopCancellable()
       }
       dedupKeyHeld = true
@@ -118,45 +134,24 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
       }
     }
 
-    // Mock path bypasses network transport but keeps decode behavior.
     if config.enableMock, let mockData = request.mockData {
-      decode(data: mockData, request: request, statusCode: 200, headers: [:], releaseDedup: releaseDedup, completion: callback)
+      decode(data: mockData, request: request, releaseDedup: releaseDedup, resultBox: resultBox)
       return NoopCancellable()
     }
 
-    config.logger.log("➡️ \(built.httpMethod ?? "GET") \(built.url?.absoluteString ?? "")")
-    let dedup = deduplicator
-    let task = session.dataTask(with: built) { [weak self] data, response, error in
-      let finalizeDedup = {
-        if dedupKeyHeld {
-          dedup.complete(key: key)
-        }
-      }
-      guard let self else {
-        finalizeDedup()
-        callback(.failure(.underlying(NSError(domain: "FKNetworkClient", code: 0, userInfo: [NSLocalizedDescriptionKey: FKI18n.string("fkcore.network.error.client_released")]))))
-        return
-      }
-      self.handleResponse(
-        request: request,
-        data: data,
-        response: response,
-        error: error,
-        retried: false,
-        originalRequest: built,
-        releaseDedup: finalizeDedup,
-        completion: callback
-      )
-    }
-    task.resume()
-    return URLSessionTaskBox(task: task)
+    return executeDataTask(
+      request: request,
+      baseRequest: baseRequest,
+      cacheKey: key,
+      dedupKeyHeld: dedupKeyHeld,
+      httpRetryCount: 0,
+      tokenRetried: false,
+      releaseDedup: releaseDedup,
+      completion: completion
+    )
   }
 
   /// Sends a typed request using async/await.
-  ///
-  /// - Parameter request: Request object conforming to `Requestable`.
-  /// - Returns: Decoded response model.
-  /// - Throws: `NetworkError` on failure.
   @available(iOS 13.0, macOS 10.15, *)
   public func send<R: Requestable>(_ request: R) async throws -> R.Response {
     try await withCheckedThrowingContinuation { continuation in
@@ -171,14 +166,59 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     }
   }
 
-  /// Uploads a local file with optional progress callback.
+  /// Performs a pluggable API request and returns raw transport metadata.
   ///
-  /// - Parameters:
-  ///   - request: Upload URL request.
-  ///   - fileURL: Local file path.
-  ///   - progress: Optional progress callback in [0, 1].
-  ///   - completion: Completion callback.
-  /// - Returns: Cancellable token.
+  /// Applies the same interceptor, 401 refresh, HTTP retry, and status-code rules as ``send(_:completion:)``.
+  @discardableResult
+  public func performAPIRequest(
+    _ apiRequest: FKAPIRequest,
+    completion: @escaping (Result<FKAPIResponse, NetworkError>) -> Void
+  ) -> Cancellable {
+    let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
+
+    if let provider = config.networkStatusProvider, provider.isReachable == false {
+      resultBox.deliver(.failure(.offline))
+      return NoopCancellable()
+    }
+
+    var request = URLRequest(url: apiRequest.url)
+    request.httpMethod = apiRequest.method.rawValue
+    if let timeout = apiRequest.timeout {
+      request.timeoutInterval = timeout
+    }
+    apiRequest.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
+    request.httpBody = apiRequest.body
+
+    let finalized: URLRequest
+    do {
+      finalized = try finalizeRequest(request)
+    } catch let error as NetworkError {
+      resultBox.deliver(.failure(error))
+      return NoopCancellable()
+    } catch {
+      resultBox.deliver(.failure(.signingFailed))
+      return NoopCancellable()
+    }
+
+    return executeAPIRequest(
+      apiRequest: apiRequest,
+      request: finalized,
+      httpRetryCount: 0,
+      tokenRetried: false,
+      resultBox: resultBox
+    )
+  }
+
+  /// Async variant of ``performAPIRequest(_:completion:)``.
+  @available(iOS 13.0, macOS 10.15, *)
+  public func performAPIRequest(_ apiRequest: FKAPIRequest) async throws -> FKAPIResponse {
+    try await withCheckedThrowingContinuation { continuation in
+      _ = performAPIRequest(apiRequest) { result in
+        continuation.resume(with: result)
+      }
+    }
+  }
+
   @discardableResult
   public func upload(
     _ request: URLRequest,
@@ -186,22 +226,26 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     progress: ((Double) -> Void)?,
     completion: @escaping (Result<Data, NetworkError>) -> Void
   ) -> Cancellable {
-    // URLSession invokes this completion after upload finishes or fails.
-    let task = session.uploadTask(with: request, fromFile: fileURL) { [callbackQueue] data, response, error in
+    let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
+    let context = DataTaskContext()
+    var task: URLSessionUploadTask!
+    task = transport.uploadTask(with: request, fromFile: fileURL) { [weak self, context] data, response, error in
+      guard let self else {
+        resultBox.deliver(.failure(.underlying(NSError(domain: "FKNetworkClient", code: 0))))
+        return
+      }
       let result: Result<Data, NetworkError>
       if let error {
-        result = .failure(self.mapError(error))
+        result = .failure(self.mapError(error, taskId: context.taskId))
       } else if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
         result = .failure(.serverError(statusCode: http.statusCode, message: nil))
       } else {
         result = .success(data ?? .init())
       }
-      callbackQueue.async {
-        completion(result)
-      }
+      resultBox.deliver(result)
     }
+    context.taskId = task.taskIdentifier
     if let progress {
-      // Keep progress callback mapped by task id.
       lock.lock()
       uploadProgressHandlers[task.taskIdentifier] = progress
       lock.unlock()
@@ -210,14 +254,6 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     return URLSessionTaskBox(task: task)
   }
 
-  /// Downloads a file with optional resumable data and progress callback.
-  ///
-  /// - Parameters:
-  ///   - request: Download URL request.
-  ///   - resumeData: Resume data from interrupted task.
-  ///   - progress: Optional progress callback in [0, 1].
-  ///   - completion: Completion callback with temporary file URL.
-  /// - Returns: Cancellable token.
   @discardableResult
   public func download(
     _ request: URLRequest,
@@ -225,11 +261,10 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     progress: ((Double) -> Void)?,
     completion: @escaping (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void
   ) -> Cancellable {
-    // Prefer resume data task when available.
     let task: URLSessionDownloadTask = if let resumeData {
-      session.downloadTask(withResumeData: resumeData)
+      transport.downloadTask(withResumeData: resumeData)
     } else {
-      session.downloadTask(with: request)
+      transport.downloadTask(with: request)
     }
     if let progress {
       lock.lock()
@@ -243,139 +278,416 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     return URLSessionTaskBox(task: task)
   }
 
-  /// Central response pipeline shared by standard and retry requests.
-  ///
-  /// - Parameters:
-  ///   - request: Original typed request.
-  ///   - data: Raw payload data.
-  ///   - response: URL response object.
-  ///   - error: Transport error.
-  ///   - retried: Indicates whether this is retry execution.
-  ///   - originalRequest: URL request used for this execution.
-  ///   - releaseDedup: Invoked exactly once on terminal outcomes; skipped when starting 401 refresh + retry.
-  ///   - completion: Final completion callback.
-  private func handleResponse<R: Requestable>(
+  @discardableResult
+  private func executeDataTask<R: Requestable>(
     request: R,
+    baseRequest: URLRequest,
+    cacheKey: String,
+    dedupKeyHeld: Bool,
+    httpRetryCount: Int,
+    tokenRetried: Bool,
+    releaseDedup: @escaping () -> Void,
+    completion: @escaping (Result<R.Response, NetworkError>) -> Void
+  ) -> Cancellable {
+    let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
+
+    let finalized: URLRequest
+    do {
+      finalized = try finalizeRequest(baseRequest)
+    } catch let error as NetworkError {
+      releaseDedup()
+      resultBox.deliver(.failure(error))
+      return NoopCancellable()
+    } catch {
+      releaseDedup()
+      resultBox.deliver(.failure(.signingFailed))
+      return NoopCancellable()
+    }
+
+    let dedup = deduplicator
+    let requestBox = RequestBox(request)
+    let context = DataTaskContext()
+    var task: URLSessionDataTask!
+    task = transport.dataTask(with: finalized) { [weak self, context, requestBox] data, response, error in
+      let finalizeDedup = {
+        if dedupKeyHeld {
+          dedup.complete(key: cacheKey)
+        }
+      }
+      guard let self else {
+        finalizeDedup()
+        resultBox.deliver(.failure(.underlying(NSError(domain: "FKNetworkClient", code: 0, userInfo: [NSLocalizedDescriptionKey: FKI18n.string("fkcore.network.error.client_released")]))))
+        return
+      }
+      self.handleResponse(
+        requestBox: requestBox,
+        baseRequest: baseRequest,
+        cacheKey: cacheKey,
+        dedupKeyHeld: dedupKeyHeld,
+        data: data,
+        response: response,
+        error: error,
+        taskId: context.taskId,
+        httpRetryCount: httpRetryCount,
+        tokenRetried: tokenRetried,
+        releaseDedup: finalizeDedup,
+        resultBox: resultBox
+      )
+    }
+    context.taskId = task.taskIdentifier
+    task.resume()
+    return URLSessionTaskBox(task: task)
+  }
+
+  private func handleResponse<R: Requestable>(
+    requestBox: RequestBox<R>,
+    baseRequest: URLRequest,
+    cacheKey: String,
+    dedupKeyHeld: Bool,
     data: Data?,
     response: URLResponse?,
     error: Error?,
-    retried: Bool,
-    originalRequest: URLRequest,
+    taskId: Int,
+    httpRetryCount: Int,
+    tokenRetried: Bool,
     releaseDedup: @escaping () -> Void,
-    completion: @escaping (Result<R.Response, NetworkError>) -> Void
+    resultBox: NetworkCompletionBox<R.Response>
   ) {
     if let error {
-      releaseDedup()
-      completion(.failure(mapError(error)))
+      let mapped = mapError(error, taskId: taskId)
+      scheduleHTTPRetryIfNeeded(
+        requestBox: requestBox,
+        baseRequest: baseRequest,
+        cacheKey: cacheKey,
+        dedupKeyHeld: dedupKeyHeld,
+        httpRetryCount: httpRetryCount,
+        tokenRetried: tokenRetried,
+        releaseDedup: releaseDedup,
+        error: mapped,
+        resultBox: resultBox
+      )
       return
     }
     guard let httpResponse = response as? HTTPURLResponse else {
       releaseDedup()
-      completion(.failure(.invalidResponse))
+      resultBox.deliver(.failure(.invalidResponse))
       return
     }
     guard var data else {
       releaseDedup()
-      completion(.failure(.noData))
+      resultBox.deliver(.failure(.noData))
       return
     }
     do {
-      // Response interceptor chain can transform/decrypt payload.
       for interceptor in config.responseInterceptors {
         data = try interceptor.intercept(data: data, response: httpResponse)
       }
     } catch {
       releaseDedup()
-      completion(.failure(.underlying(error)))
+      resultBox.deliver(.failure(.underlying(error)))
       return
     }
 
-    // Transparent token refresh and one-time retry (dedup slot stays held until retry finishes).
-    if httpResponse.statusCode == 401, retried == false {
+    if httpResponse.statusCode == 401, tokenRetried == false {
       refreshTokenAndRetry(
-        request: request,
-        originalRequest: originalRequest,
+        requestBox: requestBox,
+        baseRequest: baseRequest,
+        cacheKey: cacheKey,
+        dedupKeyHeld: dedupKeyHeld,
+        httpRetryCount: httpRetryCount,
         releaseDedup: releaseDedup,
-        completion: completion
+        resultBox: resultBox
       )
       return
     }
 
     guard (200..<300).contains(httpResponse.statusCode) else {
-      releaseDedup()
-      completion(.failure(.serverError(statusCode: httpResponse.statusCode, message: String(data: data, encoding: .utf8))))
+      let serverError = NetworkError.serverError(statusCode: httpResponse.statusCode, message: String(data: data, encoding: .utf8))
+      scheduleHTTPRetryIfNeeded(
+        requestBox: requestBox,
+        baseRequest: baseRequest,
+        cacheKey: cacheKey,
+        dedupKeyHeld: dedupKeyHeld,
+        httpRetryCount: httpRetryCount,
+        tokenRetried: tokenRetried,
+        releaseDedup: releaseDedup,
+        error: serverError,
+        resultBox: resultBox
+      )
       return
     }
-    storeCacheIfNeeded(request: request, data: data, for: cacheKey(for: originalRequest))
+
+    storeCacheIfNeeded(request: requestBox.value, data: data, for: cacheKey)
     decode(
       data: data,
-      request: request,
-      statusCode: httpResponse.statusCode,
-      headers: httpResponse.allHeaderFields,
+      request: requestBox.value,
       releaseDedup: releaseDedup,
-      completion: completion
+      resultBox: resultBox
     )
   }
 
-  /// Executes token refresh flow and retries original request once.
-  ///
-  /// - Important: This method returns `.tokenRefreshFailed` when token store
-  ///   or refresher is unavailable, or when refresh callback fails.
-  private func refreshTokenAndRetry<R: Requestable>(
-    request: R,
-    originalRequest: URLRequest,
+  private func scheduleHTTPRetryIfNeeded<R: Requestable>(
+    requestBox: RequestBox<R>,
+    baseRequest: URLRequest,
+    cacheKey: String,
+    dedupKeyHeld: Bool,
+    httpRetryCount: Int,
+    tokenRetried: Bool,
     releaseDedup: @escaping () -> Void,
-    completion: @escaping (Result<R.Response, NetworkError>) -> Void
+    error: NetworkError,
+    resultBox: NetworkCompletionBox<R.Response>
+  ) {
+    let policy = config.retryPolicy
+    guard FKNetworkRetryExecutor.isMethodRetryable(request: requestBox.value, policy: policy),
+          FKNetworkRetryExecutor.shouldRetry(error: error, httpRetryCount: httpRetryCount, policy: policy) else {
+      releaseDedup()
+      if httpRetryCount >= policy.maxRetryCount, policy.maxRetryCount > 0 {
+        resultBox.deliver(.failure(.retryExhausted(lastError: error)))
+      } else {
+        resultBox.deliver(.failure(error))
+      }
+      return
+    }
+
+    let nextAttempt = httpRetryCount + 1
+    let delay = FKNetworkRetryExecutor.delay(forAttempt: nextAttempt, policy: policy)
+    config.logger.log("retry attempt \(nextAttempt) after \(String(format: "%.2f", delay))s for \(baseRequest.httpMethod ?? "GET") \(baseRequest.url?.absoluteString ?? "")")
+
+    DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self, requestBox] in
+      guard let self else {
+        releaseDedup()
+        resultBox.deliver(.failure(.underlying(NSError(domain: "FKNetworkClient", code: 0))))
+        return
+      }
+      _ = self.executeDataTask(
+        request: requestBox.value,
+        baseRequest: baseRequest,
+        cacheKey: cacheKey,
+        dedupKeyHeld: dedupKeyHeld,
+        httpRetryCount: nextAttempt,
+        tokenRetried: tokenRetried,
+        releaseDedup: releaseDedup,
+        completion: resultBox.handler
+      )
+    }
+  }
+
+  private func refreshTokenAndRetry<R: Requestable>(
+    requestBox: RequestBox<R>,
+    baseRequest: URLRequest,
+    cacheKey: String,
+    dedupKeyHeld: Bool,
+    httpRetryCount: Int,
+    releaseDedup: @escaping () -> Void,
+    resultBox: NetworkCompletionBox<R.Response>
   ) {
     guard let refresher = config.tokenRefresher, let tokenStore = config.tokenStore else {
       releaseDedup()
-      completion(.failure(.tokenRefreshFailed))
+      resultBox.deliver(.failure(.tokenRefreshFailed))
       return
     }
-    // Refresh token asynchronously, then replay original request with new auth.
-    refresher.refreshToken(using: tokenStore.refreshToken) { [weak self] result in
+    refresher.refreshToken(using: tokenStore.refreshToken) { [weak self, requestBox] result in
       guard let self else {
         releaseDedup()
-        completion(.failure(.tokenRefreshFailed))
+        resultBox.deliver(.failure(.tokenRefreshFailed))
         return
       }
       switch result {
       case let .success(token):
-        // Persist new token before retrying.
         tokenStore.accessToken = token
-        var retryRequest = originalRequest
-        retryRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        let task = session.dataTask(with: retryRequest) { [weak self] data, response, error in
-          guard let self else {
-            releaseDedup()
-            completion(.failure(.tokenRefreshFailed))
-            return
-          }
-          self.handleResponse(
-            request: request,
-            data: data,
-            response: response,
-            error: error,
-            retried: true,
-            originalRequest: retryRequest,
-            releaseDedup: releaseDedup,
-            completion: completion
-          )
-        }
-        task.resume()
+        var retryBase = baseRequest
+        retryBase.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        _ = self.executeDataTask(
+          request: requestBox.value,
+          baseRequest: retryBase,
+          cacheKey: cacheKey,
+          dedupKeyHeld: dedupKeyHeld,
+          httpRetryCount: httpRetryCount,
+          tokenRetried: true,
+          releaseDedup: releaseDedup,
+          completion: resultBox.handler
+        )
       case .failure:
         releaseDedup()
-        completion(.failure(.tokenRefreshFailed))
+        resultBox.deliver(.failure(.tokenRefreshFailed))
       }
     }
   }
 
-  /// Builds `URLRequest` from endpoint and global configuration.
-  ///
-  /// - Parameter endpoint: Typed endpoint definition.
-  /// - Returns: Built URL request ready for execution.
-  /// - Throws: `NetworkError.invalidURL` or custom encryption/signing errors.
-  private func buildRequest<R: Requestable>(from endpoint: R) throws -> URLRequest {
+  @discardableResult
+  private func executeAPIRequest(
+    apiRequest: FKAPIRequest,
+    request: URLRequest,
+    httpRetryCount: Int,
+    tokenRetried: Bool,
+    resultBox: NetworkCompletionBox<FKAPIResponse>
+  ) -> Cancellable {
+    let context = DataTaskContext()
+    var task: URLSessionDataTask!
+    task = transport.dataTask(with: request) { [weak self, context] data, response, error in
+      guard let self else {
+        resultBox.deliver(.failure(.underlying(NSError(domain: "FKNetworkClient", code: 0))))
+        return
+      }
+      self.handleAPIResponse(
+        apiRequest: apiRequest,
+        request: request,
+        data: data,
+        response: response,
+        error: error,
+        taskId: context.taskId,
+        httpRetryCount: httpRetryCount,
+        tokenRetried: tokenRetried,
+        resultBox: resultBox
+      )
+    }
+    context.taskId = task.taskIdentifier
+    task.resume()
+    return URLSessionTaskBox(task: task)
+  }
+
+  private func handleAPIResponse(
+    apiRequest: FKAPIRequest,
+    request: URLRequest,
+    data: Data?,
+    response: URLResponse?,
+    error: Error?,
+    taskId: Int,
+    httpRetryCount: Int,
+    tokenRetried: Bool,
+    resultBox: NetworkCompletionBox<FKAPIResponse>
+  ) {
+    if let error {
+      let mapped = mapError(error, taskId: taskId)
+      scheduleAPIRetryIfNeeded(
+        apiRequest: apiRequest,
+        request: request,
+        httpRetryCount: httpRetryCount,
+        tokenRetried: tokenRetried,
+        error: mapped,
+        resultBox: resultBox
+      )
+      return
+    }
+    guard let httpResponse = response as? HTTPURLResponse else {
+      resultBox.deliver(.failure(.invalidResponse))
+      return
+    }
+    guard var data else {
+      resultBox.deliver(.failure(.noData))
+      return
+    }
+    do {
+      for interceptor in config.responseInterceptors {
+        data = try interceptor.intercept(data: data, response: httpResponse)
+      }
+    } catch {
+      resultBox.deliver(.failure(.underlying(error)))
+      return
+    }
+
+    if httpResponse.statusCode == 401, tokenRetried == false {
+      refreshAPIAndRetry(
+        apiRequest: apiRequest,
+        request: request,
+        httpRetryCount: httpRetryCount,
+        resultBox: resultBox
+      )
+      return
+    }
+
+    guard (200..<300).contains(httpResponse.statusCode) else {
+      let serverError = NetworkError.serverError(
+        statusCode: httpResponse.statusCode,
+        message: String(data: data, encoding: .utf8)
+      )
+      scheduleAPIRetryIfNeeded(
+        apiRequest: apiRequest,
+        request: request,
+        httpRetryCount: httpRetryCount,
+        tokenRetried: tokenRetried,
+        error: serverError,
+        resultBox: resultBox
+      )
+      return
+    }
+
+    resultBox.deliver(.success(FKAPIResponse(data: data, httpResponse: httpResponse)))
+  }
+
+  private func scheduleAPIRetryIfNeeded(
+    apiRequest: FKAPIRequest,
+    request: URLRequest,
+    httpRetryCount: Int,
+    tokenRetried: Bool,
+    error: NetworkError,
+    resultBox: NetworkCompletionBox<FKAPIResponse>
+  ) {
+    let policy = config.retryPolicy
+    let method = HTTPMethod(rawValue: apiRequest.method.rawValue) ?? .get
+    guard FKNetworkRetryExecutor.isHTTPMethodRetryable(method: method, isIdempotent: false, policy: policy),
+          FKNetworkRetryExecutor.shouldRetry(error: error, httpRetryCount: httpRetryCount, policy: policy) else {
+      if httpRetryCount >= policy.maxRetryCount, policy.maxRetryCount > 0 {
+        resultBox.deliver(.failure(.retryExhausted(lastError: error)))
+      } else {
+        resultBox.deliver(.failure(error))
+      }
+      return
+    }
+
+    let nextAttempt = httpRetryCount + 1
+    let delay = FKNetworkRetryExecutor.delay(forAttempt: nextAttempt, policy: policy)
+    config.logger.log("retry attempt \(nextAttempt) after \(String(format: "%.2f", delay))s for \(request.httpMethod ?? "GET") \(request.url?.absoluteString ?? "")")
+
+    DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
+      guard let self else {
+        resultBox.deliver(.failure(.underlying(NSError(domain: "FKNetworkClient", code: 0))))
+        return
+      }
+      _ = self.executeAPIRequest(
+        apiRequest: apiRequest,
+        request: request,
+        httpRetryCount: nextAttempt,
+        tokenRetried: tokenRetried,
+        resultBox: resultBox
+      )
+    }
+  }
+
+  private func refreshAPIAndRetry(
+    apiRequest: FKAPIRequest,
+    request: URLRequest,
+    httpRetryCount: Int,
+    resultBox: NetworkCompletionBox<FKAPIResponse>
+  ) {
+    guard let refresher = config.tokenRefresher, let tokenStore = config.tokenStore else {
+      resultBox.deliver(.failure(.tokenRefreshFailed))
+      return
+    }
+    refresher.refreshToken(using: tokenStore.refreshToken) { [weak self] result in
+      guard let self else {
+        resultBox.deliver(.failure(.tokenRefreshFailed))
+        return
+      }
+      switch result {
+      case let .success(token):
+        tokenStore.accessToken = token
+        var retryRequest = request
+        retryRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        _ = self.executeAPIRequest(
+          apiRequest: apiRequest,
+          request: retryRequest,
+          httpRetryCount: httpRetryCount,
+          tokenRetried: true,
+          resultBox: resultBox
+        )
+      case .failure:
+        resultBox.deliver(.failure(.tokenRefreshFailed))
+      }
+    }
+  }
+
+  private func buildBaseRequest<R: Requestable>(from endpoint: R) throws -> URLRequest {
     guard let env = config.current else { throw NetworkError.invalidURL }
     guard var components = URLComponents(url: env.baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: false)
     else {
@@ -383,7 +695,6 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     }
     let mergedQuery = config.commonQueryItems.merging(endpoint.queryItems) { _, latest in latest }
     if mergedQuery.isEmpty == false {
-      // Sort query names for stable URL and deterministic cache keys.
       components.queryItems = mergedQuery.map { .init(name: $0.key, value: $0.value) }.sorted(by: { $0.name < $1.name })
     }
     guard let finalURL = components.url else { throw NetworkError.invalidURL }
@@ -395,73 +706,65 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     let mergedHeaders = env.defaultHeaders.merging(endpoint.headers) { _, latest in latest }
     mergedHeaders.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
 
-    var payload = endpoint.bodyParameters
-    if let encrypt = config.encryptParameters {
-      // Optional payload encryption extension point.
-      payload = try encrypt(payload)
-    }
-    switch endpoint.encoding {
-    case .query:
-      break
-    case .json:
-      if payload.isEmpty == false {
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    if let rawBody = endpoint.rawBody {
+      request.httpBody = rawBody
+    } else {
+      var payload = endpoint.bodyParameters
+      if let encrypt = config.encryptParameters {
+        do {
+          payload = try encrypt(payload)
+        } catch let error as NetworkError {
+          throw error
+        } catch {
+          throw NetworkError.encryptionFailed
+        }
       }
-    case .formURLEncoded:
-      if payload.isEmpty == false {
-        let form = payload.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: "&")
-        request.httpBody = form.data(using: .utf8)
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+      switch endpoint.encoding {
+      case .query:
+        break
+      case .json:
+        if payload.isEmpty == false {
+          request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+          request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+      case .formURLEncoded:
+        if payload.isEmpty == false {
+          let form = payload.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: "&")
+          request.httpBody = form.data(using: .utf8)
+          request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        }
       }
-    }
-
-    // Request interceptors are applied before signing.
-    for interceptor in config.requestInterceptors {
-      request = try interceptor.intercept(request)
-    }
-    // Signing should run after all request mutations.
-    if let signer = config.signer {
-      request = try signer.sign(request)
     }
     return request
   }
 
-  /// Decodes typed response model from raw data.
-  ///
-  /// - Parameters:
-  ///   - data: Raw payload data.
-  ///   - request: Original typed request.
-  ///   - statusCode: HTTP status code.
-  ///   - headers: HTTP response headers.
-  ///   - releaseDedup: Runs before success or decode failure completion (no-op when cache hit).
-  ///   - completion: Final completion callback.
+  private func finalizeRequest(_ request: URLRequest) throws -> URLRequest {
+    var mutable = request
+    for interceptor in config.requestInterceptors {
+      mutable = try interceptor.intercept(mutable)
+    }
+    if let signer = config.signer {
+      mutable = try signer.sign(mutable)
+    }
+    return mutable
+  }
+
   private func decode<R: Requestable>(
     data: Data,
     request: R,
-    statusCode: Int,
-    headers: [AnyHashable: Any],
     releaseDedup: @escaping () -> Void,
-    completion: @escaping (Result<R.Response, NetworkError>) -> Void
+    resultBox: NetworkCompletionBox<R.Response>
   ) {
     do {
       let value = try decoder.decode(R.Response.self, from: data)
-      // Keep metadata object creation for optional debugging/extension.
-      _ = NetworkResponse(value: value, statusCode: statusCode, headers: headers, rawData: data)
       releaseDedup()
-      completion(.success(value))
+      resultBox.deliver(.success(value))
     } catch {
       releaseDedup()
-      completion(.failure(.decodingFailed(underlying: error)))
+      resultBox.deliver(.failure(.decodingFailed(underlying: error)))
     }
   }
 
-  /// Stores successful response into cache based on request policy.
-  ///
-  /// - Parameters:
-  ///   - request: Original request carrying cache policy.
-  ///   - data: Payload data to cache.
-  ///   - key: Stable cache key.
   private func storeCacheIfNeeded<R: Requestable>(request: R, data: Data, for key: String) {
     switch request.cachePolicy {
     case .none:
@@ -475,17 +778,21 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     }
   }
 
-  /// Creates stable cache key from method, URL, and body.
   private func cacheKey(for request: URLRequest) -> String {
     let body = request.httpBody?.base64EncodedString() ?? ""
     return "\(request.httpMethod ?? "GET")|\(request.url?.absoluteString ?? "")|\(body)"
   }
 
-  /// Maps Foundation transport errors to `NetworkError`.
-  ///
-  /// - Parameter error: Underlying system error.
-  /// - Returns: Normalized `NetworkError`.
-  private func mapError(_ error: Error) -> NetworkError {
+  private func mapError(_ error: Error, taskId: Int? = nil) -> NetworkError {
+    if let taskId {
+      lock.lock()
+      let pinningFailure = pinningFailureByTaskId.removeValue(forKey: taskId)
+      lock.unlock()
+      if let pinningFailure {
+        return pinningFailure
+      }
+    }
+
     let nsError = error as NSError
     if nsError.domain == NSURLErrorDomain {
       if nsError.code == NSURLErrorCancelled {
@@ -501,9 +808,6 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     return .underlying(error)
   }
 
-  /// URLSession upload progress callback.
-  ///
-  /// - Note: Progress handlers are looked up by task identifier.
   public func urlSession(
     _ session: URLSession,
     task: URLSessionTask,
@@ -519,7 +823,6 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     handler?(value)
   }
 
-  /// URLSession download progress callback.
   public func urlSession(
     _ session: URLSession,
     downloadTask: URLSessionDownloadTask,
@@ -535,7 +838,6 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     handler?(value)
   }
 
-  /// URLSession download completion callback with temporary file URL.
   public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
     lock.lock()
     let completion = downloadCompletions.removeValue(forKey: downloadTask.taskIdentifier)
@@ -546,9 +848,6 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     }
   }
 
-  /// URLSession task completion callback for error path.
-  ///
-  /// - Note: For interrupted downloads, resume data is extracted from `NSError`.
   public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
     guard let error else { return }
     lock.lock()
@@ -558,17 +857,15 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     lock.unlock()
 
     let resumeData = (error as NSError).userInfo[NSURLSessionDownloadTaskResumeData] as? Data
-    let mappedError = mapError(error)
+    let mappedError = mapError(error, taskId: task.taskIdentifier)
     callbackQueue.async {
       completion?(.failure(resumeData == nil ? mappedError : .underlying(error)))
     }
   }
 
-  /// URLSession authentication challenge callback.
-  ///
-  /// Applies basic server trust handling and optional host-based strategy hook.
   public func urlSession(
     _ session: URLSession,
+    task: URLSessionTask,
     didReceive challenge: URLAuthenticationChallenge,
     completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
   ) {
@@ -580,23 +877,48 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
       completionHandler(.cancelAuthenticationChallenge, nil)
       return
     }
+
     let host = challenge.protectionSpace.host
-    if config.shouldPinSSLHost?(host) == false {
-      completionHandler(.performDefaultHandling, nil)
+    if let pinning = config.sslPinning, FKSSLPinningValidator.shouldPin(host: host, config: pinning) {
+      do {
+        try FKSSLPinningValidator.validate(trust: trust, host: host, config: pinning)
+        completionHandler(.useCredential, URLCredential(trust: trust))
+      } catch let error as NetworkError {
+        if case .sslPinningFailed = error, pinning.allowUserTrustEvaluationFallback {
+          completionHandler(.performDefaultHandling, nil)
+          return
+        }
+        lock.lock()
+        pinningFailureByTaskId[task.taskIdentifier] = error
+        lock.unlock()
+        completionHandler(.cancelAuthenticationChallenge, nil)
+      } catch {
+        lock.lock()
+        pinningFailureByTaskId[task.taskIdentifier] = .sslPinningFailed(host: host)
+        lock.unlock()
+        completionHandler(.cancelAuthenticationChallenge, nil)
+      }
       return
     }
-    completionHandler(.useCredential, URLCredential(trust: trust))
+
+    if let shouldPin = config.shouldPinSSLHost {
+      if shouldPin(host) == false {
+        completionHandler(.performDefaultHandling, nil)
+        return
+      }
+      completionHandler(.useCredential, URLCredential(trust: trust))
+      return
+    }
+
+    completionHandler(.performDefaultHandling, nil)
   }
 }
 
-/// No-op cancellation object returned when no real task is created.
 private final class NoopCancellable: Cancellable {
-  /// Performs no action.
   func cancel() {}
 }
 
 private extension NetworkCachePolicy {
-  /// TTL for policies that participate in cache read/write; `nil` for `.none`.
   var fk_cacheTTL: TimeInterval? {
     switch self {
     case .none:

@@ -5,12 +5,20 @@ import UIKit
 public final class FKBusinessVersionManager: FKBusinessVersioning, @unchecked Sendable {
   /// Source of app/device metadata used for version comparison.
   private let infoProvider: FKBusinessInfoProviding
+  /// Alert manager used for de-duplicated update prompts.
+  private let alertManager: FKBusinessAlertManaging
 
   /// Creates a version manager.
   ///
-  /// - Parameter infoProvider: App metadata provider.
-  public init(infoProvider: FKBusinessInfoProviding) {
+  /// - Parameters:
+  ///   - infoProvider: App metadata provider.
+  ///   - alertManager: Alert manager for update prompt presentation.
+  public init(
+    infoProvider: FKBusinessInfoProviding,
+    alertManager: FKBusinessAlertManaging
+  ) {
     self.infoProvider = infoProvider
+    self.alertManager = alertManager
   }
 
   /// Returns local app metadata built from the current runtime info provider.
@@ -76,27 +84,41 @@ public final class FKBusinessVersionManager: FKBusinessVersioning, @unchecked Se
 
   @MainActor
   private func presentUpdatePromptOnMain(result: FKVersionCheckResult, presenter: UIViewController?) {
-    let vc = presenter ?? FKTopViewControllerResolver.topMostViewController()
-    guard let vc else { return }
     let title = FKI18n.string("fkcore.business.version.update_available.title")
     let message = Self.buildMessage(remote: result.remote)
-
-    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
     let updateTitle = FKI18n.string("fkcore.business.version.update_available.action_update")
-    alert.addAction(UIAlertAction(title: updateTitle, style: .default) { [weak self] _ in
-      if let url = result.remote.updateURL {
-        UIApplication.shared.open(url, options: [:], completionHandler: nil)
-      }
-      if result.decision == .forceUpdate {
-        self?.presentUpdatePromptIfNeeded(result: result, presenter: vc)
-      }
-    })
+    let alertID = "fkkit.business.version.update.\(result.decision)"
+
+    var actions: [FKAlertAction] = [
+      FKAlertAction(title: updateTitle, style: .default) { [weak self] in
+        if let url = result.remote.updateURL {
+          UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
+        if result.decision == .forceUpdate {
+          Task { @MainActor [weak self] in
+            self?.presentUpdatePromptIfNeeded(result: result, presenter: presenter)
+          }
+        }
+      },
+    ]
 
     if result.decision == .optionalUpdate {
-      alert.addAction(UIAlertAction(title: FKI18n.string("fkcore.business.version.update_available.action_later"), style: .cancel))
+      actions.append(
+        FKAlertAction(
+          title: FKI18n.string("fkcore.business.version.update_available.action_later"),
+          style: .cancel,
+          handler: nil
+        )
+      )
     }
 
-    vc.present(alert, animated: true)
+    alertManager.presentOnce(
+      id: alertID,
+      title: title,
+      message: message,
+      actions: actions,
+      presenter: presenter
+    )
   }
 
   /// Builds alert message content from remote metadata.

@@ -4,6 +4,12 @@ import UIKit
 @MainActor
 final class FKSheetPresentationCenterPanCoordinator {
   var isInteractivelyDragging = false
+  /// Stays `true` for the remainder of the pan once scroll ownership is detected.
+  private var stickyDeferredToScrollView = false
+  /// Scroll offset captured at pan begin for detecting content scrolling during the gesture.
+  private var scrollOffsetAtPanStart: CGFloat?
+  /// Whether the tracked scroll view moved away from its start offset during this pan.
+  private var scrollConsumedPanDuringGesture = false
   var baseBackdropAlpha: CGFloat = 1
 
   struct Actions {
@@ -15,6 +21,8 @@ final class FKSheetPresentationCenterPanCoordinator {
     var dismiss: (_ velocityY: CGFloat) -> Void
     var dismissProgressThreshold: () -> CGFloat
     var dismissVelocityThreshold: () -> CGFloat
+    var trackedScrollView: () -> UIScrollView?
+    var shouldDeferToScrollView: (_ translationY: CGFloat) -> Bool
   }
 
   func handlePan(
@@ -31,14 +39,44 @@ final class FKSheetPresentationCenterPanCoordinator {
     case .began:
       actions.captureBaseBackdropAlpha()
       isInteractivelyDragging = true
+      stickyDeferredToScrollView = false
+      scrollConsumedPanDuringGesture = false
+      if let scrollView = actions.trackedScrollView() {
+        scrollOffsetAtPanStart = scrollView.contentOffset.y
+      } else {
+        scrollOffsetAtPanStart = nil
+      }
     case .changed:
+      updateScrollConsumptionDuringPan(trackedScrollView: actions.trackedScrollView())
+
+      if actions.shouldDeferToScrollView(translation.y) {
+        if !stickyDeferredToScrollView {
+          stickyDeferredToScrollView = true
+          actions.resetInteractiveDismiss(false)
+          actions.notifyProgress(0)
+        }
+        return
+      }
+
+      guard !scrollConsumedPanDuringGesture, !stickyDeferredToScrollView else { return }
+
+      if let scrollView = actions.trackedScrollView() {
+        FKSheetPresentationInteractionEngine.clampScrollViewToSheetHandoffEdge(scrollView, axis: .bottom)
+      }
       actions.applyInteractiveDismiss(downwardTranslation, progress)
       actions.notifyProgress(progress)
     case .ended, .cancelled, .failed:
       let velocityY = recognizer.velocity(in: coordinateView).y
+      isInteractivelyDragging = false
+      updateScrollConsumptionDuringPan(trackedScrollView: actions.trackedScrollView())
+
+      if stickyDeferredToScrollView || scrollConsumedPanDuringGesture {
+        resetTransientPanState()
+        return
+      }
+
       let shouldDismiss = progress > actions.dismissProgressThreshold()
         || velocityY > actions.dismissVelocityThreshold()
-      isInteractivelyDragging = false
       if shouldDismiss {
         actions.notifyProgress(1)
         actions.dismiss(velocityY)
@@ -46,8 +84,25 @@ final class FKSheetPresentationCenterPanCoordinator {
         actions.notifyProgress(0)
         actions.resetInteractiveDismiss(true)
       }
+      resetTransientPanState()
     default:
       break
     }
+  }
+
+  private func updateScrollConsumptionDuringPan(trackedScrollView: UIScrollView?) {
+    guard let scrollView = trackedScrollView, let startOffset = scrollOffsetAtPanStart else { return }
+    if scrollView.contentOffset.y > startOffset + 0.5 {
+      scrollConsumedPanDuringGesture = true
+    }
+    if !FKSheetPresentationInteractionEngine.isScrollViewAtTopEdge(scrollView) {
+      scrollConsumedPanDuringGesture = true
+    }
+  }
+
+  private func resetTransientPanState() {
+    stickyDeferredToScrollView = false
+    scrollOffsetAtPanStart = nil
+    scrollConsumedPanDuringGesture = false
   }
 }

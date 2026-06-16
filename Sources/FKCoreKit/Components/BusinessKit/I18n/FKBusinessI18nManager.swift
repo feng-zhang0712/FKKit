@@ -28,6 +28,7 @@ public final class FKBusinessI18nManager: FKBusinessLocalizing, @unchecked Senda
       enforceSupportedLanguages: false
     )
     manager = FKI18nManager(configuration: configuration, userDefaults: userDefaults)
+    syncCoreKitLanguage(manager.currentLanguageCode)
   }
 
   /// Underlying localization manager for advanced APIs (formatters, plural rules, bundle overrides).
@@ -39,8 +40,12 @@ public final class FKBusinessI18nManager: FKBusinessLocalizing, @unchecked Senda
   }
 
   /// Updates current language and notifies all observers.
+  ///
+  /// Also synchronizes ``FKI18n/provider`` so BusinessKit-owned strings
+  /// (version prompts, errors, relative time labels) follow the same language.
   public func setLanguageCode(_ code: String) {
     manager.setLanguageCode(code)
+    syncCoreKitLanguage(code)
   }
 
   /// Resolves localized text from the active language bundle.
@@ -57,5 +62,11 @@ public final class FKBusinessI18nManager: FKBusinessLocalizing, @unchecked Senda
     return FKBusinessObservationToken {
       token.invalidate()
     }
+  }
+
+  /// Keeps FKCoreKit bundle strings aligned with BusinessKit language selection.
+  private func syncCoreKitLanguage(_ code: String) {
+    guard FKI18n.provider.currentLanguageCode != code else { return }
+    FKI18n.provider.setLanguageCode(code)
   }
 }

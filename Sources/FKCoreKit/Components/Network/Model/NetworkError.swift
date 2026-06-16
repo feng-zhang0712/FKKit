@@ -29,6 +29,12 @@ public enum NetworkError: LocalizedError {
   case signingFailed
   /// Parameter encryption process failed.
   case encryptionFailed
+  /// Strict SSL pinning validation failed for the host.
+  case sslPinningFailed(host: String)
+  /// Host matched pinning rules but no pins were configured.
+  case sslPinningNotConfigured(host: String)
+  /// HTTP retry budget was exhausted.
+  indirect case retryExhausted(lastError: NetworkError)
   /// Fallback wrapper for unknown underlying errors.
   case underlying(Error)
 
@@ -63,6 +69,12 @@ public enum NetworkError: LocalizedError {
       return FKI18n.string("fkcore.network.error.signing_failed")
     case .encryptionFailed:
       return FKI18n.string("fkcore.network.error.encryption_failed")
+    case let .sslPinningFailed(host):
+      return FKI18n.format("fkcore.network.error.ssl_pinning_failed", host)
+    case let .sslPinningNotConfigured(host):
+      return FKI18n.format("fkcore.network.error.ssl_pinning_not_configured", host)
+    case let .retryExhausted(lastError):
+      return FKI18n.format("fkcore.network.error.retry_exhausted", lastError.localizedDescription)
     case let .underlying(error):
       return error.localizedDescription
     }

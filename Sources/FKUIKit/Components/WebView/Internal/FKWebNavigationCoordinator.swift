@@ -14,8 +14,6 @@ final class FKWebScriptMessageProxy: NSObject, WKScriptMessageHandler {
 }
 
 /// Forwards `WKUIDelegate` callbacks to the navigation coordinator on the main actor.
-@MainActor
-@objcMembers
 final class FKWebUIDelegateProxy: NSObject, WKUIDelegate {
   unowned var owner: FKWebNavigationCoordinator!
 
@@ -25,33 +23,39 @@ final class FKWebUIDelegateProxy: NSObject, WKUIDelegate {
     for navigationAction: WKNavigationAction,
     windowFeatures: WKWindowFeatures
   ) -> WKWebView? {
-    owner.handleCreateWebView(configuration: configuration, navigationAction: navigationAction)
+    MainActor.assumeIsolated {
+      owner.handleCreateWebView(configuration: configuration, navigationAction: navigationAction)
+    }
   }
 
   func webView(
     _ webView: WKWebView,
     runJavaScriptAlertPanelWithMessage message: String,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping @MainActor () -> Void
+    completionHandler: @escaping () -> Void
   ) {
-    owner.handleJavaScriptAlertPanel(
-      message: message,
-      frame: frame,
-      completionHandler: completionHandler
-    )
+    Task { @MainActor [owner] in
+      owner?.handleJavaScriptAlertPanel(
+        message: message,
+        frame: frame,
+        completionHandler: completionHandler
+      )
+    }
   }
 
   func webView(
     _ webView: WKWebView,
     runJavaScriptConfirmPanelWithMessage message: String,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping @MainActor (Bool) -> Void
+    completionHandler: @escaping (Bool) -> Void
   ) {
-    owner.handleJavaScriptConfirmPanel(
-      message: message,
-      frame: frame,
-      completionHandler: completionHandler
-    )
+    Task { @MainActor [owner] in
+      owner?.handleJavaScriptConfirmPanel(
+        message: message,
+        frame: frame,
+        completionHandler: completionHandler
+      )
+    }
   }
 
   func webView(
@@ -59,14 +63,16 @@ final class FKWebUIDelegateProxy: NSObject, WKUIDelegate {
     runJavaScriptTextInputPanelWithPrompt prompt: String,
     defaultText: String?,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping @MainActor (String?) -> Void
+    completionHandler: @escaping (String?) -> Void
   ) {
-    owner.handleJavaScriptPromptPanel(
-      prompt: prompt,
-      defaultText: defaultText,
-      frame: frame,
-      completionHandler: completionHandler
-    )
+    Task { @MainActor [owner] in
+      owner?.handleJavaScriptPromptPanel(
+        prompt: prompt,
+        defaultText: defaultText,
+        frame: frame,
+        completionHandler: completionHandler
+      )
+    }
   }
 }
 

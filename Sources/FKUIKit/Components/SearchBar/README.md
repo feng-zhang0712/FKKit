@@ -93,6 +93,7 @@ Global defaults: mutate `FKSearchBarDefaults.defaultConfiguration` at launch (sa
 - **`setText(_:options:)`** — use `.silent` for SwiftUI binding sync; `.withSearchQuery` to flush debounced path.
 - **`setLoading(_:animated:)`** — host-driven async search; cancel remains available during loading.
 - Pair with **`FKEmptyStateConfiguration.scenario(.noSearchResult)`** on the filtered table when query is non-empty and results are empty.
+- **Recommended (when delivered):** [FKSearchViewController](../../SearchViewController/) — full search page composing SearchBar + ListKit; see [FKSearchViewController_DESIGN.md](../../../../docs/FKSearchViewController_DESIGN.md).
 
 ## Examples
 

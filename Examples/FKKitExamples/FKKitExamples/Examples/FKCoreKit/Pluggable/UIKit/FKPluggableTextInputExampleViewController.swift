@@ -1,16 +1,17 @@
 import FKCoreKit
 import UIKit
 
-/// Demonstrates `FKTextFormatting`, `FKTextValidating`, and `FKTextAsyncValidating`.
+/// Demonstrates library text formatters/validators and async validation.
 final class FKPluggableTextInputExampleViewController: FKPluggableExampleBaseViewController {
 
   private let phoneField = UITextField()
   private let usernameField = UITextField()
   private let statusLabel = UILabel()
 
-  private let phoneRule = DemoPhoneFormatRule()
-  private let phoneFormatter = DemoPhoneFormatter()
-  private let phoneValidator = DemoPhoneValidator()
+  private let phoneRule = FKPhoneNumberFormattingRule.default
+  private let phoneFormatter = FKPhoneNumberTextFormatter()
+  private let phoneValidator = FKLengthTextValidator()
+  private let phoneValidationRule = FKLengthValidationRule(minimum: 11, maximum: 11)
   private let asyncValidator = DemoUsernameAsyncValidator()
 
   override func viewDidLoad() {
@@ -18,10 +19,10 @@ final class FKPluggableTextInputExampleViewController: FKPluggableExampleBaseVie
     title = "Pluggable · Text Input"
     setupFields()
 
-    addActionButton("1) Format phone as you type (FKTextFormatting)") { [weak self] in
+    addActionButton("1) FKPhoneNumberTextFormatter (live)") { [weak self] in
       self?.appendOutput("Type in the phone field — formatting runs on .editingChanged")
     }
-    addActionButton("2) Validate phone (FKTextValidating)") { [weak self] in
+    addActionButton("2) FKLengthTextValidator for phone") { [weak self] in
       self?.validatePhone()
     }
     addActionButton("3) Async validate username (FKTextAsyncValidating)") { [weak self] in
@@ -67,7 +68,11 @@ final class FKPluggableTextInputExampleViewController: FKPluggableExampleBaseVie
   private func validatePhone() {
     let display = phoneField.text ?? ""
     let digits = String(display.filter(\.isNumber))
-    let result = phoneValidator.validate(rawText: digits, displayText: display, rule: phoneRule)
+    let result = phoneValidator.validate(
+      rawText: digits,
+      displayText: display,
+      rule: phoneValidationRule
+    )
     switch result {
     case .valid:
       appendOutput("Phone validation: valid")

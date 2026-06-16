@@ -16,6 +16,12 @@ public enum FKFileManagerError: Error, Sendable, Equatable {
   case insufficientDiskSpace(required: Int64, available: Int64)
   /// ZIP APIs are unavailable on current platform version.
   case zipUnavailable
+  /// ZIP archive is corrupted or unreadable.
+  case zipCorrupted(archivePath: String)
+  /// ZIP entry path escapes the destination directory (zip slip).
+  case zipEntryPathUnsafe(entry: String)
+  /// ZIP operation failed with a descriptive message.
+  case zipOperationFailed(message: String)
   /// Unknown wrapped error.
   case unknown(String)
 }
@@ -61,6 +67,12 @@ extension FKFileManagerError: LocalizedError {
       return FKI18n.format("fkcore.file.error.insufficient_disk_space", required, available)
     case .zipUnavailable:
       return FKI18n.string("fkcore.file.error.zip_unavailable")
+    case let .zipCorrupted(archivePath):
+      return FKI18n.format("fkcore.file.error.zip_corrupted", archivePath)
+    case let .zipEntryPathUnsafe(entry):
+      return FKI18n.format("fkcore.file.error.zip_entry_path_unsafe", entry)
+    case let .zipOperationFailed(message):
+      return FKI18n.format("fkcore.file.error.zip_operation_failed", message)
     case let .unknown(message):
       return FKI18n.format("fkcore.file.error.unknown", message)
     }

@@ -2,6 +2,19 @@
 import UIKit
 
 public extension UIViewController {
+  /// Resolves the top-most view controller in the foreground-active window scene.
+  ///
+  /// Walks `UINavigationController`, `UITabBarController`, and the presented-view-controller chain.
+  /// Returns `nil` when no key window or root controller is available.
+  @MainActor
+  static func fk_topMostViewController(in application: UIApplication = .shared) -> UIViewController? {
+    let windowScene = application.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .first { $0.activationState == .foregroundActive }
+    let window = windowScene?.windows.first { $0.isKeyWindow } ?? windowScene?.windows.first
+    return window?.fk_topViewController
+  }
+
   /// Recursively returns the top-most presented view controller from `self`.
   var fk_topMostPresented: UIViewController {
     var top: UIViewController = self
