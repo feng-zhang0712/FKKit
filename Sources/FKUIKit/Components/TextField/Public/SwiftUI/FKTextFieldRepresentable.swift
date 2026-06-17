@@ -45,8 +45,7 @@ public struct FKTextFieldRepresentable: UIViewRepresentable {
   public func updateUIView(_ uiView: FKTextField, context _: Context) {
     uiView.configure(configuration)
     if uiView.rawText != rawText {
-      uiView.text = rawText
-      uiView.sendActions(for: .editingChanged)
+      uiView.fk_setText(rawText)
     }
   }
 }
