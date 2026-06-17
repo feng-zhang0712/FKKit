@@ -6,9 +6,9 @@ final class LockedCounter: @unchecked Sendable {
   private var value = 0
   private let lock = NSLock()
 
-  func increment() {
+  func increment(by amount: Int = 1) {
     lock.lock()
-    value += 1
+    value += amount
     lock.unlock()
   }
 

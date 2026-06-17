@@ -68,3 +68,60 @@ struct StubUserRequest: Requestable {
 struct StubNetworkStatus: NetworkStatusProviding, Sendable {
   let isReachable: Bool
 }
+
+/// Mock transport that returns a sequence of HTTP status codes for the same URL.
+final class SequentialStatusNetworkSession: NetworkSession, @unchecked Sendable {
+  private let inner = FKMockNetworkSession()
+  private let lock = NSLock()
+  private var attempt = 0
+  private let statusCodes: [Int]
+  private let successBody: Data
+
+  init(statusCodes: [Int], successBody: Data) {
+    self.statusCodes = statusCodes
+    self.successBody = successBody
+  }
+
+  func dataTask(
+    with request: URLRequest,
+    completionHandler: @escaping DataTaskCompletion
+  ) -> URLSessionDataTask {
+    lock.lock()
+    let index = min(attempt, max(statusCodes.count - 1, 0))
+    attempt += 1
+    lock.unlock()
+
+    if let url = request.url {
+      updateStub(for: url, attemptIndex: index)
+    }
+    return inner.dataTask(with: request, completionHandler: completionHandler)
+  }
+
+  func uploadTask(
+    with request: URLRequest,
+    fromFile fileURL: URL,
+    completionHandler: @escaping DataTaskCompletion
+  ) -> URLSessionUploadTask {
+    inner.uploadTask(with: request, fromFile: fileURL, completionHandler: completionHandler)
+  }
+
+  func downloadTask(with request: URLRequest) -> URLSessionDownloadTask {
+    inner.downloadTask(with: request)
+  }
+
+  func downloadTask(withResumeData resumeData: Data) -> URLSessionDownloadTask {
+    inner.downloadTask(withResumeData: resumeData)
+  }
+
+  private func updateStub(for url: URL, attemptIndex: Int) {
+    let statusCode = statusCodes[min(attemptIndex, statusCodes.count - 1)]
+    let body = statusCode == 200 ? successBody : Data()
+    let response = HTTPURLResponse(
+      url: url,
+      statusCode: statusCode,
+      httpVersion: nil,
+      headerFields: ["Content-Type": "application/json"]
+    )!
+    inner.stubbedResponses[url] = (body, response)
+  }
+}

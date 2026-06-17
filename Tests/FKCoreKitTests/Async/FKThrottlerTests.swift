@@ -50,4 +50,15 @@ final class FKThrottlerTests: XCTestCase {
     try await Task.sleep(nanoseconds: 50_000_000)
     XCTAssertEqual(counter.current, 2)
   }
+
+  func testZeroIntervalAllowsBackToBackInvocationsAfterQueueDrain() async throws {
+    throttler = FKThrottler(interval: 0, queue: queue)
+    let counter = LockedCounter()
+
+    throttler.throttle { counter.increment() }
+    throttler.throttle { counter.increment() }
+
+    try await Task.sleep(nanoseconds: 50_000_000)
+    XCTAssertEqual(counter.current, 2)
+  }
 }

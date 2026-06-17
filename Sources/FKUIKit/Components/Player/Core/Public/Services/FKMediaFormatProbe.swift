@@ -137,7 +137,16 @@ public enum FKMediaFormatProbe {
   private static func descriptorFromMIME(_ mime: String, url: URL) -> FKMediaFormatDescriptor? {
     let lower = mime.lowercased()
     if lower.contains("mpegurl") || lower.contains("m3u8") {
-      return probe(url: url, headers: nil)
+      let isLive = url.absoluteString.lowercased().contains("live")
+      return FKMediaFormatDescriptor(
+        container: .m3u8,
+        mediaType: .multiplex,
+        suggestedEngine: .avFoundation,
+        delivery: .hls(onDemand: !isLive),
+        isLive: isLive,
+        allowsAVFoundation: true,
+        allowsExtended: false
+      )
     }
     if lower.contains("mp4") {
       return descriptorFromExtension("mp4", url: url)

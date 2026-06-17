@@ -104,6 +104,11 @@ public final class FKMockNetworkSession: NetworkSession, @unchecked Sendable {
     FKMockURLProtocolRegistry.shared.register(id: sessionID, session: self)
   }
 
+  /// The private `URLSession` wired to ``FKMockURLProtocol`` for this instance.
+  ///
+  /// Pass to ``FKImageLoaderConfiguration/urlSessionProvider`` in tests so loader traffic uses ``stubbedResponses``.
+  public var configuredURLSession: URLSession { session }
+
   deinit {
     FKMockURLProtocolRegistry.shared.unregister(id: sessionID)
   }

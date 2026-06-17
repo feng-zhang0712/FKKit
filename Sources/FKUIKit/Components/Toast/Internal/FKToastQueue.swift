@@ -56,7 +56,9 @@ actor FKToastQueueActor {
       waiting.removeAll()
       waiting.append(request)
     case .dropNew:
-      break
+      if displaying.isEmpty && waiting.isEmpty {
+        waiting.append(request)
+      }
     case .coalesce:
       coalesce(request)
     case .interruptAndRequeueCurrent:

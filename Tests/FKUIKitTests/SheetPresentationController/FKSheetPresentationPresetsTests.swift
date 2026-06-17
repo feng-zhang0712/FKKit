@@ -35,4 +35,31 @@ final class FKSheetPresentationPresetsTests: XCTestCase {
     XCTAssertTrue(configuration.backgroundInteraction.isEnabled)
     XCTAssertEqual(configuration.sheet.detents, [.fitContent, .medium])
   }
+
+  func testBottomSheetDefaultUsesBottomSheetLayout() {
+    let configuration = FKSheetPresentationConfiguration.bottomSheetDefault
+
+    guard case .bottomSheet = configuration.layout else {
+      return XCTFail("Expected bottomSheet layout")
+    }
+    XCTAssertTrue(configuration.dismissBehavior.allowsSwipe)
+  }
+
+  func testCenterAlertUsesFixedCenterSizing() {
+    let configuration = FKSheetPresentationConfiguration.centerAlert
+
+    guard case let .center(center) = configuration.layout else {
+      return XCTFail("Expected center layout")
+    }
+    if case let .fixed(size) = center.size {
+      XCTAssertEqual(size.width, 320, accuracy: 0.001)
+      XCTAssertEqual(size.height, 380, accuracy: 0.001)
+    } else {
+      XCTFail("Expected fixed center size")
+    }
+    guard case let .dim(_, alpha) = configuration.backdropStyle else {
+      return XCTFail("Expected dim backdrop")
+    }
+    XCTAssertEqual(alpha, 0.45, accuracy: 0.001)
+  }
 }

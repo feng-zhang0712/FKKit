@@ -92,4 +92,67 @@ final class FKMockLocalNotificationSchedulerTests: XCTestCase {
 
     XCTAssertEqual(collector.snapshot, [request.identifier])
   }
+
+  func testScheduleBatchStoresAllRequests() async throws {
+    let scheduler = FKMockLocalNotificationScheduler()
+    let requests = [
+      makeRequest(identifier: "a"),
+      makeRequest(identifier: "b"),
+    ]
+
+    try await scheduler.schedule(requests)
+
+    XCTAssertEqual(scheduler.scheduled.count, 2)
+    XCTAssertEqual(Set(scheduler.scheduled.map(\.identifier)), Set(["a", "b"]))
+  }
+
+  func testCancelAllPendingClearsScheduledRequests() async throws {
+    let scheduler = FKMockLocalNotificationScheduler()
+    try await scheduler.schedule(makeRequest(identifier: "a"))
+    try await scheduler.schedule(makeRequest(identifier: "b"))
+
+    await scheduler.cancelAllPending()
+
+    XCTAssertTrue(scheduler.scheduled.isEmpty)
+  }
+
+  func testSimulateDeliveryMovesRequestFromPendingToDelivered() async throws {
+    let scheduler = FKMockLocalNotificationScheduler()
+    let request = makeRequest(identifier: "delivery.test")
+    try await scheduler.schedule(request)
+
+    scheduler.simulateDelivery(identifier: request.identifier)
+
+    XCTAssertTrue(scheduler.scheduled.isEmpty)
+
+    let collector = LockedStringCollector()
+    scheduler.responseHandler = { response in
+      collector.append(response.requestIdentifier)
+    }
+    scheduler.simulateResponse(requestIdentifier: request.identifier)
+
+    let deadline = Date().addingTimeInterval(1)
+    while collector.snapshot.isEmpty, Date() < deadline {
+      await Task.yield()
+    }
+    XCTAssertEqual(collector.snapshot, [request.identifier])
+  }
+
+  func testShouldThrowOverridesNextScheduleAttempt() async {
+    let scheduler = FKMockLocalNotificationScheduler()
+    scheduler.shouldThrow = .systemError("simulated")
+
+    do {
+      try await scheduler.schedule(makeRequest())
+      XCTFail("Expected systemError")
+    } catch let error as FKLocalNotificationError {
+      guard case let .systemError(message) = error else {
+        XCTFail("Expected systemError, got \(error)")
+        return
+      }
+      XCTAssertEqual(message, "simulated")
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
+  }
 }

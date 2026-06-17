@@ -12,13 +12,21 @@ public final class FKPermissions: FKPermissionObserving {
   /// Shared singleton for app-wide permission operations.
   public static let shared = FKPermissions()
 
-  private let prePromptPresenter = FKPermissionPrePromptPresenter()
+  private let prePromptPresenter: FKPermissionPrePromptPresenter
   private var handlers: [FKPermissionKind: FKPermissionHandling] = [:]
   private var observers: [UUID: @Sendable (FKPermissionKind, FKPermissionStatus) -> Void] = [:]
   private var cachedStatuses: [FKPermissionKind: FKPermissionStatus] = [:]
   private nonisolated(unsafe) var appActiveObserver: NSObjectProtocol?
 
   private init() {
+    prePromptPresenter = FKPermissionPrePromptPresenter()
+    registerDefaultHandlers()
+    registerLifecycleObserver()
+  }
+
+  /// Creates a manager with a custom pre-prompt presenter (unit tests).
+  init(prePromptPresenter: FKPermissionPrePromptPresenter) {
+    self.prePromptPresenter = prePromptPresenter
     registerDefaultHandlers()
     registerLifecycleObserver()
   }
@@ -51,14 +59,23 @@ public final class FKPermissions: FKPermissionObserving {
 
   /// Requests a single permission with optional pre-permission guide.
   ///
-  /// - Parameter request: Request model for target permission.
+  /// - Parameters:
+  ///   - request: Request model for target permission.
+  ///   - presentingFrom: Optional view controller used to present a custom pre-prompt alert.
+  ///     When `nil`, the active key window's top controller is used.
   /// - Returns: Request result containing status and optional error.
-  public func request(_ request: FKPermissionRequest) async -> FKPermissionResult {
+  public func request(
+    _ request: FKPermissionRequest,
+    presentingFrom presentingViewController: UIViewController? = nil
+  ) async -> FKPermissionResult {
     guard let handler = handlers[request.kind] else {
       return FKPermissionResult(kind: request.kind, status: .deviceDisabled, error: .unavailable)
     }
 
-    let shouldContinue = await prePromptPresenter.presentIfNeeded(request.prePrompt)
+    let shouldContinue = await prePromptPresenter.presentIfNeeded(
+      request.prePrompt,
+      from: presentingViewController
+    )
     guard shouldContinue else {
       return FKPermissionResult(kind: request.kind, status: await status(for: request.kind), error: .prePromptCancelled)
     }
@@ -73,10 +90,15 @@ public final class FKPermissions: FKPermissionObserving {
   ///
   /// - Parameters:
   ///   - request: Request model for target permission.
+  ///   - presentingFrom: Optional view controller used to present a custom pre-prompt alert.
   ///   - completion: Callback invoked on main actor with final result.
-  public func request(_ request: FKPermissionRequest, completion: @escaping @Sendable (FKPermissionResult) -> Void) {
+  public func request(
+    _ request: FKPermissionRequest,
+    presentingFrom presentingViewController: UIViewController? = nil,
+    completion: @escaping @Sendable (FKPermissionResult) -> Void
+  ) {
     Task { @MainActor in
-      completion(await self.request(request))
+      completion(await self.request(request, presentingFrom: presentingViewController))
     }
   }
 

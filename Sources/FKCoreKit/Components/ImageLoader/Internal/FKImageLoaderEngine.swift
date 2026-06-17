@@ -118,7 +118,7 @@
       } catch let error as FKImageLoaderError {
         throw error
       } catch {
-        throw FKImageLoaderError.network(underlyingDescription: error.localizedDescription)
+        throw Self.mapTransportError(error)
       }
     }
 
@@ -399,9 +399,7 @@
           let task = fetchSession.dataTask(with: urlRequest) { data, response, error in
             Task { await self.clearDataTask(forKey: cacheKey) }
             if let error {
-              continuation.resume(
-                throwing: FKImageLoaderError.network(underlyingDescription: error.localizedDescription)
-              )
+              continuation.resume(throwing: Self.mapTransportError(error))
               return
             }
             guard let http = response as? HTTPURLResponse else {
@@ -497,6 +495,20 @@
 
     private func emit(_ event: FKImageLoaderEvent) {
       configuration.onEvent?(event)
+    }
+
+    private static func mapTransportError(_ error: Error) -> FKImageLoaderError {
+      if error is CancellationError {
+        return .cancelled
+      }
+      if let urlError = error as? URLError, urlError.code == .cancelled {
+        return .cancelled
+      }
+      let nsError = error as NSError
+      if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
+        return .cancelled
+      }
+      return .network(underlyingDescription: error.localizedDescription)
     }
   }
 #endif
