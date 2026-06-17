@@ -4,6 +4,33 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.72.0] - 2026-06-17
+
+### Added (FKCoreKit — ModelMapping)
+
+- **`FKModelMapper`** / **`FKJSONCodec`** — Codable JSON decode/encode with configurable key strategies, lenient scalar coercion, date formats, null-key omission, and unknown-key policies.
+- **`FKDictionaryMapper`** / **`FKMap`** — manual dictionary mapping with JSON path resolution for push payloads and loosely typed `[String: Any]` sources.
+- **Response envelopes** — `FKResponseEnvelopeProcessor`, `decodeEnvelope`, and `FKResponseEnvelopeInterceptor` for `{ code, message, data }` API shapes.
+- **Value transforms** — `FKValueTransform` registry and built-in transforms (trim, bool/int/double coercion, epoch dates, URL/base64 helpers).
+- **Property wrappers** — `@FKDefault`, `@FKLossyArray`, `@FKISO8601Date`, and related Codable conveniences.
+- **Polymorphic decoding** — discriminator-based `FKPolymorphicDecodable` registry for typed feed items.
+- **Pagination templates** — `FKPage` models for common list/page response shapes.
+- **`FKNetwork` integration** — `FKJSONCodec.makeDecoder()` wiring and `NetworkError` bridge for mapping failures.
+- **Localization** — user-facing `FKMappingError` strings across all bundled locales.
+- **Examples**: full FKKitExamples hub (Codable basics, snake_case, lenient scalars, date formats, property wrappers, strict/lenient modes, dictionary mapping, nested paths, manual `FKMappable`, polymorphic feeds, response envelopes, encoding, Network integration, pagination templates, complex workspace fixture).
+
+### Added (Documentation)
+
+- `docs/FKModelMapping_DESIGN.md` — JSON/dictionary mapping requirements, API surface, and FKNetwork/FKStorage integration notes.
+
+### Removed (Documentation)
+
+- `docs/FKCellKit_DESIGN.md` — dropped unused FKCellKit design spec; purged cross-references from ListKit, FormControls, SearchViewController, roadmap, and gap analysis docs.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.72.0** (Git tag **`0.72.0`**).
+
 ## [0.71.0] - 2026-06-15
 
 ### Added (FKUIKit — ListKit)
@@ -2826,7 +2853,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.71.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.72.0...HEAD
+[0.72.0]: https://github.com/feng-zhang0712/FKKit/compare/0.71.0...0.72.0
 [0.71.0]: https://github.com/feng-zhang0712/FKKit/compare/0.70.0...0.71.0
 [0.70.0]: https://github.com/feng-zhang0712/FKKit/compare/0.69.0...0.70.0
 [0.69.0]: https://github.com/feng-zhang0712/FKKit/compare/0.68.0...0.69.0
