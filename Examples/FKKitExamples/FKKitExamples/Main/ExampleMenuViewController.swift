@@ -260,6 +260,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKLoggerExampleViewController() }
         ),
         ExampleMenuItem(
+          title: "ModelMapping",
+          subtitle: "Hub: Codable, snake_case, lenient typing, dictionary/FKMappable, envelopes, Network integration",
+          make: { FKModelMappingExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Network",
           subtitle: "Hub: baseline + multipart, retry, mock session, SSL pinning, pluggable adapter",
           make: { FKNetworkExamplesHubViewController() }

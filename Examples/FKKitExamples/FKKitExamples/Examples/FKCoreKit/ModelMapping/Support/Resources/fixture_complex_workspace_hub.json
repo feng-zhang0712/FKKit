@@ -1,0 +1,151 @@
+{
+  "code": 0,
+  "message": "Workspace hub loaded",
+  "data": {
+    "meta": {
+      "request_id": "req-9f2a-7c11",
+      "server_time": 1781674164769,
+      "trace": {
+        "span": "hub.load",
+        "duration_ms": "42",
+        "retries": 0
+      }
+    },
+    "workspace": {
+      "id": "ws-global-hq",
+      "slug": "global-hq",
+      "display_name": "Global Headquarters",
+      "owner": {
+        "user_id": "9001",
+        "profile": {
+          "display_name": "Ada Lovelace",
+          "locale": "",
+          "preferences": {
+            "notifications": {
+              "email": "1",
+              "push": true,
+              "channels": ["alerts", "", "digest"]
+            }
+          }
+        },
+        "roles": ["admin", "editor"]
+      },
+      "settings_json": "{\"theme\":\"dark\",\"density\":\"compact\",\"flags\":{\"beta\":true,\"labs\":[\"maps\",\"ai\"]}}",
+      "layout_json": "[{\"region\":\"header\",\"widgets\":[\"search\",\"profile\"]},{\"region\":\"body\",\"widgets\":[\"feed\"]}]",
+      "created_at": "2026-06-13 10:15:32",
+      "updated_at": "2026-06-13  11:20:07",
+      "status": "1"
+    },
+    "feed_page": {
+      "current": "1",
+      "size": 20,
+      "pages": 2,
+      "total": 6,
+      "sort_props": [
+        { "key": "priority", "value": true },
+        { "key": "updated_at", "value": false }
+      ],
+      "records": [
+        {
+          "block_type": "hero_banner",
+          "id": "blk-01",
+          "priority": "100",
+          "enabled": "1",
+          "title": "Summer Campaign",
+          "subtitle": null,
+          "media": {
+            "url": "https://cdn.example/hero.jpg",
+            "width": "1920",
+            "height": "600",
+            "meta": { "dominant_color": "#1A2B3C" }
+          },
+          "cta": {
+            "label": "Shop now",
+            "deep_link": "app://promo/summer"
+          }
+        },
+        {
+          "block_type": "article_list",
+          "id": "blk-02",
+          "priority": 80,
+          "enabled": true,
+          "title": "Latest Intelligence",
+          "articles": [
+            {
+              "id": "art-1",
+              "headline": "Q2 Platform Update",
+              "published_at": "2026-06-17T08:00:00Z",
+              "stats": { "views": "15420", "likes": 320 }
+            },
+            {
+              "id": "art-2",
+              "headline": "Draft Release Notes",
+              "published_at": "2026-06-13 14:30:00",
+              "stats": { "views": null, "likes": "0" }
+            }
+          ]
+        },
+        {
+          "block_type": "kpi_widget",
+          "id": "blk-03",
+          "priority": "60",
+          "enabled": "",
+          "title": "Live KPIs",
+          "metrics_json": "[{\"label\":\"DAU\",\"value\":\"12840\",\"delta\":\"+4.2%\"},{\"label\":\"CTR\",\"value\":\"0.042\",\"delta\":\"-0.3%\"}]"
+        },
+        {
+          "block_type": "promo_carousel",
+          "id": "blk-04",
+          "priority": "50",
+          "enabled": "true",
+          "slides": [
+            {
+              "image": "https://cdn.example/s1.jpg",
+              "action": "app://cat/electronics"
+            },
+            {
+              "image": "",
+              "action": null
+            }
+          ]
+        },
+        {
+          "block_type": "deprecated_widget",
+          "id": "blk-05",
+          "priority": "10",
+          "legacy_payload": { "format": 1, "body": "legacy-body" }
+        },
+        {
+          "block_type": "team_grid",
+          "id": "blk-06",
+          "priority": "40",
+          "enabled": 1,
+          "members": [
+            {
+              "name": "Grace Hopper",
+              "title": "Engineering",
+              "avatar": "https://cdn.example/grace.png"
+            },
+            {
+              "name": "",
+              "title": null,
+              "avatar": ""
+            }
+          ]
+        }
+      ]
+    },
+    "facets": {
+      "block_types": ["hero_banner", "article_list", "kpi_widget", ""],
+      "enabled_counts": {
+        "hero_banner": "1",
+        "article_list": 1,
+        "kpi_widget": "1"
+      }
+    },
+    "links": {
+      "next": "https://api.example/hub?page=2",
+      "prev": null
+    }
+  }
+}

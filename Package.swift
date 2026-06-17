@@ -24,6 +24,7 @@ private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/ImageLoader",
   "Components/LocalNotification",
   "Components/Logger",
+  "Components/ModelMapping",
   "Components/Network",
   "Components/Permissions",
   "Components/Pluggable",

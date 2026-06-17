@@ -135,7 +135,15 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     }
 
     if config.enableMock, let mockData = request.mockData {
-      decode(data: mockData, request: request, releaseDedup: releaseDedup, resultBox: resultBox)
+      let mockURL = baseRequest.url ?? URL(string: "https://mock.local")!
+      let mockResponse = HTTPURLResponse(url: mockURL, statusCode: 200, httpVersion: nil, headerFields: nil)!
+      do {
+        let payload = try applyResponseInterceptors(to: mockData, response: mockResponse)
+        decode(data: payload, request: request, releaseDedup: releaseDedup, resultBox: resultBox)
+      } catch {
+        releaseDedup()
+        resultBox.deliver(.failure(.underlying(error)))
+      }
       return NoopCancellable()
     }
 
@@ -747,6 +755,14 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
       mutable = try signer.sign(mutable)
     }
     return mutable
+  }
+
+  private func applyResponseInterceptors(to data: Data, response: HTTPURLResponse) throws -> Data {
+    var result = data
+    for interceptor in config.responseInterceptors {
+      result = try interceptor.intercept(data: result, response: response)
+    }
+    return result
   }
 
   private func decode<R: Requestable>(
