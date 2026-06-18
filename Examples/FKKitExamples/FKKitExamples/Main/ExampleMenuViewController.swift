@@ -124,6 +124,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKMarqueeLabelExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "MediaGallery",
+          subtitle: "Hub: full-screen lightbox — hero, zoom, video, sources, updateItems, SwiftUI, RTL",
+          make: { FKMediaGalleryExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "PagingController",
           subtitle: "FKTabBar ↔ UIPageViewController sync: lazy/SwiftUI/delegate, RTL & gestures (Public/Internal/Extension)",
           make: { FKPagingControllerExamplesHubViewController() }

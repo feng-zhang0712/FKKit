@@ -38,13 +38,25 @@ public final class FKVideoPlayerView: UIView {
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
+    installSurface(loadsDefaultControlView: true)
+  }
+
+  /// Creates a player surface without mounting default transport controls.
+  public init(loadsDefaultControlView: Bool) {
+    super.init(frame: .zero)
+    installSurface(loadsDefaultControlView: loadsDefaultControlView)
+  }
+
+  private func installSurface(loadsDefaultControlView: Bool) {
     backgroundColor = .black
     clipsToBounds = true
 
     playerLayer.videoGravity = .resizeAspect
     layer.addSublayer(playerLayer)
 
-    setDefaultControlView(FKDefaultVideoControlView())
+    if loadsDefaultControlView {
+      setDefaultControlView(FKDefaultVideoControlView())
+    }
   }
 
   @available(*, unavailable)
@@ -113,10 +125,24 @@ public final class FKVideoPlayerView: UIView {
     }
   }
 
+  /// Shows a bitmap poster until playback begins; ignored when ``FKVideoItem/posterURL`` loads successfully.
+  public func setPosterImage(_ image: UIImage?) {
+    posterLoadTask?.cancel()
+    posterLoadTask = nil
+    guard let image else {
+      unmountPosterImageView()
+      return
+    }
+    let poster = mountPosterImageView()
+    poster.image = image
+    poster.isHidden = false
+  }
+
   public func bind(player: FKVideoPlayer) {
     self.player = player
     apply(uiConfiguration: player.configuration.ui)
     controlView?.bind(player: player)
+    gestureController.detach()
     gestureController.attach(to: self, player: player, configuration: uiConfiguration) { [weak self] visible in
       self?.scheduleControlsAutoHide(visible: visible)
     }

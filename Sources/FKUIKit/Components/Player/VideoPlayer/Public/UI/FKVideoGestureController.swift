@@ -16,6 +16,10 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
   private var initialBrightness: CGFloat = 0
   private var initialVolume: Float = 0
 
+  private var tapRecognizer: UITapGestureRecognizer?
+  private var doubleTapRecognizer: UITapGestureRecognizer?
+  private var panRecognizer: UIPanGestureRecognizer?
+
   private enum PanAxis {
     case none
     case horizontal
@@ -29,6 +33,7 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
     configuration: FKVideoUIConfiguration,
     onControlsVisibilityChange: @escaping (Bool) -> Void
   ) {
+    detach()
     hostView = view
     self.player = player
     uiConfiguration = configuration
@@ -38,15 +43,38 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
     tap.cancelsTouchesInView = false
     tap.delegate = self
     view.addGestureRecognizer(tap)
+    tapRecognizer = tap
 
     let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
     doubleTap.numberOfTapsRequired = 2
     view.addGestureRecognizer(doubleTap)
     tap.require(toFail: doubleTap)
+    doubleTapRecognizer = doubleTap
 
     let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
     pan.maximumNumberOfTouches = 1
+    pan.delegate = self
     view.addGestureRecognizer(pan)
+    panRecognizer = pan
+  }
+
+  func detach() {
+    if let tapRecognizer, let hostView {
+      hostView.removeGestureRecognizer(tapRecognizer)
+    }
+    if let doubleTapRecognizer, let hostView {
+      hostView.removeGestureRecognizer(doubleTapRecognizer)
+    }
+    if let panRecognizer, let hostView {
+      hostView.removeGestureRecognizer(panRecognizer)
+    }
+    tapRecognizer = nil
+    doubleTapRecognizer = nil
+    panRecognizer = nil
+    hostView = nil
+    player = nil
+    controlsVisibilityHandler = nil
+    panAxis = .none
   }
 
   // MARK: - Gestures
@@ -66,8 +94,16 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
     return !touchedView.isDescendant(of: controlView)
   }
 
+  func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    if gestureRecognizer is UIPanGestureRecognizer {
+      return uiConfiguration.allowsSurfacePanGestures
+    }
+    return true
+  }
+
   @objc
   private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+    guard uiConfiguration.allowsDoubleTapSeek, uiConfiguration.gestureSeekSeconds > 0 else { return }
     guard let player, let view = hostView else { return }
     let location = gesture.location(in: view)
     if location.x < view.bounds.width / 2 {
