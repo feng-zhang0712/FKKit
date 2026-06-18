@@ -10,14 +10,12 @@ final class FKMediaGalleryVideoControlView: UIView, FKVideoPlayerControlView {
   var allowsScrubbing = true {
     didSet {
       progressSlider.isEnabled = allowsScrubbing
-      progressSlider.isUserInteractionEnabled = allowsScrubbing
     }
   }
 
   private weak var player: FKVideoPlayer?
   private let playPauseButton = UIButton(type: .system)
-  private let progressSlider = UISlider()
-  private let bufferProgressView = UIProgressView(progressViewStyle: .bar)
+  private let progressSlider = FKVideoBufferedProgressSlider()
   private var isScrubbing = false
 
   override init(frame: CGRect) {
@@ -28,16 +26,11 @@ final class FKMediaGalleryVideoControlView: UIView, FKVideoPlayerControlView {
     playPauseButton.tintColor = .white
     playPauseButton.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
 
-    progressSlider.minimumValue = 0
-    progressSlider.maximumValue = 1
     progressSlider.addTarget(self, action: #selector(sliderBegan), for: .touchDown)
     progressSlider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
     progressSlider.addTarget(self, action: #selector(sliderEnded), for: [.touchUpInside, .touchUpOutside, .touchCancel])
 
-    bufferProgressView.progressTintColor = UIColor.white.withAlphaComponent(0.35)
-    bufferProgressView.trackTintColor = UIColor.white.withAlphaComponent(0.15)
-
-    [playPauseButton, bufferProgressView, progressSlider].forEach { addSubview($0) }
+    [playPauseButton, progressSlider].forEach { addSubview($0) }
   }
 
   @available(*, unavailable)
@@ -56,12 +49,6 @@ final class FKMediaGalleryVideoControlView: UIView, FKVideoPlayerControlView {
       y: controlBottom - 34,
       width: bounds.width - playPauseButton.frame.maxX - inset - 8,
       height: 24
-    )
-    bufferProgressView.frame = CGRect(
-      x: progressSlider.frame.minX,
-      y: progressSlider.frame.midY - 1,
-      width: progressSlider.frame.width,
-      height: 2
     )
   }
 
@@ -87,12 +74,12 @@ final class FKMediaGalleryVideoControlView: UIView, FKVideoPlayerControlView {
     }
     playPauseButton.setImage(UIImage(systemName: iconName), for: .normal)
     if duration > 0 {
-      progressSlider.value = Float(currentTime / duration)
+      progressSlider.setValue(Float(currentTime / duration))
       let bufferedEnd = buffered.last?.upperBound ?? 0
-      bufferProgressView.progress = Float(bufferedEnd / duration)
+      progressSlider.bufferProgress = Float(bufferedEnd / duration)
     } else {
-      progressSlider.value = 0
-      bufferProgressView.progress = 0
+      progressSlider.setValue(0)
+      progressSlider.bufferProgress = 0
     }
   }
 

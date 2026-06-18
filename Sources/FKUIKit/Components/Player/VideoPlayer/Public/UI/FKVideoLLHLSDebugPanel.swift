@@ -1,6 +1,6 @@
 import UIKit
 
-/// Debug overlay for LL-HLS latency and buffer metrics (Phase 3).
+/// Debug overlay for LL-HLS latency and buffer metrics.
 @MainActor
 public final class FKVideoLLHLSDebugPanel: UIView {
 

@@ -214,6 +214,8 @@ public final class FKVideoMiniPlayerView: UIView {
       spinner.startAnimating()
     } else {
       playPauseSpinner?.stopAnimating()
+      playPauseSpinner?.removeFromSuperview()
+      playPauseSpinner = nil
     }
     syncPlaySpinner()
   }

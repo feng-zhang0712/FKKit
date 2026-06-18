@@ -1,6 +1,6 @@
 import UIKit
 
-/// Shows a thumbnail preview while scrubbing (Phase 4).
+/// Shows a thumbnail preview while scrubbing the progress bar.
 @MainActor
 public final class FKVideoThumbnailSeekPreview: UIView {
 

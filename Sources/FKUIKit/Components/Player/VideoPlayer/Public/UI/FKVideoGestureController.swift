@@ -1,4 +1,5 @@
 import AVFoundation
+import AVKit
 import MediaPlayer
 import UIKit
 
@@ -20,6 +21,10 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
   private var doubleTapRecognizer: UITapGestureRecognizer?
   private var panRecognizer: UIPanGestureRecognizer?
 
+  /// Hidden system volume chrome; kept in the hierarchy to avoid per-gesture allocation.
+  private var volumeView: MPVolumeView?
+  private var volumeSlider: UISlider?
+
   private enum PanAxis {
     case none
     case horizontal
@@ -39,23 +44,30 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
     uiConfiguration = configuration
     controlsVisibilityHandler = onControlsVisibilityChange
 
+    let allowsDoubleTapSeek = configuration.allowsDoubleTapSeek && configuration.gestureSeekSeconds > 0
+    let allowsSurfacePan = configuration.allowsSurfacePanGestures
+
     let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
     tap.cancelsTouchesInView = false
     tap.delegate = self
     view.addGestureRecognizer(tap)
     tapRecognizer = tap
 
-    let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
-    doubleTap.numberOfTapsRequired = 2
-    view.addGestureRecognizer(doubleTap)
-    tap.require(toFail: doubleTap)
-    doubleTapRecognizer = doubleTap
+    if allowsDoubleTapSeek {
+      let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
+      doubleTap.numberOfTapsRequired = 2
+      view.addGestureRecognizer(doubleTap)
+      tap.require(toFail: doubleTap)
+      doubleTapRecognizer = doubleTap
+    }
 
-    let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-    pan.maximumNumberOfTouches = 1
-    pan.delegate = self
-    view.addGestureRecognizer(pan)
-    panRecognizer = pan
+    if allowsSurfacePan {
+      let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+      pan.maximumNumberOfTouches = 1
+      pan.delegate = self
+      view.addGestureRecognizer(pan)
+      panRecognizer = pan
+    }
   }
 
   func detach() {
@@ -71,6 +83,9 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
     tapRecognizer = nil
     doubleTapRecognizer = nil
     panRecognizer = nil
+    volumeView?.removeFromSuperview()
+    volumeView = nil
+    volumeSlider = nil
     hostView = nil
     player = nil
     controlsVisibilityHandler = nil
@@ -82,16 +97,32 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
   @objc
   private func handleTap() {
     guard let controlView = player?.boundView?.controlView, !controlView.isControlsLocked else { return }
-    let visible = controlView.alpha > 0.5
+    guard let hostView = player?.boundView else { return }
+    let visible = hostView.isControlBarVisible
     let willShow = !visible
-    controlView.setControlsVisible(willShow, animated: true)
+    hostView.setControlBarVisible(willShow, animated: true)
     controlsVisibilityHandler?(willShow)
   }
 
   func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-    guard let controlView = player?.boundView?.controlView else { return true }
     guard let touchedView = touch.view else { return true }
+    if touchedView is UIControl {
+      return false
+    }
+    if isAirPlayRoutePickerDescendant(touchedView) {
+      return false
+    }
+    guard let controlView = player?.boundView?.controlView else { return true }
     return !touchedView.isDescendant(of: controlView)
+  }
+
+  private func isAirPlayRoutePickerDescendant(_ view: UIView) -> Bool {
+    var current: UIView? = view
+    while let currentView = current {
+      if currentView is AVRoutePickerView { return true }
+      current = currentView.superview
+    }
+    return false
   }
 
   func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -158,12 +189,15 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
   }
 
   private func setSystemVolume(_ value: Float) {
-    let volumeView = MPVolumeView(frame: CGRect(x: -1000, y: -1000, width: 1, height: 1))
-    hostView?.addSubview(volumeView)
-    if let slider = volumeView.subviews.compactMap({ $0 as? UISlider }).first {
-      slider.value = min(1, max(0, value))
+    guard let hostView else { return }
+    if volumeView == nil {
+      let view = MPVolumeView(frame: CGRect(x: -1000, y: -1000, width: 1, height: 1))
+      view.isHidden = true
+      hostView.addSubview(view)
+      volumeView = view
+      volumeSlider = view.subviews.compactMap { $0 as? UISlider }.first
     }
-    volumeView.removeFromSuperview()
+    volumeSlider?.value = min(1, max(0, value))
   }
 
 }

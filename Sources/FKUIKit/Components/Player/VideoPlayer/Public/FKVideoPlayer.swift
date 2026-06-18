@@ -132,10 +132,6 @@ public final class FKVideoPlayer: NSObject {
     didApplySkipIntro = false
     didApplySkipOutro = false
     boundView?.resetChrome()
-    if let screenCaptureObserver {
-      NotificationCenter.default.removeObserver(screenCaptureObserver)
-      self.screenCaptureObserver = nil
-    }
   }
 
   public func togglePlayPause() {
