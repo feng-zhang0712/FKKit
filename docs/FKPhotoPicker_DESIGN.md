@@ -659,4 +659,5 @@ Sources/FKUIKit/Components/PhotoPicker/
 
 - [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md)
 - [FKPermissions README](../Sources/FKCoreKit/Components/Permissions/README.md)
+- [FKMediaGallery_DESIGN.md](FKMediaGallery_DESIGN.md) — 选后/Post 内全屏预览（浏览，非选取；由宿主显式调用）
 - [FKImageLoader-FKImageView_DESIGN.md](FKImageLoader-FKImageView_DESIGN.md)
