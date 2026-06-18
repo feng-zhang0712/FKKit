@@ -15,7 +15,7 @@ final class FKMediaGalleryExampleContextMenuViewController: FKMediaGalleryExampl
     contentStack.insertArrangedSubview(
       FKMediaGalleryExampleUI.section(
         title: "Long-press actions",
-        description: "Long-press to save to Photos (FKPermissions.photoLibraryAddOnly), share via FKFileManager.makeShareController, or copy shareURL.",
+        description: "Long-press for UIContextMenu preview with save (FKPermissions), share (FKFileManager), or copy shareURL.",
         body: FKMediaGalleryExampleUI.button("Present context menu demo") { [weak self] in
           self?.presentGallery(
             items: FKMediaGalleryExampleCatalog.contextMenuItems(),

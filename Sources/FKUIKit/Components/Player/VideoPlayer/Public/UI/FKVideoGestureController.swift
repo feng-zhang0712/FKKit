@@ -46,18 +46,21 @@ final class FKVideoGestureController: NSObject, UIGestureRecognizerDelegate {
 
     let allowsDoubleTapSeek = configuration.allowsDoubleTapSeek && configuration.gestureSeekSeconds > 0
     let allowsSurfacePan = configuration.allowsSurfacePanGestures
+    let allowsTapToToggleControls = configuration.allowsTapToToggleControls
 
-    let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-    tap.cancelsTouchesInView = false
-    tap.delegate = self
-    view.addGestureRecognizer(tap)
-    tapRecognizer = tap
+    if allowsTapToToggleControls {
+      let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+      tap.cancelsTouchesInView = false
+      tap.delegate = self
+      view.addGestureRecognizer(tap)
+      tapRecognizer = tap
+    }
 
     if allowsDoubleTapSeek {
       let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
       doubleTap.numberOfTapsRequired = 2
       view.addGestureRecognizer(doubleTap)
-      tap.require(toFail: doubleTap)
+      tapRecognizer?.require(toFail: doubleTap)
       doubleTapRecognizer = doubleTap
     }
 

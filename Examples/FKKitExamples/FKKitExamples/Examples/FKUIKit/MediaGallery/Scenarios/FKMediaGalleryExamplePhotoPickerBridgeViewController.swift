@@ -23,7 +23,7 @@ final class FKMediaGalleryExamplePhotoPickerBridgeViewController: FKMediaGallery
     contentStack.insertArrangedSubview(
       FKMediaGalleryExampleUI.section(
         title: "FKMediaGalleryItem.from(FKPhotoPickerResult)",
-        description: "Pick images/videos with chatAttachments delivery, map results into gallery items, then present the preview lightbox.",
+        description: "Pick images/videos, map via FKMediaGalleryItem.from (prefers PHAsset localIdentifier when available), then preview in the lightbox.",
         body: body
       ),
       at: 0

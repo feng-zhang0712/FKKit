@@ -10,6 +10,7 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
 
   private let zoomScrollView = FKMediaGalleryZoomScrollView()
   private var boundItemID: String?
+  private var resumeImageSource: FKMediaGalleryImageSource?
   private var fullSizeTask: Task<Void, Never>?
   private var photoAssetTask: Task<Void, Never>?
 
@@ -38,6 +39,7 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
     fullSizeTask = nil
     photoAssetTask = nil
     boundItemID = nil
+    resumeImageSource = nil
     zoomScrollView.resetContent()
   }
 
@@ -49,8 +51,6 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
     zoomScrollView.isZoomedBeyondMinimum
   }
 
-  func setPagingEnabled(_ enabled: Bool) {}
-
   func prepareForDisplay(
     item: FKMediaGalleryItem,
     configuration: FKMediaGalleryConfiguration,
@@ -60,7 +60,11 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
     boundItemID = item.id
     zoomScrollView.apply(configuration: configuration.zoom)
     zoomScrollView.configureImageLoader(imageLoader)
-    guard case let .image(source) = item.kind else { return }
+    guard case let .image(source) = item.kind else {
+      resumeImageSource = nil
+      return
+    }
+    resumeImageSource = source
     loadImage(source: source, configuration: configuration, placeholder: placeholder)
   }
 
@@ -71,19 +75,42 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
 
   func didBecomeCurrent(configuration: FKMediaGalleryConfiguration) {
     zoomScrollView.relayoutForNewImage()
+    if !zoomScrollView.hasDisplayedImage, let source = resumeImageSource {
+      loadImage(source: source, configuration: configuration, placeholder: nil)
+    }
   }
 
   func didEndDisplaying() {
     fullSizeTask?.cancel()
     photoAssetTask?.cancel()
-    zoomScrollView.cancelRemoteLoading()
-    zoomScrollView.resetZoom(animated: false)
+    releaseRetainedImageContent()
   }
 
   func galleryWillDismiss() {
     fullSizeTask?.cancel()
     photoAssetTask?.cancel()
     zoomScrollView.cancelRemoteLoading()
+  }
+
+  func releaseRetainedImageContent() {
+    fullSizeTask?.cancel()
+    photoAssetTask?.cancel()
+    zoomScrollView.releaseDisplayedImage()
+  }
+
+  func makeInteractiveDismissSnapshot() -> UIView? {
+    guard !isBlockingInteractiveDismiss else { return nil }
+    return zoomScrollView.snapshotView(afterScreenUpdates: false)
+  }
+
+  func interactiveDismissVisualContent() -> (image: UIImage, contentSize: CGSize)? {
+    guard !isBlockingInteractiveDismiss,
+          let image = zoomScrollView.dismissVisualImage else {
+      return nil
+    }
+    let contentSize = FKMediaGalleryLayoutMath.resolvedImageSize(from: image)
+    guard contentSize.width > 0, contentSize.height > 0 else { return nil }
+    return (image, contentSize)
   }
 
   private func loadImage(
@@ -111,18 +138,26 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
       if let placeholder {
         imageView.setImage(placeholder, animated: false)
       }
+      let expectedItemID = boundItemID
       photoAssetTask = Task { @MainActor in
         do {
-          let scale = UIScreen.main.scale
-          let size = CGSize(
-            width: zoomScrollView.bounds.width * scale,
-            height: zoomScrollView.bounds.height * scale
+          let screenScale = FKMediaGalleryImageLoadingMath.screenScale(for: zoomScrollView)
+          let targetSize = FKMediaGalleryImageLoadingMath.decodeTargetSize(
+            bounds: zoomScrollView.bounds.size,
+            screenScale: screenScale,
+            maximumZoomScale: configuration.zoom.maximumZoomScale,
+            isCurrentPage: true
           )
           let image = try await FKMediaGalleryPhotoAssetLoader.loadImage(
             localIdentifier: assetID,
-            targetSize: size
+            targetSize: targetSize,
+            onProgressiveImage: { [weak self] progressiveImage in
+              guard let self, self.boundItemID == expectedItemID else { return }
+              imageView.setImage(progressiveImage, animated: false)
+              self.zoomScrollView.relayoutForNewImage()
+            }
           )
-          guard !Task.isCancelled else { return }
+          guard !Task.isCancelled, self.boundItemID == expectedItemID else { return }
           imageView.setImage(image, animated: true)
           zoomScrollView.relayoutForNewImage()
         } catch {
@@ -141,7 +176,8 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
         loadFullSizeURL(
           url,
           options: options,
-          crossfade: configuration.progressiveLoading.fullSizeCrossfadeDuration
+          crossfade: configuration.progressiveLoading.fullSizeCrossfadeDuration,
+          configuration: configuration
         )
       } else {
         imageView.cacheKey = options.cacheKey
@@ -173,19 +209,28 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
   private func loadFullSizeURL(
     _ url: URL,
     options: FKMediaGalleryImageRequestOptions,
-    crossfade: TimeInterval
+    crossfade: TimeInterval,
+    configuration: FKMediaGalleryConfiguration
   ) {
     fullSizeTask?.cancel()
+    let expectedItemID = boundItemID
     fullSizeTask = Task { @MainActor in
       let loader = zoomScrollView.fkImageView.imageLoader ?? FKImageLoader.shared
+      let screenScale = FKMediaGalleryImageLoadingMath.screenScale(for: zoomScrollView)
+      let targetSize = FKMediaGalleryImageLoadingMath.decodeTargetSize(
+        bounds: zoomScrollView.bounds.size,
+        screenScale: screenScale,
+        maximumZoomScale: configuration.zoom.maximumZoomScale,
+        isCurrentPage: true
+      )
       let request = FKImageLoadRequest(
         url: url,
-        targetSize: zoomScrollView.bounds.size,
+        targetSize: targetSize,
         cacheKey: options.cacheKey
       )
       do {
         let image = try await loader.loadImage(for: request)
-        guard !Task.isCancelled else { return }
+        guard !Task.isCancelled, self.boundItemID == expectedItemID else { return }
         let animated = crossfade > 0 && !UIAccessibility.isReduceMotionEnabled
         zoomScrollView.fkImageView.setImage(image, animated: animated)
         zoomScrollView.relayoutForNewImage()

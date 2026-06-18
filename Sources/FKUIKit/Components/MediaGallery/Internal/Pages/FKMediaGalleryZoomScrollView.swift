@@ -3,8 +3,6 @@ import UIKit
 /// Zoomable scroll container for image pages.
 @MainActor
 final class FKMediaGalleryZoomScrollView: UIScrollView, UIScrollViewDelegate {
-  var onZoomScaleChanged: ((CGFloat) -> Void)?
-
   private let lightweightImageView: UIImageView = {
     let view = UIImageView()
     view.contentMode = .scaleAspectFit
@@ -86,16 +84,24 @@ final class FKMediaGalleryZoomScrollView: UIScrollView, UIScrollViewDelegate {
   }
 
   func resetContent() {
+    releaseDisplayedImage(clearRemoteView: true)
+  }
+
+  /// Drops decoded bitmaps and cancels in-flight remote loads while keeping zoom configuration.
+  func releaseDisplayedImage(clearRemoteView: Bool = false) {
     remoteImageView?.cancelLoad()
     remoteImageView?.resetForReuse()
-    remoteImageView?.removeFromSuperview()
-    remoteImageView = nil
-    usesRemoteImageView = false
     lightweightImageView.image = nil
-    if lightweightImageView.superview == nil {
-      addSubview(lightweightImageView)
-    }
+    lastImagePixelSize = .zero
     resetZoom(animated: false)
+    if clearRemoteView {
+      remoteImageView?.removeFromSuperview()
+      remoteImageView = nil
+      usesRemoteImageView = false
+      if lightweightImageView.superview == nil {
+        addSubview(lightweightImageView)
+      }
+    }
   }
 
   func relayoutForNewImage() {
@@ -108,6 +114,17 @@ final class FKMediaGalleryZoomScrollView: UIScrollView, UIScrollViewDelegate {
     zoomScale > configuration.minimumZoomScale + 0.05
   }
 
+  /// Whether a bitmap is currently mounted in the zoom target.
+  var hasDisplayedImage: Bool {
+    guard let image = displayedImage else { return false }
+    return image.size.width > 0 && image.size.height > 0
+  }
+
+  /// Image shown in the zoom view, for interactive dismiss.
+  var dismissVisualImage: UIImage? {
+    displayedImage
+  }
+
   // MARK: - UIScrollViewDelegate
 
   func viewForZooming(in scrollView: UIScrollView) -> UIView? {
@@ -117,7 +134,6 @@ final class FKMediaGalleryZoomScrollView: UIScrollView, UIScrollViewDelegate {
   func scrollViewDidZoom(_ scrollView: UIScrollView) {
     centerImageIfNeeded()
     updateScrollInteractionState()
-    onZoomScaleChanged?(zoomScale)
   }
 
   func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
@@ -127,7 +143,6 @@ final class FKMediaGalleryZoomScrollView: UIScrollView, UIScrollViewDelegate {
       alignMinimumZoomContentOffsetIfNeeded()
     }
     updateScrollInteractionState()
-    onZoomScaleChanged?(zoomScale)
   }
 
   // MARK: - Double tap

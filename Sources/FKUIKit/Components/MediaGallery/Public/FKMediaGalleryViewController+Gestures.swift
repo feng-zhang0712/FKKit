@@ -8,14 +8,10 @@ extension FKMediaGalleryViewController: UIGestureRecognizerDelegate {
     galleryPanRecognizer = pan
 
     let tap = UITapGestureRecognizer(target: self, action: #selector(handleGallerySingleTap))
+    tap.cancelsTouchesInView = false
     tap.delegate = self
-    view.addGestureRecognizer(tap)
+    collectionView.addGestureRecognizer(tap)
     gallerySingleTapRecognizer = tap
-
-    let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleGalleryLongPress(_:)))
-    longPress.delegate = self
-    view.addGestureRecognizer(longPress)
-    galleryLongPressRecognizer = longPress
   }
 
   @objc fileprivate func handleGallerySingleTap() {
@@ -25,11 +21,6 @@ extension FKMediaGalleryViewController: UIGestureRecognizerDelegate {
     case .none:
       break
     }
-  }
-
-  @objc fileprivate func handleGalleryLongPress(_ recognizer: UILongPressGestureRecognizer) {
-    guard configuration.contextMenu.isEnabled, recognizer.state == .began else { return }
-    presentContextMenu(from: recognizer)
   }
 
   @objc fileprivate func handleGalleryPan(_ recognizer: UIPanGestureRecognizer) {
@@ -44,12 +35,7 @@ extension FKMediaGalleryViewController: UIGestureRecognizerDelegate {
     let isVerticalDominant = abs(translation.y) >= abs(translation.x)
     switch recognizer.state {
     case .changed:
-      guard isVerticalDominant, translation.y > 0 else {
-        if translation.y <= 0 {
-          applyDismissProgress(0)
-        }
-        return
-      }
+      guard isVerticalDominant else { return }
       let progress = max(0, translation.y / max(view.bounds.height, 1))
       applyDismissProgress(progress)
     case .ended, .cancelled:
@@ -63,16 +49,6 @@ extension FKMediaGalleryViewController: UIGestureRecognizerDelegate {
       finishInteractiveDismiss(shouldDismiss: shouldDismiss)
     default:
       break
-    }
-  }
-
-  fileprivate func finishInteractiveDismiss(shouldDismiss: Bool) {
-    if shouldDismiss {
-      gallery?.dismiss(animated: true)
-    } else {
-      UIView.animate(withDuration: 0.2) {
-        self.applyDismissProgress(0)
-      }
     }
   }
 
@@ -92,12 +68,25 @@ extension FKMediaGalleryViewController: UIGestureRecognizerDelegate {
 
   public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
     if gestureRecognizer === galleryPanRecognizer {
+      guard dismissTransformProgress <= 0 else { return true }
       guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return false }
       let velocity = pan.velocity(in: view)
       let translation = pan.translation(in: view)
       let verticalDelta = abs(velocity.y) + abs(translation.y)
       let horizontalDelta = abs(velocity.x) + abs(translation.x)
-      return verticalDelta > horizontalDelta
+      return verticalDelta > horizontalDelta * 1.15
+    }
+    return true
+  }
+
+  public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+    guard gestureRecognizer === gallerySingleTapRecognizer else { return true }
+    guard let touchedView = touch.view else { return true }
+    if touchedView is UIControl {
+      return false
+    }
+    if touchedView.isDescendant(of: chrome.topBar) || touchedView.isDescendant(of: chrome.bottomBar) {
+      return false
     }
     return true
   }

@@ -11,6 +11,7 @@ extension FKVideoPlayerConfiguration {
     configuration.ui.gestureSeekSeconds = 0
     configuration.ui.allowsSurfacePanGestures = false
     configuration.ui.allowsDoubleTapSeek = false
+    configuration.ui.allowsTapToToggleControls = false
     return configuration
   }
 }

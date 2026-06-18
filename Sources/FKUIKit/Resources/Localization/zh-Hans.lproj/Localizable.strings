@@ -154,6 +154,7 @@
 "fkuikit.media_gallery.page.mixed" = "第 %1$d 项，共 %2$d 项";
 "fkuikit.media_gallery.page.photo" = "第 %1$d 张，共 %2$d 张";
 "fkuikit.media_gallery.page.video" = "第 %1$d 个视频，共 %2$d 个";
+"fkuikit.media_gallery.page.live_photo" = "实况照片 %1$d / %2$d";
 "fkuikit.media_gallery.toast.link_copied" = "链接已复制。";
 "fkuikit.media_gallery.toast.saved_to_photos" = "已存储到照片。";
 "fkuikit.paging.no_pages" = "无页面";

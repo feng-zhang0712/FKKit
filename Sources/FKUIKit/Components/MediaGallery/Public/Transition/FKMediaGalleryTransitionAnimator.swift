@@ -93,7 +93,7 @@ final class FKMediaGalleryTransitionAnimator: NSObject, UIViewControllerAnimated
     background.alpha = isPresenting ? 0 : 1
 
     let flyingView: UIView
-    if let image = resolvedHeroImage(source: source) {
+    if let image = FKMediaGalleryDismissVisualRenderer.transitionSourceImage(from: source) {
       let imageView = UIImageView(image: image)
       imageView.contentMode = .scaleAspectFit
       flyingView = imageView
@@ -110,13 +110,20 @@ final class FKMediaGalleryTransitionAnimator: NSObject, UIViewControllerAnimated
 
     if isPresenting, let toView = transitionContext.view(forKey: .to) {
       container.addSubview(toView)
-      toView.alpha = 0
+      if options.fadeInFullResolutionDuringTransition {
+        toView.alpha = 0.2
+      } else {
+        toView.alpha = 0
+      }
     }
     container.addSubview(background)
     container.addSubview(flyingView)
 
     let targetFrame = FKMediaGalleryLayoutMath.aspectFitFrame(
-      contentSize: resolvedHeroContentSize(source: source, fallbackBounds: container.bounds),
+      contentSize: FKMediaGalleryDismissVisualRenderer.transitionSourceContentSize(
+        from: source,
+        fallback: container.bounds.size
+      ),
       in: container.bounds
     )
     let animations = {
@@ -152,41 +159,13 @@ final class FKMediaGalleryTransitionAnimator: NSObject, UIViewControllerAnimated
       }
     }
   }
-
-  private func resolvedHeroImage(source: FKMediaGalleryTransitionSource) -> UIImage? {
-    if let image = source.placeholderImage {
-      return image
-    }
-    if let imageView = source.thumbnailView as? UIImageView, let image = imageView.image {
-      return image
-    }
-    if let imageView = source.thumbnailView as? FKImageView, let image = imageView.image {
-      return image
-    }
-    return nil
-  }
-
-  private func resolvedHeroContentSize(source: FKMediaGalleryTransitionSource, fallbackBounds: CGRect) -> CGSize {
-    if let image = source.placeholderImage {
-      return FKMediaGalleryLayoutMath.resolvedImageSize(from: image)
-    }
-    if let imageView = source.thumbnailView as? UIImageView, let image = imageView.image {
-      return FKMediaGalleryLayoutMath.resolvedImageSize(from: image)
-    }
-    if let imageView = source.thumbnailView as? FKImageView, let image = imageView.image {
-      return FKMediaGalleryLayoutMath.resolvedImageSize(from: image)
-    }
-    if source.thumbnailView?.bounds.width ?? 0 > 0 {
-      return source.thumbnailView?.bounds.size ?? fallbackBounds.size
-    }
-    return fallbackBounds.size
-  }
 }
 
 @MainActor
 final class FKMediaGalleryTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
   var transition: FKMediaGalleryTransition = .crossDissolve
   var transitionSource: FKMediaGalleryTransitionSource?
+  weak var hostViewController: FKMediaGalleryViewController?
 
   func animationController(
     forPresented presented: UIViewController,
@@ -197,7 +176,11 @@ final class FKMediaGalleryTransitioningDelegate: NSObject, UIViewControllerTrans
   }
 
   func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-    animator(isPresenting: false)
+    if hostViewController?.suppressNextDismissTransitionAnimation == true {
+      hostViewController?.suppressNextDismissTransitionAnimation = false
+      return nil
+    }
+    return animator(isPresenting: false)
   }
 
   private func animator(isPresenting: Bool) -> UIViewControllerAnimatedTransitioning? {

@@ -95,6 +95,7 @@ final class FKMediaGalleryCoordinator {
     case .hero:
       transitioningDelegate.transition = configuration.transition
       transitioningDelegate.transitionSource = transitionSource
+      transitioningDelegate.hostViewController = host
       host.transitioningDelegate = transitioningDelegate
       host.modalPresentationStyle = .overFullScreen
     }

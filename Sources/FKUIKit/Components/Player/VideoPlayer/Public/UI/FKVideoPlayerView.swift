@@ -6,7 +6,8 @@ import UIKit
 public final class FKVideoPlayerView: UIView {
 
   public let playerLayer = AVPlayerLayer()
-  public private(set) weak var controlView: FKVideoPlayerControlView?
+  /// Retained while unmounted so lazy-mount auto-hide can reattach transport chrome.
+  public private(set) var controlView: FKVideoPlayerControlView?
 
   fileprivate weak var player: FKVideoPlayer?
   fileprivate weak var preFullscreenSuperview: UIView?
@@ -108,13 +109,12 @@ public final class FKVideoPlayerView: UIView {
   public func setDefaultControlView(_ view: FKVideoPlayerControlView) {
     controlView?.removeFromSuperview()
     controlView = view
-    view.frame = CGRect(x: 0, y: bounds.height - 80, width: bounds.width, height: 80)
-    addSubview(view)
-    bringOptionalOverlaysAboveControlBar()
-    airPlayPresenter.bringToFront(on: self)
     if let player {
       view.bind(player: player)
       syncControlState()
+    }
+    if isControlBarVisible {
+      mountControlBarIfNeeded(animated: false)
     }
   }
 
@@ -139,6 +139,22 @@ public final class FKVideoPlayerView: UIView {
     let poster = mountPosterImageView()
     poster.image = image
     poster.isHidden = false
+  }
+
+  /// Returns the visible media bitmap for interactive dismiss (poster or rendered video frame), excluding transport chrome.
+  public func dismissMediaBitmap() -> UIImage? {
+    if let posterImageView,
+       !posterImageView.isHidden,
+       let image = posterImageView.image {
+      return image
+    }
+    guard bounds.width > 0, bounds.height > 0 else { return nil }
+    let format = UIGraphicsImageRendererFormat.default()
+    format.scale = UIScreen.main.scale
+    let renderer = UIGraphicsImageRenderer(bounds: bounds, format: format)
+    return renderer.image { context in
+      playerLayer.render(in: context.cgContext)
+    }
   }
 
   public func bind(player: FKVideoPlayer) {
@@ -536,8 +552,8 @@ public final class FKVideoPlayerView: UIView {
 
   private func mountControlBarIfNeeded(animated: Bool) {
     guard let control = controlView else { return }
+    control.frame = controlBarFrame()
     if control.superview == nil {
-      control.frame = controlBarFrame()
       control.alpha = animated ? 0 : 1
       addSubview(control)
       bringOptionalOverlaysAboveControlBar()

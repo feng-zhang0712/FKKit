@@ -124,6 +124,11 @@ private final class FKMediaGalleryExampleThumbCell: UICollectionViewCell {
         config.loading.placeholder = .symbol(name: "play.rectangle.fill", pointSize: 28, weight: .regular)
       }
       thumbnailView.setImage(nil, animated: false)
+    case .livePhoto:
+      thumbnailView.apply { config in
+        config.loading.placeholder = .symbol(name: "livephoto", pointSize: 28, weight: .regular)
+      }
+      thumbnailView.setImage(nil, animated: false)
     }
   }
 }

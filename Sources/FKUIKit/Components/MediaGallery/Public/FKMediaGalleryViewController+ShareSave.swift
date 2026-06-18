@@ -52,6 +52,8 @@ extension FKMediaGalleryViewController {
         return
       }
       FKToast.show(FKMediaGalleryI18n.shareItemUnavailableMessage, style: .error)
+    case .livePhoto(_):
+      FKToast.show(FKMediaGalleryI18n.shareItemUnavailableMessage, style: .error)
     }
   }
 
@@ -97,6 +99,8 @@ extension FKMediaGalleryViewController {
         FKToast.show(FKMediaGalleryI18n.savedToPhotosMessage)
         return
       }
+    case .livePhoto(_):
+      break
     }
     FKToast.show(FKMediaGalleryI18n.shareItemUnavailableMessage, style: .error)
   }

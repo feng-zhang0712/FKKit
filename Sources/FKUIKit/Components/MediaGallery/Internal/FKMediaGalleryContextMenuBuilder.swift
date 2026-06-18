@@ -35,6 +35,18 @@ enum FKMediaGalleryContextMenuBuilder {
     return actions
   }
 
+  static func makeMenu(
+    for item: FKMediaGalleryItem,
+    configuration: FKMediaGalleryContextMenuConfiguration,
+    handlers: Handlers
+  ) -> UIMenu {
+    let actions = makeActions(for: item, configuration: configuration, handlers: handlers)
+    let menuActions = actions.map { action in
+      UIAction(title: action.title) { _ in action.handler() }
+    }
+    return UIMenu(children: menuActions)
+  }
+
   struct Handlers {
     var onSave: () -> Void
     var onShare: () -> Void

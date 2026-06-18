@@ -16,6 +16,11 @@ final class FKMediaGalleryVideoPageCell: UICollectionViewCell, FKMediaGalleryPag
   private var isScrubbing = false
   private var sessionConfiguration: FKMediaGalleryConfiguration?
   private var doubleTapRecognizer: UITapGestureRecognizer?
+  private var longPressRecognizer: UILongPressGestureRecognizer?
+  private var boundVideoSource: FKMediaGalleryVideoSource?
+  private var boundItemID: String?
+  private var posterTask: Task<Void, Never>?
+  private var imageLoader: (any FKImageLoading)?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -42,6 +47,12 @@ final class FKMediaGalleryVideoPageCell: UICollectionViewCell, FKMediaGalleryPag
   override func prepareForReuse() {
     super.prepareForReuse()
     removeDoubleTapGesture()
+    removeLongPressGesture()
+    posterTask?.cancel()
+    posterTask = nil
+    boundVideoSource = nil
+    boundItemID = nil
+    imageLoader = nil
     teardownPlayer()
     playerView.setPosterImage(nil)
     playerView.resetChrome()
@@ -49,8 +60,6 @@ final class FKMediaGalleryVideoPageCell: UICollectionViewCell, FKMediaGalleryPag
 
   var isBlockingHorizontalPaging: Bool { isScrubbing }
   var isBlockingInteractiveDismiss: Bool { isScrubbing }
-
-  func setPagingEnabled(_ enabled: Bool) {}
 
   override func layoutSubviews() {
     super.layoutSubviews()
@@ -79,31 +88,19 @@ final class FKMediaGalleryVideoPageCell: UICollectionViewCell, FKMediaGalleryPag
     placeholder: UIImage?
   ) {
     sessionConfiguration = configuration
+    self.imageLoader = imageLoader
     controlView.allowsScrubbing = configuration.video.allowsScrubbing
     guard case let .video(source) = item.kind else { return }
-    let videoConfig = configuration.video
-    var playerConfiguration = videoConfig.playerConfiguration
-    if videoConfig.loopsCurrentVideo {
-      playerConfiguration.media.playback.loopMode = .one
-    }
-    let player = FKVideoPlayer(configuration: playerConfiguration)
-    player.isMuted = videoConfig.mutedByDefault
-    player.coordinator.photoAssetResolver = FKMediaPhotoLibraryAssetResolver()
-    self.player = player
-    player.bind(to: playerView)
-    playerView.apply(uiConfiguration: playerConfiguration.ui)
-
-    let videoItem = FKMediaGalleryItemResolver.videoItem(for: source, itemID: item.id)
-    if videoItem.posterURL == nil, let placeholder {
-      playerView.setPosterImage(placeholder)
-    }
-    player.load(videoItem)
-    player.delegate = self
+    boundVideoSource = source
+    boundItemID = item.id
+    loadPoster(for: source, itemID: item.id, placeholder: placeholder)
     refreshDoubleTapGesture(configuration: configuration)
+    refreshLongPressGesture()
   }
 
   func didBecomeCurrent(configuration: FKMediaGalleryConfiguration) {
     sessionConfiguration = configuration
+    ensurePlayerIfNeeded()
     guard let player else { return }
     let videoConfig = configuration.video
     guard videoConfig.autoplayCurrentVideo else { return }
@@ -130,10 +127,110 @@ final class FKMediaGalleryVideoPageCell: UICollectionViewCell, FKMediaGalleryPag
     teardownPlayer()
   }
 
+  func releaseRetainedImageContent() {}
+
+  func makeInteractiveDismissSnapshot() -> UIView? {
+    guard !isBlockingInteractiveDismiss else { return nil }
+    return playerView.snapshotView(afterScreenUpdates: false)
+  }
+
+  func interactiveDismissVisualContent() -> (image: UIImage, contentSize: CGSize)? {
+    guard !isBlockingInteractiveDismiss else { return nil }
+    return FKMediaGalleryDismissVisualRenderer.videoMediaContent(
+      playerView: playerView,
+      player: player
+    )
+  }
+
+  private func ensurePlayerIfNeeded() {
+    guard player == nil,
+          let source = boundVideoSource,
+          let itemID = boundItemID,
+          let configuration = sessionConfiguration else {
+      return
+    }
+    if FKMediaGalleryItemResolver.bundleVideoURL(for: source) == nil,
+       case .bundleResource = source {
+      onLoadFailed?(.videoLoadFailed(index: pageIndex, underlying: "Bundle video resource not found."))
+      return
+    }
+    let videoConfig = configuration.video
+    var playerConfiguration = videoConfig.playerConfiguration
+    if videoConfig.loopsCurrentVideo {
+      playerConfiguration.media.playback.loopMode = .one
+    }
+    let player = FKVideoPlayer(configuration: playerConfiguration)
+    player.isMuted = videoConfig.mutedByDefault
+    player.coordinator.photoAssetResolver = FKMediaPhotoLibraryAssetResolver()
+    self.player = player
+    player.bind(to: playerView)
+    playerView.apply(uiConfiguration: playerConfiguration.ui)
+
+    let videoItem = FKMediaGalleryItemResolver.videoItem(for: source, itemID: itemID)
+    player.load(videoItem)
+    player.delegate = self
+  }
+
+  private func loadPoster(
+    for source: FKMediaGalleryVideoSource,
+    itemID: String,
+    placeholder: UIImage?
+  ) {
+    posterTask?.cancel()
+    let expectedItemID = itemID
+    if let assetID = FKMediaGalleryItemResolver.photoAssetVideoIdentifier(for: source) {
+      if let placeholder {
+        playerView.setPosterImage(placeholder)
+      }
+      posterTask = Task { @MainActor in
+        let screenScale = FKMediaGalleryImageLoadingMath.screenScale(for: contentView)
+        let targetSize = FKMediaGalleryImageLoadingMath.decodeTargetSize(
+          bounds: bounds.size,
+          screenScale: screenScale,
+          maximumZoomScale: 1,
+          isCurrentPage: false
+        )
+        if let image = try? await FKMediaGalleryPhotoAssetLoader.loadVideoPoster(
+          localIdentifier: assetID,
+          targetSize: targetSize
+        ), !Task.isCancelled, self.boundItemID == expectedItemID {
+          playerView.setPosterImage(image)
+        }
+      }
+      return
+    }
+    let videoItem = FKMediaGalleryItemResolver.videoItem(for: source, itemID: itemID)
+    if videoItem.posterURL == nil {
+      playerView.setPosterImage(placeholder)
+      return
+    }
+    if let placeholder {
+      playerView.setPosterImage(placeholder)
+    }
+    guard let posterURL = videoItem.posterURL else { return }
+    let loader = imageLoader ?? FKImageLoader.shared
+    posterTask = Task { @MainActor in
+      let screenScale = FKMediaGalleryImageLoadingMath.screenScale(for: contentView)
+      let targetSize = FKMediaGalleryImageLoadingMath.decodeTargetSize(
+        bounds: bounds.size,
+        screenScale: screenScale,
+        maximumZoomScale: 1,
+        isCurrentPage: false
+      )
+      let request = FKImageLoadRequest(url: posterURL, targetSize: targetSize)
+      do {
+        let image = try await loader.loadImage(for: request)
+        guard !Task.isCancelled, self.boundItemID == expectedItemID else { return }
+        playerView.setPosterImage(image)
+      } catch {
+        guard !Task.isCancelled else { return }
+      }
+    }
+  }
+
   private func teardownPlayer() {
     player?.stop()
     player = nil
-    playerView.setPosterImage(nil)
   }
 
   private func refreshDoubleTapGesture(configuration: FKMediaGalleryConfiguration) {
@@ -153,7 +250,30 @@ final class FKMediaGalleryVideoPageCell: UICollectionViewCell, FKMediaGalleryPag
   }
 
   @objc private func handleDoubleTap() {
+    ensurePlayerIfNeeded()
     player?.togglePlayPause()
+  }
+
+  private func refreshLongPressGesture() {
+    removeLongPressGesture()
+    let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+    recognizer.minimumPressDuration = 0.45
+    contentView.addGestureRecognizer(recognizer)
+    longPressRecognizer = recognizer
+  }
+
+  private func removeLongPressGesture() {
+    if let longPressRecognizer {
+      contentView.removeGestureRecognizer(longPressRecognizer)
+    }
+    longPressRecognizer = nil
+  }
+
+  @objc private func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
+    guard recognizer.state == .began else { return }
+    ensurePlayerIfNeeded()
+    guard let player else { return }
+    onRequestFullScreenPlayer?(player)
   }
 }
 

@@ -77,6 +77,10 @@ enum FKMediaGalleryI18n {
     FKUIKitI18n.format("fkuikit.media_gallery.page.video", current, total)
   }
 
+  static func livePhotoPageIndicator(current: Int, total: Int) -> String {
+    FKUIKitI18n.format("fkuikit.media_gallery.page.live_photo", current, total)
+  }
+
   static func mixedPageIndicator(current: Int, total: Int) -> String {
     FKUIKitI18n.format("fkuikit.media_gallery.page.mixed", current, total)
   }

@@ -117,6 +117,16 @@ public struct FKMediaGalleryVideoConfiguration: Sendable, Equatable {
   }
 }
 
+/// Live Photo playback behavior inside the gallery.
+public struct FKMediaGalleryLivePhotoConfiguration: Sendable, Equatable {
+  /// When `true`, Live Photo motion plays without sound.
+  public var isMutedDuringPlayback: Bool
+
+  public init(isMutedDuringPlayback: Bool = false) {
+    self.isMutedDuringPlayback = isMutedDuringPlayback
+  }
+}
+
 /// Audio session behavior while the gallery is visible.
 public enum FKMediaGalleryAudioSessionPolicy: Sendable, Equatable {
   case ambient
@@ -202,6 +212,22 @@ public enum FKMediaGalleryBackgroundStyle: Sendable, Equatable {
   case blur(UIBlurEffect.Style)
 }
 
+/// Image memory retention and cache trimming while browsing.
+public struct FKMediaGalleryMemoryConfiguration: Sendable, Equatable {
+  /// Maximum image pages that may retain decoded bitmaps centered on the current page (includes current).
+  public var maxRetainedImagePages: Int
+  /// When `true`, trims the injected image loader memory cache on memory pressure and dismiss.
+  public var trimsImageLoaderMemoryCacheOnMemoryPressure: Bool
+
+  public init(
+    maxRetainedImagePages: Int = 3,
+    trimsImageLoaderMemoryCacheOnMemoryPressure: Bool = true
+  ) {
+    self.maxRetainedImagePages = max(1, maxRetainedImagePages)
+    self.trimsImageLoaderMemoryCacheOnMemoryPressure = trimsImageLoaderMemoryCacheOnMemoryPressure
+  }
+}
+
 /// Top chrome configuration.
 public struct FKMediaGalleryChromeConfiguration: Sendable, Equatable {
   public var showsCloseButton: Bool
@@ -244,11 +270,13 @@ public struct FKMediaGalleryConfiguration: Sendable, Equatable {
   public var zoom: FKMediaGalleryZoomConfiguration
   public var progressiveLoading: FKMediaGalleryProgressiveLoadingConfiguration
   public var video: FKMediaGalleryVideoConfiguration
+  public var livePhoto: FKMediaGalleryLivePhotoConfiguration
   public var audioSession: FKMediaGalleryAudioSessionPolicy
   public var dismissGesture: FKMediaGalleryDismissGestureConfiguration
   public var interaction: FKMediaGalleryInteractionConfiguration
   public var contextMenu: FKMediaGalleryContextMenuConfiguration
   public var chrome: FKMediaGalleryChromeConfiguration
+  public var memory: FKMediaGalleryMemoryConfiguration
   public var prefetchNeighborCount: Int
   public var dismissWhenItemsBecomeEmpty: Bool
   public var statusBarHidden: Bool
@@ -260,11 +288,13 @@ public struct FKMediaGalleryConfiguration: Sendable, Equatable {
     zoom: FKMediaGalleryZoomConfiguration = .init(),
     progressiveLoading: FKMediaGalleryProgressiveLoadingConfiguration = .init(),
     video: FKMediaGalleryVideoConfiguration = .init(),
+    livePhoto: FKMediaGalleryLivePhotoConfiguration = .init(),
     audioSession: FKMediaGalleryAudioSessionPolicy = .ambient,
     dismissGesture: FKMediaGalleryDismissGestureConfiguration = .init(),
     interaction: FKMediaGalleryInteractionConfiguration = .init(),
     contextMenu: FKMediaGalleryContextMenuConfiguration = .init(),
     chrome: FKMediaGalleryChromeConfiguration = .init(),
+    memory: FKMediaGalleryMemoryConfiguration = .init(),
     prefetchNeighborCount: Int = 1,
     dismissWhenItemsBecomeEmpty: Bool = true,
     statusBarHidden: Bool = true,
@@ -275,11 +305,13 @@ public struct FKMediaGalleryConfiguration: Sendable, Equatable {
     self.zoom = zoom
     self.progressiveLoading = progressiveLoading
     self.video = video
+    self.livePhoto = livePhoto
     self.audioSession = audioSession
     self.dismissGesture = dismissGesture
     self.interaction = interaction
     self.contextMenu = contextMenu
     self.chrome = chrome
+    self.memory = memory
     self.prefetchNeighborCount = prefetchNeighborCount
     self.dismissWhenItemsBecomeEmpty = dismissWhenItemsBecomeEmpty
     self.statusBarHidden = statusBarHidden

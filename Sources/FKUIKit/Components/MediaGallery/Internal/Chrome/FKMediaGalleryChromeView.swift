@@ -76,6 +76,8 @@ final class FKMediaGalleryTopChromeView: UIView {
       label.isHidden = false
       if FKMediaGalleryItemResolver.isVideo(item) {
         label.text = FKMediaGalleryI18n.videoPageIndicator(current: currentIndex + 1, total: total)
+      } else if FKMediaGalleryItemResolver.isLivePhoto(item) {
+        label.text = FKMediaGalleryI18n.livePhotoPageIndicator(current: currentIndex + 1, total: total)
       } else {
         label.text = FKMediaGalleryI18n.photoPageIndicator(current: currentIndex + 1, total: total)
       }
@@ -338,6 +340,7 @@ final class FKMediaGalleryChrome {
   func setChromeVisible(_ visible: Bool, animated: Bool) {
     hideWorkItem?.cancel()
     let alpha: CGFloat = visible ? 1 : 0
+    topBar.isUserInteractionEnabled = visible
     let updates = {
       self.topBar.alpha = alpha
       self.bottomBar.alpha = alpha

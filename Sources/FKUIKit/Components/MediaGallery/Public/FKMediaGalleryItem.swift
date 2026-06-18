@@ -32,6 +32,7 @@ public struct FKMediaGalleryItem: @unchecked Sendable, Identifiable {
 public enum FKMediaGalleryItemKind: @unchecked Sendable {
   case image(FKMediaGalleryImageSource)
   case video(FKMediaGalleryVideoSource)
+  case livePhoto(FKMediaGalleryLivePhotoSource)
 }
 
 extension FKMediaGalleryItemKind: Equatable {
@@ -40,6 +41,8 @@ extension FKMediaGalleryItemKind: Equatable {
     case let (.image(l), .image(r)):
       return l == r
     case let (.video(l), .video(r)):
+      return l == r
+    case let (.livePhoto(l), .livePhoto(r)):
       return l == r
     default:
       return false
@@ -112,4 +115,12 @@ public enum FKMediaGalleryVideoSource: Sendable, Equatable {
   )
   case item(FKVideoItem)
   case bundleResource(name: String, ext: String, bundle: Bundle = .main, posterURL: URL? = nil)
+  /// Plays a library video via ``FKMediaSource/photoAsset(localIdentifier:)``.
+  case assetLocalIdentifier(String)
+}
+
+/// Live Photo source variants supported by the gallery.
+public enum FKMediaGalleryLivePhotoSource: Sendable, Equatable {
+  /// Loads paired still + motion from the photo library via ``PHAsset/localIdentifier``.
+  case assetLocalIdentifier(String)
 }

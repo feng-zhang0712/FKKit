@@ -94,7 +94,7 @@ final class FKMediaGalleryExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Context menu · share · save",
-          subtitle: "Long-press · FKFileManager share · save to Photos",
+          subtitle: "UIContextMenu preview · FKFileManager share · save to Photos",
           make: { FKMediaGalleryExampleContextMenuViewController() }
         ),
         Row(
@@ -114,8 +114,13 @@ final class FKMediaGalleryExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "PhotoPicker bridge",
-          subtitle: "FKPhotoPicker → FKMediaGalleryItem.from(results)",
+          subtitle: "FKPhotoPicker → FKMediaGalleryItem.from(results) incl. Live Photo",
           make: { FKMediaGalleryExamplePhotoPickerBridgeViewController() }
+        ),
+        Row(
+          title: "Live Photo playback",
+          subtitle: "PHLivePhotoView · press and hold · opportunistic library load",
+          make: { FKMediaGalleryExampleLivePhotoViewController() }
         ),
         Row(
           title: "Custom chrome overlay",

@@ -21,4 +21,22 @@ enum FKMediaGalleryLayoutMath {
     let pixelSize = CGSize(width: image.size.width * image.scale, height: image.size.height * image.scale)
     return pixelSize.width > 0 && pixelSize.height > 0 ? pixelSize : image.size
   }
+
+  /// Interpolates between aspect-fit placements of the same `contentSize` inside two containers.
+  static func aspectFitFrameInterpolated(
+    contentSize: CGSize,
+    startContainer: CGRect,
+    endContainer: CGRect,
+    progress: CGFloat
+  ) -> CGRect {
+    let start = aspectFitFrame(contentSize: contentSize, in: startContainer)
+    let end = aspectFitFrame(contentSize: contentSize, in: endContainer)
+    let t = min(max(progress, 0), 1)
+    return CGRect(
+      x: start.origin.x + (end.origin.x - start.origin.x) * t,
+      y: start.origin.y + (end.origin.y - start.origin.y) * t,
+      width: start.size.width + (end.size.width - start.size.width) * t,
+      height: start.size.height + (end.size.height - start.size.height) * t
+    )
+  }
 }

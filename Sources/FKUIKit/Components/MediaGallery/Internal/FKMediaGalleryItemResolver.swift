@@ -1,5 +1,4 @@
 import FKCoreKit
-import Network
 import UIKit
 
 enum FKMediaGalleryItemResolver {
@@ -39,11 +38,22 @@ enum FKMediaGalleryItemResolver {
     case let .item(item):
       return item
     case let .bundleResource(name, ext, bundle, posterURL):
-      let url = bundle.url(forResource: name, withExtension: ext) ?? URL(fileURLWithPath: "/dev/null")
+      guard let url = bundle.url(forResource: name, withExtension: ext) else {
+        return FKVideoItem(
+          id: itemID,
+          source: .url(URL(fileURLWithPath: "")),
+          posterURL: posterURL
+        )
+      }
       return FKVideoItem(
         id: itemID,
         source: .url(url),
         posterURL: posterURL
+      )
+    case let .assetLocalIdentifier(identifier):
+      return FKVideoItem(
+        id: itemID,
+        source: .photoAsset(localIdentifier: identifier)
       )
     }
   }
@@ -55,40 +65,25 @@ enum FKMediaGalleryItemResolver {
     return nil
   }
 
+  static func photoAssetVideoIdentifier(for source: FKMediaGalleryVideoSource) -> String? {
+    if case let .assetLocalIdentifier(identifier) = source {
+      return identifier
+    }
+    return nil
+  }
+
   static func isVideo(_ item: FKMediaGalleryItem) -> Bool {
     if case .video = item.kind { return true }
     return false
   }
-}
 
-/// One-shot Wi‑Fi reachability check for autoplay policy.
-enum FKMediaGalleryNetworkPolicy {
-  static func allowsAutoplay(for policy: FKMediaGalleryAutoplayPolicy) -> Bool {
-    switch policy {
-    case .always:
-      return true
-    case .never:
-      return false
-    case .wifiOnly:
-      return isOnWiFi()
-    }
+  static func isLivePhoto(_ item: FKMediaGalleryItem) -> Bool {
+    if case .livePhoto = item.kind { return true }
+    return false
   }
 
-  private static func isOnWiFi() -> Bool {
-    final class Box: @unchecked Sendable {
-      var value = false
-    }
-    let box = Box()
-    let monitor = NWPathMonitor()
-    let queue = DispatchQueue(label: "com.fkkit.media_gallery.network")
-    let semaphore = DispatchSemaphore(value: 0)
-    monitor.pathUpdateHandler = { path in
-      box.value = path.status == .satisfied && path.usesInterfaceType(.wifi)
-      semaphore.signal()
-      monitor.cancel()
-    }
-    monitor.start(queue: queue)
-    _ = semaphore.wait(timeout: .now() + 0.25)
-    return box.value
+  static func bundleVideoURL(for source: FKMediaGalleryVideoSource) -> URL? {
+    guard case let .bundleResource(name, ext, bundle, _) = source else { return nil }
+    return bundle.url(forResource: name, withExtension: ext)
   }
 }

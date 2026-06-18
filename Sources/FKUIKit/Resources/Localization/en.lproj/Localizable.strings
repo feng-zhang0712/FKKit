@@ -154,6 +154,7 @@
 "fkuikit.media_gallery.page.mixed" = "%1$d of %2$d";
 "fkuikit.media_gallery.page.photo" = "Photo %1$d of %2$d";
 "fkuikit.media_gallery.page.video" = "Video %1$d of %2$d";
+"fkuikit.media_gallery.page.live_photo" = "Live Photo %1$d of %2$d";
 "fkuikit.media_gallery.toast.link_copied" = "Link copied.";
 "fkuikit.media_gallery.toast.saved_to_photos" = "Saved to Photos.";
 "fkuikit.paging.no_pages" = "No pages";

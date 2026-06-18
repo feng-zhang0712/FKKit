@@ -6,6 +6,9 @@ extension FKMediaGalleryItem {
     let id = result.id
     switch result.mediaType {
     case .image:
+      if let assetIdentifier = result.assetIdentifier {
+        return FKMediaGalleryItem(id: id, kind: .image(.assetLocalIdentifier(assetIdentifier)))
+      }
       if let image = result.image {
         return FKMediaGalleryItem(id: id, kind: .image(.image(image)))
       }
@@ -14,6 +17,9 @@ extension FKMediaGalleryItem {
       }
       return nil
     case .video:
+      if let assetIdentifier = result.assetIdentifier {
+        return FKMediaGalleryItem(id: id, kind: .video(.assetLocalIdentifier(assetIdentifier)))
+      }
       guard let fileURL = result.fileURL else { return nil }
       var item = FKVideoItem(
         id: id,
@@ -33,6 +39,9 @@ extension FKMediaGalleryItem {
         kind: .video(.item(item))
       )
     case .livePhoto:
+      if let assetIdentifier = result.assetIdentifier {
+        return FKMediaGalleryItem(id: id, kind: .livePhoto(.assetLocalIdentifier(assetIdentifier)))
+      }
       if let image = result.image {
         return FKMediaGalleryItem(id: id, kind: .image(.image(image)))
       }
