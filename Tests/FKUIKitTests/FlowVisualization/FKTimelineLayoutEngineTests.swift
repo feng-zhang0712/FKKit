@@ -102,4 +102,50 @@ final class FKTimelineLayoutEngineTests: XCTestCase {
 
     XCTAssertNil(metrics.sections[0].rows[0].connectorFrame)
   }
+
+  func testTimestampFramePresentWhenStyleIsAbsoluteAndDateProvided() {
+    let item = FKFlowStepItem(
+      id: "shipped",
+      title: "Shipped",
+      timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+      state: .completed
+    )
+    let section = FKTimelineSection(id: "s", title: "", items: [item])
+    var configuration = FKTimelineConfiguration()
+    configuration.layout.timestampStyle = .absolute
+
+    let metrics = FKTimelineLayoutEngine.metrics(
+      sections: [section],
+      configuration: configuration,
+      bounds: CGRect(x: 0, y: 0, width: 390, height: 400),
+      layoutDirection: .leftToRight,
+      traitCollection: nil,
+      expandedItemIDs: []
+    )
+
+    XCTAssertNotNil(metrics.sections[0].rows[0].timestampFrame)
+  }
+
+  func testTimestampFrameOmittedWhenStyleIsHidden() {
+    let item = FKFlowStepItem(
+      id: "shipped",
+      title: "Shipped",
+      timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+      state: .completed
+    )
+    let section = FKTimelineSection(id: "s", title: "", items: [item])
+    var configuration = FKTimelineConfiguration()
+    configuration.layout.timestampStyle = .hidden
+
+    let metrics = FKTimelineLayoutEngine.metrics(
+      sections: [section],
+      configuration: configuration,
+      bounds: CGRect(x: 0, y: 0, width: 390, height: 400),
+      layoutDirection: .leftToRight,
+      traitCollection: nil,
+      expandedItemIDs: []
+    )
+
+    XCTAssertNil(metrics.sections[0].rows[0].timestampFrame)
+  }
 }

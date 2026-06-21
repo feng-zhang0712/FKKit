@@ -54,4 +54,21 @@ final class FKI18nDictionaryLocalizerTests: XCTestCase {
 
     XCTAssertEqual(observedCodes.snapshot, ["en", "zh-Hans"])
   }
+
+  func testLocalizedPluralAppliesCountToEnglishFormat() {
+    XCTAssertEqual(localizer.localizedPlural("items.count", count: 0, table: nil), "0 items")
+    XCTAssertEqual(localizer.localizedPlural("items.count", count: 1, table: nil), "1 items")
+    XCTAssertEqual(localizer.localizedPlural("items.count", count: 12, table: nil), "12 items")
+  }
+
+  func testLocalizedPluralUsesActiveLanguageFormat() {
+    localizer.setLanguageCode("zh-Hans")
+
+    XCTAssertEqual(localizer.localizedPlural("items.count", count: 5, table: nil), "5 项")
+    XCTAssertEqual(localizer.localizedPlural("items.none", count: 0, table: nil), "暂无项目")
+  }
+
+  func testLocalizedPluralReturnsKeyWhenMissingEverywhere() {
+    XCTAssertEqual(localizer.localizedPlural("missing.plural", count: 2, table: nil), "missing.plural")
+  }
 }

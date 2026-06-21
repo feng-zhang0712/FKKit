@@ -2,7 +2,7 @@
 
 **状态：** 活文档 — 补测工作以本文 + [`TESTING_GUIDE.md`](TESTING_GUIDE.md) 为准。  
 **关联：** [`TESTING_COMPONENT_ISSUES.md`](TESTING_COMPONENT_ISSUES.md)（组件缺陷台账）  
-**最后更新：** 2026-06-17
+**最后更新：** 2026-06-21
 
 ---
 
@@ -37,10 +37,10 @@
 
 | 指标 | 数值 |
 |------|------|
-| 测试文件 | ~255（+ Support/Fixtures） |
-| 测试方法 | ~845 |
-| FKCoreKit 通过 | 389（3 skipped：Keychain） |
-| FKUIKit 通过 | 456 |
+| 测试文件 | ~298（+ Support/Fixtures） |
+| 测试方法 | ~1192 |
+| FKCoreKit 通过 | 401（3 skipped：Keychain） |
+| FKUIKit 通过 | 787 |
 | FKCoreKit 组件目录 | 16/16 至少有 1 个测试文件 |
 | FKUIKit 组件目录 | 30/30 至少有 1 个测试文件 |
 | 主要缺口 | **深度**：配置 smoke 多、行为/集成少；Player / ImageLoader / Refresh 行为 |
@@ -114,7 +114,7 @@
 | Storage | ★★★☆☆ | Keychain 真机矩阵（Simulator skip 已有） |
 | Security | ★★★☆☆ | RSA 长向量 fixture（可选） |
 | Async | ★★★☆☆ | Debouncer 边界（interval 0 / cancel / coalesce） | [x] |
-| I18n | ★★★☆☆ | plural 复杂规则（若有） |
+| I18n | ★★★★☆ | plural 复杂规则（若有） | [x] |
 | QRCode | ★★★★☆ | 维持 |
 | BusinessKit | ★★★☆☆ | StartupTask 串行 + delay 排序 | [x] |
 | FileManager | ★★★☆☆ | Background session coordinator | [x] |
@@ -207,12 +207,12 @@
 | 组件 | 完善度 | 下一批 P1 行为测试 |
 |------|--------|-------------------|
 | Button | ★★★☆☆ | 扩展 `FKButtonStateTests`（gradient/content 模式） | [x] |
-| Carousel / TabBar / Search* | ★★★☆☆ | selection reducer / infinite loop adapter | [x] |
-| ImageView / PhotoPicker | ★★☆☆☆ | retry debounce + selection policy | [x] |
+| Carousel / TabBar / Search* | ★★★☆☆ | layout engine + banner overlay metrics | [x] |
+| ImageView / PhotoPicker | ★★☆☆☆ | input extractor + selection policy | [x] |
 | Toast / EmptyState / Badge | ★★☆☆☆ | Toast queue actor + EmptyState layout metrics | [x] |
-| WebView / Skeleton / Blur | ★★☆☆☆ | 维持 defaults；Defer WKWebView 渲染 |
+| WebView / Skeleton / Blur | ★★☆☆☆ | host policy + JS bridge body converter | [x] |
 | FlowVisualization | ★★★☆☆ | StepIndicator layout engine | [x] |
-| Widgets | ★★★☆☆ | Avatar/Chip 尺寸 preset 已有 |
+| Widgets | ★★★☆☆ | chip selection controller + tag renderer | [x] |
 | Theme / Core | ☆☆☆☆☆ | `FKTheme` token 解析（color/metrics/resolver） | [x] |
 
 ---
@@ -243,7 +243,158 @@
 | `FKAlertActionResolver` 4 actions trim 触发 `assertionFailure` | 用例错误 | Debug 下 `assertionFailure` 终止进程；改为 ≤3 actions 的 passthrough 测试 |
 | `FKPermissions` 并发回调 `callbackCount` 变异 | 用例错误 | 改用 `LockedCounter` + 显式 `[FKPermissionRequest]()` 消除 overload 歧义 |
 
-**下一批建议（仍为 `[ ]`）：** Extension 增量维护、Flow Timeline timestamp formatter、I18n plural（若有）、Network 真实 TLS fixture（Defer）。
+**下一批建议（仍为 `[ ]`）：** Extension 增量维护、Network 真实 TLS fixture（Defer）。
+
+---
+
+## 7.12 第十三批实施范围（2026-06-21）
+
+本批勾选 **Sheet animation resolver、Search normalization、Callout beak geometry、Sheet sizing math、Media error mapper、Paging scroll utilities、TabBar content measurer、EmptyState context layout、ExpandableText measurement width、ActionSheet layout、Carousel auto-scroll** — **已完成（2026-06-21）**。
+
+| 模块 | 新增测试文件 | 用例数（约） |
+|------|--------------|--------------|
+| FKUIKit SheetPresentationController | `FKSheetAnimationStyleResolverTests`、`FKSheetPreferredContentSizingMathTests` | 16 |
+| FKUIKit SearchBar | `FKSearchTextNormalizationApplierTests` | 6 |
+| FKUIKit Callout | `FKCalloutBeakGeometryTests` | 8 |
+| FKUIKit Player | `FKMediaErrorMapperTests` | 8 |
+| FKUIKit PagingController | `FKPagingScrollUtilitiesTests` | 6 |
+| FKUIKit TabBar | `FKTabBarItemContentMeasurerTests` | 6 |
+| FKUIKit EmptyState | `FKEmptyStateContextLayoutTests` | 8 |
+| FKUIKit ExpandableText | `FKExpandableTextMeasurementWidthTests` | 5 |
+| FKUIKit ActionSheet | `FKActionSheetLayoutTests` | 7 |
+| FKUIKit Carousel | `FKCarouselAutoScrollControllerTests` | 7 |
+| **合计新增** | **11 新文件** | **~77** |
+
+**Batch-13 失败分类（均修测试，无组件变更）：**
+
+| 现象 | 分类 | 处理 |
+|------|------|------|
+| `FKActionSheet` init 抛出 `noActions` | 用例错误 | helper 注入最小 section/action |
+| `FKTabBarItemContentMeasurer` 空 title 期望 `.zero` | 用例错误 | 组件保留 item inset 最小尺寸 (16×12) |
+| anchor layout / `defaultConfiguration` / 类型 API | 用例错误 | 改用 bottomSheet 对比；`FKTabBarDefaults.defaultConfiguration` |
+
+**验证：** `xcodebuild test` — **1188 passed**（FKCoreKit 401 + FKUIKit 787；3 skipped Keychain）。
+
+---
+
+## 7.11 第十二批实施范围（2026-06-21）
+
+本批勾选 **CopyChip layout/formatter、Avatar group layout、Rating icon resolver、ProgressBar layout engine、Search layout engine、Sheet detent/layout engine、TabBar indicator/badge anchor、MediaGallery layout math** — **已完成（2026-06-21）**。
+
+| 模块 | 新增测试文件 | 用例数（约） |
+|------|--------------|--------------|
+| FKUIKit Widgets | `FKCopyChipLayoutEngineTests`、`FKAvatarGroupLayoutEngineTests` | 18 |
+| FKUIKit RatingControl | `FKRatingIconResolverTests` | 6 |
+| FKUIKit ProgressBar | `FKProgressBarLayoutEngineTests` | 12 |
+| FKUIKit SearchBar | `FKSearchLayoutEngineTests` | 8 |
+| FKUIKit SheetPresentationController | `FKSheetDetentIndexResolverTests`、`FKSheetPresentationLayoutEngineTests` | 16 |
+| FKUIKit TabBar | `FKTabBarIndicatorFrameCalculatorTests`、`FKTabBarBadgeAnchorResolverTests` | 12 |
+| FKUIKit MediaGallery | `FKMediaGalleryLayoutMathTests` | 6 |
+| **合计新增** | **10 新文件** | **~78** |
+
+**Batch-12 失败分类（均修测试，无组件变更）：**
+
+| 现象 | 分类 | 处理 |
+|------|------|------|
+| `FKAvatarGroupLayoutEngineTests` trailing 堆叠断言 | 用例错误 | 重叠 avatar 用 `origin.x` 比较；RTL 测 leadingToTrailing 逆序 |
+| `FKRatingIconResolverTests` configuration 全等 | 用例错误 | 改为对比默认/配置化 symbol 尺寸差异 |
+| `FKSearchLayoutEngineTests` RTL icon 位置 | 用例错误 | RTL 下 icon 在 textField 右侧（`minX > textField.maxX`） |
+| `FKTabBarBadgeAnchorResolverTests` image-only | 用例错误 | 使用 `.imageOnly` + 非空 SF Symbol + 显式 frame/layout |
+| optional `CGFloat?` / 参数顺序编译错误 | 用例错误 | unwrap 后断言；`makeLayout` 参数顺序与声明一致 |
+
+**验证：** `xcodebuild test` — **1111 passed**（FKCoreKit 401 + FKUIKit 710；3 skipped Keychain）。
+
+---
+
+## 7.10 第十一批实施范围（2026-06-21）
+
+本批勾选 **Carousel layout/banner overlay、WebView host policy/JS bridge、ProgressBar label formatting、Chip selection、Tag renderer、MediaGallery item resolver、PhotoPicker input extractor** — **已完成（2026-06-21）**。
+
+| 模块 | 新增测试文件 | 用例数（约） |
+|------|--------------|--------------|
+| FKUIKit Carousel | `FKCarouselLayoutEngineTests`、`FKImageBannerOverlayMetricsTests` | 14 |
+| FKUIKit WebView | `FKWebHostPolicyEvaluatorTests`、`FKJavaScriptMessageBodyConverterTests` | 18 |
+| FKUIKit ProgressBar | `FKProgressBarLabelFormattingTests` | 8 |
+| FKUIKit Widgets | `FKChipGroupSelectionControllerTests`、`FKTagRendererTests` | 14 |
+| FKUIKit MediaGallery | `FKMediaGalleryItemResolverTests` | 10 |
+| FKUIKit PhotoPicker | `FKPhotoPickerInputExtractorTests` | 5 |
+| **合计新增** | **9 新文件** | **~69** |
+
+**Batch-11 失败分类（均修测试，无组件变更）：**
+
+| 现象 | 分类 | 处理 |
+|------|------|------|
+| `FKCarouselLayoutEngineTests` cardPeek 期望 pageWidth 334 | 用例错误 | 公式为 `availableWidth - peek - spacing` → 322；pageSpan 334 |
+| `FKTagRendererTests` 颜色/尺寸断言 | 用例错误 | 显式 `UIColor.black`；chip size 用 `.xs`/`.m` |
+| `FKImageBannerOverlayMetricsTests` policy/构造参数 | 用例错误 | 改用 `.fixedBannerHeight`；修正 `FKImageBannerOverlayStyle` 参数顺序 |
+| `FKMediaGalleryItemResolverTests` source API | 用例错误 | 对齐 `FKMediaSource.url` / `.bundleResource(name:bundle:)` |
+
+**验证：** `xcodebuild test` — **1034 passed**（FKCoreKit 402 + FKUIKit 632；3 skipped Keychain）。
+
+---
+
+## 7.9 第十批实施范围（2026-06-21）
+
+本批勾选 **Widgets/Capsule、Flow metrics/icon、Rating layout、Divider geometry、Media state machine、Avatar initials、TextField parsing、Marquee measurement、ExpandableText cache、Paging page store、I18n manager** — **已完成（2026-06-21）**。
+
+| 模块 | 新增测试文件 | 用例数（约） |
+|------|--------------|--------------|
+| FKUIKit Widgets | `FKCapsuleLayoutEngineTests`、`FKAvatarInitialsGeneratorTests`、`FKMarqueeTextMeasurementTests` | 18 |
+| FKUIKit FlowVisualization | `FKFlowLayoutMetricsTests`、`FKFlowIconResolverTests` | 14 |
+| FKUIKit RatingControl | `FKRatingLayoutEngineTests` | 8 |
+| FKUIKit Divider | `FKDividerGeometryTests` | 4 |
+| FKUIKit Player | `FKMediaStateMachineTests` | 10 |
+| FKUIKit TextField | `FKTextFieldStringParsingTests` | 10 |
+| FKUIKit ExpandableText | `FKExpandableTextLayoutCacheTests` | 4 |
+| FKUIKit PagingController | `FKPagingPageStoreTests` | 7 |
+| FKCoreKit I18n | `FKI18nManagerTests` | 6 |
+| **合计新增** | **12 新文件** | **~81** |
+
+**Batch-10 失败分类（均修测试，无组件变更）：**
+
+| 现象 | 分类 | 处理 |
+|------|------|------|
+| `FKI18nManagerTests` 期望 `Welcome` 得到 `欢迎` | 用例错误 | 测试 host 系统语言为 zh-Hans；`setUp` 显式 `setLanguageCode("en")` |
+| `FKI18nDictionaryLocalizer` 不能注入 manager | 用例错误 | 改用 `FKI18nStaticDictionaryTranslator` |
+| `XCTAssertEqual` 对 optional/CGFloat 重载编译失败 | 用例错误 | 先 unwrap 再断言 |
+| `fk_grouped` 期望 `"123-45-678-90"` | 用例错误 | 按 pattern 重复末组规则改为 `"123-45-67-89-0"` |
+
+**验证：** `xcodebuild test` — **965 passed**（FKCoreKit 402 + FKUIKit 563；3 skipped Keychain）。
+
+---
+
+## 7.8 第九批实施范围（2026-06-21）
+
+本批勾选 **ListKit windowing、Search session coordinator、Flow a11y formatter、Rating label formatting、MediaGallery decode math** — **已完成（2026-06-21）**。
+
+| 模块 | 新增测试文件 | 用例数（约） |
+|------|--------------|--------------|
+| FKUIKit ListKit | `FKListSnapshotWindowingTests` | 4 |
+| FKUIKit SearchViewController | `FKSearchSessionCoordinatorTests` | 3 |
+| FKUIKit FlowVisualization | `FKFlowAccessibilityFormatterTests` | 4 |
+| FKUIKit RatingControl | `FKRatingLabelFormattingTests` | 6 |
+| FKUIKit MediaGallery | `FKMediaGalleryImageLoadingMathTests` | 4 |
+| **合计新增** | **5 新文件** | **~21** |
+
+**Batch-9 失败分类：** 无失败 — 全部用例一次通过，无组件变更。
+
+**验证：** `xcodebuild test` — **881 passed**（FKCoreKit 396 + FKUIKit 488；3 skipped Keychain）。
+
+---
+
+## 7.7 第八批实施范围（2026-06-21）
+
+本批勾选 **Flow Timeline timestamp formatter、I18n plural** — **已完成（2026-06-21）**。
+
+| 模块 | 新增/扩展测试文件 | 用例数（约） |
+|------|-------------------|--------------|
+| FKUIKit FlowVisualization | `FKTimelineTimestampFormatterTests`；扩展 `FKTimelineLayoutEngineTests` | 11 |
+| FKCoreKit I18n | 扩展 `FKI18nMessageFormatTests`、`FKI18nDictionaryLocalizerTests`；扩展 `Fixtures.I18n` | 7 |
+| **合计新增** | **1 新文件 + 2 扩展 + fixture** | **~18** |
+
+**Batch-8 失败分类：** 无失败 — 全部用例一次通过，无组件变更。
+
+**验证：** `xcodebuild test` — **860 passed**（FKCoreKit 396 + FKUIKit 467；3 skipped Keychain）。
 
 ---
 

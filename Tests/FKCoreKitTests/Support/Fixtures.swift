@@ -75,10 +75,14 @@ enum Fixtures {
       "en": [
         "greeting": "Hello, {name}!",
         "welcome": "Welcome",
+        "items.count": "%d items",
+        "items.none": "No items",
       ],
       "zh-Hans": [
         "greeting": "你好，{name}！",
         "welcome": "欢迎",
+        "items.count": "%d 项",
+        "items.none": "暂无项目",
       ],
     ]
   }
