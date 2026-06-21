@@ -5,7 +5,7 @@ import UIKit
 public final class FKVideoLiveBadgeView: UIView {
 
   private let label = UILabel()
-  private let goLiveButton = UIButton(type: .system)
+  private var goLiveButton: UIButton?
 
   public var onGoLiveTapped: (() -> Void)?
 
@@ -19,11 +19,6 @@ public final class FKVideoLiveBadgeView: UIView {
     label.textColor = .white
     label.text = FKUIKitI18n.string("fkuikit.video.live_badge")
     addSubview(label)
-
-    goLiveButton.setTitle(FKUIKitI18n.string("fkuikit.video.go_live"), for: .normal)
-    goLiveButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
-    goLiveButton.addTarget(self, action: #selector(goLive), for: .touchUpInside)
-    addSubview(goLiveButton)
   }
 
   @available(*, unavailable)
@@ -35,13 +30,15 @@ public final class FKVideoLiveBadgeView: UIView {
     super.layoutSubviews()
     label.sizeToFit()
     label.frame.origin = CGPoint(x: 8, y: (bounds.height - label.bounds.height) / 2)
-    goLiveButton.sizeToFit()
-    goLiveButton.frame = CGRect(
-      x: label.frame.maxX + 8,
-      y: 0,
-      width: goLiveButton.bounds.width + 8,
-      height: bounds.height
-    )
+    if let goLiveButton {
+      goLiveButton.sizeToFit()
+      goLiveButton.frame = CGRect(
+        x: label.frame.maxX + 8,
+        y: 0,
+        width: goLiveButton.bounds.width + 8,
+        height: bounds.height
+      )
+    }
   }
 
   public override var intrinsicContentSize: CGSize {
@@ -50,16 +47,39 @@ public final class FKVideoLiveBadgeView: UIView {
 
   public func update(isLive: Bool, latencySeconds: TimeInterval?) {
     isHidden = !isLive
+    let showsGoLive = isLive && (latencySeconds ?? 0) > 1
+    if showsGoLive {
+      mountGoLiveButton()
+    } else {
+      unmountGoLiveButton()
+    }
     if let latencySeconds, latencySeconds > 1 {
       label.text = FKUIKitI18n.format("fkuikit.video.live_latency", latencySeconds)
     } else {
       label.text = FKUIKitI18n.string("fkuikit.video.live_badge")
     }
+    invalidateIntrinsicContentSize()
     setNeedsLayout()
   }
 
   @objc
   private func goLive() {
     onGoLiveTapped?()
+  }
+
+  private func mountGoLiveButton() -> UIButton {
+    if let goLiveButton { return goLiveButton }
+    let button = UIButton(type: .system)
+    button.setTitle(FKUIKitI18n.string("fkuikit.video.go_live"), for: .normal)
+    button.titleLabel?.font = .systemFont(ofSize: 12, weight: .semibold)
+    button.addTarget(self, action: #selector(goLive), for: .touchUpInside)
+    goLiveButton = button
+    addSubview(button)
+    return button
+  }
+
+  private func unmountGoLiveButton() {
+    goLiveButton?.removeFromSuperview()
+    goLiveButton = nil
   }
 }

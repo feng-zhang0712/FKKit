@@ -6,7 +6,8 @@ import UIKit
 public final class FKVideoPlayerView: UIView {
 
   public let playerLayer = AVPlayerLayer()
-  public private(set) weak var controlView: FKVideoPlayerControlView?
+  /// Retained while unmounted so lazy-mount auto-hide can reattach transport chrome.
+  public private(set) var controlView: FKVideoPlayerControlView?
 
   fileprivate weak var player: FKVideoPlayer?
   fileprivate weak var preFullscreenSuperview: UIView?
@@ -34,17 +35,28 @@ public final class FKVideoPlayerView: UIView {
   private var subtitleCues: [FKVideoSubtitleCue] = []
   private var controlsHideWorkItem: DispatchWorkItem?
   private var posterLoadTask: Task<Void, Never>?
-  private var customControlView: FKVideoPlayerControlView?
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
+    installSurface(loadsDefaultControlView: true)
+  }
+
+  /// Creates a player surface without mounting default transport controls.
+  public init(loadsDefaultControlView: Bool) {
+    super.init(frame: .zero)
+    installSurface(loadsDefaultControlView: loadsDefaultControlView)
+  }
+
+  private func installSurface(loadsDefaultControlView: Bool) {
     backgroundColor = .black
     clipsToBounds = true
 
     playerLayer.videoGravity = .resizeAspect
     layer.addSublayer(playerLayer)
 
-    setDefaultControlView(FKDefaultVideoControlView())
+    if loadsDefaultControlView {
+      setDefaultControlView(FKDefaultVideoControlView())
+    }
   }
 
   @available(*, unavailable)
@@ -60,16 +72,15 @@ public final class FKVideoPlayerView: UIView {
     if let liveBadge {
       liveBadge.frame = CGRect(x: 12, y: safeAreaInsets.top + 8, width: 140, height: 28)
     }
-    if let errorLabel, let retryButton {
+    if let errorLabel {
       errorLabel.frame = CGRect(x: 24, y: bounds.midY - 40, width: bounds.width - 48, height: 80)
-      retryButton.frame = CGRect(x: (bounds.width - 80) / 2, y: errorLabel.frame.maxY + 8, width: 80, height: 36)
+      if let retryButton {
+        retryButton.frame = CGRect(x: (bounds.width - 80) / 2, y: errorLabel.frame.maxY + 8, width: 80, height: 36)
+      }
     }
-    controlView?.frame = CGRect(
-      x: 0,
-      y: bounds.height - 80 - safeAreaInsets.bottom,
-      width: bounds.width,
-      height: 80 + safeAreaInsets.bottom
-    )
+    if let controlView, controlView.superview != nil {
+      controlView.frame = controlBarFrame()
+    }
     if let llhlsDebugPanel, let liveBadge {
       llhlsDebugPanel.frame = CGRect(
         x: 12,
@@ -87,19 +98,23 @@ public final class FKVideoPlayerView: UIView {
     }
   }
 
+  /// Whether the transport bar is mounted and visible on the player surface.
+  var isControlBarVisible: Bool {
+    guard let control = controlView else { return false }
+    return control.superview != nil && control.alpha > 0.5
+  }
+
   // MARK: - Public
 
   public func setDefaultControlView(_ view: FKVideoPlayerControlView) {
-    customControlView?.removeFromSuperview()
-    customControlView = view
+    controlView?.removeFromSuperview()
     controlView = view
-    view.frame = CGRect(x: 0, y: bounds.height - 80, width: bounds.width, height: 80)
-    addSubview(view)
-    bringOptionalOverlaysAboveControlBar()
-    airPlayPresenter.bringToFront(on: self)
     if let player {
       view.bind(player: player)
       syncControlState()
+    }
+    if isControlBarVisible {
+      mountControlBarIfNeeded(animated: false)
     }
   }
 
@@ -113,10 +128,40 @@ public final class FKVideoPlayerView: UIView {
     }
   }
 
+  /// Shows a bitmap poster until playback begins; ignored when ``FKVideoItem/posterURL`` loads successfully.
+  public func setPosterImage(_ image: UIImage?) {
+    posterLoadTask?.cancel()
+    posterLoadTask = nil
+    guard let image else {
+      unmountPosterImageView()
+      return
+    }
+    let poster = mountPosterImageView()
+    poster.image = image
+    poster.isHidden = false
+  }
+
+  /// Returns the visible media bitmap for interactive dismiss (poster or rendered video frame), excluding transport chrome.
+  public func dismissMediaBitmap() -> UIImage? {
+    if let posterImageView,
+       !posterImageView.isHidden,
+       let image = posterImageView.image {
+      return image
+    }
+    guard bounds.width > 0, bounds.height > 0 else { return nil }
+    let format = UIGraphicsImageRendererFormat.default()
+    format.scale = UIScreen.main.scale
+    let renderer = UIGraphicsImageRenderer(bounds: bounds, format: format)
+    return renderer.image { context in
+      playerLayer.render(in: context.cgContext)
+    }
+  }
+
   public func bind(player: FKVideoPlayer) {
     self.player = player
     apply(uiConfiguration: player.configuration.ui)
     controlView?.bind(player: player)
+    gestureController.detach()
     gestureController.attach(to: self, player: player, configuration: uiConfiguration) { [weak self] visible in
       self?.scheduleControlsAutoHide(visible: visible)
     }
@@ -129,8 +174,17 @@ public final class FKVideoPlayerView: UIView {
   /// Shows transport controls and restarts the auto-hide timer.
   public func revealControls(animated: Bool = true) {
     controlsHideWorkItem?.cancel()
-    controlView?.setControlsVisible(true, animated: animated)
+    setControlBarVisible(true, animated: animated)
     scheduleControlsAutoHide(visible: true)
+  }
+
+  /// Mounts or unmounts the transport bar (unmount keeps the control view instance for reuse).
+  func setControlBarVisible(_ visible: Bool, animated: Bool) {
+    if visible {
+      mountControlBarIfNeeded(animated: animated)
+    } else {
+      unmountControlBar(animated: animated)
+    }
   }
 
   public func reloadSubtitles(for item: FKVideoItem) {
@@ -241,8 +295,9 @@ public final class FKVideoPlayerView: UIView {
 
   public func setScreenCaptureOverlayVisible(_ visible: Bool) {
     if visible {
-      mountScreenCaptureOverlay().isHidden = false
-      bringSubviewToFront(screenCaptureOverlay!)
+      let overlay = mountScreenCaptureOverlay()
+      overlay.isHidden = false
+      bringSubviewToFront(overlay)
     } else {
       unmountScreenCaptureOverlay()
     }
@@ -429,7 +484,7 @@ public final class FKVideoPlayerView: UIView {
 
   /// Inserts optional overlays above the video surface but below transport controls.
   private func insertOverlay(_ view: UIView) {
-    if let controlView {
+    if let controlView, controlView.superview != nil {
       insertSubview(view, belowSubview: controlView)
     } else {
       addSubview(view)
@@ -474,16 +529,54 @@ public final class FKVideoPlayerView: UIView {
     controlsHideWorkItem = nil
     guard visible, uiConfiguration.controlsAutoHideInterval > 0 else { return }
     let work = DispatchWorkItem { [weak self] in
-      guard let self, self.controlView?.alpha ?? 0 > 0.5 else { return }
-      self.controlView?.setControlsVisible(false, animated: true)
+      guard let self, self.isControlBarVisible else { return }
+      self.setControlBarVisible(false, animated: true)
     }
     controlsHideWorkItem = work
     DispatchQueue.main.asyncAfter(deadline: .now() + uiConfiguration.controlsAutoHideInterval, execute: work)
   }
 
   func noteControlsInteraction() {
-    guard controlView?.alpha ?? 0 > 0.5 else { return }
+    guard isControlBarVisible else { return }
     scheduleControlsAutoHide(visible: true)
+  }
+
+  private func controlBarFrame() -> CGRect {
+    CGRect(
+      x: 0,
+      y: bounds.height - 80 - safeAreaInsets.bottom,
+      width: bounds.width,
+      height: 80 + safeAreaInsets.bottom
+    )
+  }
+
+  private func mountControlBarIfNeeded(animated: Bool) {
+    guard let control = controlView else { return }
+    control.frame = controlBarFrame()
+    if control.superview == nil {
+      control.alpha = animated ? 0 : 1
+      addSubview(control)
+      bringOptionalOverlaysAboveControlBar()
+      airPlayPresenter.bringToFront(on: self)
+    }
+    if animated {
+      UIView.animate(withDuration: 0.25) { control.alpha = 1 }
+    } else {
+      control.alpha = 1
+    }
+  }
+
+  private func unmountControlBar(animated: Bool) {
+    guard let control = controlView, control.superview != nil else { return }
+    let remove = {
+      control.removeFromSuperview()
+      control.alpha = 1
+    }
+    if animated {
+      UIView.animate(withDuration: 0.25, animations: { control.alpha = 0 }, completion: { _ in remove() })
+    } else {
+      remove()
+    }
   }
 
   @objc

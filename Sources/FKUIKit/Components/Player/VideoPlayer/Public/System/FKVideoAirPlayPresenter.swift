@@ -17,20 +17,6 @@ public final class FKVideoAirPlayPresenter {
 
     hostView = host
 
-    let picker = AVRoutePickerView()
-    picker.prioritizesVideoDevices = true
-    picker.tintColor = .white
-    picker.activeTintColor = .systemBlue
-    picker.translatesAutoresizingMaskIntoConstraints = false
-    host.addSubview(picker)
-    NSLayoutConstraint.activate([
-      picker.widthAnchor.constraint(equalToConstant: 32),
-      picker.heightAnchor.constraint(equalToConstant: 32),
-      picker.trailingAnchor.constraint(equalTo: host.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-      picker.topAnchor.constraint(equalTo: host.safeAreaLayoutGuide.topAnchor, constant: 8),
-    ])
-    routePicker = picker
-
     let detector = AVRouteDetector()
     detector.isRouteDetectionEnabled = true
     routeDetector = detector
@@ -42,7 +28,6 @@ public final class FKVideoAirPlayPresenter {
       self?.refreshVisibility()
     }
     refreshVisibility()
-    bringToFront(on: host)
   }
 
   public func bringToFront(on host: UIView) {
@@ -57,20 +42,45 @@ public final class FKVideoAirPlayPresenter {
     }
     routeDetector?.isRouteDetectionEnabled = false
     routeDetector = nil
-    routePicker?.removeFromSuperview()
-    routePicker = nil
+    unmountRoutePicker()
     hostView = nil
   }
 
   // MARK: - Private
 
   private func refreshVisibility() {
-    guard let picker = routePicker else { return }
     let hasRoutes = routeDetector?.multipleRoutesDetected ?? false
-    picker.isHidden = !hasRoutes
-    picker.isUserInteractionEnabled = hasRoutes
-    if hasRoutes, let host = hostView {
-      bringToFront(on: host)
+    if hasRoutes {
+      mountRoutePickerIfNeeded()
+      if let host = hostView {
+        bringToFront(on: host)
+      }
+    } else {
+      unmountRoutePicker()
     }
+  }
+
+  private func mountRoutePickerIfNeeded() {
+    guard let host = hostView else { return }
+    if routePicker != nil { return }
+
+    let picker = AVRoutePickerView()
+    picker.prioritizesVideoDevices = true
+    picker.tintColor = .white
+    picker.activeTintColor = .systemBlue
+    picker.translatesAutoresizingMaskIntoConstraints = false
+    host.addSubview(picker)
+    NSLayoutConstraint.activate([
+      picker.widthAnchor.constraint(equalToConstant: 32),
+      picker.heightAnchor.constraint(equalToConstant: 32),
+      picker.trailingAnchor.constraint(equalTo: host.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+      picker.topAnchor.constraint(equalTo: host.safeAreaLayoutGuide.topAnchor, constant: 8),
+    ])
+    routePicker = picker
+  }
+
+  private func unmountRoutePicker() {
+    routePicker?.removeFromSuperview()
+    routePicker = nil
   }
 }

@@ -124,6 +124,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKMarqueeLabelExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "MediaGallery",
+          subtitle: "Hub: full-screen lightbox — hero, zoom, video, sources, updateItems, SwiftUI, RTL",
+          make: { FKMediaGalleryExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "PagingController",
           subtitle: "FKTabBar ↔ UIPageViewController sync: lazy/SwiftUI/delegate, RTL & gestures (Public/Internal/Extension)",
           make: { FKPagingControllerExamplesHubViewController() }
@@ -258,6 +263,11 @@ final class ExampleMenuViewController: UITableViewController {
           title: "Logger",
           subtitle: "5-level logs, config, file persistence, crash capture, export/clear",
           make: { FKLoggerExampleViewController() }
+        ),
+        ExampleMenuItem(
+          title: "ModelMapping",
+          subtitle: "Hub: Codable, snake_case, lenient typing, dictionary/FKMappable, envelopes, Network integration",
+          make: { FKModelMappingExamplesHubViewController() }
         ),
         ExampleMenuItem(
           title: "Network",

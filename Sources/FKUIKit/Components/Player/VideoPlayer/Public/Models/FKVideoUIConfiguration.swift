@@ -13,6 +13,12 @@ public struct FKVideoUIConfiguration: Sendable, Equatable {
   public var controlsAutoHideInterval: TimeInterval
   public var showsRemainingTime: Bool
   public var gestureSeekSeconds: TimeInterval
+  /// When `false`, surface pan gestures (seek / brightness / volume) are disabled.
+  public var allowsSurfacePanGestures: Bool
+  /// When `false`, double-tap left/right seek is disabled.
+  public var allowsDoubleTapSeek: Bool
+  /// When `false`, single tap does not toggle transport controls (host owns tap, e.g. gallery chrome).
+  public var allowsTapToToggleControls: Bool
   public var allowsPictureInPicture: Bool
   public var allowsAirPlay: Bool
   public var aspectFill: Bool
@@ -23,6 +29,9 @@ public struct FKVideoUIConfiguration: Sendable, Equatable {
     controlsAutoHideInterval: TimeInterval = 5.0,
     showsRemainingTime: Bool = false,
     gestureSeekSeconds: TimeInterval = 10.0,
+    allowsSurfacePanGestures: Bool = true,
+    allowsDoubleTapSeek: Bool = true,
+    allowsTapToToggleControls: Bool = true,
     allowsPictureInPicture: Bool = true,
     allowsAirPlay: Bool = true,
     aspectFill: Bool = false,
@@ -32,6 +41,9 @@ public struct FKVideoUIConfiguration: Sendable, Equatable {
     self.controlsAutoHideInterval = controlsAutoHideInterval
     self.showsRemainingTime = showsRemainingTime
     self.gestureSeekSeconds = gestureSeekSeconds
+    self.allowsSurfacePanGestures = allowsSurfacePanGestures
+    self.allowsDoubleTapSeek = allowsDoubleTapSeek
+    self.allowsTapToToggleControls = allowsTapToToggleControls
     self.allowsPictureInPicture = allowsPictureInPicture
     self.allowsAirPlay = allowsAirPlay
     self.aspectFill = aspectFill

@@ -534,6 +534,12 @@ open class FKSearchViewController: UIViewController {
 
 见 [SwiftUI Bridge 覆盖计划](#swiftui-bridge-覆盖计划)。
 
+### 2.13 FKMediaGallery
+
+全屏媒体预览画廊（Lightbox）：Post / 聊天场景下从缩略图 Hero 进入，横向浏览同一组图片与视频，双指缩放、下滑关闭、页码指示。复用 `FKImageView`、`FKVideoPlayer`；与 `FKPhotoPicker`（选取）职责分离。
+
+**详细设计需求：** [FKMediaGallery_DESIGN.md](FKMediaGallery_DESIGN.md)
+
 ---
 
 ## Tier 3 — 垂直场景 / 较低频率
@@ -710,7 +716,7 @@ flowchart TB
 | **D** | `FKCheckbox`、`FKRadioGroup`、`FKSlider`、~~`FKAlert`~~ | 表单 + 确认流 | Alert ✅；FormControls ⏳ |
 | **E** | `FKWebView`、`FKBiometricAuth` | 混合内容 + 安全认证 | ✅ |
 | **F** | `FKBanner`、`FKChip`、ZIP 补全 | 通知条 + 核心修复 | Chip ✅；Banner/ZIP ⏳ |
-| **G** | `FKAvatar`、`FKCarousel`、`FKFeatureFlag` 默认实现 | 富媒体 UI | Avatar/Carousel ✅；FeatureFlag ⏳ |
+| **G** | `FKAvatar`、`FKCarousel`、`FKMediaGallery`、`FKFeatureFlag` 默认实现 | 富媒体 UI | Avatar/Carousel ✅；MediaGallery ⏳；FeatureFlag ⏳ |
 | **H** | `FKDatePicker`、`FKPicker`、`FKPhotoPicker` | 选择器 | PhotoPicker ✅；Date/Picker ⏳ |
 | **I** | `FKStepIndicator`、`FKTimeline`、`FKKeyboardToolbar` | 流程 + 表单 | Step/Timeline ✅；Toolbar ⏳ |
 | **J** | Tier 3 垂直组件、`FKTheme`、`FKForm` | 打磨与专业化 | ⏳ |

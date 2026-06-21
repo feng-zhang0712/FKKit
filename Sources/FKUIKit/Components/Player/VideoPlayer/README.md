@@ -133,7 +133,7 @@ Player/VideoPlayer/
 │   ├── System/          PiP, AirPlay, SharePlay hook
 │   ├── Services/        offline download, QoE, ads
 │   └── Bridge/          SwiftUI + UIView helpers
-└── Internal/            coordinator binding extensions
+└── Internal/            coordinator binding, buffered progress slider
 ```
 
 Do **not** add `Engine/` or `FormatProbe/` here — they belong in Core.

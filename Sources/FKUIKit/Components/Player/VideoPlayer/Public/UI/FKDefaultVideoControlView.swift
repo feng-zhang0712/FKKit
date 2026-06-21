@@ -12,15 +12,14 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
   private let fullscreenButton = UIButton(type: .system)
   private let settingsButton = UIButton(type: .system)
   private let timeLabel = UILabel()
-  private let progressSlider = UISlider()
-  private let bufferProgressView = UIProgressView(progressViewStyle: .bar)
+  private let progressSlider = FKVideoBufferedProgressSlider()
 
   private var isScrubbing = false
   private var showsRemainingTime = false
   private var showsPlaySpinner = false
   private var themeTint: UIColor = .white
   private var playPauseSpinner: UIActivityIndicatorView?
-  private let thumbnailPreview = FKVideoThumbnailSeekPreview()
+  private var thumbnailPreview: FKVideoThumbnailSeekPreview?
   private var thumbnailTask: Task<Void, Never>?
 
   public override init(frame: CGRect) {
@@ -43,18 +42,13 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
     timeLabel.textColor = .white
     timeLabel.text = "00:00 / 00:00"
 
-    progressSlider.minimumValue = 0
-    progressSlider.maximumValue = 1
     progressSlider.addTarget(self, action: #selector(sliderBegan), for: .touchDown)
     progressSlider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
     progressSlider.addTarget(self, action: #selector(sliderEnded), for: [.touchUpInside, .touchUpOutside, .touchCancel])
 
-    bufferProgressView.progressTintColor = UIColor.white.withAlphaComponent(0.35)
-    bufferProgressView.trackTintColor = UIColor.white.withAlphaComponent(0.15)
-
     [
       playPauseButton, settingsButton, fullscreenButton,
-      timeLabel, bufferProgressView, progressSlider,
+      timeLabel, progressSlider,
     ].forEach {
       addSubview($0)
     }
@@ -104,12 +98,6 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
 
     timeLabel.frame = CGRect(x: trackLeft, y: timeY, width: trackWidth, height: timeHeight)
     progressSlider.frame = CGRect(x: trackLeft, y: sliderY, width: trackWidth, height: sliderHeight)
-    bufferProgressView.frame = CGRect(
-      x: trackLeft + 2,
-      y: sliderY + (sliderHeight - 3) / 2,
-      width: trackWidth - 4,
-      height: 3
-    )
 
     playPauseButton.frame = CGRect(
       x: playLeft,
@@ -160,8 +148,8 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
     _ = liveLatency
     if !isScrubbing {
       let maxDuration = max(duration, 1)
-      progressSlider.value = Float(currentTime / maxDuration)
-      bufferProgressView.progress = Float(bufferedCoverage(buffered, duration: duration))
+      progressSlider.setValue(Float(currentTime / maxDuration))
+      progressSlider.bufferProgress = Float(bufferedCoverage(buffered, duration: duration))
     }
 
     timeLabel.text = formattedPlaybackTime(
@@ -253,7 +241,7 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
   private func sliderEnded() {
     guard let player else { return }
     let target = TimeInterval(progressSlider.value) * max(player.duration, 1)
-    thumbnailPreview.hide()
+    unmountThumbnailPreview()
     thumbnailTask?.cancel()
     player.seek(to: target) { [weak self] _ in
       self?.isScrubbing = false
@@ -262,7 +250,7 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
 
   private func updateThumbnailPreview(at time: TimeInterval) {
     guard let player, let provider = player.thumbnailProvider else {
-      thumbnailPreview.hide()
+      unmountThumbnailPreview()
       return
     }
     let centerX = progressSlider.frame.minX + CGFloat(progressSlider.value) * progressSlider.frame.width
@@ -270,8 +258,21 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
     thumbnailTask = Task { @MainActor in
       let image = await provider.thumbnail(at: time)
       guard !Task.isCancelled else { return }
-      thumbnailPreview.show(image: image, time: time, centerX: centerX, in: self)
+      mountThumbnailPreview().show(image: image, time: time, centerX: centerX, in: self)
     }
+  }
+
+  private func mountThumbnailPreview() -> FKVideoThumbnailSeekPreview {
+    if let thumbnailPreview { return thumbnailPreview }
+    let preview = FKVideoThumbnailSeekPreview()
+    thumbnailPreview = preview
+    return preview
+  }
+
+  private func unmountThumbnailPreview() {
+    thumbnailPreview?.hide()
+    thumbnailPreview?.removeFromSuperview()
+    thumbnailPreview = nil
   }
 
   private func isLoadingState(_ state: FKMediaPlaybackState) -> Bool {
@@ -311,6 +312,8 @@ public final class FKDefaultVideoControlView: UIView, FKVideoPlayerControlView {
       spinner.startAnimating()
     } else {
       playPauseSpinner?.stopAnimating()
+      playPauseSpinner?.removeFromSuperview()
+      playPauseSpinner = nil
     }
     syncPlaySpinner()
   }

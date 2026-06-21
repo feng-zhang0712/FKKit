@@ -75,6 +75,7 @@ Same layering as **`Badge`**: **`Public`** (exported surface) and **`Internal`**
 | File | Role |
 |------|------|
 | `FKTextFieldStringParsing.swift` | String sanitizing/grouping helpers for formatters |
+| `FKTextFieldRightAccessoryHostView.swift` | Intrinsic-size host for single `rightView` accessories |
 
 Validation shake feedback uses `UIView.fk_shake(...)` from `FKCoreKit/Components/Extension/UIKit/UIView+Animation.swift`.
 

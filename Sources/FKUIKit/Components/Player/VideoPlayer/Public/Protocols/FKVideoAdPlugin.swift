@@ -1,7 +1,7 @@
 import Foundation
 import UIKit
 
-/// Hooks for pre/mid/post-roll ads (Phase 3 integrations).
+/// Hooks for pre/mid/post-roll ads in the host app.
 @MainActor
 public protocol FKVideoAdPlugin: AnyObject {
   func prepareAdBreak(kind: FKVideoAdBreakKind, for item: FKVideoItem) async throws

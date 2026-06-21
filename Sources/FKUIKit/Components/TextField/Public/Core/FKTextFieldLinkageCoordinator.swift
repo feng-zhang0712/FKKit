@@ -65,6 +65,7 @@ extension FKTextFieldLinkageCoordinator: UITextFieldDelegate {
       let previous = index - 1
       if textFields.indices.contains(previous) {
         textFields[previous].becomeFirstResponder()
+        return false
       }
     }
     return true

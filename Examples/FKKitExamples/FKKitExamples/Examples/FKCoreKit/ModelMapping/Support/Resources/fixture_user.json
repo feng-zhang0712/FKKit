@@ -1,0 +1,6 @@
+{
+  "id": 100,
+  "displayName": "Fixture User",
+  "email": "fixture@example.com",
+  "isActive": true
+}
