@@ -159,10 +159,12 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
       setIndicatorInStack(false)
       let finishedKey = isFooter ? "fkuikit.refresh.footer.finished" : "fkuikit.refresh.header.finished"
       setLabel(resolvedStatusText(FKUIKitI18n.string(finishedKey)))
+      retryButton.isHidden = true
 
     case .listEmpty:
       setIndicatorInStack(false)
       setLabel(resolvedStatusText(FKUIKitI18n.string("fkuikit.refresh.header.empty")))
+      retryButton.isHidden = true
 
     case .noMoreData:
       setIndicatorInStack(false)
@@ -176,7 +178,7 @@ public final class FKDefaultRefreshContentView: UIView, FKRefreshContentView {
       if isFooter {
         let failed = FKUIKitI18n.string("fkuikit.refresh.footer.failed")
         let retry = FKUIKitI18n.string("fkuikit.refresh.footer.tap_retry")
-        setLabel(resolvedStatusText("\(failed)\n\(retry)"))
+        setLabel(resolvedStatusText(failed))
         retryButton.setTitle(retry, for: .normal)
         retryButton.isHidden = false
       } else {

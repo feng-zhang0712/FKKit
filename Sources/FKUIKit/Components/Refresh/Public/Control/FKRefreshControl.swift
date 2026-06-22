@@ -90,6 +90,12 @@ public final class FKRefreshControl: UIView {
   /// Persists ``UIScrollView/fk_setLoadMoreHidden(_:)`` across scroll-driven visibility updates.
   private var isManuallyHidden = false
   private var suppressFooterWorkItem: DispatchWorkItem?
+  /// Whether bottom `contentInset` has been expanded to reveal the load-more footer.
+  private var isFooterInsetExpanded = false
+  /// `contentOffset.y` added by the footer inset expand path; always reverted on collapse.
+  private var footerScrollOffsetCompensation: CGFloat = 0
+  /// Retries footer inset collapse while the pull header is still interacting.
+  private var deferredFooterInsetCollapseWorkItem: DispatchWorkItem?
 
   // MARK: - Init
 
@@ -175,11 +181,18 @@ public final class FKRefreshControl: UIView {
     pendingEndWorkItem = nil
     suppressFooterWorkItem?.cancel()
     suppressFooterWorkItem = nil
+    deferredFooterInsetCollapseWorkItem?.cancel()
+    deferredFooterInsetCollapseWorkItem = nil
     asyncTask?.cancel()
     asyncTask = nil
     loadMoreAutoTriggerArmed = true
     isSuppressedAfterNoMoreData = false
     isManuallyHidden = false
+    if kind == .loadMore, let scrollView {
+      collapseFooterInsetIfNeeded(scrollView, animated: false)
+    }
+    isFooterInsetExpanded = false
+    footerScrollOffsetCompensation = 0
     removeFromSuperview()
     scrollView = nil
   }
@@ -287,12 +300,7 @@ public final class FKRefreshControl: UIView {
     startBlockingInteractionIfNeeded()
     if animated && configuration.shouldKeepExpandedWhileRefreshing {
       expandScrollView(scrollView)
-      let targetOffsetY = -(baselineContentInset.top + configuration.expandedHeight)
-      if scrollView.contentOffset.y > targetOffsetY {
-        UIView.animate(withDuration: 0.3, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState]) {
-          scrollView.contentOffset = CGPoint(x: scrollView.contentOffset.x, y: targetOffsetY)
-        }
-      }
+      snapScrollViewToRefreshingOffsetIfNeeded(scrollView, animated: animated)
     }
     fireAction(triggerSource: triggerSource)
   }
@@ -356,6 +364,7 @@ public final class FKRefreshControl: UIView {
     transition(to: .idle)
     if kind == .pullToRefresh {
       collapseScrollView(animated: false)
+      scrollView?.fk_loadMore?.syncFooterInsetAfterHeaderInteractionEnded()
     }
     if let scrollView {
       updateFooterVisibility(for: scrollView)
@@ -516,6 +525,7 @@ public final class FKRefreshControl: UIView {
     case .pullToRefresh:
       handlePullToRefreshScroll(scrollView)
     case .loadMore:
+      reconcileFooterOffsetCompensationDuringScroll(scrollView)
       updateLoadMoreFrame(scrollView)
       updateFooterVisibility(for: scrollView)
       handleLoadMoreScroll(scrollView)
@@ -546,6 +556,17 @@ public final class FKRefreshControl: UIView {
     if kind == .pullToRefresh {
       switch state {
       case .refreshing, .loadingMore, .triggered, .readyToRefresh, .finished, .listEmpty, .failed:
+        return
+      default:
+        break
+      }
+    }
+    if kind == .loadMore {
+      if isFooterInsetExpanded {
+        return
+      }
+      switch state {
+      case .loadingMore, .failed, .noMoreData, .finished:
         return
       default:
         break
@@ -652,13 +673,16 @@ public final class FKRefreshControl: UIView {
     return contentH <= visibleH + 0.5
   }
 
-  private func updateFooterVisibility(for scrollView: UIScrollView) {
+  private func updateFooterVisibility(for scrollView: UIScrollView, syncInsetAnimated: Bool? = false) {
     guard kind == .loadMore else { return }
     let hidden = isFooterHiddenForShortContent(scrollView)
       || isSuppressedAfterNoMoreData
       || isManuallyHidden
     isHidden = hidden
     isUserInteractionEnabled = !hidden
+    if let syncInsetAnimated {
+      syncFooterInset(for: scrollView, animated: syncInsetAnimated)
+    }
   }
 
   private func scheduleSuppressFooterAfterNoMoreData() {
@@ -704,6 +728,7 @@ public final class FKRefreshControl: UIView {
       isUserInteractionEnabled = true
       if configuration.shouldKeepExpandedWhileRefreshing {
         expandScrollView(scrollView)
+        snapScrollViewToRefreshingOffsetIfNeeded(scrollView, animated: true)
       }
       fireAction(triggerSource: .userInteraction)
     } else if case .pulling = state {
@@ -738,6 +763,11 @@ public final class FKRefreshControl: UIView {
     announceAccessibilityStateIfNeeded(current)
     onStateChanged?(self, current)
     delegate?.refreshControl(self, didChange: current, from: previous)
+    if kind == .loadMore, let scrollView {
+      updateFooterVisibility(for: scrollView, syncInsetAnimated: nil)
+      let animateInset = current == .loadingMore && previous == .idle
+      syncFooterInset(for: scrollView, animated: animateInset)
+    }
   }
 
   private func announceAccessibilityStateIfNeeded(_ state: FKRefreshState) {
@@ -817,7 +847,207 @@ public final class FKRefreshControl: UIView {
     DispatchQueue.main.asyncAfter(deadline: .now() + (minV - elapsed), execute: work)
   }
 
-  // MARK: - Inset management (header only)
+  // MARK: - Inset management
+
+  private func footerReservedHeight(for scrollView: UIScrollView) -> CGFloat {
+    configuration.expandedHeight + footerSafePadding(for: scrollView)
+  }
+
+  private func isNearBottom(_ scrollView: UIScrollView, slack: CGFloat = 1) -> Bool {
+    let maxY = max(
+      0,
+      scrollView.contentSize.height
+        - scrollView.bounds.height
+        + scrollView.adjustedContentInset.bottom
+    )
+    return scrollView.contentOffset.y >= maxY - slack
+  }
+
+  /// Clears tracked offset compensation once the user has scrolled away from the bottom band.
+  /// Avoids a later collapse subtracting compensation while the user is near the top (scroll jump).
+  private func reconcileFooterOffsetCompensationDuringScroll(_ scrollView: UIScrollView) {
+    guard footerScrollOffsetCompensation > 0.5, isFooterInsetExpanded else { return }
+    let releaseSlack = max(CGFloat(24), configuration.triggerThreshold * 0.25)
+    if !isNearBottom(scrollView, slack: releaseSlack) {
+      footerScrollOffsetCompensation = 0
+    }
+  }
+
+  private func shouldReserveFooterSpace(in scrollView: UIScrollView) -> Bool {
+    guard kind == .loadMore else { return false }
+    if isFooterHiddenForShortContent(scrollView) || isSuppressedAfterNoMoreData || isManuallyHidden {
+      return false
+    }
+    switch state {
+    case .loadingMore, .failed, .noMoreData, .finished:
+      return true
+    default:
+      return false
+    }
+  }
+
+  /// Re-syncs footer bottom inset after the pull header finishes interacting (internal companion hook).
+  func syncFooterInsetAfterHeaderInteractionEnded() {
+    ensureMain { self.syncFooterInsetAfterHeaderInteractionEndedOnMain() }
+  }
+
+  private func syncFooterInsetAfterHeaderInteractionEndedOnMain() {
+    guard kind == .loadMore else { return }
+    deferredFooterInsetCollapseWorkItem?.cancel()
+    deferredFooterInsetCollapseWorkItem = nil
+    guard let scrollView else { return }
+    syncFooterInset(for: scrollView, animated: false)
+  }
+
+  private func isCompanionHeaderInteracting(on scrollView: UIScrollView) -> Bool {
+    guard let header = scrollView.fk_pullToRefresh else { return false }
+    switch header.state {
+    case .pulling, .readyToRefresh, .triggered, .refreshing, .finished, .listEmpty, .failed:
+      return true
+    default:
+      return false
+    }
+  }
+
+  private func scheduleDeferredFooterInsetCollapse() {
+    deferredFooterInsetCollapseWorkItem?.cancel()
+    let work = DispatchWorkItem { [weak self] in
+      guard let self, let scrollView = self.scrollView else { return }
+      self.deferredFooterInsetCollapseWorkItem = nil
+      if self.isCompanionHeaderInteracting(on: scrollView) {
+        self.scheduleDeferredFooterInsetCollapse()
+        return
+      }
+      if !self.shouldReserveFooterSpace(in: scrollView) {
+        self.collapseFooterInsetIfNeeded(scrollView, animated: false)
+      }
+    }
+    deferredFooterInsetCollapseWorkItem = work
+    DispatchQueue.main.async(execute: work)
+  }
+
+  private func syncFooterInset(for scrollView: UIScrollView, animated: Bool = false) {
+    guard kind == .loadMore else { return }
+    if shouldReserveFooterSpace(in: scrollView) {
+      deferredFooterInsetCollapseWorkItem?.cancel()
+      deferredFooterInsetCollapseWorkItem = nil
+      expandFooterInsetIfNeeded(scrollView, animated: animated)
+    } else if isCompanionHeaderInteracting(on: scrollView) {
+      scheduleDeferredFooterInsetCollapse()
+    } else {
+      deferredFooterInsetCollapseWorkItem?.cancel()
+      deferredFooterInsetCollapseWorkItem = nil
+      collapseFooterInsetIfNeeded(scrollView, animated: animated)
+    }
+  }
+
+  private func expandFooterInsetIfNeeded(_ scrollView: UIScrollView, animated: Bool) {
+    let reserved = footerReservedHeight(for: scrollView)
+    let targetBottom = baselineContentInset.bottom + reserved
+    let delta = targetBottom - scrollView.contentInset.bottom
+    guard delta > 0.5 else {
+      isFooterInsetExpanded = true
+      return
+    }
+
+    isUpdatingInset = true
+    let apply = { [self] in
+      var inset = scrollView.contentInset
+      inset.bottom = targetBottom
+      scrollView.contentInset = inset
+      var vi = scrollView.verticalScrollIndicatorInsets
+      vi.bottom = self.baselineVerticalIndicatorInsets.bottom + reserved
+      scrollView.verticalScrollIndicatorInsets = vi
+      if self.isNearBottom(scrollView) {
+        var offset = scrollView.contentOffset
+        offset.y += delta
+        scrollView.contentOffset = offset
+        self.footerScrollOffsetCompensation += delta
+      }
+    }
+
+    if animated {
+      UIView.animate(
+        withDuration: 0.25,
+        delay: 0,
+        options: [.allowUserInteraction, .beginFromCurrentState],
+        animations: apply
+      ) { [weak self] _ in
+        self?.isUpdatingInset = false
+        self?.isFooterInsetExpanded = true
+      }
+    } else {
+      apply()
+      isUpdatingInset = false
+      isFooterInsetExpanded = true
+    }
+  }
+
+  private func collapseFooterInsetIfNeeded(_ scrollView: UIScrollView, animated: Bool) {
+    let extraBottom = scrollView.contentInset.bottom - baselineContentInset.bottom
+    guard isFooterInsetExpanded || extraBottom > 0.5 || footerScrollOffsetCompensation > 0.5 else {
+      return
+    }
+    guard extraBottom > 0.5 || footerScrollOffsetCompensation > 0.5 else {
+      isFooterInsetExpanded = false
+      footerScrollOffsetCompensation = 0
+      return
+    }
+
+    let compensation = footerScrollOffsetCompensation
+
+    isUpdatingInset = true
+    let apply = { [self] in
+      var inset = scrollView.contentInset
+      inset.bottom = self.baselineContentInset.bottom
+      scrollView.contentInset = inset
+      scrollView.verticalScrollIndicatorInsets = self.baselineVerticalIndicatorInsets
+
+      if compensation > 0.5, self.isNearBottom(scrollView) {
+        var offset = scrollView.contentOffset
+        offset.y = max(0, offset.y - compensation)
+        let maxY = max(
+          0,
+          scrollView.contentSize.height
+            - scrollView.bounds.height
+            + scrollView.adjustedContentInset.bottom
+        )
+        offset.y = min(offset.y, maxY)
+        scrollView.contentOffset = offset
+      }
+      self.footerScrollOffsetCompensation = 0
+    }
+
+    if animated {
+      UIView.animate(
+        withDuration: configuration.collapseDuration,
+        delay: 0,
+        options: [.allowUserInteraction, .beginFromCurrentState],
+        animations: apply
+      ) { [weak self] _ in
+        self?.isUpdatingInset = false
+        self?.isFooterInsetExpanded = false
+      }
+    } else {
+      apply()
+      isUpdatingInset = false
+      isFooterInsetExpanded = false
+    }
+  }
+
+  private func snapScrollViewToRefreshingOffsetIfNeeded(_ scrollView: UIScrollView, animated: Bool) {
+    guard kind == .pullToRefresh else { return }
+    let targetOffsetY = -(baselineContentInset.top + configuration.expandedHeight)
+    guard scrollView.contentOffset.y > targetOffsetY else { return }
+    let target = CGPoint(x: scrollView.contentOffset.x, y: targetOffsetY)
+    if animated {
+      UIView.animate(withDuration: 0.3, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState]) {
+        scrollView.contentOffset = target
+      }
+    } else {
+      scrollView.contentOffset = target
+    }
+  }
 
   private func expandScrollView(_ scrollView: UIScrollView) {
     guard kind == .pullToRefresh else { return }
@@ -875,6 +1105,7 @@ public final class FKRefreshControl: UIView {
     case .finished, .failed, .listEmpty:
       transition(to: .idle)
       currentPullProgress = 0
+      scrollView?.fk_loadMore?.syncFooterInsetAfterHeaderInteractionEnded()
     default:
       break
     }
