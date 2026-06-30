@@ -4,6 +4,42 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.73.0] - 2026-06-30
+
+### Added (FKUIKit — MediaGallery)
+
+- **`FKMediaGallery`** — full-screen lightbox with pinch zoom, video playback, Live Photo support, and interactive dismiss polish.
+- **Examples**: MediaGallery hub scenarios covering zoom, video, Live Photo, and lightbox presentation flows.
+
+### Changed (FKUIKit — Player)
+
+- Unified buffered progress slider and lazy-mount transport chrome across video player surfaces.
+
+### Changed (FKUIKit — TextField)
+
+- Slimmed view hierarchy and fixed delegate / SwiftUI integration edge cases.
+
+### Fixed (FKUIKit — SheetPresentationController)
+
+- **`FKAnchorHost`** — defer reposition while a modal covers the presenter and run a two-pass non-animated relayout after dismiss so `.inProvidedContainer` anchor popups stay flush with the anchor (no gap or secondary jump).
+- **Examples**: added provided-container + full-screen modal dismiss scenario with Search in the navigation bar.
+
+### Fixed (FKUIKit — Refresh)
+
+- Stabilized load-more footer inset, scroll position, and failure UI during refresh cycles.
+
+### Added (Tests)
+
+- Expanded FKCoreKit and FKUIKit unit coverage (internal layout and behavior suites, batches 3–13).
+
+### Added (Documentation)
+
+- `docs/FKMediaGallery_DESIGN.md` — lightbox requirements, API surface, and roadmap integration.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.73.0** (Git tag **`0.73.0`**).
+
 ## [0.72.0] - 2026-06-17
 
 ### Added (FKCoreKit — ModelMapping)
@@ -2853,7 +2889,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.72.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.73.0...HEAD
+[0.73.0]: https://github.com/feng-zhang0712/FKKit/compare/0.72.0...0.73.0
 [0.72.0]: https://github.com/feng-zhang0712/FKKit/compare/0.71.0...0.72.0
 [0.71.0]: https://github.com/feng-zhang0712/FKKit/compare/0.70.0...0.71.0
 [0.70.0]: https://github.com/feng-zhang0712/FKKit/compare/0.69.0...0.70.0
