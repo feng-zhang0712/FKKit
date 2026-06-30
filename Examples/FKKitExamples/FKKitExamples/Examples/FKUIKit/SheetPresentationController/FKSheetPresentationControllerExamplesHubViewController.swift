@@ -191,6 +191,11 @@ final class FKSheetPresentationControllerExamplesHubViewController: UITableViewC
           make: { AnchorNavigationBarExampleViewController() }
         ),
         Row(
+          title: "Provided container + modal dismiss",
+          subtitle: "`.inProvidedContainer` filter strip stays aligned after a full-screen modal dismiss.",
+          make: { AnchorProvidedContainerModalDismissExampleViewController() }
+        ),
+        Row(
           title: "Screen top edge anchor popup",
           subtitle: "Rect provider at the window top (`y = 0`); panel drops from the physical screen top.",
           make: { AnchorScreenTopEdgeExampleViewController() }

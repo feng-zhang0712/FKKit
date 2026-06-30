@@ -60,7 +60,11 @@ public extension FKAnchorConfiguration {
 
     /// Inserts the overlay into a provided container view.
     ///
-    /// Use this for complex hierarchies where the correct host is known in advance.
+    /// Use this for complex hierarchies where the correct host is known in advance
+    /// (for example a tab-bar filter strip hosted in a parent overlay container).
+    ///
+    /// Reposition passes re-attach the presentation layer when needed and keep the anchor
+    /// above the overlay when `zOrderPolicy` is `.keepAnchorAbovePresentation`.
     case inProvidedContainer(FKWeakReference<UIView>)
 
     /// Inserts the overlay into a window-level container.
@@ -102,6 +106,9 @@ public extension FKAnchorConfiguration {
     /// Whether to listen to orientation changes.
     public var listensToOrientationChanges: Bool
     /// Debounce interval used to coalesce frequent changes.
+    ///
+    /// Anchor relayout is deferred while the presenting view controller has a modal
+    /// child and is stabilized across two layout passes after the modal dismisses.
     public var debounceInterval: TimeInterval
 
     public init(

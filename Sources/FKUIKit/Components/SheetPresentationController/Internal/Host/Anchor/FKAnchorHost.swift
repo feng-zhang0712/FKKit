@@ -30,8 +30,11 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
 
   private let repositionCoordinator = FKAnchorRepositionCoordinator()
   private var orientationObserver: NSObjectProtocol?
+  private var modalDismissObserver: NSObjectProtocol?
   private let keyboardCoordinator = FKSheetPresentationKeyboardCoordinator()
   private var didDeferPresentationForSourceView: Bool = false
+  private var pendingStabilizedRelayout = false
+  private var deferredRelayoutWhileModalPresented = false
 
   private struct ResolvedAnchorLayout {
     var targetFrame: CGRect
@@ -645,8 +648,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
       debounceInterval: policy.debounceInterval
     ) { [weak self] in
       guard let self else { return }
-      self.refreshAnchorHierarchy()
-      self.updateLayout(animated: false, duration: 0, options: .curveLinear)
+      self.scheduleStabilizedRelayout()
     }
 
     if policy.listensToOrientationChanges {
@@ -657,8 +659,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
       ) { [weak self] _ in
         Task { @MainActor [weak self] in
           guard let self else { return }
-          self.refreshAnchorHierarchy()
-          self.updateLayout(animated: false, duration: 0, options: .curveLinear)
+          self.scheduleStabilizedRelayout()
         }
       }
       UIDevice.current.beginGeneratingDeviceOrientationNotifications()
@@ -667,6 +668,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
 
   private func stopRepositionObservation() {
     repositionCoordinator.stopObserving()
+    stopModalDismissObservation()
     if let orientationObserver {
       NotificationCenter.default.removeObserver(orientationObserver)
       self.orientationObserver = nil
@@ -674,15 +676,84 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
     }
   }
 
+  private var isModalCoveringPresentingViewController: Bool {
+    presentingViewController?.presentedViewController != nil
+  }
+
+  private func scheduleStabilizedRelayout() {
+    guard isPresented else { return }
+
+    if isModalCoveringPresentingViewController {
+      deferredRelayoutWhileModalPresented = true
+      ensureModalDismissObservation()
+      return
+    }
+
+    guard !pendingStabilizedRelayout else { return }
+    pendingStabilizedRelayout = true
+    deferredRelayoutWhileModalPresented = false
+
+    performStabilizedRelayout()
+
+    DispatchQueue.main.async { [weak self] in
+      guard let self else { return }
+      self.pendingStabilizedRelayout = false
+      guard self.isPresented else { return }
+      if self.isModalCoveringPresentingViewController {
+        self.deferredRelayoutWhileModalPresented = true
+        self.ensureModalDismissObservation()
+        return
+      }
+      self.performStabilizedRelayout()
+    }
+  }
+
+  private func performStabilizedRelayout() {
+    refreshAnchorHierarchy()
+    updateLayout(animated: false, duration: 0, options: .curveLinear)
+  }
+
+  private func ensureModalDismissObservation() {
+    guard modalDismissObserver == nil else { return }
+    modalDismissObserver = NotificationCenter.default.addObserver(
+      forName: UIWindow.didBecomeKeyNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor [weak self] in
+        self?.handlePossibleModalDismiss()
+      }
+    }
+  }
+
+  private func stopModalDismissObservation() {
+    if let modalDismissObserver {
+      NotificationCenter.default.removeObserver(modalDismissObserver)
+      self.modalDismissObserver = nil
+    }
+    deferredRelayoutWhileModalPresented = false
+    pendingStabilizedRelayout = false
+  }
+
+  private func handlePossibleModalDismiss() {
+    guard isPresented, deferredRelayoutWhileModalPresented else { return }
+    guard !isModalCoveringPresentingViewController else { return }
+    scheduleStabilizedRelayout()
+  }
+
   private func refreshAnchorHierarchy() {
-    guard let hostView else { return }
-    guard case .inSameSuperviewBelowAnchor = anchorConfiguration.hostStrategy else { return }
-    guard let sourceView else { return }
-    guard sourceView.window != nil else { return }
+    guard sourceView?.window != nil else { return }
+
+    if isModalCoveringPresentingViewController {
+      deferredRelayoutWhileModalPresented = true
+      ensureModalDismissObservation()
+      return
+    }
 
     let activeHost: UIView
     switch anchorConfiguration.hostStrategy {
     case .inSameSuperviewBelowAnchor:
+      guard let sourceView else { return }
       let newHost = findHostView(for: sourceView)
       if newHost !== hostView {
         // The source view moved to another host container. Rebind our host and restart observation.
@@ -691,14 +762,22 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
         startRepositionObservation(in: newHost)
       }
       activeHost = self.hostView ?? newHost
-    case .inProvidedContainer:
-      activeHost = hostView
+    case let .inProvidedContainer(box):
+      guard let resolvedHost = box.object ?? hostView else { return }
+      hostView = resolvedHost
+      activeHost = resolvedHost
     case .inWindowLevel:
+      guard let hostView else { return }
       activeHost = hostView
     }
 
-    // The direct child relationship can change after layout updates, so resolve it every cycle before z-order.
-    directAnchorChild = findDirectChild(of: activeHost, containing: sourceView)
+    sourceView?.layoutIfNeeded()
+    activeHost.layoutIfNeeded()
+    presentingViewController?.view.layoutIfNeeded()
+
+    if let sourceView {
+      directAnchorChild = findDirectChild(of: activeHost, containing: sourceView)
+    }
     if let hostVC = anchorHostViewController, hostVC.view.superview !== activeHost {
       activeHost.addSubview(hostVC.view)
       hostVC.view.frame = activeHost.bounds
