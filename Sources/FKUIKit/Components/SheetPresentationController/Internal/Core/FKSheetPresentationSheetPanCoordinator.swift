@@ -15,7 +15,9 @@ final class FKSheetPresentationSheetPanCoordinator {
     var resolvedDetentHeights: () -> [CGFloat]
     var selectedDetentIndex: () -> Int
     var wrapperFrame: () -> CGRect
-    var setWrapperFrame: (_ frame: CGRect, _ settling: Bool) -> Void
+    /// Applies an interactive frame. Use `.tracking` while the finger moves so multi-stage
+    /// backdrop (and other light chrome) stay in sync; `.settling` for cheap snap-back.
+    var setWrapperFrame: (_ frame: CGRect, _ updateKind: FKInteractiveLayoutUpdateKind) -> Void
     var environment: () -> FKSheetPresentationInteractionEnvironment?
     var interactionState: () -> FKSheetPresentationInteractionState
     var trackedScrollView: () -> UIScrollView?
@@ -74,13 +76,22 @@ final class FKSheetPresentationSheetPanCoordinator {
         sheetPanDeferredToScrollView = false
       }
 
+      // Keep the inner scroller pinned to the handoff edge so rubber-banding does not fight the sheet.
+      if let trackedScrollView {
+        FKSheetPresentationInteractionEngine.clampScrollViewToSheetHandoffEdge(
+          trackedScrollView,
+          axis: environment.axis
+        )
+      }
+
       state = actions.interactionState()
       let frame = FKSheetPresentationInteractionEngine.interactiveFrame(
         environment: environment,
         state: state,
         translationY: translation.y
       )
-      actions.setWrapperFrame(frame, true)
+      // Must be `.tracking` (not settling): multi-stage backdrop and progress depend on live frames.
+      actions.setWrapperFrame(frame, .tracking)
       state.wrapperFrame = actions.wrapperFrame()
       actions.notifyProgress(
         FKSheetPresentationInteractionEngine.sheetDismissProgress(environment: environment, state: state)
@@ -104,10 +115,14 @@ final class FKSheetPresentationSheetPanCoordinator {
         translationY: translation.y,
         velocityY: velocity.y
       ) {
-        let progress = FKSheetPresentationInteractionEngine.sheetDismissProgress(
+        // Prefer live progress so percent-driven dismiss continues from the finger position.
+        // Fall back to a velocity-biased floor so a fast fling still shortens remaining motion.
+        let visualProgress = FKSheetPresentationInteractionEngine.sheetDismissProgress(
           environment: environment,
           state: state
         )
+        let velocityBoost = min(0.35, abs(velocity.y) / 3200)
+        let progress = min(1, max(visualProgress, velocityBoost))
         actions.notifyProgress(1)
         actions.dismiss(velocity.y, progress)
         sheetPanVelocityY = 0

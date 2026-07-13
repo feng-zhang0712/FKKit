@@ -25,14 +25,21 @@ extension FKContainerSheetPresentationController {
 
   /// Applies sheet frame updates with a tiered layout cost model for pan tracking.
   func applyInteractiveFrame(_ frame: CGRect, updateKind: FKInteractiveLayoutUpdateKind = .tracking) {
-    wrapperView.transform = .identity
+    // Sheet interaction drives `frame`, not `transform`. Clear any leftover center-dismiss /
+    // keyboard transform so frame math stays authoritative during sheet pans.
+    if wrapperView.transform != .identity {
+      wrapperView.transform = .identity
+      keyboardCoordinator.clearAppliedTranslation()
+    }
     wrapperView.frame = frame
     layoutContentContainer()
 
     switch updateKind {
     case .tracking:
+      // Live multi-stage backdrop + progress while the finger moves.
       updateBackdropForCurrentState()
     case .settling:
+      // Cheap snap while scroll owns the gesture — skip shadow/keyboard work.
       break
     case .full:
       applyContainerAppearance()
@@ -57,15 +64,19 @@ extension FKContainerSheetPresentationController {
 
   func applyCenterInteractiveDismissTransform(translationY: CGFloat, progress: CGFloat) {
     guard let containerView else { return }
+    // Compose with keyboard offset so dismiss drag does not drop the card behind the keyboard.
     wrapperView.transform = FKSheetPresentationInteractionSupport.centerDismissTransform(
       translationY: translationY,
-      containerHeight: containerView.bounds.height
+      containerHeight: containerView.bounds.height,
+      keyboardOffsetY: keyboardCoordinator.appliedTranslationY
     )
   }
 
   func resetCenterInteractiveDismissVisuals(animated: Bool = false, completion: (() -> Void)? = nil) {
     let updates = {
-      self.wrapperView.transform = .identity
+      // Restore keyboard avoidance (if any) rather than forcing identity, which would leave the
+      // card under the keyboard until the next keyboard notification.
+      self.restoreWrapperTransformAfterInteractiveGesture()
       self.updateBackdropForCurrentState()
     }
     guard animated else {
@@ -80,15 +91,34 @@ extension FKContainerSheetPresentationController {
     animator.startAnimation()
   }
 
+  /// Re-applies keyboard translation or clears transform after interactive pan cancel/end.
+  func restoreWrapperTransformAfterInteractiveGesture() {
+    if configuration.keyboardAvoidance.isEnabled,
+       keyboardCoordinator.bottomInset > 0,
+       let containerView {
+      keyboardCoordinator.translateWrapperAvoidingKeyboard(wrapperView, in: containerView)
+    } else {
+      wrapperView.transform = .identity
+    }
+  }
+
   func commitCenterInteractiveStateForDismissal() {
     guard case .center(_) = configuration.layout else { return }
     guard wrapperView.transform != .identity else { return }
-    let translationY = wrapperView.transform.ty
-    wrapperView.transform = .identity
-    guard translationY != 0 else { return }
+    // Peel off keyboard offset so only the interactive pull is baked into the dismissal frame.
+    let keyboardY = keyboardCoordinator.appliedTranslationY
+    let translationY = wrapperView.transform.ty - keyboardY
+    wrapperView.transform = keyboardCoordinator.keyboardAvoidanceTransform
+    guard abs(translationY) > 0.5 else {
+      dismissalStartingFrame = wrapperView.frame
+      return
+    }
     var frame = wrapperView.frame
     frame.origin.y += translationY
     wrapperView.frame = frame
+    // Clear scale component; frame now carries the vertical offset for the dismiss animator.
+    wrapperView.transform = .identity
+    keyboardCoordinator.clearAppliedTranslation()
     layoutContentContainer()
     dismissalStartingFrame = frame
   }

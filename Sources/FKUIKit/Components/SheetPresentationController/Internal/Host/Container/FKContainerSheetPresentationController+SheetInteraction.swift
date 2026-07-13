@@ -31,8 +31,8 @@ extension FKContainerSheetPresentationController {
       resolvedDetentHeights: { [weak self] in self?.resolvedDetentHeights ?? [] },
       selectedDetentIndex: { [weak self] in self?.selectedDetentIndex ?? 0 },
       wrapperFrame: { [weak self] in self?.wrapperView.frame ?? .zero },
-      setWrapperFrame: { [weak self] frame, settling in
-        self?.applyInteractiveFrame(frame, updateKind: settling ? .settling : .tracking)
+      setWrapperFrame: { [weak self] frame, updateKind in
+        self?.applyInteractiveFrame(frame, updateKind: updateKind)
       },
       environment: { [weak self] in
         guard let self, let containerView = self.containerView else { return nil }
