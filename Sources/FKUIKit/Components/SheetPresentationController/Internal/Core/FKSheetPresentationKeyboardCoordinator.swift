@@ -4,6 +4,9 @@ import UIKit
 @MainActor
 final class FKSheetPresentationKeyboardCoordinator {
   private(set) var bottomInset: CGFloat = 0
+  /// Vertical translation currently applied for keyboard avoidance (negative = move up).
+  /// Used to compose with center interactive-dismiss transforms without fighting.
+  private(set) var appliedTranslationY: CGFloat = 0
   private var observers: [NSObjectProtocol] = []
   private var originalScrollInsets: (content: UIEdgeInsets, indicator: UIEdgeInsets)?
 
@@ -52,6 +55,7 @@ final class FKSheetPresentationKeyboardCoordinator {
     }
     originalScrollInsets = nil
     bottomInset = 0
+    appliedTranslationY = 0
   }
 
   /// Updates cached bottom inset from a keyboard end frame in screen coordinates.
@@ -89,10 +93,23 @@ final class FKSheetPresentationKeyboardCoordinator {
   }
 
   /// Translates a wrapper view upward when it would overlap the keyboard region.
+  ///
+  /// - Note: Uses pure translation (no scale). Safe to re-apply after interactive-dismiss cancel.
   func translateWrapperAvoidingKeyboard(_ wrapperView: UIView, in containerView: UIView) {
     let keyboardTopY = containerView.bounds.height - bottomInset
     let overlap = max(0, wrapperView.frame.maxY - keyboardTopY)
-    wrapperView.transform = CGAffineTransform(translationX: 0, y: -overlap)
+    appliedTranslationY = -overlap
+    wrapperView.transform = CGAffineTransform(translationX: 0, y: appliedTranslationY)
+  }
+
+  /// Keyboard-only transform for composing with interactive-dismiss motion.
+  var keyboardAvoidanceTransform: CGAffineTransform {
+    CGAffineTransform(translationX: 0, y: appliedTranslationY)
+  }
+
+  /// Clears the cached keyboard translation after it has been baked into a frame or dismissed.
+  func clearAppliedTranslation() {
+    appliedTranslationY = 0
   }
 
   /// Offsets a proposed presentation frame upward to clear the keyboard for anchor layouts.

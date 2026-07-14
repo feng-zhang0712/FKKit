@@ -209,94 +209,79 @@ public final class FKSheetPresentationController: NSObject {
   }
 
   func notifyProgress(_ progress: CGFloat) {
-    switch callbackDelivery {
-    case .delegateOnly, .both:
-      delegate?.presentationController(self, didUpdateProgress: progress)
-    case .handlersOnly:
-      break
-    }
-    switch callbackDelivery {
-    case .handlersOnly, .both:
-      handlers.progress?(progress)
-    case .delegateOnly:
-      break
-    }
+    deliverCallbacks(
+      delegate: { [weak self] in
+        guard let self else { return }
+        self.delegate?.presentationController(self, didUpdateProgress: progress)
+      },
+      handlers: { [weak self] in self?.handlers.progress?(progress) }
+    )
   }
 
   func notifySelectedDetentDidChange(_ detent: FKSheetPresentationDetent, index: Int) {
     selectedDetent = detent
     selectedDetentIndex = index
-    switch callbackDelivery {
-    case .delegateOnly, .both:
-      delegate?.presentationController(self, didChangeSelectedDetent: detent, at: index)
-    case .handlersOnly:
-      break
-    }
-    switch callbackDelivery {
-    case .handlersOnly, .both:
-      handlers.selectedDetentDidChange?(detent, index)
-    case .delegateOnly:
-      break
-    }
+    deliverCallbacks(
+      delegate: { [weak self] in
+        guard let self else { return }
+        self.delegate?.presentationController(self, didChangeSelectedDetent: detent, at: index)
+      },
+      handlers: { [weak self] in self?.handlers.selectedDetentDidChange?(detent, index) }
+    )
   }
 
   func notifyWillPresent() {
-    switch callbackDelivery {
-    case .delegateOnly, .both:
-      delegate?.presentationControllerWillPresent(self)
-    case .handlersOnly:
-      break
-    }
-    switch callbackDelivery {
-    case .handlersOnly, .both:
-      handlers.willPresent?()
-    case .delegateOnly:
-      break
-    }
+    deliverCallbacks(
+      delegate: { [weak self] in
+        guard let self else { return }
+        self.delegate?.presentationControllerWillPresent(self)
+      },
+      handlers: { [weak self] in self?.handlers.willPresent?() }
+    )
   }
 
   func notifyDidPresent() {
-    switch callbackDelivery {
-    case .delegateOnly, .both:
-      delegate?.presentationControllerDidPresent(self)
-    case .handlersOnly:
-      break
-    }
-    switch callbackDelivery {
-    case .handlersOnly, .both:
-      handlers.didPresent?()
-    case .delegateOnly:
-      break
-    }
+    deliverCallbacks(
+      delegate: { [weak self] in
+        guard let self else { return }
+        self.delegate?.presentationControllerDidPresent(self)
+      },
+      handlers: { [weak self] in self?.handlers.didPresent?() }
+    )
   }
 
   func notifyWillDismiss() {
-    switch callbackDelivery {
-    case .delegateOnly, .both:
-      delegate?.presentationControllerWillDismiss(self)
-    case .handlersOnly:
-      break
-    }
-    switch callbackDelivery {
-    case .handlersOnly, .both:
-      handlers.willDismiss?()
-    case .delegateOnly:
-      break
-    }
+    deliverCallbacks(
+      delegate: { [weak self] in
+        guard let self else { return }
+        self.delegate?.presentationControllerWillDismiss(self)
+      },
+      handlers: { [weak self] in self?.handlers.willDismiss?() }
+    )
   }
 
   func notifyDidDismiss() {
+    deliverCallbacks(
+      delegate: { [weak self] in
+        guard let self else { return }
+        self.delegate?.presentationControllerDidDismiss(self)
+      },
+      handlers: { [weak self] in self?.handlers.didDismiss?() }
+    )
+  }
+
+  private func deliverCallbacks(
+    delegate: () -> Void,
+    handlers: () -> Void
+  ) {
     switch callbackDelivery {
-    case .delegateOnly, .both:
-      delegate?.presentationControllerDidDismiss(self)
-    case .handlersOnly:
-      break
-    }
-    switch callbackDelivery {
-    case .handlersOnly, .both:
-      handlers.didDismiss?()
     case .delegateOnly:
-      break
+      delegate()
+    case .handlersOnly:
+      handlers()
+    case .both:
+      delegate()
+      handlers()
     }
   }
 

@@ -73,8 +73,8 @@ extension FKOverlayPresentationViewController {
       resolvedDetentHeights: { [weak self] in self?.resolvedDetentHeights ?? [] },
       selectedDetentIndex: { [weak self] in self?.selectedDetentIndex ?? 0 },
       wrapperFrame: { [weak self] in self?.wrapperView.frame ?? .zero },
-      setWrapperFrame: { [weak self] frame, settling in
-        self?.applyOverlayInteractiveFrame(frame, appliesChrome: !settling)
+      setWrapperFrame: { [weak self] frame, updateKind in
+        self?.applyOverlayInteractiveFrame(frame, updateKind: updateKind)
       },
       environment: { [weak self] in self?.sheetInteractionEnvironment() },
       interactionState: { [weak self] in self?.sheetInteractionState() ?? .init(
@@ -117,7 +117,9 @@ extension FKOverlayPresentationViewController {
       },
       notifyProgress: { [weak self] progress in self?.onProgress?(progress) },
       dismiss: { [weak self] velocityY in
-        self?.performInteractiveDismiss(velocityY: velocityY)
+        guard let self else { return }
+        self.commitCenterInteractiveStateForDismissal()
+        self.performInteractiveDismiss(velocityY: velocityY)
       },
       dismissProgressThreshold: { [weak self] in self?.configuration.center.dismissProgressThreshold ?? 0.5 },
       dismissVelocityThreshold: { [weak self] in self?.configuration.center.dismissVelocityThreshold ?? 900 },
@@ -131,10 +133,11 @@ extension FKOverlayPresentationViewController {
     )
   }
 
-  func applyOverlayInteractiveFrame(_ frame: CGRect, appliesChrome: Bool) {
+  func applyOverlayInteractiveFrame(_ frame: CGRect, updateKind: FKInteractiveLayoutUpdateKind) {
     wrapperView.frame = frame
     layoutContent()
-    if appliesChrome {
+    // Shadow path work is relatively expensive; skip on pure settling snap-back frames.
+    if updateKind != .settling {
       applyAppearance()
     }
     updatePassthroughHitTesting()
@@ -174,6 +177,20 @@ extension FKOverlayPresentationViewController {
     let animator = UIViewPropertyAnimator(duration: 0.34, timingParameters: timing)
     animator.addAnimations(updates)
     animator.startAnimation()
+  }
+
+  /// Bakes center interactive transform into the wrapper frame before off-screen dismiss animation.
+  func commitCenterInteractiveStateForDismissal() {
+    guard case .center(_) = configuration.layout else { return }
+    guard wrapperView.transform != .identity else { return }
+    let translationY = wrapperView.transform.ty
+    wrapperView.transform = .identity
+    guard abs(translationY) > 0.5 else { return }
+    var frame = wrapperView.frame
+    frame.origin.y += translationY
+    wrapperView.frame = frame
+    layoutContent()
+    updatePassthroughHitTesting()
   }
 }
 

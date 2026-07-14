@@ -47,6 +47,10 @@ extension FKContainerSheetPresentationController {
   /// Applies keyboard offset via either content insets or container translation.
   func applyKeyboardAvoidance(in containerView: UIView) {
     guard configuration.keyboardAvoidance.isEnabled else { return }
+    // Avoid fighting live interactive dismiss / detent pans (they own frame/transform).
+    guard !sheetPanCoordinator.isPanningSheet,
+          !centerPanCoordinator.isInteractivelyDragging,
+          !keepsInteractiveFrameForDismissal else { return }
 
     switch configuration.keyboardAvoidance.strategy {
     case .disabled:

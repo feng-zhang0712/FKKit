@@ -163,14 +163,20 @@ enum FKSheetPresentationInteractionEngine {
     state: FKSheetPresentationInteractionState
   ) -> CGFloat {
     let bounds = environment.containerBounds
+    // Normalize over a quarter of the container so a moderate pull reports meaningful progress
+    // for percent-driven interactive dismiss and progress callbacks.
+    let travel = max(1, bounds.height * 0.25)
     switch environment.axis {
     case .top:
-      let minY = sheetMinY(environment: environment, resolvedHeights: state.resolvedDetentHeights)
-      let progress = (minY - state.wrapperFrame.minY) / max(1, bounds.height * 0.25)
+      // Dismiss pulls the sheet upward: wrapper.minY decreases below the rest minY.
+      let restMinY = sheetMinY(environment: environment, resolvedHeights: state.resolvedDetentHeights)
+      let progress = (restMinY - state.wrapperFrame.minY) / travel
       return min(max(progress, 0), 1)
     case .bottom:
-      let maxY = sheetMaxY(environment: environment, resolvedHeights: state.resolvedDetentHeights)
-      let progress = (maxY - state.wrapperFrame.minY) / max(1, bounds.height * 0.25)
+      // Dismiss pulls the sheet downward: wrapper.minY increases past the rest maxY (smallest detent).
+      // Previous formula used `(maxY - minY)` which is ≤ 0 during dismiss and always clamped to 0.
+      let restMaxY = sheetMaxY(environment: environment, resolvedHeights: state.resolvedDetentHeights)
+      let progress = (state.wrapperFrame.minY - restMaxY) / travel
       return min(max(progress, 0), 1)
     }
   }

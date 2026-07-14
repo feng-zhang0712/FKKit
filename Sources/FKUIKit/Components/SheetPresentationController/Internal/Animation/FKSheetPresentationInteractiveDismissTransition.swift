@@ -26,7 +26,12 @@ final class FKSheetPresentationInteractiveDismissTransition: UIPercentDrivenInte
 
   override func startInteractiveTransition(_ transitionContext: any UIViewControllerContextTransitioning) {
     super.startInteractiveTransition(transitionContext)
-    update(completionFraction)
+    // Scrub to the finger-lift fraction so remaining spring motion starts mid-flight rather than
+    // replaying the full dismiss from 0 when the sheet is already partially off-screen.
+    let fraction = min(max(completionFraction, 0), 0.99)
+    update(fraction)
+    // Faster finish when the user already dragged far; keep a floor so motion never looks abrupt.
+    completionSpeed = max(0.65, 1.15 - fraction * 0.45)
     finish()
   }
 }

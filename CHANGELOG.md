@@ -4,6 +4,19 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.73.1] - 2026-07-14
+
+### Fixed (FKUIKit — SheetPresentationController)
+
+- Correct bottom-sheet interactive dismiss progress that always clamped to zero when dragged downward.
+- Compose center dismiss transforms with keyboard avoidance; guard keyboard updates during active pans.
+- Scrub interactive dismiss from the finger-lift fraction and consolidate dismiss callback delivery.
+- **Tests**: add `FKSheetPresentationInteractionEngine` unit coverage.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.73.1** (Git tag **`0.73.1`**).
+
 ## [0.73.0] - 2026-06-30
 
 ### Added (FKUIKit — MediaGallery)
@@ -2889,7 +2902,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.73.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.73.1...HEAD
+[0.73.1]: https://github.com/feng-zhang0712/FKKit/compare/0.73.0...0.73.1
 [0.73.0]: https://github.com/feng-zhang0712/FKKit/compare/0.72.0...0.73.0
 [0.72.0]: https://github.com/feng-zhang0712/FKKit/compare/0.71.0...0.72.0
 [0.71.0]: https://github.com/feng-zhang0712/FKKit/compare/0.70.0...0.71.0

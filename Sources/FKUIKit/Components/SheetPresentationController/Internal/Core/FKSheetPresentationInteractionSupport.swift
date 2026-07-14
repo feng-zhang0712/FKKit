@@ -38,19 +38,27 @@ enum FKSheetPresentationInteractionSupport {
   /// Applies combined translation + subtle scale for center interactive dismiss tracking.
   ///
   /// Only downward drag (positive `translationY`) moves/scales the card; upward pans are ignored.
-  static func centerDismissTransform(translationY: CGFloat, containerHeight: CGFloat) -> CGAffineTransform {
-    guard translationY > 0 else { return .identity }
+  ///
+  /// - Parameter keyboardOffsetY: Optional keyboard-avoidance translation already applied to the wrapper
+  ///   (negative moves up). Composed so interactive dismiss does not clobber keyboard offset.
+  static func centerDismissTransform(
+    translationY: CGFloat,
+    containerHeight: CGFloat,
+    keyboardOffsetY: CGFloat = 0
+  ) -> CGAffineTransform {
+    let keyboard = CGAffineTransform(translationX: 0, y: keyboardOffsetY)
+    guard translationY > 0 else { return keyboard }
     let dimension = max(1, containerHeight * 0.42)
     let bandedY = rubberBandOffset(translationY, dimension: dimension)
     let progress = min(1, translationY / dimension)
     let scale = max(0.9, 1 - progress * 0.1)
-    return CGAffineTransform(translationX: 0, y: bandedY).scaledBy(x: scale, y: scale)
+    let dismiss = CGAffineTransform(translationX: 0, y: bandedY).scaledBy(x: scale, y: scale)
+    return keyboard.concatenating(dismiss)
   }
 
-  /// Dim/backdrop alpha while interactively dragging a center card.
-  ///
-  /// - Note: Center pan tracking no longer drives backdrop intensity; dismissal transitions own fade-out.
-  static func centerDismissBackdropAlpha(baseAlpha: CGFloat, progress: CGFloat) -> CGFloat {
-    baseAlpha
+  /// Progress used for center-card dismiss thresholding (raw pull over a fraction of container height).
+  static func centerDismissProgress(translationY: CGFloat, containerHeight: CGFloat) -> CGFloat {
+    let downward = max(0, translationY)
+    return min(max(downward / max(1, containerHeight * 0.4), 0), 1)
   }
 }
