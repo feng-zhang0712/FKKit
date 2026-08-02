@@ -466,11 +466,13 @@ final class FKToastCenter {
   }
 
   private func topWindow() -> UIWindow? {
-    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.filter { $0.activationState == .foregroundActive }
+    let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    let preferredScenes = windowScenes.filter { $0.activationState == .foregroundActive }
+    let scenes = preferredScenes.isEmpty ? windowScenes : preferredScenes
     for scene in scenes {
       if let key = scene.windows.first(where: \.isKeyWindow) { return key }
       if let normal = scene.windows.first(where: { !$0.isHidden && $0.windowLevel == .normal }) { return normal }
     }
-    return UIApplication.shared.windows.first(where: \.isKeyWindow) ?? UIApplication.shared.windows.first
+    return scenes.lazy.flatMap(\.windows).first
   }
 }

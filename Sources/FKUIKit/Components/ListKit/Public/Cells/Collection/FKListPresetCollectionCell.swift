@@ -259,23 +259,22 @@ public final class FKListPresetCollectionCell: UICollectionViewCell, FKListColle
   private func applyEnabledState(_ item: FKListPresetCellContext) {
     let metadata = item.metadata
     let enabled: Bool
-    let selectable: Bool
 
     switch item.preset {
     case .text(let row):
-      enabled = row.isEnabled; selectable = row.isSelectable
+      enabled = row.isEnabled
     case .subtitle(let row):
-      enabled = row.isEnabled; selectable = row.isSelectable
+      enabled = row.isEnabled
     case .icon(let row):
-      enabled = row.isEnabled; selectable = row.isSelectable
+      enabled = row.isEnabled
     case .switch(let row):
-      enabled = row.isEnabled; selectable = false
+      enabled = row.isEnabled
     case .checkbox(let row):
-      enabled = row.isEnabled; selectable = false
+      enabled = row.isEnabled
     case .disclosure(let row):
-      enabled = row.isEnabled; selectable = row.isSelectable
+      enabled = row.isEnabled
     case .customValue(let row):
-      enabled = row.isEnabled; selectable = row.isSelectable
+      enabled = row.isEnabled
     }
 
     let resolvedEnabled = metadata?.isEnabled ?? enabled

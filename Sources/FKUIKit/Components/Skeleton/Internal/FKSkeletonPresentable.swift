@@ -1,6 +1,7 @@
 import UIKit
 
 /// Internal hook shared by ``FKSkeletonController``; kept module-private so the public surface stays focused on UIView APIs and ``FKSkeletonManager``.
+@MainActor
 protocol FKSkeletonPresentable: AnyObject {
   func showSkeleton(
     configuration: FKSkeletonConfiguration?,

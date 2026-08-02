@@ -281,21 +281,27 @@ final class FKNetworkExampleViewController: UIViewController {
   private func runGETUser() {
     appendLog("[JSONPlaceholder] GET /users/1")
     cancellableTask = jsonClient.send(FKNetworkGETUserRequest(userID: 1)) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] GET result: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] GET result: \(vc.describe(result))")
+      }
     }
   }
 
   private func runMergedQueryPosts() {
     appendLog("[JSONPlaceholder] GET /posts?_limit=5 plus commonQueryItems source=…")
     cancellableTask = jsonClient.send(FKNetworkCommonQueryPostsRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Posts: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Posts: \(vc.describe(result))")
+      }
     }
   }
 
   private func runCustomHeaderPosts() {
     appendLog("[JSONPlaceholder] GET /posts?_limit=3 with X-Demo-Header")
     cancellableTask = jsonClient.send(FKNetworkCustomHeaderPostsRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Posts: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Posts: \(vc.describe(result))")
+      }
     }
   }
 
@@ -308,59 +314,77 @@ final class FKNetworkExampleViewController: UIViewController {
         userID: 1
       )
     ) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] POST: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] POST: \(vc.describe(result))")
+      }
     }
   }
 
   private func runPUTPost() {
     appendLog("[JSONPlaceholder] PUT /posts/1 (full resource)")
     cancellableTask = jsonClient.send(FKNetworkPUTPostRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] PUT: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] PUT: \(vc.describe(result))")
+      }
     }
   }
 
   private func runPATCHPost() {
     appendLog("[JSONPlaceholder] PATCH /posts/1 (partial)")
     cancellableTask = jsonClient.send(FKNetworkPATCHPostRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] PATCH: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] PATCH: \(vc.describe(result))")
+      }
     }
   }
 
   private func runDELETEPost() {
     appendLog("[JSONPlaceholder] DELETE /posts/1 — repeat calls may return 404 from the sandbox API.")
     cancellableTask = jsonClient.send(FKNetworkDELETEPostRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] DELETE: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] DELETE: \(vc.describe(result))")
+      }
     }
   }
 
   private func runMemoryCacheUser() {
     appendLog("[JSONPlaceholder] Cache policy .memory(ttl: 60) — run twice to observe cache hit logs.")
     cancellableTask = jsonClient.send(FKNetworkMemoryCachedUserRequest(userID: 1)) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Memory cache GET: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Memory cache GET: \(vc.describe(result))")
+      }
     }
   }
 
   private func runDiskCacheUser() {
     appendLog("[JSONPlaceholder] Cache policy .disk(ttl: 60)")
     cancellableTask = jsonClient.send(FKNetworkDiskCachedUserRequest(userID: 1)) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Disk cache GET: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Disk cache GET: \(vc.describe(result))")
+      }
     }
   }
 
   private func runMemoryDiskCacheUser() {
     appendLog("[JSONPlaceholder] Cache policy .memoryAndDisk(ttl: 120)")
     cancellableTask = jsonClient.send(FKNetworkMemoryAndDiskCachedUserRequest(userID: 1)) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Memory+disk GET: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Memory+disk GET: \(vc.describe(result))")
+      }
     }
   }
 
   private func runDedupPair() {
     appendLog("[HTTPBin] Two identical .idempotentDeduplicated GET /delay/1 — expect B: businessError deduplicated; A: success after ~1s.")
     httpBinClient.send(FKNetworkHttpBinDedupDelayRequest()) { [weak self] result in
-      self?.appendLog("[HTTPBin] Dedup request A: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[HTTPBin] Dedup request A: \(vc.describe(result))")
+      }
     }
     httpBinClient.send(FKNetworkHttpBinDedupDelayRequest()) { [weak self] result in
-      self?.appendLog("[HTTPBin] Dedup request B: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[HTTPBin] Dedup request B: \(vc.describe(result))")
+      }
     }
   }
 
@@ -368,10 +392,14 @@ final class FKNetworkExampleViewController: UIViewController {
   private func runDedupJSONPlaceholderPair() {
     appendLog("[JSONPlaceholder] Dedup experiment — may succeed twice if the sandbox responds faster than the second send.")
     jsonClient.send(FKNetworkDedupPostsRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Dedup A: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Dedup A: \(vc.describe(result))")
+      }
     }
     jsonClient.send(FKNetworkDedupPostsRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Dedup B: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Dedup B: \(vc.describe(result))")
+      }
     }
   }
 
@@ -382,7 +410,9 @@ final class FKNetworkExampleViewController: UIViewController {
     }
     appendLog("[JSONPlaceholder] Mock user — envelope wrapped; interceptor unwraps `data`.")
     cancellableTask = jsonClient.send(FKNetworkEnvelopeMockUserRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Envelope mock: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Envelope mock: \(vc.describe(result))")
+      }
     }
   }
 
@@ -393,13 +423,15 @@ final class FKNetworkExampleViewController: UIViewController {
     }
     appendLog("[JSONPlaceholder] Mock user — plain JSON; interceptor no-op.")
     cancellableTask = jsonClient.send(FKNetworkPlainMockUserRequest()) { [weak self] result in
-      self?.appendLog("[JSONPlaceholder] Plain mock: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[JSONPlaceholder] Plain mock: \(vc.describe(result))")
+      }
     }
   }
 
   private func runAsyncAwaitUser() {
     appendLog("[JSONPlaceholder] async/await GET /users/2")
-    Task { [weak self] in
+    Task { @MainActor [weak self] in
       guard let self else { return }
       do {
         let user = try await jsonClient.send(FKNetworkGETUserRequest(userID: 2))
@@ -417,11 +449,13 @@ final class FKNetworkExampleViewController: UIViewController {
     tokenStore.refreshToken = "demo-refresh-token"
     appendLog("[HTTPBin] GET /bearer without Authorization → 401 → FKNetworkClient refresh → retry with Bearer.")
     cancellableTask = httpBinClient.send(FKNetworkHttpBinBearerRequest()) { [weak self] result in
-      switch result {
-      case let .success(payload):
-        self?.appendLog("[HTTPBin] Bearer OK authenticated=\(payload.authenticated) token=\(payload.token ?? "nil")")
-      case let .failure(error):
-        self?.appendLog("[HTTPBin] Bearer flow failed: \(error.localizedDescription)")
+      self?.onMain { vc in
+        switch result {
+        case let .success(payload):
+          vc.appendLog("[HTTPBin] Bearer OK authenticated=\(payload.authenticated) token=\(payload.token ?? "nil")")
+        case let .failure(error):
+          vc.appendLog("[HTTPBin] Bearer flow failed: \(error.localizedDescription)")
+        }
       }
     }
   }
@@ -429,15 +463,17 @@ final class FKNetworkExampleViewController: UIViewController {
   private func runSignedGET() {
     appendLog("[HTTPBin] GET /get — inspect echoed headers for X-FK-Example-Trace, X-Timestamp, X-Signature.")
     cancellableTask = httpBinClient.send(FKNetworkHttpBinSignedGETRequest()) { [weak self] result in
-      switch result {
-      case let .success(payload):
-        let keys = payload.headers.keys.sorted().joined(separator: ", ")
-        self?.appendLog("[HTTPBin] /get header keys (sample): \(keys)")
-        let trace = payload.headers.first { $0.key.lowercased() == "x-fk-example-trace" }
-        let sig = payload.headers.first { $0.key.lowercased() == "x-signature" }
-        self?.appendLog("[HTTPBin] Trace=\(trace?.value ?? "n/a") Signature=\(sig?.value.prefix(16) ?? "n/a")…")
-      case let .failure(error):
-        self?.appendLog("[HTTPBin] /get failed: \(error.localizedDescription)")
+      self?.onMain { vc in
+        switch result {
+        case let .success(payload):
+          let keys = payload.headers.keys.sorted().joined(separator: ", ")
+          vc.appendLog("[HTTPBin] /get header keys (sample): \(keys)")
+          let trace = payload.headers.first { $0.key.lowercased() == "x-fk-example-trace" }
+          let sig = payload.headers.first { $0.key.lowercased() == "x-signature" }
+          vc.appendLog("[HTTPBin] Trace=\(trace?.value ?? "n/a") Signature=\(sig?.value.prefix(16) ?? "n/a")…")
+        case let .failure(error):
+          vc.appendLog("[HTTPBin] /get failed: \(error.localizedDescription)")
+        }
       }
     }
   }
@@ -445,12 +481,14 @@ final class FKNetworkExampleViewController: UIViewController {
   private func runFormURLEncodedPOST() {
     appendLog("[HTTPBin] POST /post form-urlencoded body")
     cancellableTask = httpBinClient.send(FKNetworkHttpBinFormPOSTRequest()) { [weak self] result in
-      switch result {
-      case let .success(payload):
-        let formDesc = payload.form?.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: "&") ?? "nil"
-        self?.appendLog("[HTTPBin] Echoed form: \(formDesc)")
-      case let .failure(error):
-        self?.appendLog("[HTTPBin] Form POST failed: \(error.localizedDescription)")
+      self?.onMain { vc in
+        switch result {
+        case let .success(payload):
+          let formDesc = payload.form?.map { "\($0.key)=\($0.value)" }.sorted().joined(separator: "&") ?? "nil"
+          vc.appendLog("[HTTPBin] Echoed form: \(formDesc)")
+        case let .failure(error):
+          vc.appendLog("[HTTPBin] Form POST failed: \(error.localizedDescription)")
+        }
       }
     }
   }
@@ -458,7 +496,9 @@ final class FKNetworkExampleViewController: UIViewController {
   private func runDelayedGETForCancel() {
     appendLog("[HTTPBin] GET /delay/2 — use Cancel to stop early (may yield resume data only on download tasks).")
     cancellableTask = httpBinClient.send(FKNetworkHttpBinDelayGETRequest()) { [weak self] result in
-      self?.appendLog("[HTTPBin] Delay GET finished: \(self?.describe(result) ?? "")")
+      self?.onMain { vc in
+        vc.appendLog("[HTTPBin] Delay GET finished: \(vc.describe(result))")
+      }
     }
   }
 
@@ -478,13 +518,17 @@ final class FKNetworkExampleViewController: UIViewController {
     request.httpMethod = "POST"
 
     uploadTask = jsonClient.upload(request, fileURL: tempFile, progress: { [weak self] progress in
-      self?.appendLog(String(format: "[Upload] progress %.0f%%", progress * 100))
+      self?.onMain { vc in
+        vc.appendLog(String(format: "[Upload] progress %.0f%%", progress * 100))
+      }
     }, completion: { [weak self] result in
-      switch result {
-      case let .success(data):
-        self?.appendLog("[Upload] completed, bytes=\(data.count)")
-      case let .failure(error):
-        self?.appendLog("[Upload] failed: \(error.localizedDescription)")
+      self?.onMain { vc in
+        switch result {
+        case let .success(data):
+          vc.appendLog("[Upload] completed, bytes=\(data.count)")
+        case let .failure(error):
+          vc.appendLog("[Upload] failed: \(error.localizedDescription)")
+        }
       }
     })
   }
@@ -496,9 +540,13 @@ final class FKNetworkExampleViewController: UIViewController {
     storedResumeData = nil
 
     downloadTask = jsonClient.download(request, resumeData: nil, progress: { [weak self] progress in
-      self?.appendLog(String(format: "[Download] progress %.0f%%", progress * 100))
+      self?.onMain { vc in
+        vc.appendLog(String(format: "[Download] progress %.0f%%", progress * 100))
+      }
     }, completion: { [weak self] result in
-      self?.handleDownloadResult(result)
+      self?.onMain { vc in
+        vc.handleDownloadResult(result)
+      }
     })
   }
 
@@ -512,9 +560,13 @@ final class FKNetworkExampleViewController: UIViewController {
     request.httpMethod = "GET"
 
     downloadTask = jsonClient.download(request, resumeData: resumeData, progress: { [weak self] progress in
-      self?.appendLog(String(format: "[Download resume] progress %.0f%%", progress * 100))
+      self?.onMain { vc in
+        vc.appendLog(String(format: "[Download resume] progress %.0f%%", progress * 100))
+      }
     }, completion: { [weak self] result in
-      self?.handleDownloadResult(result)
+      self?.onMain { vc in
+        vc.handleDownloadResult(result)
+      }
     })
   }
 
@@ -553,6 +605,14 @@ final class FKNetworkExampleViewController: UIViewController {
   }
 
   // MARK: - Logging helpers
+
+  /// Network completions are `@Sendable`; hop to the main actor before touching UI.
+  nonisolated private func onMain(_ body: @escaping @MainActor (FKNetworkExampleViewController) -> Void) {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      body(self)
+    }
+  }
 
   private func appendLog(_ message: String) {
     let prefix = DateFormatter.fkNetworkLogFormatter.string(from: Date())

@@ -4,7 +4,7 @@ import Foundation
 ///
 /// This enum normalizes transport, decoding, business, and security failures
 /// into a single contract so callers can handle errors consistently.
-public enum NetworkError: LocalizedError {
+public enum NetworkError: LocalizedError, @unchecked Sendable {
   /// URL construction failed.
   case invalidURL
   /// Response cannot be interpreted as valid HTTP response.

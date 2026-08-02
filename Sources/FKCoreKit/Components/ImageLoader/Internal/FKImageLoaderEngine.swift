@@ -433,7 +433,7 @@
             )
             continuation.resume(returning: FetchPayload(data: data, metadata: metadata))
           }
-          Task { await self.storeDataTask(task, forKey: cacheKey) }
+          Task { self.storeDataTask(task, forKey: cacheKey) }
           task.resume()
         }
       } onCancel: {

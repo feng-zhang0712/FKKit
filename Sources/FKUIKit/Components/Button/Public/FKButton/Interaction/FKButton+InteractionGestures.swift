@@ -59,7 +59,9 @@ extension FKButton {
       guard onLongPressRepeatTick != nil, longPressRepeatTickInterval > 0 else { break }
       longPressRepeatTimer?.invalidate()
       let timer = Timer(timeInterval: longPressRepeatTickInterval, repeats: true) { [weak self] _ in
-        self?.onLongPressRepeatTick?()
+        MainActor.assumeIsolated {
+          self?.onLongPressRepeatTick?()
+        }
       }
       RunLoop.main.add(timer, forMode: .common)
       longPressRepeatTimer = timer

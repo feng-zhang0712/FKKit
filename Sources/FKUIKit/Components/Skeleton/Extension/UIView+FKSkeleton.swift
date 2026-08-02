@@ -112,7 +112,7 @@ public extension UIView {
     animated: Bool = true,
     loadingAction: @escaping (@escaping () -> Void) -> Void
   ) {
-    FKSkeletonDispatch.runOnMain {
+    FKSkeletonDispatch.runOnMain { [self] in
       let token = UUID().uuidString
       objc_setAssociatedObject(self, &FKSkeletonAssociatedKeys.loadingToken, token, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
       FKSkeletonManager.shared.show(on: self, configuration: configuration, options: options, animated: animated)

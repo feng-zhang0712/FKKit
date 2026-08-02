@@ -238,8 +238,16 @@ public struct FKPagingControllerRepresentable: UIViewControllerRepresentable {
       }
     }
 
-    private func emitCallback(_ action: @escaping () -> Void) {
-      DispatchQueue.main.async(execute: action)
+    private func emitCallback(_ action: @escaping @MainActor () -> Void) {
+      if Thread.isMainThread {
+        MainActor.assumeIsolated {
+          action()
+        }
+      } else {
+        Task { @MainActor in
+          action()
+        }
+      }
     }
 
     public func pagingController(_ controller: FKPagingController, didSettleAt index: Int) {

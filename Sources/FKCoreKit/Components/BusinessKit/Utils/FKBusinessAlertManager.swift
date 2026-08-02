@@ -50,7 +50,8 @@ public final class FKBusinessAlertManager: FKBusinessAlertManaging, @unchecked S
       ? [FKAlertAction(title: FKI18n.string("fkcore.common.ok"), style: .default, handler: nil)]
       : actions
 
-    Task { @MainActor in
+    Task { @MainActor [weak self] in
+      guard let self else { return }
       let wrappedActions = resolvedActions.map { action in
         FKAlertAction(title: action.title, style: action.style) { [weak self] in
           action.handler?()

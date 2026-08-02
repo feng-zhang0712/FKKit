@@ -10,7 +10,7 @@ import Foundation
 /// - `always`
 /// - temporary full-accuracy upgrade on iOS 14+
 @MainActor
-final class FKLocationPermissionHandler: NSObject, FKPermissionHandling, @preconcurrency CLLocationManagerDelegate {
+final class FKLocationPermissionHandler: NSObject, FKPermissionHandling, CLLocationManagerDelegate {
   /// Target permission kind bound to this handler instance.
   let kind: FKPermissionKind
   /// Cached manager used during interactive authorization requests.
@@ -24,7 +24,7 @@ final class FKLocationPermissionHandler: NSObject, FKPermissionHandling, @precon
 
   /// Reads current location authorization state without prompting.
   func currentStatus() async -> FKPermissionStatus {
-    let status = CLLocationManager.authorizationStatus()
+    let status = CLLocationManager().authorizationStatus
     switch kind {
     case .locationWhenInUse:
       return mapWhenInUse(status)
@@ -67,9 +67,10 @@ final class FKLocationPermissionHandler: NSObject, FKPermissionHandling, @precon
   /// The method is nonisolated to satisfy delegate requirements; execution hops back to
   /// the main actor before touching actor-isolated state.
   nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+    let authorizationStatus = manager.authorizationStatus
     Task { @MainActor in
       guard let continuation = self.continuation else { return }
-      let status = self.mapSystemStatus(CLLocationManager.authorizationStatus())
+      let status = self.mapSystemStatus(authorizationStatus)
       if status == .notDetermined {
         return
       }
@@ -86,7 +87,7 @@ final class FKLocationPermissionHandler: NSObject, FKPermissionHandling, @precon
     }
 
     // Temporary accuracy can only be requested after basic location access is granted.
-    let baseStatus = CLLocationManager.authorizationStatus()
+    let baseStatus = CLLocationManager().authorizationStatus
     guard baseStatus == .authorizedWhenInUse || baseStatus == .authorizedAlways else {
       return FKPermissionResult(kind: kind, status: .denied)
     }

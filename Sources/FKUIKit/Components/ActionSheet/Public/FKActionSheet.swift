@@ -256,7 +256,8 @@ public final class FKActionSheet: UIViewController {
   }
 
   func focusAccessibility() {
-    let target = actionSheetView.accessibilityElementToFocus() ?? view
+    let fallbackView: UIView = view
+    let target = actionSheetView.accessibilityElementToFocus() ?? fallbackView
     UIAccessibility.post(notification: .screenChanged, argument: target)
   }
 
@@ -288,7 +289,9 @@ public final class FKActionSheet: UIViewController {
     if actionSheetView.isReadyForSelectionScroll {
       scroll()
     } else {
-      DispatchQueue.main.async(execute: scroll)
+      DispatchQueue.main.async {
+        scroll()
+      }
     }
   }
 

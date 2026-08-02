@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 
 /// Measures overlay content height for ``FKImageBannerOverlayExpansionPolicy/growBanner``.
 enum FKImageBannerOverlayMetrics {
@@ -94,17 +95,19 @@ enum FKImageBannerOverlayMetrics {
 
     var measuredHeight: CGFloat = 0
     traitCollection.performAsCurrent {
-      let label = UILabel()
-      label.numberOfLines = maximumLines
-      label.adjustsFontForContentSizeCategory = true
-      label.text = text
-      label.font = UIFont.preferredFont(forTextStyle: textStyle)
-      label.preferredMaxLayoutWidth = contentWidth
+      measuredHeight = FKMainActorUIKitBridge.executeOnMain {
+        let label = UILabel()
+        label.numberOfLines = maximumLines
+        label.adjustsFontForContentSizeCategory = true
+        label.text = text
+        label.font = UIFont.preferredFont(forTextStyle: textStyle)
+        label.preferredMaxLayoutWidth = contentWidth
 
-      let size = label.sizeThatFits(
-        CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
-      )
-      measuredHeight = ceil(size.height)
+        let size = label.sizeThatFits(
+          CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
+        )
+        return ceil(size.height)
+      }
     }
     return measuredHeight
   }

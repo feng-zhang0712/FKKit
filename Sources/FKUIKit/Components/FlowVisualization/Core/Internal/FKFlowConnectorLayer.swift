@@ -92,6 +92,7 @@ final class FKFlowConnectorLayer: CALayer {
     }
   }
 
+  @MainActor
   func setHiddenFromAccessibility(_ hidden: Bool) {
     isAccessibilityElement = false
     accessibilityElementsHidden = hidden

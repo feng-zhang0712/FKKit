@@ -2,6 +2,7 @@ import FKCoreKit
 import UIKit
 
 /// Applies shape, border, and corner radius to avatar subviews.
+@MainActor
 enum FKAvatarContentRenderer {
   static func resolvedCornerRadius(shape: FKAvatarShape, diameter: CGFloat) -> CGFloat {
     switch shape {

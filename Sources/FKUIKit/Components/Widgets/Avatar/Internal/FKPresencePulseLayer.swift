@@ -1,11 +1,14 @@
 import QuartzCore
 import UIKit
+import FKCoreKit
 
 /// Reusable pulse animation layer for online presence (respects Reduce Motion).
 final class FKPresencePulseLayer: CALayer {
   private let pulseLayer = CALayer()
   private var isAnimating = false
   private nonisolated(unsafe) var reduceMotionObserver: NSObjectProtocol?
+  /// Retains the notification target so `@Sendable` observer closures do not capture `self` directly.
+  private let reduceMotionTarget = ReduceMotionTarget()
 
   /// Called on the main queue when Reduce Motion toggles.
   var onReduceMotionStatusChange: (() -> Void)?
@@ -22,12 +25,13 @@ final class FKPresencePulseLayer: CALayer {
     super.init()
     pulseLayer.backgroundColor = pulseColor.cgColor
     addSublayer(pulseLayer)
+    reduceMotionTarget.layer = self
     reduceMotionObserver = NotificationCenter.default.addObserver(
       forName: UIAccessibility.reduceMotionStatusDidChangeNotification,
       object: nil,
       queue: .main
-    ) { [weak self] _ in
-      self?.handleReduceMotionStatusChange()
+    ) { [reduceMotionTarget] _ in
+      reduceMotionTarget.handle()
     }
   }
 
@@ -59,7 +63,7 @@ final class FKPresencePulseLayer: CALayer {
 
   func startAnimatingIfNeeded() {
     guard !isAnimating else { return }
-    guard !UIAccessibility.isReduceMotionEnabled else { return }
+    guard !FKMainActorUIKitBridge.isReduceMotionEnabled() else { return }
     isAnimating = true
     restartAnimation()
   }
@@ -71,8 +75,8 @@ final class FKPresencePulseLayer: CALayer {
     pulseLayer.transform = CATransform3DIdentity
   }
 
-  private func handleReduceMotionStatusChange() {
-    if UIAccessibility.isReduceMotionEnabled {
+  fileprivate func handleReduceMotionStatusChange() {
+    if FKMainActorUIKitBridge.isReduceMotionEnabled() {
       stopAnimating()
     } else if isAnimating {
       restartAnimation()
@@ -101,5 +105,14 @@ final class FKPresencePulseLayer: CALayer {
     group.repeatCount = .infinity
     group.timingFunction = CAMediaTimingFunction(name: .easeOut)
     pulseLayer.add(group, forKey: "fk.presence.pulse")
+  }
+}
+
+/// Bridges Reduce Motion notifications into the pulse layer without capturing a non-Sendable `CALayer` in a `@Sendable` closure.
+private final class ReduceMotionTarget: @unchecked Sendable {
+  weak var layer: FKPresencePulseLayer?
+
+  func handle() {
+    layer?.handleReduceMotionStatusChange()
   }
 }

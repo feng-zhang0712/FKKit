@@ -20,7 +20,7 @@ public extension NetworkServiceProvidable {
   @discardableResult
   func request<R: Requestable>(
     _ request: R,
-    completion: @escaping (Result<R.Response, NetworkError>) -> Void
+    completion: @escaping @Sendable (Result<R.Response, NetworkError>) -> Void
   ) -> Cancellable {
     network.send(request, completion: completion)
   }

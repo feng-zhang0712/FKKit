@@ -288,8 +288,8 @@ final class FKNetworkEnhancementExampleViewController: UIViewController {
     }
   }
 
-  private func appendLog(_ message: String) {
-    DispatchQueue.main.async { [weak self] in
+  nonisolated private func appendLog(_ message: String) {
+    Task { @MainActor [weak self] in
       guard let self else { return }
       logView.text.append(message + "\n")
       let end = NSRange(location: max(logView.text.count - 1, 0), length: 1)
@@ -297,7 +297,7 @@ final class FKNetworkEnhancementExampleViewController: UIViewController {
     }
   }
 
-  private func label(_ error: NetworkError) -> String {
+  nonisolated private func label(_ error: NetworkError) -> String {
     switch error {
     case let .retryExhausted(lastError):
       return "retryExhausted(\(lastError.localizedDescription))"

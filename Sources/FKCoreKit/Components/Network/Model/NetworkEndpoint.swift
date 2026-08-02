@@ -4,7 +4,7 @@ import Foundation
 ///
 /// `FKEndpoint` is useful when you do not need a custom request type per API
 /// and want to build requests inline while keeping `Requestable` compatibility.
-public struct FKEndpoint<Response: Decodable & Sendable>: Requestable {
+public struct FKEndpoint<Response: Decodable & Sendable>: Requestable, @unchecked Sendable {
   /// Endpoint path appended to configured environment base URL.
   public let path: String
   /// HTTP method used by the request.

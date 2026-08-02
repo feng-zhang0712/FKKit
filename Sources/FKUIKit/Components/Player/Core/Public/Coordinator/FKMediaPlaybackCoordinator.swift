@@ -392,7 +392,7 @@ public final class FKMediaPlaybackCoordinator: FKMediaNowPlayingCommandTarget {
     wireEngineCallbacks(newEngine)
     engine = newEngine
 
-    let renderTarget: FKMediaRenderTarget? = presentationMode == .video ? pendingRenderTarget : .none
+    let renderTarget: FKMediaRenderTarget? = presentationMode == .video ? pendingRenderTarget : nil
     try await newEngine.prepare(item: item, renderTarget: renderTarget)
 
     newEngine.setVolume(volume)

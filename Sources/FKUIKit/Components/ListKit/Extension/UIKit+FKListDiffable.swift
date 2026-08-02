@@ -8,7 +8,7 @@ public extension UITableView {
     animatingDifferences: Bool,
     snapshot: NSDiffableDataSourceSnapshot<Section, Item>,
     completion: (() -> Void)? = nil
-  ) where Section: Hashable, Item: Hashable {
+  ) where Section: Hashable & Sendable, Item: Hashable & Sendable {
     dataSource.apply(snapshot, animatingDifferences: animatingDifferences, completion: completion)
   }
 }
@@ -20,7 +20,7 @@ public extension UICollectionView {
     animatingDifferences: Bool,
     snapshot: NSDiffableDataSourceSnapshot<Section, Item>,
     completion: (() -> Void)? = nil
-  ) where Section: Hashable, Item: Hashable {
+  ) where Section: Hashable & Sendable, Item: Hashable & Sendable {
     dataSource.apply(snapshot, animatingDifferences: animatingDifferences, completion: completion)
   }
 }

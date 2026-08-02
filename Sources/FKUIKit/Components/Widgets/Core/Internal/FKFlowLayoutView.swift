@@ -72,6 +72,7 @@ final class FKFlowLayoutView: UIView {
 }
 
 enum FKFlowLayoutEngine {
+  @MainActor
   @discardableResult
   static func layout(
     subviews: [UIView],

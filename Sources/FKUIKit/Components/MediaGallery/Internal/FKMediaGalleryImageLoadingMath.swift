@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 
 /// Downsample target sizes for gallery image decode and prefetch.
 enum FKMediaGalleryImageLoadingMath {
@@ -29,6 +30,8 @@ enum FKMediaGalleryImageLoadingMath {
   }
 
   static func screenScale(for view: UIView) -> CGFloat {
-    view.window?.screen.scale ?? UIScreen.main.scale
+    FKMainActorUIKitBridge.executeOnMain {
+      view.window?.screen.scale ?? UIScreen.main.scale
+    }
   }
 }

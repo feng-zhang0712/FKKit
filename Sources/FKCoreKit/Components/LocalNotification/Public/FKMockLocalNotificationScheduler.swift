@@ -120,11 +120,8 @@ public final class FKMockLocalNotificationScheduler: FKLocalNotificationScheduli
       userInfo: request.content.userInfo,
       isDefaultAction: isDefaultAction
     )
-    let deliver = { handler(response) }
-    if Thread.isMainThread {
-      deliver()
-    } else {
-      DispatchQueue.main.async(execute: deliver)
+    Task { @MainActor in
+      handler(response)
     }
   }
 

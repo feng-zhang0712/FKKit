@@ -1,6 +1,7 @@
 import UIKit
 
 /// Maps visible table/collection cells to their `contentView` hosts for skeleton helpers.
+@MainActor
 enum FKSkeletonVisibleCells {
   static func contentRoots(from cells: [UIView]) -> [UIView] {
     cells.compactMap { cell in

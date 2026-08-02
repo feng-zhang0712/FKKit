@@ -122,7 +122,7 @@ enum FKJSONNullPolicy {
   }
 
   private static func stripNulls(in value: Any) -> Any {
-    if var dictionary = value as? [String: Any] {
+    if let dictionary = value as? [String: Any] {
       var result: [String: Any] = [:]
       result.reserveCapacity(dictionary.count)
       for (key, child) in dictionary {

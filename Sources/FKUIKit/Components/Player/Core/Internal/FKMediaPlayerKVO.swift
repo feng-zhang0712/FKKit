@@ -15,21 +15,25 @@ final class FKMediaPlayerKVO {
   ) {
     invalidate()
 
+    let rate = MainActorCallback(onRateChange)
+    let timeControl = MainActorCallback(onTimeControlStatusChange)
+    let currentItem = MainActorCallback(onCurrentItemChange)
+
     observations.append(
       player.observe(\.rate, options: [.new]) { _, _ in
-        onRateChange()
+        rate.schedule()
       }
     )
 
     observations.append(
       player.observe(\.timeControlStatus, options: [.new]) { _, _ in
-        onTimeControlStatusChange()
+        timeControl.schedule()
       }
     )
 
     observations.append(
       player.observe(\.currentItem, options: [.new]) { _, _ in
-        onCurrentItemChange()
+        currentItem.schedule()
       }
     )
   }
@@ -43,27 +47,32 @@ final class FKMediaPlayerKVO {
   ) {
     invalidate()
 
+    let status = MainActorCallback(onStatusChange)
+    let keepUp = MainActorCallback(onPlaybackLikelyToKeepUpChange)
+    let bufferEmpty = MainActorCallback(onPlaybackBufferEmptyChange)
+    let loadedRanges = MainActorCallback(onLoadedTimeRangesChange)
+
     observations.append(
       item.observe(\.status, options: [.new]) { _, _ in
-        onStatusChange()
+        status.schedule()
       }
     )
 
     observations.append(
       item.observe(\.isPlaybackLikelyToKeepUp, options: [.new]) { _, _ in
-        onPlaybackLikelyToKeepUpChange()
+        keepUp.schedule()
       }
     )
 
     observations.append(
       item.observe(\.isPlaybackBufferEmpty, options: [.new]) { _, _ in
-        onPlaybackBufferEmptyChange()
+        bufferEmpty.schedule()
       }
     )
 
     observations.append(
       item.observe(\.loadedTimeRanges, options: [.new]) { _, _ in
-        onLoadedTimeRangesChange()
+        loadedRanges.schedule()
       }
     )
   }
@@ -73,4 +82,25 @@ final class FKMediaPlayerKVO {
     observations.removeAll()
   }
 
+}
+
+/// Bridges non-Sendable UI callbacks into `@Sendable` KVO closures.
+private final class MainActorCallback: @unchecked Sendable {
+  private let handler: () -> Void
+
+  init(_ handler: @escaping () -> Void) {
+    self.handler = handler
+  }
+
+  func schedule() {
+    if Thread.isMainThread {
+      MainActor.assumeIsolated {
+        self.handler()
+      }
+    } else {
+      Task { @MainActor in
+        self.handler()
+      }
+    }
+  }
 }

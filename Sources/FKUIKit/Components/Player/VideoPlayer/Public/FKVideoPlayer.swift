@@ -244,12 +244,16 @@ public final class FKVideoPlayer: NSObject {
     } else {
       cmTime = coordinator.avPlayer?.currentTime() ?? .zero
     }
-    return await withCheckedContinuation { continuation in
-      DispatchQueue.global(qos: .userInitiated).async {
-        let image = try? generator.copyCGImage(at: cmTime, actualTime: nil)
-        continuation.resume(returning: image.map { UIImage(cgImage: $0) })
+    if #available(iOS 16.0, *) {
+      do {
+        let (cgImage, _) = try await generator.image(at: cmTime)
+        return UIImage(cgImage: cgImage)
+      } catch {
+        return nil
       }
     }
+    let image = try? generator.copyCGImage(at: cmTime, actualTime: nil)
+    return image.map { UIImage(cgImage: $0) }
   }
 
   // MARK: - Private

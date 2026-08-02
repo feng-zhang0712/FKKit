@@ -1,7 +1,8 @@
 import Foundation
 import CommonCrypto
+import CryptoKit
 
-/// Default hashing implementation based on Apple-provided CommonCrypto.
+/// Default hashing implementation based on Apple-provided CryptoKit / CommonCrypto.
 public final class FKHashService: FKHashing, @unchecked Sendable {
   private let executor: FKSecurityExecuting
   private let coder: FKSecurityCoding
@@ -98,11 +99,11 @@ public final class FKHashService: FKHashing, @unchecked Sendable {
   }
 }
 
-// MARK: - CommonCrypto low-level helpers
+// MARK: - Digest helpers
 
 extension FKHashService {
   private enum DigestContext {
-    case md5(CC_MD5_CTX)
+    case md5(Insecure.MD5)
     case sha1(CC_SHA1_CTX)
     case sha256(CC_SHA256_CTX)
     case sha512(CC_SHA512_CTX)
@@ -117,9 +118,7 @@ extension FKHashService {
   private static func makeContext(for algorithm: FKHashAlgorithm) -> DigestContext {
     switch algorithm {
     case .md5:
-      var ctx = CC_MD5_CTX()
-      CC_MD5_Init(&ctx)
-      return .md5(ctx)
+      return .md5(Insecure.MD5())
     case .sha1:
       var ctx = CC_SHA1_CTX()
       CC_SHA1_Init(&ctx)
@@ -136,31 +135,35 @@ extension FKHashService {
   }
 
   private static func updateContext(_ context: inout DigestContext, with data: Data, algorithm: FKHashAlgorithm) {
-    data.withUnsafeBytes { rawBuffer in
-      guard let base = rawBuffer.baseAddress else { return }
-      let length = CC_LONG(data.count)
-      switch context {
-      case var .md5(ctx):
-        CC_MD5_Update(&ctx, base, length)
-        context = .md5(ctx)
-      case var .sha1(ctx):
-        CC_SHA1_Update(&ctx, base, length)
-        context = .sha1(ctx)
-      case var .sha256(ctx):
-        CC_SHA256_Update(&ctx, base, length)
-        context = .sha256(ctx)
-      case var .sha512(ctx):
-        CC_SHA512_Update(&ctx, base, length)
-        context = .sha512(ctx)
+    switch context {
+    case var .md5(hasher):
+      hasher.update(data: data)
+      context = .md5(hasher)
+    case var .sha1(ctx):
+      data.withUnsafeBytes { rawBuffer in
+        guard let base = rawBuffer.baseAddress else { return }
+        CC_SHA1_Update(&ctx, base, CC_LONG(data.count))
       }
+      context = .sha1(ctx)
+    case var .sha256(ctx):
+      data.withUnsafeBytes { rawBuffer in
+        guard let base = rawBuffer.baseAddress else { return }
+        CC_SHA256_Update(&ctx, base, CC_LONG(data.count))
+      }
+      context = .sha256(ctx)
+    case var .sha512(ctx):
+      data.withUnsafeBytes { rawBuffer in
+        guard let base = rawBuffer.baseAddress else { return }
+        CC_SHA512_Update(&ctx, base, CC_LONG(data.count))
+      }
+      context = .sha512(ctx)
     }
   }
 
   private static func finalizeContext(_ context: inout DigestContext, algorithm: FKHashAlgorithm) -> Data {
     switch context {
-    case var .md5(ctx):
-      var digest = [UInt8](repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
-      CC_MD5_Final(&digest, &ctx)
+    case let .md5(hasher):
+      let digest = hasher.finalize()
       return Data(digest)
     case var .sha1(ctx):
       var digest = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
@@ -177,4 +180,3 @@ extension FKHashService {
     }
   }
 }
-

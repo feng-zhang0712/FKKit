@@ -3,8 +3,9 @@ import UIKit
 
 /// Explicit entry point for auto skeleton lifetime (``UIView/fk_showAutoSkeleton`` forwards here).
 ///
-/// Calls are marshaled onto the main queue; the type is `@unchecked Sendable` so you may reference
-/// `shared` from background isolation contexts when needed.
+/// UI work runs on the main actor. The type is `@unchecked Sendable` so you may reference
+/// `shared` from other isolation domains, then call ``show(on:configuration:options:animated:)`` /
+/// ``hide(on:animated:completion:)`` on the main actor.
 public final class FKSkeletonManager: @unchecked Sendable {
   public static let shared = FKSkeletonManager()
 
@@ -13,28 +14,27 @@ public final class FKSkeletonManager: @unchecked Sendable {
 
   private init() {}
 
+  @MainActor
   public func show(
     on view: UIView,
     configuration: FKSkeletonConfiguration? = nil,
     options: FKSkeletonDisplayOptions = .init(),
     animated: Bool = true
   ) {
-    FKSkeletonDispatch.runOnMain {
-      let controller = self.controller(for: view)
-      controller.showSkeleton(configuration: configuration, options: options, animated: animated)
-    }
+    let controller = controller(for: view)
+    controller.showSkeleton(configuration: configuration, options: options, animated: animated)
   }
 
+  @MainActor
   public func hide(on view: UIView, animated: Bool = true, completion: (() -> Void)? = nil) {
-    FKSkeletonDispatch.runOnMain {
-      guard let controller = self.controllerTable.object(forKey: view) else {
-        completion?()
-        return
-      }
-      controller.hideSkeleton(animated: animated, completion: completion)
+    guard let controller = controllerTable.object(forKey: view) else {
+      completion?()
+      return
     }
+    controller.hideSkeleton(animated: animated, completion: completion)
   }
 
+  @MainActor
   private func controller(for view: UIView) -> FKSkeletonController {
     lock.lock()
     defer { lock.unlock() }
