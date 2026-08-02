@@ -166,7 +166,7 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Rotation handling strategy used when interface orientation changes.
-  public enum RotationHandling: Sendable, Equatable {
+  enum RotationHandling: Sendable, Equatable {
     /// Relayouts and animates to the new frame when the container bounds change.
     case relayoutAnimated
     /// Relayouts without animation when the container bounds change.
@@ -176,7 +176,7 @@ public extension FKSheetPresentationConfiguration {
   }
 
   /// Preferred content size policy when modes support intrinsic content.
-  public enum PreferredContentSizePolicy: Sendable, Equatable {
+  enum PreferredContentSizePolicy: Sendable, Equatable {
     /// Uses `preferredContentSize` when it is at least 44pt; otherwise falls back to layout fitting.
     case automatic
     /// Ignores `preferredContentSize` and uses layout fitting for fit-content sizing.

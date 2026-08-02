@@ -4,6 +4,7 @@
 
 import UIKit
 
+@MainActor
 enum FKCornerShadowRenderer {
   static func apply(style: FKCornerShadowStyle, to view: UIView) {
     fk_cornerShadowAssertMainThread()

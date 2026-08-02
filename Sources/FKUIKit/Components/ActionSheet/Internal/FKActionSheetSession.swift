@@ -50,9 +50,8 @@ final class FKActionSheetSession {
       lastCapturedReason = defaultReason
       return lastCapturedReason
     }
-    if let pending = actionSheet.peekPendingDismissReason() {
-      lastCapturedReason = pending
-      actionSheet.consumePendingDismissReason(default: defaultReason)
+    if actionSheet.peekPendingDismissReason() != nil {
+      lastCapturedReason = actionSheet.consumePendingDismissReason(default: defaultReason)
       return lastCapturedReason
     }
     lastCapturedReason = defaultReason

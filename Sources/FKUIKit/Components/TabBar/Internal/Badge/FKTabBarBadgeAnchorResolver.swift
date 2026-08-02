@@ -30,7 +30,7 @@ enum FKTabBarBadgeAnchorResolver {
 
     case .horizontal:
       // Last element wins.
-      if let imageView, let textView { return textView }
+      if imageView != nil, let textView { return textView }
       if let textView { return textView }
       if let imageView { return imageView }
       return button

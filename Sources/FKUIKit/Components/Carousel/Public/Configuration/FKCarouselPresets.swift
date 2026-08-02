@@ -36,6 +36,7 @@ public enum FKCarouselPresets {
         heightStrategy: .aspectRatio(aspectRatio),
         isInfiniteLoopEnabled: true
       ),
+      paging: .init(decelerationRate: .fast, bounces: false),
       indicator: .init(
         style: .dots,
         placement: .below(spacing: 8)
@@ -57,6 +58,41 @@ public enum FKCarouselPresets {
         placement: .below(spacing: 12)
       ),
       autoScroll: .init(isEnabled: false)
+    )
+  }
+
+  /// Centered focus cards with side peek, neighbor scale-down, and expanding line indicator.
+  ///
+  /// Pair with custom ``FKCarousel/pageProvider`` image cards. Defaults enable indicator taps,
+  /// side-card taps, fast deceleration, and bounce-off for seamless infinite looping.
+  public static func focusedCards(
+    pageWidth: CGFloat = 280,
+    height: CGFloat = 180,
+    interPageSpacing: CGFloat = 14,
+    sidePageScale: CGFloat = 0.88
+  ) -> FKCarouselConfiguration {
+    FKCarouselConfiguration(
+      layout: .init(
+        layoutMode: .fixedPageWidth(pageWidth),
+        heightStrategy: .fixed(height),
+        interPageSpacing: interPageSpacing,
+        clipsToBounds: false,
+        isInfiniteLoopEnabled: true
+      ),
+      paging: .init(decelerationRate: .fast, bounces: false),
+      indicator: .init(
+        style: .line,
+        placement: .below(spacing: 14),
+        activeColor: .systemBlue,
+        inactiveColor: UIColor.tertiaryLabel.withAlphaComponent(0.55),
+        activeLineWidth: 22,
+        inactiveLineWidth: 8,
+        lineThickness: 4,
+        allowsPageSelection: true
+      ),
+      autoScroll: .init(isEnabled: false),
+      interaction: .init(scrollsToTappedPage: true),
+      motion: .init(sidePageScale: sidePageScale)
     )
   }
 }

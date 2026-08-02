@@ -6,7 +6,7 @@ import FKUIKit
 private struct FKFlowSwiftUIDemoRoot: View {
   @State private var stepIndex = 1
   @State private var stepConfiguration: FKStepIndicatorConfiguration = {
-    var config = FKStepIndicatorPresets.onboarding()
+    let config = FKStepIndicatorPresets.onboarding()
     return config
   }()
   @State private var timelineConfiguration = FKTimelinePresets.logistics()

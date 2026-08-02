@@ -337,15 +337,20 @@ private struct FKZipArchiveWriter {
 
       var localOutput = [UInt8](repeating: 0, count: chunkSize)
       repeat {
-        stream.next_out = UnsafeMutablePointer(mutating: localOutput)
-        stream.avail_out = uInt(chunkSize)
-        status = deflate(&stream, Z_FINISH)
-        guard status == Z_OK || status == Z_STREAM_END else {
-          throw FKFileManagerError.zipOperationFailed(message: "deflate failed")
-        }
-        let produced = chunkSize - Int(stream.avail_out)
-        if produced > 0 {
-          output.append(localOutput, count: produced)
+        try localOutput.withUnsafeMutableBytes { outputBuffer in
+          guard let outputBase = outputBuffer.baseAddress?.assumingMemoryBound(to: Bytef.self) else {
+            throw FKFileManagerError.zipOperationFailed(message: "deflate buffer unavailable")
+          }
+          stream.next_out = outputBase
+          stream.avail_out = uInt(chunkSize)
+          status = deflate(&stream, Z_FINISH)
+          guard status == Z_OK || status == Z_STREAM_END else {
+            throw FKFileManagerError.zipOperationFailed(message: "deflate failed")
+          }
+          let produced = chunkSize - Int(stream.avail_out)
+          if produced > 0 {
+            output.append(outputBase, count: produced)
+          }
         }
       } while status != Z_STREAM_END
     }
@@ -494,15 +499,20 @@ private struct FKZipArchiveReader {
 
       var localOutput = [UInt8](repeating: 0, count: chunkSize)
       repeat {
-        stream.next_out = UnsafeMutablePointer(mutating: localOutput)
-        stream.avail_out = uInt(chunkSize)
-        status = inflate(&stream, Z_NO_FLUSH)
-        guard status == Z_OK || status == Z_STREAM_END else {
-          throw FKFileManagerError.zipOperationFailed(message: "inflate failed")
-        }
-        let produced = chunkSize - Int(stream.avail_out)
-        if produced > 0 {
-          output.append(localOutput, count: produced)
+        try localOutput.withUnsafeMutableBytes { outputBuffer in
+          guard let outputBase = outputBuffer.baseAddress?.assumingMemoryBound(to: Bytef.self) else {
+            throw FKFileManagerError.zipOperationFailed(message: "inflate buffer unavailable")
+          }
+          stream.next_out = outputBase
+          stream.avail_out = uInt(chunkSize)
+          status = inflate(&stream, Z_NO_FLUSH)
+          guard status == Z_OK || status == Z_STREAM_END else {
+            throw FKFileManagerError.zipOperationFailed(message: "inflate failed")
+          }
+          let produced = chunkSize - Int(stream.avail_out)
+          if produced > 0 {
+            output.append(outputBase, count: produced)
+          }
         }
       } while status != Z_STREAM_END
     }

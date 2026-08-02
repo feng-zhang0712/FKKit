@@ -505,7 +505,7 @@ public final class FKVideoPlayerView: UIView {
       unmountPosterImageView()
       return
     }
-    let poster = mountPosterImageView()
+    _ = mountPosterImageView()
     posterLoadTask = Task {
       do {
         let (data, response) = try await URLSession.shared.data(from: url)

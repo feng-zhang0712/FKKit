@@ -23,14 +23,21 @@ public struct FKCarouselInteractionConfiguration: Equatable, Sendable {
   /// Opacity applied to non-interactive pages.
   public var nonInteractiveAlpha: CGFloat
 
+  /// When `true`, tapping a non-current page (e.g. a peeking side card) scrolls to that page.
+  ///
+  /// The current page still reports selection via ``FKCarouselDelegate/carousel(_:didSelectPageAt:)``.
+  public var scrollsToTappedPage: Bool
+
   /// Creates interaction configuration.
   public init(
     nestedScrollPolicy: FKCarouselNestedScrollPolicy = .standard,
     requiresNavigationPopGestureToFail: Bool = false,
-    nonInteractiveAlpha: CGFloat = 1.0
+    nonInteractiveAlpha: CGFloat = 1.0,
+    scrollsToTappedPage: Bool = false
   ) {
     self.nestedScrollPolicy = nestedScrollPolicy
     self.requiresNavigationPopGestureToFail = requiresNavigationPopGestureToFail
     self.nonInteractiveAlpha = nonInteractiveAlpha
+    self.scrollsToTappedPage = scrollsToTappedPage
   }
 }

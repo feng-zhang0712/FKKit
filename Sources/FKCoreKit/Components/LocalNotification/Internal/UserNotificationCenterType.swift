@@ -98,7 +98,7 @@ final class SystemUserNotificationCenter: UserNotificationCenterType, @unchecked
         }
       }
     } else {
-      try await MainActor.run {
+      await MainActor.run {
         UIApplication.shared.applicationIconBadgeNumber = count
       }
     }

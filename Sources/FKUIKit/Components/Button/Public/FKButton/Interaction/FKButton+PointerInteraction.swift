@@ -3,7 +3,7 @@ import UIKit
 
 @available(iOS 13.4, *)
 extension FKButton: UIPointerInteractionDelegate {
-  public func pointerInteraction(_ interaction: UIPointerInteraction, regionFor request: UIPointerRegionRequest, defaultRegion: UIPointerRegion?) -> UIPointerRegion? {
+  public func pointerInteraction(_ interaction: UIPointerInteraction, regionFor request: UIPointerRegionRequest, defaultRegion: UIPointerRegion) -> UIPointerRegion? {
     UIPointerRegion(rect: bounds)
   }
 

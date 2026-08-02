@@ -112,8 +112,7 @@ final class FKAnchorHost: NSObject, FKSheetPresentationHost {
     FKAnchorPresentationRegistry.register(owner, for: registryKey)
 
     let animator = makeAnimator(isPresentation: true, animated: animated)
-    animator.addCompletion { [weak self] _ in
-      guard let self else { return }
+    animator.addCompletion { _ in
       completion?()
     }
     animator.startAnimation()

@@ -675,7 +675,6 @@ private extension FKTextField {
 
   func prepareClearButtonForAccessory(_ button: UIButton, layout: AccessoryButtonLayout) {
     button.translatesAutoresizingMaskIntoConstraints = false
-    button.contentEdgeInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
     let side = accessoryControlSide()
     switch layout {
     case .stack:
@@ -687,7 +686,6 @@ private extension FKTextField {
 
   func preparePasswordToggleButtonForAccessory(_ button: UIButton, layout: AccessoryButtonLayout) {
     button.translatesAutoresizingMaskIntoConstraints = false
-    button.contentEdgeInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
     let side = accessoryControlSide()
     switch layout {
     case .stack:

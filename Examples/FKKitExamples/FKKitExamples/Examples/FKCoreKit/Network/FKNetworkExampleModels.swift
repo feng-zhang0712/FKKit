@@ -3,7 +3,7 @@ import FKCoreKit
 
 // MARK: - Mock payloads
 
-enum FKNetworkExampleMockPayloads {
+nonisolated enum FKNetworkExampleMockPayloads {
   /// Wrapped envelope decoded after `FKNetworkExampleEnvelopeInterceptor`.
   static var envelopeUserJSON: Data {
     """
@@ -25,6 +25,9 @@ enum FKNetworkExampleMockPayloads {
 // synthesized `Codable` conformances main-actor-isolated. `Requestable.Response`
 // must be `Decodable & Sendable` for use from networking callbacks, so we use
 // manual `nonisolated` decoding (and keep types `Sendable`).
+//
+// Requestable request types below are `nonisolated` so their protocol
+// conformance can be passed into `FKNetworkClient.send`’s nonisolated async path.
 
 /// Sample user payload from JSONPlaceholder `/users/:id`.
 struct FKNetworkDemoUser: Sendable {
@@ -167,7 +170,7 @@ extension FKNetworkHttpBinFormPayload: Decodable {
 
 // MARK: - JSONPlaceholder requests
 
-struct FKNetworkGETUserRequest: Requestable {
+nonisolated struct FKNetworkGETUserRequest: Requestable {
   typealias Response = FKNetworkDemoUser
 
   let userID: Int
@@ -176,7 +179,7 @@ struct FKNetworkGETUserRequest: Requestable {
   var method: HTTPMethod { .get }
 }
 
-struct FKNetworkPOSTJSONPostRequest: Requestable {
+nonisolated struct FKNetworkPOSTJSONPostRequest: Requestable {
   typealias Response = FKNetworkDemoPost
 
   let title: String
@@ -191,7 +194,7 @@ struct FKNetworkPOSTJSONPostRequest: Requestable {
   }
 }
 
-struct FKNetworkCommonQueryPostsRequest: Requestable {
+nonisolated struct FKNetworkCommonQueryPostsRequest: Requestable {
   typealias Response = FKNetworkDemoPostList
 
   var path: String { "/posts" }
@@ -199,7 +202,7 @@ struct FKNetworkCommonQueryPostsRequest: Requestable {
   var queryItems: [String: String] { ["_limit": "5"] }
 }
 
-struct FKNetworkCustomHeaderPostsRequest: Requestable {
+nonisolated struct FKNetworkCustomHeaderPostsRequest: Requestable {
   typealias Response = FKNetworkDemoPostList
 
   var path: String { "/posts" }
@@ -208,7 +211,7 @@ struct FKNetworkCustomHeaderPostsRequest: Requestable {
   var headers: [String: String] { ["X-Demo-Header": "FKNetworkExample"] }
 }
 
-struct FKNetworkPUTPostRequest: Requestable {
+nonisolated struct FKNetworkPUTPostRequest: Requestable {
   typealias Response = FKNetworkDemoPost
 
   var path: String { "/posts/1" }
@@ -224,7 +227,7 @@ struct FKNetworkPUTPostRequest: Requestable {
   }
 }
 
-struct FKNetworkPATCHPostRequest: Requestable {
+nonisolated struct FKNetworkPATCHPostRequest: Requestable {
   typealias Response = FKNetworkDemoPost
 
   var path: String { "/posts/1" }
@@ -233,14 +236,14 @@ struct FKNetworkPATCHPostRequest: Requestable {
   var bodyParameters: [String: Any] { ["title": "Patched title (PATCH)"] }
 }
 
-struct FKNetworkDELETEPostRequest: Requestable {
+nonisolated struct FKNetworkDELETEPostRequest: Requestable {
   typealias Response = FKNetworkEmptyKeyedResponse
 
   var path: String { "/posts/1" }
   var method: HTTPMethod { .delete }
 }
 
-struct FKNetworkMemoryCachedUserRequest: Requestable {
+nonisolated struct FKNetworkMemoryCachedUserRequest: Requestable {
   typealias Response = FKNetworkDemoUser
 
   let userID: Int
@@ -250,7 +253,7 @@ struct FKNetworkMemoryCachedUserRequest: Requestable {
   var cachePolicy: NetworkCachePolicy { .memory(ttl: 60) }
 }
 
-struct FKNetworkDiskCachedUserRequest: Requestable {
+nonisolated struct FKNetworkDiskCachedUserRequest: Requestable {
   typealias Response = FKNetworkDemoUser
 
   let userID: Int
@@ -260,7 +263,7 @@ struct FKNetworkDiskCachedUserRequest: Requestable {
   var cachePolicy: NetworkCachePolicy { .disk(ttl: 60) }
 }
 
-struct FKNetworkMemoryAndDiskCachedUserRequest: Requestable {
+nonisolated struct FKNetworkMemoryAndDiskCachedUserRequest: Requestable {
   typealias Response = FKNetworkDemoUser
 
   let userID: Int
@@ -270,7 +273,7 @@ struct FKNetworkMemoryAndDiskCachedUserRequest: Requestable {
   var cachePolicy: NetworkCachePolicy { .memoryAndDisk(ttl: 120) }
 }
 
-struct FKNetworkDedupPostsRequest: Requestable {
+nonisolated struct FKNetworkDedupPostsRequest: Requestable {
   typealias Response = FKNetworkDemoPostList
 
   var path: String { "/posts" }
@@ -280,7 +283,7 @@ struct FKNetworkDedupPostsRequest: Requestable {
 }
 
 /// One-second delayed response so a second in-flight duplicate can be rejected while the first is active.
-struct FKNetworkHttpBinDedupDelayRequest: Requestable {
+nonisolated struct FKNetworkHttpBinDedupDelayRequest: Requestable {
   typealias Response = FKNetworkHttpBinDelayPayload
 
   var path: String { "/delay/1" }
@@ -288,7 +291,7 @@ struct FKNetworkHttpBinDedupDelayRequest: Requestable {
   var behavior: NetworkRequestBehavior { .idempotentDeduplicated }
 }
 
-struct FKNetworkEnvelopeMockUserRequest: Requestable {
+nonisolated struct FKNetworkEnvelopeMockUserRequest: Requestable {
   typealias Response = FKNetworkDemoUser
 
   var path: String { "/users/42" }
@@ -296,7 +299,7 @@ struct FKNetworkEnvelopeMockUserRequest: Requestable {
   var mockData: Data? { FKNetworkExampleMockPayloads.envelopeUserJSON }
 }
 
-struct FKNetworkPlainMockUserRequest: Requestable {
+nonisolated struct FKNetworkPlainMockUserRequest: Requestable {
   typealias Response = FKNetworkDemoUser
 
   var path: String { "/users/99" }
@@ -306,14 +309,14 @@ struct FKNetworkPlainMockUserRequest: Requestable {
 
 // MARK: - HTTPBin requests (second client; jsonplaceholder.typicode.com base unused)
 
-struct FKNetworkHttpBinBearerRequest: Requestable {
+nonisolated struct FKNetworkHttpBinBearerRequest: Requestable {
   typealias Response = FKNetworkHttpBinBearerPayload
 
   var path: String { "/bearer" }
   var method: HTTPMethod { .get }
 }
 
-struct FKNetworkHttpBinDelayGETRequest: Requestable {
+nonisolated struct FKNetworkHttpBinDelayGETRequest: Requestable {
   typealias Response = FKNetworkHttpBinDelayPayload
 
   /// Two-second delayed JSON — cancel mid-flight to exercise `Cancellable`.
@@ -321,14 +324,14 @@ struct FKNetworkHttpBinDelayGETRequest: Requestable {
   var method: HTTPMethod { .get }
 }
 
-struct FKNetworkHttpBinSignedGETRequest: Requestable {
+nonisolated struct FKNetworkHttpBinSignedGETRequest: Requestable {
   typealias Response = FKNetworkHttpBinGETPayload
 
   var path: String { "/get" }
   var method: HTTPMethod { .get }
 }
 
-struct FKNetworkHttpBinFormPOSTRequest: Requestable {
+nonisolated struct FKNetworkHttpBinFormPOSTRequest: Requestable {
   typealias Response = FKNetworkHttpBinFormPayload
 
   var path: String { "/post" }

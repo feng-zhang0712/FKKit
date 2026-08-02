@@ -4,6 +4,28 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.74.0] - 2026-08-02
+
+### Added (FKUIKit — Carousel)
+
+- **Focused cards** layout via `FKCarouselPresets.focusedCards()` — centered `fixedPageWidth` pages, neighbor `sidePageScale`, expanding line indicator, and image-card demos.
+- **Indicator tap-to-jump** (`allowsPageSelection`) and **side-card tap navigation** (`scrollsToTappedPage`).
+- Paging knobs: `decelerationRate`, `bounces`, and `alwaysBounceHorizontal`.
+- **Examples**: Focused cards playground with live controls for size, spacing, scale, indicator widths, and interaction toggles.
+
+### Fixed (FKUIKit — Carousel)
+
+- Smoother infinite-loop handoff at the first/last page (one-page snap + clone remapping).
+- Host cell constraint reuse that could blank pages during fast flings.
+
+### Changed (FKKit — Concurrency)
+
+- Harden Swift 6 isolation and `Sendable` boundaries across FKCoreKit / FKUIKit (strict concurrency alignment).
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.74.0** (Git tag **`0.74.0`**).
+
 ## [0.73.1] - 2026-07-14
 
 ### Fixed (FKUIKit — SheetPresentationController)
@@ -2902,7 +2924,8 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.73.1...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.74.0...HEAD
+[0.74.0]: https://github.com/feng-zhang0712/FKKit/compare/0.73.1...0.74.0
 [0.73.1]: https://github.com/feng-zhang0712/FKKit/compare/0.73.0...0.73.1
 [0.73.0]: https://github.com/feng-zhang0712/FKKit/compare/0.72.0...0.73.0
 [0.72.0]: https://github.com/feng-zhang0712/FKKit/compare/0.71.0...0.72.0

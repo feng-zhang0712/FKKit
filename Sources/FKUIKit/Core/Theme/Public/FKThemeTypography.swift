@@ -70,7 +70,6 @@ public struct FKThemeTypography: Sendable, Equatable {
     baseValue: CGFloat,
     contentSizeCategory: UIContentSizeCategory = UITraitCollection.current.preferredContentSizeCategory
   ) -> FKThemeScaledMetrics {
-    let baseFont = baseFonts[style] ?? UIFont.preferredFont(forTextStyle: uiTextStyle(for: style))
     let metrics = UIFontMetrics(forTextStyle: uiTextStyle(for: style))
     let trait = UITraitCollection(preferredContentSizeCategory: contentSizeCategory)
     let scaled = metrics.scaledValue(for: baseValue, compatibleWith: trait)

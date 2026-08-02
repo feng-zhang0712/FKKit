@@ -1,6 +1,7 @@
 import UIKit
 
 /// Builds and manages auto-generated skeleton overlays for one host view subtree.
+@MainActor
 final class FKSkeletonController: FKSkeletonPresentable {
 
   private weak var hostView: UIView?

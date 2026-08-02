@@ -8,7 +8,11 @@ final class FKSheetPresentationKeyboardCoordinator {
   /// Used to compose with center interactive-dismiss transforms without fighting.
   private(set) var appliedTranslationY: CGFloat = 0
   private var observers: [NSObjectProtocol] = []
-  private var originalScrollInsets: (content: UIEdgeInsets, indicator: UIEdgeInsets)?
+  private var originalScrollInsets: (
+    content: UIEdgeInsets,
+    verticalIndicator: UIEdgeInsets,
+    horizontalIndicator: UIEdgeInsets
+  )?
 
   /// Subscribes to keyboard notifications when enabled.
   func startTracking(
@@ -18,14 +22,15 @@ final class FKSheetPresentationKeyboardCoordinator {
     guard isEnabled, observers.isEmpty else { return }
 
     let center = NotificationCenter.default
-    let handler: (Notification) -> Void = { note in
+    let callbackBox = KeyboardChangeCallbackBox(onKeyboardChange)
+    let handler: @Sendable (Notification) -> Void = { note in
       let userInfo = note.userInfo ?? [:]
       let endFrameScreen = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .zero
       let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
       let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.intValue
         ?? UIView.AnimationCurve.easeInOut.rawValue
       Task { @MainActor in
-        onKeyboardChange(endFrameScreen, duration, curveRaw)
+        callbackBox.handler(endFrameScreen, duration, curveRaw)
       }
     }
 
@@ -51,7 +56,8 @@ final class FKSheetPresentationKeyboardCoordinator {
 
     if let scroll = FKSheetScrollTracking.findPrimaryScrollView(in: root), let originalScrollInsets {
       scroll.contentInset = originalScrollInsets.content
-      scroll.scrollIndicatorInsets = originalScrollInsets.indicator
+      scroll.verticalScrollIndicatorInsets = originalScrollInsets.verticalIndicator
+      scroll.horizontalScrollIndicatorInsets = originalScrollInsets.horizontalIndicator
     }
     originalScrollInsets = nil
     bottomInset = 0
@@ -75,21 +81,27 @@ final class FKSheetPresentationKeyboardCoordinator {
   /// Applies content inset keyboard avoidance to the resolved scroll view.
   func applyContentInsetAvoidance(to scroll: UIScrollView) {
     if originalScrollInsets == nil {
-      originalScrollInsets = (scroll.contentInset, scroll.scrollIndicatorInsets)
+      originalScrollInsets = (
+        scroll.contentInset,
+        scroll.verticalScrollIndicatorInsets,
+        scroll.horizontalScrollIndicatorInsets
+      )
     }
-    let base = originalScrollInsets ?? (scroll.contentInset, scroll.scrollIndicatorInsets)
+    let base = originalScrollInsets ?? (
+      scroll.contentInset,
+      scroll.verticalScrollIndicatorInsets,
+      scroll.horizontalScrollIndicatorInsets
+    )
     scroll.contentInset = .init(
       top: base.content.top,
       left: base.content.left,
       bottom: base.content.bottom + bottomInset,
       right: base.content.right
     )
-    scroll.scrollIndicatorInsets = .init(
-      top: base.indicator.top,
-      left: base.indicator.left,
-      bottom: base.indicator.bottom + bottomInset,
-      right: base.indicator.right
-    )
+    var verticalIndicator = base.verticalIndicator
+    verticalIndicator.bottom = base.verticalIndicator.bottom + bottomInset
+    scroll.verticalScrollIndicatorInsets = verticalIndicator
+    scroll.horizontalScrollIndicatorInsets = base.horizontalIndicator
   }
 
   /// Translates a wrapper view upward when it would overlap the keyboard region.
@@ -118,5 +130,12 @@ final class FKSheetPresentationKeyboardCoordinator {
     let keyboardTopY = hostView.bounds.height - bottomInset
     let overlap = max(0, frame.maxY - keyboardTopY)
     return frame.offsetBy(dx: 0, dy: -overlap)
+  }
+}
+
+private final class KeyboardChangeCallbackBox: @unchecked Sendable {
+  let handler: (_ endFrameScreen: CGRect, _ duration: TimeInterval, _ curveRaw: Int) -> Void
+  init(_ handler: @escaping (_ endFrameScreen: CGRect, _ duration: TimeInterval, _ curveRaw: Int) -> Void) {
+    self.handler = handler
   }
 }

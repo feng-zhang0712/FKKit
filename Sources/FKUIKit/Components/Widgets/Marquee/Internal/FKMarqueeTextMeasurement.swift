@@ -14,6 +14,7 @@ enum FKMarqueeTextMeasurement {
   }
 
   /// Uses ``UILabel/fk_numberOfLinesThatFit()`` to confirm the label fits on one line at the given width.
+  @MainActor
   static func fitsSingleLine(text: String, font: UIFont, width: CGFloat) -> Bool {
     guard width > 0, !text.isEmpty else { return true }
     let probe = UILabel()

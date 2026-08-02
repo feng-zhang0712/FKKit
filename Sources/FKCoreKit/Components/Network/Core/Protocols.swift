@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Conforming types define endpoint metadata, encoding behavior, cache policy,
 /// and expected decoded response model.
-public protocol Requestable {
+public protocol Requestable: Sendable {
   /// Decoded response model type for this request.
   associatedtype Response: Decodable & Sendable
 
@@ -217,7 +217,7 @@ public protocol Networkable: AnyObject {
   @discardableResult
   func send<R: Requestable>(
     _ request: R,
-    completion: @escaping (Result<R.Response, NetworkError>) -> Void
+    completion: @escaping @Sendable (Result<R.Response, NetworkError>) -> Void
   ) -> Cancellable
 
   /// Sends a typed request using async/await style.
@@ -242,7 +242,7 @@ public protocol Networkable: AnyObject {
     _ request: URLRequest,
     fileURL: URL,
     progress: ((Double) -> Void)?,
-    completion: @escaping (Result<Data, NetworkError>) -> Void
+    completion: @escaping @Sendable (Result<Data, NetworkError>) -> Void
   ) -> Cancellable
 
   /// Downloads a file, optionally resuming from previous interruption.
@@ -258,7 +258,7 @@ public protocol Networkable: AnyObject {
     _ request: URLRequest,
     resumeData: Data?,
     progress: ((Double) -> Void)?,
-    completion: @escaping (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void
+    completion: @escaping @Sendable (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void
   ) -> Cancellable
 }
 

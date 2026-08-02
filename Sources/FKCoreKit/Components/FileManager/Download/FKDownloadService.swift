@@ -158,7 +158,7 @@ final class FKDownloadService: NSObject, URLSessionDownloadDelegate, URLSessionT
     FKBackgroundSessionCoordinator.shared.register(handler, forSessionWithIdentifier: identifier)
   }
 
-  nonisolated func urlSessionDidFinishEventsForBackgroundURLSession(_ session: URLSession) {
+  nonisolated func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
     let identifier = session.configuration.identifier ?? ""
     Task { @MainActor in
       FKBackgroundSessionCoordinator.shared.invoke(forSessionWithIdentifier: identifier)

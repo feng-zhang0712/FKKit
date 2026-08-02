@@ -23,6 +23,7 @@ public enum FKSearchBarNavigationHosting {
     searchBar.frame = CGRect(origin: .zero, size: fitSize)
   }
 
+  @MainActor
   private static func hostingWidth(for searchBar: FKSearchBar) -> CGFloat {
     if let width = searchBar.window?.windowScene?.screen.bounds.width {
       return width

@@ -92,7 +92,9 @@ public final class FKBusinessVersionManager: FKBusinessVersioning, @unchecked Se
     var actions: [FKAlertAction] = [
       FKAlertAction(title: updateTitle, style: .default) { [weak self] in
         if let url = result.remote.updateURL {
-          UIApplication.shared.open(url, options: [:], completionHandler: nil)
+          Task { @MainActor in
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+          }
         }
         if result.decision == .forceUpdate {
           Task { @MainActor [weak self] in

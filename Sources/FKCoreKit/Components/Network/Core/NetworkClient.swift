@@ -1,15 +1,32 @@
 import Foundation
 
-private final class NetworkCompletionBox<T>: @unchecked Sendable {
+private final class NetworkCompletionBox<T: Sendable>: @unchecked Sendable {
   private let queue: DispatchQueue
-  fileprivate let handler: (Result<T, NetworkError>) -> Void
+  fileprivate let handler: @Sendable (Result<T, NetworkError>) -> Void
 
-  init(queue: DispatchQueue, handler: @escaping (Result<T, NetworkError>) -> Void) {
+  init(queue: DispatchQueue, handler: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
     self.queue = queue
     self.handler = handler
   }
 
   func deliver(_ result: Result<T, NetworkError>) {
+    queue.async { self.handler(result) }
+  }
+}
+
+private final class DownloadCompletionBox: @unchecked Sendable {
+  private let queue: DispatchQueue
+  private let handler: @Sendable (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void
+
+  init(
+    queue: DispatchQueue,
+    handler: @escaping @Sendable (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void
+  ) {
+    self.queue = queue
+    self.handler = handler
+  }
+
+  func deliver(_ result: Result<(fileURL: URL, resumeData: Data?), NetworkError>) {
     queue.async { self.handler(result) }
   }
 }
@@ -51,7 +68,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   /// Download progress handlers keyed by task identifier.
   private var downloadProgressHandlers: [Int: (Double) -> Void] = [:]
   /// Download completion handlers keyed by task identifier.
-  private var downloadCompletions: [Int: (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void] = [:]
+  private var downloadCompletions: [Int: DownloadCompletionBox] = [:]
   /// Pinning failures keyed by task identifier.
   private var pinningFailureByTaskId: [Int: NetworkError] = [:]
   /// Lock guarding mutable handler maps.
@@ -89,7 +106,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   @discardableResult
   public func send<R: Requestable>(
     _ request: R,
-    completion: @escaping (Result<R.Response, NetworkError>) -> Void
+    completion: @escaping @Sendable (Result<R.Response, NetworkError>) -> Void
   ) -> Cancellable {
     let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
 
@@ -128,7 +145,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
       dedupKeyHeld = false
     }
 
-    let releaseDedup = { [deduplicator] in
+    let releaseDedup: @Sendable () -> Void = { [deduplicator] in
       if dedupKeyHeld {
         deduplicator.complete(key: key)
       }
@@ -180,7 +197,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   @discardableResult
   public func performAPIRequest(
     _ apiRequest: FKAPIRequest,
-    completion: @escaping (Result<FKAPIResponse, NetworkError>) -> Void
+    completion: @escaping @Sendable (Result<FKAPIResponse, NetworkError>) -> Void
   ) -> Cancellable {
     let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
 
@@ -232,7 +249,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     _ request: URLRequest,
     fileURL: URL,
     progress: ((Double) -> Void)?,
-    completion: @escaping (Result<Data, NetworkError>) -> Void
+    completion: @escaping @Sendable (Result<Data, NetworkError>) -> Void
   ) -> Cancellable {
     let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
     let context = DataTaskContext()
@@ -267,7 +284,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     _ request: URLRequest,
     resumeData: Data?,
     progress: ((Double) -> Void)?,
-    completion: @escaping (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void
+    completion: @escaping @Sendable (Result<(fileURL: URL, resumeData: Data?), NetworkError>) -> Void
   ) -> Cancellable {
     let task: URLSessionDownloadTask = if let resumeData {
       transport.downloadTask(withResumeData: resumeData)
@@ -279,8 +296,9 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
       downloadProgressHandlers[task.taskIdentifier] = progress
       lock.unlock()
     }
+    let completionBox = DownloadCompletionBox(queue: callbackQueue, handler: completion)
     lock.lock()
-    downloadCompletions[task.taskIdentifier] = completion
+    downloadCompletions[task.taskIdentifier] = completionBox
     lock.unlock()
     task.resume()
     return URLSessionTaskBox(task: task)
@@ -294,8 +312,8 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     dedupKeyHeld: Bool,
     httpRetryCount: Int,
     tokenRetried: Bool,
-    releaseDedup: @escaping () -> Void,
-    completion: @escaping (Result<R.Response, NetworkError>) -> Void
+    releaseDedup: @escaping @Sendable () -> Void,
+    completion: @escaping @Sendable (Result<R.Response, NetworkError>) -> Void
   ) -> Cancellable {
     let resultBox = NetworkCompletionBox(queue: callbackQueue, handler: completion)
 
@@ -317,7 +335,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     let context = DataTaskContext()
     var task: URLSessionDataTask!
     task = transport.dataTask(with: finalized) { [weak self, context, requestBox] data, response, error in
-      let finalizeDedup = {
+      let finalizeDedup: @Sendable () -> Void = {
         if dedupKeyHeld {
           dedup.complete(key: cacheKey)
         }
@@ -358,7 +376,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     taskId: Int,
     httpRetryCount: Int,
     tokenRetried: Bool,
-    releaseDedup: @escaping () -> Void,
+    releaseDedup: @escaping @Sendable () -> Void,
     resultBox: NetworkCompletionBox<R.Response>
   ) {
     if let error {
@@ -441,7 +459,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     dedupKeyHeld: Bool,
     httpRetryCount: Int,
     tokenRetried: Bool,
-    releaseDedup: @escaping () -> Void,
+    releaseDedup: @escaping @Sendable () -> Void,
     error: NetworkError,
     resultBox: NetworkCompletionBox<R.Response>
   ) {
@@ -486,7 +504,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     cacheKey: String,
     dedupKeyHeld: Bool,
     httpRetryCount: Int,
-    releaseDedup: @escaping () -> Void,
+    releaseDedup: @escaping @Sendable () -> Void,
     resultBox: NetworkCompletionBox<R.Response>
   ) {
     guard let refresher = config.tokenRefresher, let tokenStore = config.tokenStore else {
@@ -768,7 +786,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
   private func decode<R: Requestable>(
     data: Data,
     request: R,
-    releaseDedup: @escaping () -> Void,
+    releaseDedup: @escaping @Sendable () -> Void,
     resultBox: NetworkCompletionBox<R.Response>
   ) {
     do {
@@ -859,9 +877,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
     let completion = downloadCompletions.removeValue(forKey: downloadTask.taskIdentifier)
     downloadProgressHandlers.removeValue(forKey: downloadTask.taskIdentifier)
     lock.unlock()
-    callbackQueue.async {
-      completion?(.success((fileURL: location, resumeData: nil)))
-    }
+    completion?.deliver(.success((fileURL: location, resumeData: nil)))
   }
 
   public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -874,9 +890,7 @@ public final class FKNetworkClient: NSObject, Networkable, URLSessionTaskDelegat
 
     let resumeData = (error as NSError).userInfo[NSURLSessionDownloadTaskResumeData] as? Data
     let mappedError = mapError(error, taskId: task.taskIdentifier)
-    callbackQueue.async {
-      completion?(.failure(resumeData == nil ? mappedError : .underlying(error)))
-    }
+    completion?.deliver(.failure(resumeData == nil ? mappedError : .underlying(error)))
   }
 
   public func urlSession(

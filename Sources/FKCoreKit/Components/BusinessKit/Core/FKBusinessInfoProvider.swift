@@ -77,7 +77,8 @@ public final class FKBusinessInfoProvider: FKBusinessInfoProviding, @unchecked S
     guard sysctlbyname("hw.machine", nil, &size, nil, 0) == 0 else { return nil }
     var buffer = [CChar](repeating: 0, count: Int(size))
     guard sysctlbyname("hw.machine", &buffer, &size, nil, 0) == 0 else { return nil }
-    return String(cString: buffer)
+    let bytes = buffer.prefix { $0 != 0 }.map(UInt8.init(bitPattern:))
+    return String(decoding: bytes, as: UTF8.self)
   }
 }
 

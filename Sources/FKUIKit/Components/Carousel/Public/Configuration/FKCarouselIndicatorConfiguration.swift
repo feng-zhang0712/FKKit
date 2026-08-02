@@ -5,6 +5,7 @@ public enum FKCarouselIndicatorStyle: Equatable, Sendable {
   case dots
   case bar
   case fraction
+  /// Discrete dash segments; the focused segment expands via ``FKCarouselIndicatorConfiguration/activeLineWidth``.
   case line
   case custom(id: String)
   case none
@@ -38,14 +39,27 @@ public struct FKCarouselIndicatorConfiguration: Equatable, Sendable {
   /// Dot diameter for ``FKCarouselIndicatorStyle/dots``.
   public var dotDiameter: CGFloat
 
-  /// Spacing between dots.
+  /// Spacing between dots or line segments.
   public var dotSpacing: CGFloat
 
-  /// Active dot color.
+  /// Active segment / fill color.
   public var activeColor: UIColor
 
-  /// Inactive dot color.
+  /// Inactive segment / track color.
   public var inactiveColor: UIColor
+
+  /// Width of the focused segment for ``FKCarouselIndicatorStyle/line``.
+  public var activeLineWidth: CGFloat
+
+  /// Width of non-focused segments for ``FKCarouselIndicatorStyle/line``.
+  public var inactiveLineWidth: CGFloat
+
+  /// Thickness of segments for ``FKCarouselIndicatorStyle/line``.
+  public var lineThickness: CGFloat
+
+  /// When `true`, tapping a discrete indicator segment (or a position on ``FKCarouselIndicatorStyle/bar``)
+  /// scrolls the carousel to that page.
+  public var allowsPageSelection: Bool
 
   /// Hides the indicator container from VoiceOver to avoid duplicate announcements.
   public var hidesIndicatorFromAccessibility: Bool
@@ -61,6 +75,10 @@ public struct FKCarouselIndicatorConfiguration: Equatable, Sendable {
     dotSpacing: CGFloat = 8,
     activeColor: UIColor = .label,
     inactiveColor: UIColor = .tertiaryLabel,
+    activeLineWidth: CGFloat = 20,
+    inactiveLineWidth: CGFloat = 8,
+    lineThickness: CGFloat = 3,
+    allowsPageSelection: Bool = true,
     hidesIndicatorFromAccessibility: Bool = true
   ) {
     self.style = style
@@ -72,6 +90,10 @@ public struct FKCarouselIndicatorConfiguration: Equatable, Sendable {
     self.dotSpacing = dotSpacing
     self.activeColor = activeColor
     self.inactiveColor = inactiveColor
+    self.activeLineWidth = max(0, activeLineWidth)
+    self.inactiveLineWidth = max(0, inactiveLineWidth)
+    self.lineThickness = max(0, lineThickness)
+    self.allowsPageSelection = allowsPageSelection
     self.hidesIndicatorFromAccessibility = hidesIndicatorFromAccessibility
   }
 }

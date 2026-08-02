@@ -176,6 +176,7 @@ enum FKSearchLayoutEngine {
     )
   }
 
+  @MainActor
   static func intrinsicContentSize(
     layout: FKSearchLayoutConfiguration,
     appearance: FKSearchAppearanceConfiguration,

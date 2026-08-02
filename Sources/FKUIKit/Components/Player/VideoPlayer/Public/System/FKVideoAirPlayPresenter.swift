@@ -25,7 +25,9 @@ public final class FKVideoAirPlayPresenter {
       object: detector,
       queue: .main
     ) { [weak self] _ in
-      self?.refreshVisibility()
+      MainActor.assumeIsolated {
+        self?.refreshVisibility()
+      }
     }
     refreshVisibility()
   }

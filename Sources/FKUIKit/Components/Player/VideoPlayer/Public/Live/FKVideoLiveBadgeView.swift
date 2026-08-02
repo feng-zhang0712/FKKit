@@ -49,7 +49,7 @@ public final class FKVideoLiveBadgeView: UIView {
     isHidden = !isLive
     let showsGoLive = isLive && (latencySeconds ?? 0) > 1
     if showsGoLive {
-      mountGoLiveButton()
+      _ = mountGoLiveButton()
     } else {
       unmountGoLiveButton()
     }
