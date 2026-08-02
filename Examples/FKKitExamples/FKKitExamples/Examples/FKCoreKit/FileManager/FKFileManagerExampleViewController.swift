@@ -354,7 +354,7 @@ final class FKFileManagerExampleViewController: UIViewController {
         switch writeResult {
         case .success:
           self.appendOutput("[writeContent completion] success")
-          self.manager.readText(from: url) { readResult in
+          self.manager.readText(from: url) { [weak self] readResult in
             Task { @MainActor [weak self] in
               guard let self else { return }
               switch readResult {

@@ -1,3 +1,4 @@
+import FKCoreKit
 import UIKit
 
 /// Resolves theme tokens against traits and accessibility settings.
@@ -66,7 +67,7 @@ public enum FKThemeResolver {
   }
 
   private static func opacityBoostedIfNeeded(_ color: UIColor, factor: CGFloat = 1.35) -> UIColor {
-    guard UIAccessibility.isReduceTransparencyEnabled else {
+    guard FKMainActorUIKitBridge.isReduceTransparencyEnabled() else {
       return color
     }
     var red: CGFloat = 0

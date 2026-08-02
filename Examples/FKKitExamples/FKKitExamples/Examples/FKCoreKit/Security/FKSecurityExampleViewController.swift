@@ -212,7 +212,7 @@ final class FKSecurityExampleViewController: UIViewController {
       guard let self else { return }
       do {
         let url = try self.makeDemoFile(name: "hash-completion.txt", content: "file")
-        self.security.hash.hashFile(at: url, algorithm: .sha512) { result in
+        self.security.hash.hashFile(at: url, algorithm: .sha512) { [weak self] result in
           Task { @MainActor [weak self] in
             guard let self else { return }
             switch result {
@@ -319,13 +319,13 @@ final class FKSecurityExampleViewController: UIViewController {
         let key = try await security.aes.generateKey(length: 16)
         let iv = try await security.aes.generateIV()
         let plain = Data("closure chain".utf8)
-        security.aes.encrypt(plain, using: key, iv: iv, mode: .cbc) { encResult in
+        security.aes.encrypt(plain, using: key, iv: iv, mode: .cbc) { [weak self] encResult in
           Task { @MainActor [weak self] in
             guard let self else { return }
             switch encResult {
             case let .success(cipher):
               self.appendLog("AES closure encrypt bytes: \(cipher.count)")
-              self.security.aes.decrypt(cipher, using: key, iv: iv, mode: .cbc) { decResult in
+              self.security.aes.decrypt(cipher, using: key, iv: iv, mode: .cbc) { [weak self] decResult in
                 Task { @MainActor [weak self] in
                   guard let self else { return }
                   switch decResult {
@@ -362,7 +362,7 @@ final class FKSecurityExampleViewController: UIViewController {
             switch encRes {
             case .success:
               self.appendLog("encryptFile completion OK")
-              self.security.aes.decryptFile(at: encURL, to: decURL, using: key, iv: iv, mode: .cbc) { decRes in
+              self.security.aes.decryptFile(at: encURL, to: decURL, using: key, iv: iv, mode: .cbc) { [weak self] decRes in
                 Task { @MainActor [weak self] in
                   guard let self else { return }
                   switch decRes {
@@ -405,12 +405,12 @@ final class FKSecurityExampleViewController: UIViewController {
       do {
         let key = try await security.aes.generateKey(length: 32)
         let iv = try await security.aes.generateIV()
-        security.aesEncrypt("completion convenience", key: key, iv: iv, mode: .cbc) { encRes in
+        security.aesEncrypt("completion convenience", key: key, iv: iv, mode: .cbc) { [weak self] encRes in
           Task { @MainActor [weak self] in
             guard let self else { return }
             switch encRes {
             case let .success(b64):
-              self.security.aesDecrypt(b64, key: key, iv: iv, mode: .cbc) { decRes in
+              self.security.aesDecrypt(b64, key: key, iv: iv, mode: .cbc) { [weak self] decRes in
                 Task { @MainActor [weak self] in
                   guard let self else { return }
                   switch decRes {
@@ -511,23 +511,23 @@ final class FKSecurityExampleViewController: UIViewController {
         switch pairResult {
         case let .success(pair):
           let message = Data("rsa nested callbacks".utf8)
-          self.security.rsa.encrypt(message, publicKey: pair.publicKey, algorithm: .oaepSHA256) { encRes in
+          self.security.rsa.encrypt(message, publicKey: pair.publicKey, algorithm: .oaepSHA256) { [weak self] encRes in
             Task { @MainActor [weak self] in
               guard let self else { return }
               switch encRes {
               case let .success(cipher):
-                self.security.rsa.decrypt(cipher, privateKey: pair.privateKey, algorithm: .oaepSHA256) { decRes in
+                self.security.rsa.decrypt(cipher, privateKey: pair.privateKey, algorithm: .oaepSHA256) { [weak self] decRes in
                   Task { @MainActor [weak self] in
                     guard let self else { return }
                     switch decRes {
                     case let .success(plain):
                       self.appendLog("RSA closure decrypt: \(plain == message)")
-                      self.security.rsa.sign(message, privateKey: pair.privateKey, algorithm: .pkcs1v15SHA256) { sigRes in
+                      self.security.rsa.sign(message, privateKey: pair.privateKey, algorithm: .pkcs1v15SHA256) { [weak self] sigRes in
                         Task { @MainActor [weak self] in
                           guard let self else { return }
                           switch sigRes {
                           case let .success(sig):
-                            self.security.rsa.verify(sig, data: message, publicKey: pair.publicKey, algorithm: .pkcs1v15SHA256) { verRes in
+                            self.security.rsa.verify(sig, data: message, publicKey: pair.publicKey, algorithm: .pkcs1v15SHA256) { [weak self] verRes in
                               Task { @MainActor [weak self] in
                                 guard let self else { return }
                                 switch verRes {
@@ -570,12 +570,12 @@ final class FKSecurityExampleViewController: UIViewController {
         let enc = try await security.rsaEncrypt(blob, publicKey: pair.publicKey, algorithm: .pkcs1)
         let dec = try await security.rsaDecrypt(enc, privateKey: pair.privateKey, algorithm: .pkcs1)
         appendLog("FKSecurity rsaEncrypt/Decrypt async: \(dec == blob)")
-        security.rsaEncrypt(blob, publicKey: pair.publicKey, algorithm: .pkcs1) { res in
+        security.rsaEncrypt(blob, publicKey: pair.publicKey, algorithm: .pkcs1) { [weak self] res in
           Task { @MainActor [weak self] in
             guard let self else { return }
             switch res {
             case let .success(cipher):
-              self.security.rsaDecrypt(cipher, privateKey: pair.privateKey, algorithm: .pkcs1) { decRes in
+              self.security.rsaDecrypt(cipher, privateKey: pair.privateKey, algorithm: .pkcs1) { [weak self] decRes in
                 Task { @MainActor [weak self] in
                   guard let self else { return }
                   switch decRes {
@@ -755,7 +755,7 @@ final class FKSecurityExampleViewController: UIViewController {
       guard let self else { return }
       do {
         let url = try self.makeDemoFile(name: "wipe-closure.txt", content: "x")
-        self.security.utils.secureWipeFile(at: url, passes: 1) { wipeResult in
+        self.security.utils.secureWipeFile(at: url, passes: 1) { [weak self] wipeResult in
           Task { @MainActor [weak self] in
             guard let self else { return }
             switch wipeResult {

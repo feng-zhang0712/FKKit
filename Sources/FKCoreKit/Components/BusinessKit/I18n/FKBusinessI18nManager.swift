@@ -18,7 +18,7 @@ public final class FKBusinessI18nManager: FKBusinessLocalizing, @unchecked Senda
     userDefaults: UserDefaults = .standard,
     storageKey: String = "com.fkkit.business.i18n.language"
   ) {
-    var configuration = FKI18nConfiguration(
+    let configuration = FKI18nConfiguration(
       defaultLanguageCode: defaultLanguageCode,
       supportedLanguageCodes: [defaultLanguageCode],
       fallbackLanguageCodes: [],

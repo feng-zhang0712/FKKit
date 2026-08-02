@@ -797,7 +797,6 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     button.backgroundColor = .clear
     button.layer.borderWidth = 0
     button.layer.cornerRadius = 0
-    button.contentEdgeInsets = .zero
   }
 
   /// Applies ``FKEmptyStateButtonStyle/font`` through `UIButton.Configuration` (setting `titleLabel?.font` is ignored on iOS 15+).
@@ -834,26 +833,21 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     resetButtonPresentation(button)
     let linkColor = style.titleColor
     let font = style.font
-    button.contentEdgeInsets = style.contentInsets
-    guard let title else {
-      button.isEnabled = isEnabled
-      return
+    var configuration = UIButton.Configuration.plain()
+    configuration.contentInsets = NSDirectionalEdgeInsets(
+      top: style.contentInsets.top,
+      leading: style.contentInsets.left,
+      bottom: style.contentInsets.bottom,
+      trailing: style.contentInsets.right
+    )
+    if let title {
+      var attributed = AttributedString(title)
+      attributed.font = font
+      attributed.foregroundColor = linkColor
+      attributed.underlineStyle = .single
+      configuration.attributedTitle = attributed
     }
-    let normalAttributes: [NSAttributedString.Key: Any] = [
-      .font: font,
-      .foregroundColor: linkColor,
-      .underlineStyle: NSUnderlineStyle.single.rawValue,
-    ]
-    let disabledColor = linkColor.withAlphaComponent(0.35)
-    let disabledAttributes: [NSAttributedString.Key: Any] = [
-      .font: font,
-      .foregroundColor: disabledColor,
-      .underlineStyle: NSUnderlineStyle.single.rawValue,
-    ]
-    button.setAttributedTitle(NSAttributedString(string: title, attributes: normalAttributes), for: .normal)
-    button.setAttributedTitle(NSAttributedString(string: title, attributes: normalAttributes), for: .highlighted)
-    button.setAttributedTitle(NSAttributedString(string: title, attributes: normalAttributes), for: .selected)
-    button.setAttributedTitle(NSAttributedString(string: title, attributes: disabledAttributes), for: .disabled)
+    button.configuration = configuration
     button.isEnabled = isEnabled
   }
 

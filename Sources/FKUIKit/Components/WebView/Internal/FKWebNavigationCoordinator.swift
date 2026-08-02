@@ -32,7 +32,7 @@ final class FKWebUIDelegateProxy: NSObject, WKUIDelegate {
     _ webView: WKWebView,
     runJavaScriptAlertPanelWithMessage message: String,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping () -> Void
+    completionHandler: @escaping @MainActor @Sendable () -> Void
   ) {
     Task { @MainActor [owner] in
       owner?.handleJavaScriptAlertPanel(
@@ -47,7 +47,7 @@ final class FKWebUIDelegateProxy: NSObject, WKUIDelegate {
     _ webView: WKWebView,
     runJavaScriptConfirmPanelWithMessage message: String,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping (Bool) -> Void
+    completionHandler: @escaping @MainActor @Sendable (Bool) -> Void
   ) {
     Task { @MainActor [owner] in
       owner?.handleJavaScriptConfirmPanel(
@@ -63,7 +63,7 @@ final class FKWebUIDelegateProxy: NSObject, WKUIDelegate {
     runJavaScriptTextInputPanelWithPrompt prompt: String,
     defaultText: String?,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping (String?) -> Void
+    completionHandler: @escaping @MainActor @Sendable (String?) -> Void
   ) {
     Task { @MainActor [owner] in
       owner?.handleJavaScriptPromptPanel(
@@ -375,7 +375,7 @@ extension FKWebNavigationCoordinator: WKNavigationDelegate {
   func webView(
     _ webView: WKWebView,
     decidePolicyFor navigationAction: WKNavigationAction,
-    decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
   ) {
     let finalDisposition = resolvedDisposition(for: navigationAction)
     applyDisposition(finalDisposition, navigationAction: navigationAction, decisionHandler: decisionHandler)
@@ -385,7 +385,7 @@ extension FKWebNavigationCoordinator: WKNavigationDelegate {
     _ webView: WKWebView,
     decidePolicyFor navigationAction: WKNavigationAction,
     preferences: WKWebpagePreferences,
-    decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
+    decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
   ) {
     preferences.allowsContentJavaScript = true
     let finalDisposition = resolvedDisposition(for: navigationAction)
@@ -413,7 +413,7 @@ extension FKWebNavigationCoordinator: WKNavigationDelegate {
   func webView(
     _ webView: WKWebView,
     decidePolicyFor navigationResponse: WKNavigationResponse,
-    decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+    decisionHandler: @escaping @MainActor @Sendable (WKNavigationResponsePolicy) -> Void
   ) {
     if let http = navigationResponse.response as? HTTPURLResponse,
       (400 ... 599).contains(http.statusCode) {
@@ -433,7 +433,7 @@ extension FKWebNavigationCoordinator: WKNavigationDelegate {
   func webView(
     _ webView: WKWebView,
     didReceive challenge: URLAuthenticationChallenge,
-    completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    completionHandler: @escaping @MainActor @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
   ) {
     guard let hostWebView = self.webView else {
       completionHandler(.performDefaultHandling, nil)
@@ -451,7 +451,7 @@ extension FKWebNavigationCoordinator: WKNavigationDelegate {
   private func applyDisposition(
     _ disposition: FKWebNavigationActionDisposition,
     navigationAction: WKNavigationAction,
-    decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
   ) {
     switch disposition {
     case .allow:
@@ -511,7 +511,7 @@ extension FKWebNavigationCoordinator {
   func handleJavaScriptAlertPanel(
     message: String,
     frame: WKFrameInfo,
-    completionHandler: @escaping () -> Void
+    completionHandler: @escaping @MainActor @Sendable () -> Void
   ) {
     if let hostWebView = webView,
       uiDelegate?.webView(
@@ -528,7 +528,7 @@ extension FKWebNavigationCoordinator {
   func handleJavaScriptConfirmPanel(
     message: String,
     frame: WKFrameInfo,
-    completionHandler: @escaping (Bool) -> Void
+    completionHandler: @escaping @MainActor @Sendable (Bool) -> Void
   ) {
     if let hostWebView = webView,
       uiDelegate?.webView(
@@ -546,7 +546,7 @@ extension FKWebNavigationCoordinator {
     prompt: String,
     defaultText: String?,
     frame: WKFrameInfo,
-    completionHandler: @escaping (String?) -> Void
+    completionHandler: @escaping @MainActor @Sendable (String?) -> Void
   ) {
     if let hostWebView = webView,
       uiDelegate?.webView(
@@ -590,7 +590,7 @@ extension FKWebNavigationCoordinator {
     title: String?,
     message: String,
     anchor: UIView?,
-    completion: @escaping () -> Void
+    completion: @escaping @MainActor @Sendable () -> Void
   ) {
     guard let presenter = presenterViewController(anchor: anchor) else {
       completion()
@@ -598,7 +598,9 @@ extension FKWebNavigationCoordinator {
     }
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
     alert.addAction(UIAlertAction(title: FKUIKitI18n.string("fkuikit.webview.alert.ok"), style: .default) { _ in
-      completion()
+      MainActor.assumeIsolated {
+        completion()
+      }
     })
     presentModal(alert, from: presenter)
   }
@@ -606,7 +608,7 @@ extension FKWebNavigationCoordinator {
   private func presentConfirm(
     message: String,
     anchor: UIView?,
-    completionHandler: @escaping (Bool) -> Void
+    completionHandler: @escaping @MainActor @Sendable (Bool) -> Void
   ) {
     guard let presenter = presenterViewController(anchor: anchor) else {
       completionHandler(false)
@@ -614,10 +616,14 @@ extension FKWebNavigationCoordinator {
     }
     let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
     alert.addAction(UIAlertAction(title: FKUIKitI18n.string("fkuikit.webview.alert.cancel"), style: .cancel) { _ in
-      completionHandler(false)
+      MainActor.assumeIsolated {
+        completionHandler(false)
+      }
     })
     alert.addAction(UIAlertAction(title: FKUIKitI18n.string("fkuikit.webview.alert.ok"), style: .default) { _ in
-      completionHandler(true)
+      MainActor.assumeIsolated {
+        completionHandler(true)
+      }
     })
     presentModal(alert, from: presenter)
   }
@@ -626,7 +632,7 @@ extension FKWebNavigationCoordinator {
     prompt: String,
     defaultText: String?,
     anchor: UIView?,
-    completionHandler: @escaping (String?) -> Void
+    completionHandler: @escaping @MainActor @Sendable (String?) -> Void
   ) {
     guard let presenter = presenterViewController(anchor: anchor) else {
       completionHandler(nil)
@@ -637,10 +643,14 @@ extension FKWebNavigationCoordinator {
       field.text = defaultText
     }
     alert.addAction(UIAlertAction(title: FKUIKitI18n.string("fkuikit.webview.alert.cancel"), style: .cancel) { _ in
-      completionHandler(nil)
+      MainActor.assumeIsolated {
+        completionHandler(nil)
+      }
     })
     alert.addAction(UIAlertAction(title: FKUIKitI18n.string("fkuikit.webview.alert.ok"), style: .default) { _ in
-      completionHandler(alert.textFields?.first?.text)
+      MainActor.assumeIsolated {
+        completionHandler(alert.textFields?.first?.text)
+      }
     })
     presentModal(alert, from: presenter)
   }

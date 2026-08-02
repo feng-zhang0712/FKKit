@@ -79,9 +79,9 @@ final class FKMediaGalleryTransitionAnimator: NSObject, UIViewControllerAnimated
   ) {
     let container = transitionContext.containerView
     guard
-      let galleryView = (isPresenting
+      (isPresenting
         ? transitionContext.viewController(forKey: .to)
-        : transitionContext.viewController(forKey: .from))?.view,
+        : transitionContext.viewController(forKey: .from))?.view != nil,
       let frame = source.resolvedFrameInWindow()
     else {
       animateCrossDissolve(using: transitionContext)

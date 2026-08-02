@@ -488,19 +488,29 @@ public final class FKRefreshControl: UIView {
   private func startObserving() {
     guard let scrollView else { return }
     scrollOffsetObservation = scrollView.observe(\.contentOffset, options: [.new]) { [weak self] sv, _ in
-      self?.scrollViewDidScroll(sv)
+      MainActor.assumeIsolated {
+        self?.scrollViewDidScroll(sv)
+      }
     }
     panGestureObservation = scrollView.panGestureRecognizer.observe(\.state, options: [.new]) { [weak self] gesture, _ in
-      self?.panGestureStateChanged(gesture.state)
+      MainActor.assumeIsolated {
+        self?.panGestureStateChanged(gesture.state)
+      }
     }
     contentSizeObservation = scrollView.observe(\.contentSize, options: [.new]) { [weak self] sv, _ in
-      self?.scrollViewContentSizeDidChange(sv)
+      MainActor.assumeIsolated {
+        self?.scrollViewContentSizeDidChange(sv)
+      }
     }
     boundsObservation = scrollView.observe(\.bounds, options: [.new]) { [weak self] sv, _ in
-      self?.scrollViewBoundsDidChange(sv)
+      MainActor.assumeIsolated {
+        self?.scrollViewBoundsDidChange(sv)
+      }
     }
     contentInsetObservation = scrollView.observe(\.contentInset, options: [.new]) { [weak self] sv, _ in
-      self?.scrollViewContentInsetDidChange(sv)
+      MainActor.assumeIsolated {
+        self?.scrollViewContentInsetDidChange(sv)
+      }
     }
   }
 

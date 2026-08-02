@@ -2,7 +2,7 @@ import UIKit
 
 public extension FKSheetPresentationConfiguration {
   /// Placement mode and mode-specific sizing behavior.
-  public enum Layout {
+  enum Layout {
     /// Bottom-attached sheet with detents, grabber, and swipe-to-resize semantics.
     case bottomSheet(SheetConfiguration)
     /// Top-attached sheet with the same detent model as ``bottomSheet(_:)``.

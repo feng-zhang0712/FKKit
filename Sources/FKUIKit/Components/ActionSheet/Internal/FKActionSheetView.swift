@@ -437,7 +437,7 @@ final class FKActionSheetView: UIView {
   }
 
   private func registerCustomRowReuseIdentifiers() {
-    guard let tableView else { return }
+    guard tableView != nil else { return }
     for action in currentConfiguration.allActions {
       switch action.rowContent {
       case .custom(let row):
@@ -476,7 +476,7 @@ final class FKActionSheetView: UIView {
       }
       return copy
     }
-    if var cancel = currentConfiguration.cancelAction, cancel.id == action.id {
+    if let cancel = currentConfiguration.cancelAction, cancel.id == action.id {
       currentConfiguration.cancelAction = action
       didReplace = true
     }
@@ -676,7 +676,7 @@ extension FKActionSheetView: UITableViewDataSource, UITableViewDelegate {
       case .text:
         return UITableView.automaticDimension
       case .custom(let custom):
-        if let preferred = custom.preferredHeight {
+        if custom.preferredHeight != nil {
           return resolvedCustomHeaderHeight(custom)
         }
         return UITableView.automaticDimension

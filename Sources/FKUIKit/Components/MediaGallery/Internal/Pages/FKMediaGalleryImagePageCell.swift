@@ -139,11 +139,12 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
         imageView.setImage(placeholder, animated: false)
       }
       let expectedItemID = boundItemID
-      photoAssetTask = Task { @MainActor in
+      photoAssetTask = Task { @MainActor [weak self] in
+        guard let self else { return }
         do {
-          let screenScale = FKMediaGalleryImageLoadingMath.screenScale(for: zoomScrollView)
+          let screenScale = FKMediaGalleryImageLoadingMath.screenScale(for: self.zoomScrollView)
           let targetSize = FKMediaGalleryImageLoadingMath.decodeTargetSize(
-            bounds: zoomScrollView.bounds.size,
+            bounds: self.zoomScrollView.bounds.size,
             screenScale: screenScale,
             maximumZoomScale: configuration.zoom.maximumZoomScale,
             isCurrentPage: true
@@ -159,10 +160,10 @@ final class FKMediaGalleryImagePageCell: UICollectionViewCell, FKMediaGalleryPag
           )
           guard !Task.isCancelled, self.boundItemID == expectedItemID else { return }
           imageView.setImage(image, animated: true)
-          zoomScrollView.relayoutForNewImage()
+          self.zoomScrollView.relayoutForNewImage()
         } catch {
           guard !Task.isCancelled else { return }
-          onLoadFailed?(.imageLoadFailed(index: pageIndex, description: error.localizedDescription))
+          self.onLoadFailed?(.imageLoadFailed(index: self.pageIndex, description: error.localizedDescription))
         }
       }
       return

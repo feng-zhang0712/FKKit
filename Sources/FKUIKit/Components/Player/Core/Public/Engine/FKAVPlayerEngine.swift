@@ -294,7 +294,9 @@ public final class FKAVPlayerEngine: FKMediaPlayerEngine {
 
     let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
     timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] _ in
-      self?.emitTimeUpdate()
+      MainActor.assumeIsolated {
+        self?.emitTimeUpdate()
+      }
     }
 
     endObserver = NotificationCenter.default.addObserver(
@@ -302,7 +304,9 @@ public final class FKAVPlayerEngine: FKMediaPlayerEngine {
       object: item,
       queue: .main
     ) { [weak self] _ in
-      self?.state = .completed
+      MainActor.assumeIsolated {
+        self?.state = .completed
+      }
     }
   }
 

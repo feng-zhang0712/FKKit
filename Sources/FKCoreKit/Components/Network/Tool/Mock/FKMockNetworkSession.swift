@@ -45,27 +45,9 @@ final class FKMockURLProtocol: URLProtocol {
       return
     }
 
-    let work = { [weak self] in
-      guard let self else { return }
-      if let error = session.errorStub {
-        client.urlProtocol(self, didFailWithError: error)
-        return
-      }
-
-      guard let url = request.url else {
-        client.urlProtocol(self, didFailWithError: NetworkError.invalidURL)
-        return
-      }
-
-      let stub = session.stubbedResponses[url] ?? session.stubbedResponses.first { $0.key.path == url.path }?.value
-      guard let stub else {
-        client.urlProtocol(self, didFailWithError: NetworkError.noData)
-        return
-      }
-
-      client.urlProtocol(self, didReceive: stub.1, cacheStoragePolicy: .notAllowed)
-      client.urlProtocol(self, didLoad: stub.0)
-      client.urlProtocolDidFinishLoading(self)
+    let context = FKMockURLProtocolLoadContext(protocol: self, client: client, session: session, request: request)
+    let work: @Sendable () -> Void = {
+      context.perform()
     }
 
     if session.delay > 0 {
@@ -76,6 +58,44 @@ final class FKMockURLProtocol: URLProtocol {
   }
 
   override func stopLoading() {}
+}
+
+/// Holds URLProtocol load state for delayed stub delivery across queues.
+private final class FKMockURLProtocolLoadContext: @unchecked Sendable {
+  private weak var urlProtocol: FKMockURLProtocol?
+  private let client: URLProtocolClient
+  private let session: FKMockNetworkSession
+  private let request: URLRequest
+
+  init(protocol urlProtocol: FKMockURLProtocol, client: URLProtocolClient, session: FKMockNetworkSession, request: URLRequest) {
+    self.urlProtocol = urlProtocol
+    self.client = client
+    self.session = session
+    self.request = request
+  }
+
+  func perform() {
+    guard let urlProtocol else { return }
+    if let error = session.errorStub {
+      client.urlProtocol(urlProtocol, didFailWithError: error)
+      return
+    }
+
+    guard let url = request.url else {
+      client.urlProtocol(urlProtocol, didFailWithError: NetworkError.invalidURL)
+      return
+    }
+
+    let stub = session.stubbedResponses[url] ?? session.stubbedResponses.first { $0.key.path == url.path }?.value
+    guard let stub else {
+      client.urlProtocol(urlProtocol, didFailWithError: NetworkError.noData)
+      return
+    }
+
+    client.urlProtocol(urlProtocol, didReceive: stub.1, cacheStoragePolicy: .notAllowed)
+    client.urlProtocol(urlProtocol, didLoad: stub.0)
+    client.urlProtocolDidFinishLoading(urlProtocol)
+  }
 }
 
 /// Mock transport for integration tests and Examples.

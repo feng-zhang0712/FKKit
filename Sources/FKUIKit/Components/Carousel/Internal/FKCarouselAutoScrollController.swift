@@ -1,4 +1,5 @@
 import UIKit
+import FKCoreKit
 
 /// Timer-driven auto-scroll with pause rules.
 final class FKCarouselAutoScrollController: @unchecked Sendable {
@@ -60,7 +61,7 @@ final class FKCarouselAutoScrollController: @unchecked Sendable {
     if configuration.pausesWhenOffscreen, !isVisible { return false }
     if configuration.pausesWhenAppInactive, !isAppActive { return false }
     if configuration.pausesOnUserInteraction, isUserInteracting { return false }
-    if configuration.respectsReducedMotion, UIAccessibility.isReduceMotionEnabled { return false }
+    if configuration.respectsReducedMotion, FKMainActorUIKitBridge.isReduceMotionEnabled() { return false }
     return true
   }
 

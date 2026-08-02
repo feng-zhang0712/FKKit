@@ -19,7 +19,7 @@ public protocol FKWebViewDelegate: AnyObject {
   func webView(
     _ webView: FKWebView,
     didReceive challenge: URLAuthenticationChallenge,
-    completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    completionHandler: @escaping @MainActor @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
   )
 }
 
@@ -40,7 +40,7 @@ public extension FKWebViewDelegate {
   func webView(
     _ webView: FKWebView,
     didReceive challenge: URLAuthenticationChallenge,
-    completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    completionHandler: @escaping @MainActor @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
   ) {
     completionHandler(.performDefaultHandling, nil)
   }
@@ -63,14 +63,14 @@ public protocol FKWebViewUIDelegate: AnyObject {
     _ webView: FKWebView,
     runJavaScriptAlertPanelWithMessage message: String,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping () -> Void
+    completionHandler: @escaping @MainActor @Sendable () -> Void
   ) -> Bool
 
   func webView(
     _ webView: FKWebView,
     runJavaScriptConfirmPanelWithMessage message: String,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping (Bool) -> Void
+    completionHandler: @escaping @MainActor @Sendable (Bool) -> Void
   ) -> Bool
 
   func webView(
@@ -78,7 +78,7 @@ public protocol FKWebViewUIDelegate: AnyObject {
     runJavaScriptTextInputPanelWithPrompt prompt: String,
     defaultText: String?,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping (String?) -> Void
+    completionHandler: @escaping @MainActor @Sendable (String?) -> Void
   ) -> Bool
 }
 
@@ -87,14 +87,14 @@ public extension FKWebViewUIDelegate {
     _ webView: FKWebView,
     runJavaScriptAlertPanelWithMessage message: String,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping () -> Void
+    completionHandler: @escaping @MainActor @Sendable () -> Void
   ) -> Bool { false }
 
   func webView(
     _ webView: FKWebView,
     runJavaScriptConfirmPanelWithMessage message: String,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping (Bool) -> Void
+    completionHandler: @escaping @MainActor @Sendable (Bool) -> Void
   ) -> Bool { false }
 
   func webView(
@@ -102,7 +102,7 @@ public extension FKWebViewUIDelegate {
     runJavaScriptTextInputPanelWithPrompt prompt: String,
     defaultText: String?,
     initiatedByFrame frame: WKFrameInfo,
-    completionHandler: @escaping (String?) -> Void
+    completionHandler: @escaping @MainActor @Sendable (String?) -> Void
   ) -> Bool { false }
 }
 
@@ -129,7 +129,7 @@ public struct FKWebViewCallbacks: @unchecked Sendable {
   public var onAuthenticationChallenge: (
     @MainActor (
       URLAuthenticationChallenge,
-      @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+      @escaping @MainActor @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
     ) -> Void
   )?
 
@@ -148,7 +148,7 @@ public struct FKWebViewCallbacks: @unchecked Sendable {
     onAuthenticationChallenge: (
       @MainActor (
         URLAuthenticationChallenge,
-        @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+        @escaping @MainActor @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
       ) -> Void
     )? = nil
   ) {

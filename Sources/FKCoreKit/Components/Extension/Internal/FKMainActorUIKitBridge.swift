@@ -2,27 +2,27 @@
 import UIKit
 
 /// Bridges nonisolated FKCoreKit helpers to MainActor-isolated `UIDevice` / `UIScreen` APIs.
-enum FKMainActorUIKitBridge {
-  nonisolated static func systemVersion() -> String {
+public enum FKMainActorUIKitBridge {
+  public nonisolated static func systemVersion() -> String {
     executeOnMain { UIDevice.current.systemVersion }
   }
 
-  nonisolated static func screenBoundsSize() -> CGSize {
+  public nonisolated static func screenBoundsSize() -> CGSize {
     executeOnMain { UIScreen.main.bounds.size }
   }
 
-  nonisolated static func screenScale() -> CGFloat {
+  public nonisolated static func screenScale() -> CGFloat {
     executeOnMain { UIScreen.main.scale }
   }
 
-  nonisolated static func batteryLevel() -> Float {
+  public nonisolated static func batteryLevel() -> Float {
     executeOnMain {
       UIDevice.current.isBatteryMonitoringEnabled = true
       return UIDevice.current.batteryLevel
     }
   }
 
-  nonisolated static func batteryStateDescription() -> String {
+  public nonisolated static func batteryStateDescription() -> String {
     executeOnMain {
       UIDevice.current.isBatteryMonitoringEnabled = true
       switch UIDevice.current.batteryState {
@@ -35,19 +35,30 @@ enum FKMainActorUIKitBridge {
     }
   }
 
-  nonisolated static func identifierForVendorUUIDString() -> String {
+  public nonisolated static func identifierForVendorUUIDString() -> String {
     executeOnMain {
       UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
     }
   }
 
-  private nonisolated static func executeOnMain<T: Sendable>(_ body: @MainActor () -> T) -> T {
+  /// Runs `body` on the main actor, hopping synchronously when needed.
+  public nonisolated static func executeOnMain<T: Sendable>(_ body: @MainActor () -> T) -> T {
     if Thread.isMainThread {
       return MainActor.assumeIsolated(body)
     }
     return DispatchQueue.main.sync {
       MainActor.assumeIsolated(body)
     }
+  }
+
+  /// Reads ``UIAccessibility/isReduceMotionEnabled`` from a nonisolated context.
+  public nonisolated static func isReduceMotionEnabled() -> Bool {
+    executeOnMain { UIAccessibility.isReduceMotionEnabled }
+  }
+
+  /// Reads ``UIAccessibility/isReduceTransparencyEnabled`` from a nonisolated context.
+  public nonisolated static func isReduceTransparencyEnabled() -> Bool {
+    executeOnMain { UIAccessibility.isReduceTransparencyEnabled }
   }
 }
 #endif

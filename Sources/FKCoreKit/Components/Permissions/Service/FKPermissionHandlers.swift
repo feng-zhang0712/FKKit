@@ -138,7 +138,7 @@ final class FKNotificationPermissionHandler: FKPermissionHandling {
 
 /// Handles Bluetooth authorization using `CBCentralManager`.
 @MainActor
-final class FKBluetoothPermissionHandler: NSObject, FKPermissionHandling, @preconcurrency CBCentralManagerDelegate {
+final class FKBluetoothPermissionHandler: NSObject, FKPermissionHandling, CBCentralManagerDelegate {
   let kind: FKPermissionKind = .bluetooth
   private var centralManager: CBCentralManager?
   private var continuation: CheckedContinuation<FKPermissionResult, Never>?

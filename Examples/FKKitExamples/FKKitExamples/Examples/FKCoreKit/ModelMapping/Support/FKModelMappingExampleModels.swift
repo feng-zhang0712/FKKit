@@ -243,10 +243,19 @@ struct FKModelMappingDemoFeed: FKMappable, Sendable, Equatable {
 
 // MARK: - Network mock request
 
-struct FKModelMappingDemoEnvelopeUserRequest: Requestable {
+/// `nonisolated` so `Requestable` conformance works with `FKNetworkClient.send`’s async path
+/// under the example target’s default MainActor isolation.
+nonisolated struct FKModelMappingDemoEnvelopeUserRequest: Requestable {
   typealias Response = FKModelMappingDemoUser
 
   var path: String { "/demo/envelope-user" }
   var method: HTTPMethod { .get }
-  var mockData: Data? { FKModelMappingExampleSupport.Payload.envelopeSuccess }
+  /// Same JSON as `FKModelMappingExampleSupport.Payload.envelopeSuccess` (inlined for nonisolated access).
+  var mockData: Data? {
+    Data(
+      """
+      {"code":0,"message":"ok","data":{"id":7,"displayName":"Envelope User","email":"env@example.com","isActive":true}}
+      """.utf8
+    )
+  }
 }

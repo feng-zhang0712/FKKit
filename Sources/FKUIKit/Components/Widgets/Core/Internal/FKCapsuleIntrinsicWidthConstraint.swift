@@ -31,12 +31,14 @@ enum FKCapsuleIntrinsicWidthConstraint {
     }
   }
 
+  @MainActor
   static func release(storage: inout NSLayoutConstraint?) {
     storage?.isActive = false
     storage = nil
   }
 
   /// ``UIStackView`` owns arranged-subview sizing; do not add a competing width constraint.
+  @MainActor
   private static func isArrangedInStackView(_ view: UIView) -> Bool {
     guard let stack = view.superview as? UIStackView else { return false }
     return stack.arrangedSubviews.contains(view)

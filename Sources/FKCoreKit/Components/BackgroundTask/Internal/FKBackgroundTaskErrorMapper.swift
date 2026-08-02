@@ -8,7 +8,7 @@ enum FKBackgroundTaskErrorMapper {
       switch schedulerError.code {
       case .notPermitted:
         return .identifierNotPermitted(identifier)
-      case .tooManyPendingTaskRequests, .unavailable:
+      case .tooManyPendingTaskRequests, .unavailable, .immediateRunIneligible:
         return .schedulingFailed(code: schedulerError.code.rawValue)
       @unknown default:
         return .schedulingFailed(code: schedulerError.code.rawValue)

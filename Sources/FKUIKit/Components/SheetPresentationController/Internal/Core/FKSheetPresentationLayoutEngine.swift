@@ -85,7 +85,6 @@ enum FKSheetPresentationLayoutEngine {
     if detentState.resolvedHeights.indices.contains(detentState.selectedIndex) {
       return detentState.resolvedHeights[detentState.selectedIndex]
     }
-    let available = availableHeight(for: environment)
     let bounds = environment.containerBounds
     let fallback = min(bounds.height * 0.5, max(240, measuredFitContentHeight(environment: environment)))
     return clampedContentHeightValue(fallback, environment: environment)

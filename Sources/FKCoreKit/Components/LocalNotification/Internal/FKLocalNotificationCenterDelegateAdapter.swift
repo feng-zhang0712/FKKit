@@ -40,25 +40,27 @@ final class FKLocalNotificationCenterDelegateAdapter: NSObject, UNUserNotificati
     let router = snapshot.1
     let routeFirst = snapshot.2
 
-    let deliverResponse = {
+    let userInfo = fkResponse.userInfo
+    let completionBox = FKUncheckedCompletionBox(completionHandler)
+    let deliver: @Sendable () -> Void = {
       if routeFirst {
-        self.routeDeeplinkIfNeeded(userInfo: fkResponse.userInfo, router: router)
+        Self.routeDeeplinkIfNeeded(userInfo: userInfo, router: router)
         handler?(fkResponse)
       } else {
         handler?(fkResponse)
-        self.routeDeeplinkIfNeeded(userInfo: fkResponse.userInfo, router: router)
+        Self.routeDeeplinkIfNeeded(userInfo: userInfo, router: router)
       }
-      completionHandler()
+      completionBox.invoke()
     }
 
     if Thread.isMainThread {
-      deliverResponse()
+      deliver()
     } else {
-      DispatchQueue.main.async(execute: deliverResponse)
+      DispatchQueue.main.async(execute: deliver)
     }
   }
 
-  private func routeDeeplinkIfNeeded(
+  private static func routeDeeplinkIfNeeded(
     userInfo: [String: String],
     router: (@Sendable (URL) -> Bool)?
   ) {
@@ -91,6 +93,19 @@ final class FKLocalNotificationCenterDelegateAdapter: NSObject, UNUserNotificati
       userInfo: userInfo,
       isDefaultAction: isDefault
     )
+  }
+}
+
+/// Wraps a non-Sendable system completion handler for safe queue hops.
+private final class FKUncheckedCompletionBox: @unchecked Sendable {
+  private let handler: () -> Void
+
+  init(_ handler: @escaping () -> Void) {
+    self.handler = handler
+  }
+
+  func invoke() {
+    handler()
   }
 }
 

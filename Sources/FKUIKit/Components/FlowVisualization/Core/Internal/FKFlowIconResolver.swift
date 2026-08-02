@@ -15,7 +15,7 @@ enum FKFlowIconResolver {
 
   private static func resolveExplicit(icon: FKFlowStepIcon, configuration: UIImage.SymbolConfiguration) -> UIImage? {
     switch icon {
-    case .number(let value):
+    case .number:
       return nil
     case .systemName(let name):
       return UIImage(systemName: name, withConfiguration: configuration)?.withRenderingMode(.alwaysTemplate)

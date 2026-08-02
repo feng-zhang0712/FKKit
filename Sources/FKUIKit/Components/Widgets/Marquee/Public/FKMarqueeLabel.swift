@@ -181,8 +181,10 @@ public final class FKMarqueeLabel: UIView {
       object: nil,
       queue: queue
     ) { [weak self] _ in
-      self?.isAppActive = false
-      self?.updateScrollState()
+      MainActor.assumeIsolated {
+        self?.isAppActive = false
+        self?.updateScrollState()
+      }
     })
 
     notificationTokens.append(center.addObserver(
@@ -190,8 +192,10 @@ public final class FKMarqueeLabel: UIView {
       object: nil,
       queue: queue
     ) { [weak self] _ in
-      self?.isAppActive = true
-      self?.updateScrollState()
+      MainActor.assumeIsolated {
+        self?.isAppActive = true
+        self?.updateScrollState()
+      }
     })
 
     notificationTokens.append(center.addObserver(
@@ -199,7 +203,9 @@ public final class FKMarqueeLabel: UIView {
       object: nil,
       queue: queue
     ) { [weak self] _ in
-      self?.reloadMarquee()
+      MainActor.assumeIsolated {
+        self?.reloadMarquee()
+      }
     })
   }
 

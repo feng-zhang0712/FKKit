@@ -11,11 +11,15 @@ protocol FKBackgroundApplicationType: Sendable {
 /// Production `UIApplication.shared` wrapper.
 final class SystemBackgroundApplication: FKBackgroundApplicationType, @unchecked Sendable {
   func beginBackgroundTask(withName name: String?, expirationHandler: (@Sendable () -> Void)?) -> UIBackgroundTaskIdentifier {
-    UIApplication.shared.beginBackgroundTask(withName: name, expirationHandler: expirationHandler)
+    FKMainActorUIKitBridge.executeOnMain {
+      UIApplication.shared.beginBackgroundTask(withName: name, expirationHandler: expirationHandler)
+    }
   }
 
   func endBackgroundTask(_ identifier: UIBackgroundTaskIdentifier) {
-    UIApplication.shared.endBackgroundTask(identifier)
+    FKMainActorUIKitBridge.executeOnMain {
+      UIApplication.shared.endBackgroundTask(identifier)
+    }
   }
 }
 
@@ -47,7 +51,7 @@ final class FKBackgroundWorkSession: @unchecked Sendable {
       return FKBackgroundWorkToken(session: self, identifier: .invalid)
     }
 
-    lock.withLock { activeIdentifiers.insert(identifierBox.identifier) }
+    _ = lock.withLock { activeIdentifiers.insert(identifierBox.identifier) }
 
     let token = FKBackgroundWorkToken(session: self, identifier: identifierBox.identifier)
     workTaskBox.task = Task {

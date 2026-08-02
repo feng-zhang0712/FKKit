@@ -92,10 +92,11 @@ final class FKMediaGalleryLivePhotoPageCell: UICollectionViewCell, FKMediaGaller
 
   private func loadLivePhoto(identifier: String, configuration: FKMediaGalleryConfiguration) {
     loadTask?.cancel()
-    loadTask = Task { @MainActor in
-      let screenScale = FKMediaGalleryImageLoadingMath.screenScale(for: livePhotoView)
+    loadTask = Task { @MainActor [weak self] in
+      guard let self else { return }
+      let screenScale = FKMediaGalleryImageLoadingMath.screenScale(for: self.livePhotoView)
       let targetSize = FKMediaGalleryImageLoadingMath.decodeTargetSize(
-        bounds: livePhotoView.bounds.size,
+        bounds: self.livePhotoView.bounds.size,
         screenScale: screenScale,
         maximumZoomScale: 1,
         isCurrentPage: true
@@ -109,10 +110,10 @@ final class FKMediaGalleryLivePhotoPageCell: UICollectionViewCell, FKMediaGaller
           }
         )
         guard !Task.isCancelled else { return }
-        livePhotoView.livePhoto = livePhoto
+        self.livePhotoView.livePhoto = livePhoto
       } catch {
         guard !Task.isCancelled else { return }
-        onLoadFailed?(.imageLoadFailed(index: pageIndex, description: error.localizedDescription))
+        self.onLoadFailed?(.imageLoadFailed(index: self.pageIndex, description: error.localizedDescription))
       }
     }
   }

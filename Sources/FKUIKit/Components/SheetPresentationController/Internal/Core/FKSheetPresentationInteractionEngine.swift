@@ -34,6 +34,7 @@ struct FKSheetPresentationInteractionEnvironment {
   let containerSafeInsets: UIEdgeInsets
 }
 
+@MainActor
 enum FKSheetPresentationInteractionEngine {
   private static let defaultMinHeight: CGFloat = 240
 

@@ -281,7 +281,7 @@ public final class FKPagingController: UIViewController {
       return
     }
 
-    tabBar.applyChanges(tabChanges, updatePolicy: updatePolicy, animated: animated) { [weak self] in
+    tabBar.applyChanges(tabChanges, updatePolicy: updatePolicy, animated: animated) {
       applyInvalidations()
     }
   }
