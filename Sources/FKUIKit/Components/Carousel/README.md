@@ -92,7 +92,22 @@ config.autoScroll.interval = 3
 carousel.apply(configuration: config)
 ```
 
-Presets: `FKCarouselPresets.fullWidth()`, `.cardPeek()`, `.onboarding()`; `FKImageBannerPresets.homeHero()`, `.compactPromo()`, `.edgeToEdge()`.
+Presets: `FKCarouselPresets.fullWidth()`, `.cardPeek()`, `.focusedCards()`, `.onboarding()`; `FKImageBannerPresets.homeHero()`, `.compactPromo()`, `.edgeToEdge()`.
+
+### Focused cards (center scale + expanding dashes)
+
+```swift
+let carousel = FKCarousel(configuration: FKCarouselPresets.focusedCards())
+carousel.pageProvider = { item, bounds in
+  // Custom card: media, badge, title
+  makeCard(item: item, bounds: bounds)
+}
+carousel.setItems(items)
+```
+
+Uses `fixedPageWidth` for both-side peek, `motion.sidePageScale` for neighbor shrink, and `indicator.style = .line` with `activeLineWidth` / `inactiveLineWidth`.
+
+Tap discrete indicator segments when `allowsPageSelection` is enabled; tap peeking side cards when `interaction.scrollsToTappedPage` is enabled. Tune coasting with `paging.decelerationRate` (`.fast` / `.normal`) and edge rubber-banding with `paging.bounces`.
 
 ## SwiftUI
 
@@ -121,7 +136,7 @@ Entry: **FKKitExamples → FKUIKit → Carousel**
 |---------|-----------|
 | FKImageBanner · Marketing | Home hero, card peek, mixed overlay, failure fallback |
 | FKImageBanner · States | Single slide & empty, Dynamic Type, presets gallery |
-| FKCarousel · Layout & indicators | Onboarding, data source, indicator styles, layout modes |
+| FKCarousel · Layout & indicators | Onboarding, data source, indicator styles, layout modes, focused cards |
 | FKCarousel · Behavior & integration | Auto-scroll, manual control, table header, delegate log, SwiftUI, RTL |
 
 `@MainActor` UI only. Image decoding runs through `FKImageLoader` off the main thread.

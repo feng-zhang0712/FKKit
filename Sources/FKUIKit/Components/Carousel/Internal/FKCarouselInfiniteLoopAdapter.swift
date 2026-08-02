@@ -46,4 +46,22 @@ struct FKCarouselInfiniteLoopAdapter {
     }
     return nil
   }
+
+  /// Chooses the closest physical index for a logical page relative to the current physical position.
+  ///
+  /// Used so adjacent side-card taps (and indicator jumps near the loop seam) animate one step
+  /// instead of traveling the long way around the collection.
+  func nearestPhysicalIndex(forLogical logicalIndex: Int, fromPhysical currentPhysicalIndex: Int) -> Int {
+    guard isActive else { return logicalIndex }
+    let clampedLogical = min(max(0, logicalIndex), max(0, logicalCount - 1))
+    var candidates = [clampedLogical + 1]
+    if clampedLogical == logicalCount - 1 {
+      candidates.append(0)
+    }
+    if clampedLogical == 0 {
+      candidates.append(logicalCount + 1)
+    }
+    return candidates.min(by: { abs($0 - currentPhysicalIndex) < abs($1 - currentPhysicalIndex) })
+      ?? (clampedLogical + 1)
+  }
 }

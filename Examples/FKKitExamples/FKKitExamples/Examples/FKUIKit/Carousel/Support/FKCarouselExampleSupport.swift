@@ -203,6 +203,60 @@ enum FKCarouselExampleSupport {
     ]
   }
 
+  static func focusedCardItems() -> [FKCarouselItem] {
+    [
+      FKCarouselItem(id: "card-0", accessibilityLabel: "Image card 1"),
+      FKCarouselItem(id: "card-1", accessibilityLabel: "Image card 2"),
+      FKCarouselItem(id: "card-2", accessibilityLabel: "Image card 3"),
+      FKCarouselItem(id: "card-3", accessibilityLabel: "Image card 4"),
+      FKCarouselItem(id: "card-4", accessibilityLabel: "Image card 5"),
+    ]
+  }
+
+  /// Image-only focused card page (rounded photo).
+  static func makeFocusedImageCardPage(
+    item: FKCarouselItem,
+    bounds: CGRect,
+    cornerRadius: CGFloat = 16
+  ) -> UIView {
+    let card = UIView(frame: bounds)
+    card.backgroundColor = .secondarySystemFill
+    card.layer.cornerRadius = cornerRadius
+    card.clipsToBounds = true
+    card.fk_applyCornerShadow(
+      corners: .allCorners,
+      cornerRadius: cornerRadius,
+      fillColor: .clear,
+      shadow: FKCornerShadowElevation(opacity: 0.14, offset: CGSize(width: 0, height: 6), blur: 14)
+    )
+
+    let imageView = FKImageView()
+    imageView.translatesAutoresizingMaskIntoConstraints = false
+    imageView.contentMode = .scaleAspectFill
+    imageView.configuration.appearance.cornerStyle = .none
+    card.addSubview(imageView)
+    NSLayoutConstraint.activate([
+      imageView.topAnchor.constraint(equalTo: card.topAnchor),
+      imageView.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+      imageView.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+      imageView.bottomAnchor.constraint(equalTo: card.bottomAnchor),
+    ])
+
+    let photoID = focusedCardPhotoID(for: item.id)
+    imageView.load(url: FKCarouselExampleURLs.banner(id: photoID, width: 720, height: 480))
+    return card
+  }
+
+  private static func focusedCardPhotoID(for id: String) -> Int {
+    switch id {
+    case "card-0": return 1015
+    case "card-1": return 1016
+    case "card-2": return 1018
+    case "card-3": return 1025
+    default: return 1035
+    }
+  }
+
   static func makeOnboardingPage(item: FKCarouselItem, bounds: CGRect) -> UIView {
     let container = UIView(frame: bounds)
     container.backgroundColor = .secondarySystemGroupedBackground

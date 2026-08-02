@@ -11,6 +11,10 @@ public enum FKCarouselScrollDirection: Equatable, Sendable {
 public enum FKCarouselPageChangeReason: Equatable, Sendable {
   case userSwipe
   case programmatic
+  /// User tapped a page indicator segment.
+  case indicatorTap
+  /// User tapped a page cell (including a peeking side card).
+  case pageTap
   case autoScroll
   case loopCorrection
   case reload

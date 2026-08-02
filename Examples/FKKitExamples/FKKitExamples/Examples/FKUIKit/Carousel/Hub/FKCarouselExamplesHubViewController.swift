@@ -82,6 +82,11 @@ final class FKCarouselExamplesHubViewController: UITableViewController {
           subtitle: "fixedPageWidth · insetCard · indicator below · interPageSpacing",
           make: { FKCarouselLayoutModesExampleViewController() }
         ),
+        Row(
+          title: "Focused cards",
+          subtitle: "image cards · indicator/side taps · live size/spacing/scale/deceleration controls",
+          make: { FKCarouselFocusedCardsExampleViewController() }
+        ),
       ]
     ),
     Section(

@@ -90,6 +90,7 @@ public final class FKCarousel: UIView {
   )
 
   private var loopAdapter = FKCarouselInfiniteLoopAdapter(isEnabled: false, logicalCount: 0)
+  /// Page views keyed by physical collection index (clones must not share one UIView).
   private var hostedViews: [Int: UIView] = [:]
   private var isPerformingLoopCorrection = false
   private var isProgrammaticScroll = false
@@ -168,7 +169,12 @@ public final class FKCarousel: UIView {
     isProgrammaticScroll = true
     stateSnapshot.phase = reason == .autoScroll ? .autoAdvancing : .programmatic
 
-    let physical = loopAdapter.physicalIndex(forLogical: clamped)
+    let currentPhysical = FKCarouselLayoutEngine.physicalIndex(
+      forContentOffset: collectionView.contentOffset,
+      metrics: metrics,
+      pageCount: loopAdapter.physicalCount
+    )
+    let physical = loopAdapter.nearestPhysicalIndex(forLogical: clamped, fromPhysical: currentPhysical)
     let offset = FKCarouselLayoutEngine.contentOffset(forPhysicalIndex: physical, metrics: metrics)
     collectionView.setContentOffset(offset, animated: animated)
 
@@ -249,6 +255,8 @@ public final class FKCarousel: UIView {
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.decelerationRate = configuration.paging.decelerationRate
     collectionView.isScrollEnabled = configuration.paging.isScrollEnabled
+    collectionView.bounces = configuration.paging.bounces
+    collectionView.alwaysBounceHorizontal = configuration.paging.alwaysBounceHorizontal
     collectionView.dataSource = self
     collectionView.delegate = self
     collectionView.register(FKCarouselHostCell.self, forCellWithReuseIdentifier: FKCarouselHostCell.reuseIdentifier)
@@ -337,16 +345,26 @@ public final class FKCarousel: UIView {
 
   private func applyConfigurationChanges() {
     clipsToBounds = configuration.layout.clipsToBounds
+    collectionView.clipsToBounds = configuration.layout.clipsToBounds
     collectionView.decelerationRate = configuration.paging.decelerationRate
     collectionView.isScrollEnabled = configuration.paging.isScrollEnabled
+    collectionView.bounces = configuration.paging.bounces
+    collectionView.alwaysBounceHorizontal = configuration.paging.alwaysBounceHorizontal
     indicatorView?.configuration = configuration.indicator
     indicatorView?.animatesIndicatorDots = configuration.motion.animatesIndicatorDots
+    wireIndicatorSelectionHandler()
     autoScrollController.configuration = configuration.autoScroll
     gestureCoordinator.refresh(
       policy: configuration.interaction.nestedScrollPolicy,
       requiresNavigationPopGestureToFail: configuration.interaction.requiresNavigationPopGestureToFail,
       in: self,
       panGesture: collectionView.panGestureRecognizer
+    )
+
+    let previousPhysicalCount = loopAdapter.physicalCount
+    loopAdapter = FKCarouselInfiniteLoopAdapter(
+      isEnabled: configuration.layout.isInfiniteLoopEnabled,
+      logicalCount: pageCount
     )
     relayoutCollection()
     layoutIndicator()
@@ -355,6 +373,16 @@ public final class FKCarousel: UIView {
     updateAccessibility()
     refreshAutoScroll()
     syncPageChangeHapticGenerator()
+
+    if previousPhysicalCount != loopAdapter.physicalCount, pageCount > 0 {
+      reloadData(animated: false)
+    }
+  }
+
+  private func wireIndicatorSelectionHandler() {
+    indicatorView?.onPageSelected = { [weak self] index in
+      self?.scrollToPage(index, animated: true, reason: .indicatorTap)
+    }
   }
 
   private func syncPageChangeHapticGenerator() {
@@ -371,7 +399,12 @@ public final class FKCarousel: UIView {
   private func playPageChangeHapticIfNeeded(from previousIndex: Int, to index: Int, reason: FKCarouselPageChangeReason) {
     guard previousIndex != index || reason == .reload else { return }
     guard configuration.motion.playsPageChangeHaptic else { return }
-    guard reason == .userSwipe || reason == .autoScroll else { return }
+    switch reason {
+    case .userSwipe, .autoScroll, .indicatorTap, .pageTap:
+      break
+    case .programmatic, .loopCorrection, .reload:
+      return
+    }
     guard !UIAccessibility.isReduceMotionEnabled else { return }
     pageChangeHapticGenerator?.impactOccurred()
     pageChangeHapticGenerator?.prepare()
@@ -417,6 +450,7 @@ public final class FKCarousel: UIView {
     ])
 
     indicatorView = view
+    wireIndicatorSelectionHandler()
     syncIndicatorContent()
   }
 
@@ -508,6 +542,8 @@ public final class FKCarousel: UIView {
     flowLayout.itemSize = metrics.itemSize
     flowLayout.sectionInset = metrics.sectionInset
     flowLayout.minimumLineSpacing = configuration.layout.interPageSpacing
+    flowLayout.sidePageScale = configuration.motion.sidePageScale
+    flowLayout.isInfiniteLoopActive = loopAdapter.isActive
     flowLayout.invalidateLayout()
 
     collectionView.isPagingEnabled = metrics.usesPagingEnabled
@@ -703,7 +739,7 @@ public final class FKCarousel: UIView {
     callbacks.onPageChanged?(index, reason)
     playPageChangeHapticIfNeeded(from: previousIndex, to: index, reason: reason)
 
-    if reason == .userSwipe {
+    if reason == .userSwipe || reason == .indicatorTap || reason == .pageTap {
       autoScrollController.resetIntervalAfterManualChange()
     }
 
@@ -743,6 +779,8 @@ public final class FKCarousel: UIView {
 
   private func pageView(forLogicalIndex index: Int, bounds: CGRect, reusing: UIView?) -> UIView {
     if let pageProvider, let item = items[safe: index] {
+      // Keep a stable host view per physical cell so peek + infinite clones do not steal UIViews.
+      if let reusing { return reusing }
       return pageProvider(item, bounds)
     }
 
@@ -757,6 +795,9 @@ public final class FKCarousel: UIView {
 
   private func handlePageSelection(at index: Int) {
     guard let item = items[safe: index], item.isInteractive else { return }
+    if configuration.interaction.scrollsToTappedPage, index != currentPageIndex {
+      scrollToPage(index, animated: true, reason: .pageTap)
+    }
     delegate?.carousel(self, didSelectPageAt: index)
     callbacks.onPageSelected?(index)
   }
@@ -773,7 +814,8 @@ extension FKCarousel: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
-    let logical = loopAdapter.logicalIndex(forPhysical: indexPath.item)
+    let physical = indexPath.item
+    let logical = loopAdapter.logicalIndex(forPhysical: physical)
     if let customCellProvider {
       return customCellProvider(collectionView, indexPath, logical)
     }
@@ -783,13 +825,13 @@ extension FKCarousel: UICollectionViewDataSource {
       for: indexPath
     ) as! FKCarouselHostCell
 
-    let reusing = hostedViews[logical]
+    let reusing = hostedViews[physical]
     let page = pageView(
       forLogicalIndex: logical,
       bounds: CGRect(origin: .zero, size: metrics.itemSize),
       reusing: reusing
     )
-    hostedViews[logical] = page
+    hostedViews[physical] = page
     page.alpha = items[safe: logical]?.isInteractive == false
       ? configuration.interaction.nonInteractiveAlpha
       : 1
@@ -818,6 +860,27 @@ extension FKCarousel: UICollectionViewDelegate {
     refreshAutoScroll()
     stateSnapshot.phase = .dragging
     currentChangeReason = .userSwipe
+  }
+
+  public func scrollViewWillEndDragging(
+    _ scrollView: UIScrollView,
+    withVelocity velocity: CGPoint,
+    targetContentOffset: UnsafeMutablePointer<CGPoint>
+  ) {
+    guard loopAdapter.isActive, metrics.pageSpan > 0 else { return }
+
+    let pageSpan = metrics.pageSpan
+    let proposedIndex = Int((targetContentOffset.pointee.x / pageSpan).rounded())
+    let delta = CGFloat(loopAdapter.logicalCount) * pageSpan
+    guard delta > 0 else { return }
+
+    // Remap clone snap targets onto the equivalent real page *and* shift the live
+    // offset by the same delta so deceleration continues in the original direction.
+    if proposedIndex <= 0 {
+      remapLoopOffset(by: delta, targetContentOffset: targetContentOffset)
+    } else if proposedIndex >= loopAdapter.logicalCount + 1 {
+      remapLoopOffset(by: -delta, targetContentOffset: targetContentOffset)
+    }
   }
 
   public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -862,14 +925,49 @@ extension FKCarousel: UICollectionViewDelegate {
     updateStateSnapshot(phase: stateSnapshot.phase == .idle ? .dragging : stateSnapshot.phase)
   }
 
-  private func handleScrollEnd() {
+  private func remapLoopOffset(
+    by delta: CGFloat,
+    targetContentOffset: UnsafeMutablePointer<CGPoint>
+  ) {
+    guard abs(delta) > .ulpOfOne else { return }
+    isPerformingLoopCorrection = true
+    let current = collectionView.contentOffset
+    collectionView.setContentOffset(
+      CGPoint(x: current.x + delta, y: current.y),
+      animated: false
+    )
+    targetContentOffset.pointee.x += delta
+    collectionView.layoutIfNeeded()
+    isPerformingLoopCorrection = false
+  }
+
+  private func correctLoopOffsetIfNeeded() {
     let physical = FKCarouselLayoutEngine.physicalIndex(
       forContentOffset: collectionView.contentOffset,
       metrics: metrics,
       pageCount: loopAdapter.physicalCount
     )
-    let reason = isPerformingLoopCorrection ? .loopCorrection : currentChangeReason
-    settle(atPhysicalIndex: physical, reason: reason)
+    guard let correction = loopAdapter.loopCorrection(physicalIndex: physical) else { return }
+    let target = FKCarouselLayoutEngine.contentOffset(
+      forPhysicalIndex: correction.targetPhysicalIndex,
+      metrics: metrics
+    )
+    let delta = target.x - collectionView.contentOffset.x
+    guard abs(delta) > .ulpOfOne else { return }
+    isPerformingLoopCorrection = true
+    collectionView.setContentOffset(target, animated: false)
+    collectionView.layoutIfNeeded()
+    isPerformingLoopCorrection = false
+  }
+
+  private func handleScrollEnd() {
+    correctLoopOffsetIfNeeded()
+    let physical = FKCarouselLayoutEngine.physicalIndex(
+      forContentOffset: collectionView.contentOffset,
+      metrics: metrics,
+      pageCount: loopAdapter.physicalCount
+    )
+    settle(atPhysicalIndex: physical, reason: currentChangeReason)
     currentChangeReason = .userSwipe
   }
 }

@@ -17,9 +17,12 @@ final class FKCarouselPageIndicatorView: UIView {
   private var barTrack: UIView?
   private var barFill: UIView?
   private var lineContainer: UIView?
+  private var lineStackView: UIStackView?
   private var customContentContainer: UIView?
   private var dotViews: [UIView] = []
   private var lineSegments: [UIView] = []
+  private var lineWidthConstraints: [NSLayoutConstraint] = []
+  private var lineHeightConstraints: [NSLayoutConstraint] = []
   private var installedStyle: InstalledStyle = .none
 
   var configuration: FKCarouselIndicatorConfiguration = .init() {
@@ -51,6 +54,11 @@ final class FKCarouselPageIndicatorView: UIView {
   /// When `false`, dot and bar transitions update without animation.
   var animatesIndicatorDots: Bool = true
 
+  /// Invoked with a logical page index when the user taps a selectable indicator target.
+  var onPageSelected: ((Int) -> Void)?
+
+  private var tapRecognizer: UITapGestureRecognizer?
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     commonInit()
@@ -62,8 +70,13 @@ final class FKCarouselPageIndicatorView: UIView {
   }
 
   private func commonInit() {
-    isUserInteractionEnabled = false
     backgroundColor = .clear
+    syncInteractionEnabled()
+  }
+
+  override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    guard isUserInteractionEnabled else { return false }
+    return bounds.insetBy(dx: -4, dy: -14).contains(point)
   }
 
   override func layoutSubviews() {
@@ -159,6 +172,72 @@ final class FKCarouselPageIndicatorView: UIView {
 
     updatePresentation(animated: false)
     applyVisibility(pageCount: pageCount)
+    syncInteractionEnabled()
+  }
+
+  private func syncInteractionEnabled() {
+    let supportsSelection: Bool
+    switch configuration.style {
+    case .dots, .line, .bar:
+      supportsSelection = configuration.allowsPageSelection && pageCount > 1
+    case .fraction, .custom, .none:
+      supportsSelection = false
+    }
+    isUserInteractionEnabled = supportsSelection
+
+    if supportsSelection {
+      if tapRecognizer == nil {
+        let recognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        addGestureRecognizer(recognizer)
+        tapRecognizer = recognizer
+      }
+    } else if let tapRecognizer {
+      removeGestureRecognizer(tapRecognizer)
+      self.tapRecognizer = nil
+    }
+  }
+
+  @objc private func handleTap(_ recognizer: UITapGestureRecognizer) {
+    guard recognizer.state == .ended else { return }
+    let point = recognizer.location(in: self)
+    guard let index = pageIndex(at: point) else { return }
+    onPageSelected?(index)
+  }
+
+  private func pageIndex(at point: CGPoint) -> Int? {
+    switch configuration.style {
+    case .dots:
+      return nearestSegmentIndex(at: point, segments: dotViews)
+    case .line:
+      return nearestSegmentIndex(at: point, segments: lineSegments)
+    case .bar:
+      guard let barTrack, barTrack.bounds.width > 0, pageCount > 0 else { return nil }
+      let local = convert(point, to: barTrack)
+      guard barTrack.bounds.insetBy(dx: -8, dy: -12).contains(local) else { return nil }
+      let fraction = min(1, max(0, local.x / barTrack.bounds.width))
+      return min(pageCount - 1, Int(fraction * CGFloat(pageCount)))
+    case .fraction, .custom, .none:
+      return nil
+    }
+  }
+
+  private func nearestSegmentIndex(at point: CGPoint, segments: [UIView]) -> Int? {
+    guard !segments.isEmpty else { return nil }
+    var bestIndex: Int?
+    var bestDistance = CGFloat.greatestFiniteMagnitude
+    for (index, segment) in segments.enumerated() {
+      let frame = segment.convert(segment.bounds, to: self).insetBy(dx: -10, dy: -14)
+      if frame.contains(point) {
+        return index
+      }
+      let center = CGPoint(x: frame.midX, y: frame.midY)
+      let distance = hypot(center.x - point.x, center.y - point.y)
+      if distance < bestDistance {
+        bestDistance = distance
+        bestIndex = index
+      }
+    }
+    return bestDistance <= 28 ? bestIndex : nil
   }
 
   private func tearDownInstalledStyleViews() {
@@ -175,6 +254,10 @@ final class FKCarouselPageIndicatorView: UIView {
     barTrack = nil
 
     lineSegments.removeAll()
+    lineWidthConstraints.removeAll()
+    lineHeightConstraints.removeAll()
+    lineStackView?.removeFromSuperview()
+    lineStackView = nil
     lineContainer?.removeFromSuperview()
     lineContainer = nil
 
@@ -265,49 +348,99 @@ final class FKCarouselPageIndicatorView: UIView {
   }
 
   private func installLineStyleIfNeeded() {
+    let thickness = max(configuration.lineThickness, 1)
+
     if lineContainer == nil {
       let container = UIView()
       container.translatesAutoresizingMaskIntoConstraints = false
       addSubview(container)
-
-      let lineLeading = container.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16)
-      let lineTrailing = container.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16)
-      lineLeading.priority = .defaultHigh
-      lineTrailing.priority = .defaultHigh
-
       NSLayoutConstraint.activate([
-        lineLeading,
-        lineTrailing,
+        container.centerXAnchor.constraint(equalTo: centerXAnchor),
         container.centerYAnchor.constraint(equalTo: centerYAnchor),
-        container.heightAnchor.constraint(equalToConstant: 3),
+        container.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
+        container.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor),
+        container.heightAnchor.constraint(equalToConstant: thickness),
       ])
       lineContainer = container
     }
 
-    guard lineSegments.count != pageCount else { return }
-    lineContainer?.subviews.forEach { $0.removeFromSuperview() }
+    if lineStackView == nil, let lineContainer {
+      let stack = UIStackView()
+      stack.axis = .horizontal
+      stack.alignment = .center
+      stack.distribution = .fill
+      stack.translatesAutoresizingMaskIntoConstraints = false
+      lineContainer.addSubview(stack)
+      NSLayoutConstraint.activate([
+        stack.leadingAnchor.constraint(equalTo: lineContainer.leadingAnchor),
+        stack.trailingAnchor.constraint(equalTo: lineContainer.trailingAnchor),
+        stack.topAnchor.constraint(equalTo: lineContainer.topAnchor),
+        stack.bottomAnchor.constraint(equalTo: lineContainer.bottomAnchor),
+      ])
+      lineStackView = stack
+    }
+
+    lineStackView?.spacing = configuration.dotSpacing
+
+    guard lineSegments.count != pageCount else {
+      updateLineSegmentMetrics()
+      return
+    }
+
+    lineStackView?.arrangedSubviews.forEach { $0.removeFromSuperview() }
     lineSegments.removeAll()
-    guard pageCount > 0, let lineContainer else { return }
+    lineWidthConstraints.removeAll()
+    lineHeightConstraints.removeAll()
+    guard pageCount > 0, let lineStackView else { return }
 
-    let segmentStack = UIStackView()
-    segmentStack.axis = .horizontal
-    segmentStack.spacing = 4
-    segmentStack.distribution = .fillEqually
-    segmentStack.translatesAutoresizingMaskIntoConstraints = false
-    lineContainer.addSubview(segmentStack)
-    NSLayoutConstraint.activate([
-      segmentStack.leadingAnchor.constraint(equalTo: lineContainer.leadingAnchor),
-      segmentStack.trailingAnchor.constraint(equalTo: lineContainer.trailingAnchor),
-      segmentStack.topAnchor.constraint(equalTo: lineContainer.topAnchor),
-      segmentStack.bottomAnchor.constraint(equalTo: lineContainer.bottomAnchor),
-    ])
-
+    let cornerRadius = thickness / 2
     for _ in 0..<pageCount {
       let segment = UIView()
       segment.backgroundColor = configuration.inactiveColor
-      segment.layer.cornerRadius = 1.5
-      segmentStack.addArrangedSubview(segment)
+      segment.layer.cornerRadius = cornerRadius
+      segment.translatesAutoresizingMaskIntoConstraints = false
+      let width = segment.widthAnchor.constraint(equalToConstant: configuration.inactiveLineWidth)
+      let height = segment.heightAnchor.constraint(equalToConstant: thickness)
+      NSLayoutConstraint.activate([width, height])
+      lineStackView.addArrangedSubview(segment)
       lineSegments.append(segment)
+      lineWidthConstraints.append(width)
+      lineHeightConstraints.append(height)
+    }
+  }
+
+  private func updateLineSegmentMetrics() {
+    let thickness = max(configuration.lineThickness, 1)
+    let cornerRadius = thickness / 2
+    for (index, segment) in lineSegments.enumerated() {
+      segment.layer.cornerRadius = cornerRadius
+      if lineHeightConstraints.indices.contains(index) {
+        lineHeightConstraints[index].constant = thickness
+      }
+    }
+  }
+
+  private func updateLinePresentation(effectivePage: CGFloat, animated: Bool) {
+    let activeWidth = max(configuration.activeLineWidth, configuration.inactiveLineWidth)
+    let inactiveWidth = configuration.inactiveLineWidth
+    let updates = {
+      for (index, segment) in self.lineSegments.enumerated() {
+        let distance = abs(CGFloat(index) - effectivePage)
+        let focus = max(0, 1 - min(1, distance))
+        let width = inactiveWidth + (activeWidth - inactiveWidth) * focus
+        if self.lineWidthConstraints.indices.contains(index) {
+          self.lineWidthConstraints[index].constant = width
+        }
+        segment.backgroundColor = focus > 0.5
+          ? self.configuration.activeColor
+          : self.configuration.inactiveColor
+      }
+      self.lineStackView?.layoutIfNeeded()
+    }
+    if shouldAnimateIndicator(animated: animated) {
+      UIView.animate(withDuration: 0.2, delay: 0, options: [.allowUserInteraction], animations: updates)
+    } else {
+      updates()
     }
   }
 
@@ -364,9 +497,7 @@ final class FKCarouselPageIndicatorView: UIView {
       updateBarFillProgress(animated: animated)
 
     case .line:
-      for (index, segment) in lineSegments.enumerated() {
-        segment.backgroundColor = index == currentPage ? configuration.activeColor : configuration.inactiveColor
-      }
+      updateLinePresentation(effectivePage: effectivePage, animated: animated)
 
     case .custom:
       if let customContentContainer {
