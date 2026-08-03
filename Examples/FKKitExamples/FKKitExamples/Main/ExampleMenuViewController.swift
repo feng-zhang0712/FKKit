@@ -240,6 +240,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKBusinessKitExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "DateTime",
+          subtitle: "Hub: parse/format, calendar math, WeChat chat/feed relative, configuration, diff",
+          make: { FKDateTimeExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "Extension",
           subtitle: "fk_* helpers for Foundation, UIKit, device info, validation, and formatting",
           make: { FKExtensionExampleViewController() }

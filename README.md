@@ -113,6 +113,7 @@ FKKit/
 - `Security`: crypto/security utilities (hash, AES/RSA helpers, encoding, signature helpers).
 - `FileManager`: file I/O, directory utilities, and transfer-oriented helpers.
 - `Async`: concurrency utilities (queues, cancellable task wrappers, debounce/throttle helpers).
+- `DateTime`: Moment-inspired ``FKDateTime`` (parse/format, calendar math, WeChat-like relative timestamps). See [`Sources/FKCoreKit/Components/DateTime/README.md`](Sources/FKCoreKit/Components/DateTime/README.md).
 - `BusinessKit`: app/business infrastructure (version, deeplink, lifecycle, analytics, i18n helpers).
 - `Extension`: cross-cutting `public` extensions for **Foundation**, **CoreGraphics**, and **UIKit**, plus small toolbox types (`FKDeviceInfo`, `FKValueParsing`). Members use an `fk_` prefix to reduce name clashes with app and SDK code.
 
