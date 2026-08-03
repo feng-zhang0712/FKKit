@@ -4,6 +4,23 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.75.0] - 2026-08-03
+
+### Added (FKCoreKit — DateTime)
+
+- **`FKDateTime`** — Moment-inspired date/time value type with calendar-aware configuration (time zone / locale).
+- Parse & format: custom patterns, format presets, ISO-8601, localized Unicode templates, Unix seconds/ms, validation.
+- Calendar math: add/subtract units, `startOf` / `endOf`, `replacing` / `setting`, component queries.
+- Comparison helpers: `isPast` / `isFuture`, `isSameOrBefore` / `isSameOrAfter`, granularity `compare`.
+- Diffs and span length via `diff(to:)` / `daysUntil` / `durationDescription(to:)`.
+- Relative display styles: WeChat-like `.chat` / `.feed`, conversational `.standard`, and system `RelativeDateTimeFormatter`.
+- Localization keys `fkcore.datetime.*` across shipped locales.
+- **Examples**: FKCoreKit → DateTime hub covering construction, configuration, parse/format, arithmetic, query/compare, diff/duration, and relative styles.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.75.0** (Git tag **`0.75.0`**).
+
 ## [0.74.0] - 2026-08-02
 
 ### Added (FKUIKit — Carousel)
