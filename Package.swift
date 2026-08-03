@@ -19,6 +19,7 @@ private let fkCoreKitModuleDocDirectories: [String] = [
   "Components/BackgroundTask",
   "Components/BiometricAuth",
   "Components/BusinessKit",
+  "Components/DateTime",
   "Components/FileManager",
   "Components/I18n",
   "Components/ImageLoader",
