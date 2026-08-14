@@ -176,7 +176,6 @@ enum FKSearchLayoutEngine {
     )
   }
 
-  @MainActor
   static func intrinsicContentSize(
     layout: FKSearchLayoutConfiguration,
     appearance: FKSearchAppearanceConfiguration,
@@ -199,7 +198,8 @@ enum FKSearchLayoutEngine {
         scaledTextFont: scaledFont(for: appearance, layout: layout)
       )
     )
-    return CGSize(width: UIView.noIntrinsicMetric, height: height)
+    // `-1` matches `UIView.noIntrinsicMetric` without requiring MainActor isolation.
+    return CGSize(width: -1, height: height)
   }
 
   static func resolvedCornerRadius(
