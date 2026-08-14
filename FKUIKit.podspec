@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'FKUIKit'
-  s.version = '0.75.0'
+  s.version = '0.76.0'
   s.summary = 'FKKit UIKit components: presentation, toast, and more.'
   s.description = <<-DESC
     Reusable UIKit building blocks from FKKit (ActionSheet,
