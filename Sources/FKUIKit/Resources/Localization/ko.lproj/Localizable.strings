@@ -64,6 +64,11 @@
 "fkuikit.chip.filter.unselected" = "%@, 필터, 선택 안 됨";
 "fkuikit.chip.remove" = "%@ 제거";
 "fkuikit.chipgroup.selection_count" = "필터 %d개 선택됨";
+"fkuikit.checkbox.accessibility.checked" = "선택됨";
+"fkuikit.checkbox.accessibility.hint" = "두 번 탭하여 전환";
+"fkuikit.checkbox.accessibility.mixed" = "일부 선택";
+"fkuikit.checkbox.accessibility.required" = "필수";
+"fkuikit.checkbox.accessibility.unchecked" = "선택 안 됨";
 "fkuikit.common.cancel" = "취소";
 "fkuikit.common.cancelled" = "취소됨";
 "fkuikit.common.loading" = "로딩 중…";
@@ -198,6 +203,10 @@
 "fkuikit.rating.accessibility.adjustable_hint" = "조절 가능";
 "fkuikit.rating.accessibility.label" = "평점";
 "fkuikit.rating.accessibility.value_format" = "%@ / %@";
+"fkuikit.radio.accessibility.hint" = "두 번 탭하여 선택";
+"fkuikit.radio.accessibility.not_selected" = "선택 안 됨";
+"fkuikit.radio.accessibility.selected" = "선택됨";
+"fkuikit.radiogroup.accessibility.label" = "옵션";
 "fkuikit.refresh.footer.failed" = "로드 실패";
 "fkuikit.refresh.footer.finished" = "로드됨";
 "fkuikit.refresh.footer.loading" = "로딩 중…";
@@ -212,6 +221,7 @@
 "fkuikit.search.clear_label" = "텍스트 지우기";
 "fkuikit.search.cleared" = "검색 지움";
 "fkuikit.search.loading_finished" = "검색 완료";
+"fkuikit.selection.error" = "잘못됨";
 "fkuikit.sheet.dismiss_action" = "닫기";
 "fkuikit.sheet.dismiss_label" = "닫기";
 "fkuikit.sheet.grabber_hint" = "위아래로 스와이프하여 조절하세요.";

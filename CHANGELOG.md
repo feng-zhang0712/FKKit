@@ -4,6 +4,20 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.76.0] - 2026-08-14
+
+### Added (FKUIKit — SelectionControl)
+
+- **`FKCheckbox`** — three-state multi-select control with sizes, tints, error/read-only modes, attributed agreement links, select-all aggregation, and SwiftUI bridge.
+- **`FKRadioButton`** / **`FKRadioGroup`** — circular radio indicator and mutually exclusive groups (inset grouped / plain / horizontal), option images/subtitles, deselection policies, and SwiftUI bridges.
+- **`FKSelectionListChrome`** — rounded card + inset separators for checkbox lists.
+- Localization keys `fkuikit.checkbox.*`, `fkuikit.radio.*`, `fkuikit.radiogroup.*`, `fkuikit.selection.error` across shipped locales.
+- **Examples**: FKUIKit → SelectionControl hub covering states, appearance, list chrome, agreement, select-all, radio group variants, and SwiftUI.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.76.0** (Git tag **`0.76.0`**).
+
 ## [0.75.0] - 2026-08-03
 
 ### Added (FKCoreKit — DateTime)

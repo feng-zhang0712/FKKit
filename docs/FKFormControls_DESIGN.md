@@ -44,8 +44,8 @@ FKKit **表单与筛选控件**的实现指导文档：**`FKSegmentedControl`**�
 | ------ | ---------- |
 | **FKSegmentedControl** | 2–N 个互斥选项（筛选、视图模式） |
 | **FKToggle** | 开/关设置 |
-| **FKCheckbox** | 多选、协议勾选、全选 |
-| **FKRadioGroup** | 少量选项中必选其一 |
+| **FKCheckbox** | 多选、协议勾选、全选（详设见 [FKCheckbox-FKRadio_DESIGN](FKCheckbox-FKRadio_DESIGN.md)） |
+| **FKRadioGroup** | 少量选项中必选其一（含 `FKRadioButton`；同上详设） |
 | **FKSlider** | 标量或区间调节（价格、音量） |
 
 均为 **`UIControl`** 子类（或发出 `UIControl` 事件的组合根），`@MainActor`，Phase B 起提供 SwiftUI `Representable`。
@@ -366,104 +366,19 @@ public final class FKToggle: UIControl {
 
 ## 8. FKCheckbox
 
-### 8.1 用途
+> **规范正文已迁移：** Checkbox 的状态、尺寸（16/22/28）、色板、列表用法、公开 API 与验收标准，以 **[FKCheckbox-FKRadio_DESIGN.md](FKCheckbox-FKRadio_DESIGN.md)** 为准。  
+> **实现路径：** `Sources/FKUIKit/Components/SelectionControl/`（独立模块；不阻塞本文件 Segment/Toggle/Slider 分期）。
 
-**复选框**隐喻（非开关）。支持**半选**态（全选父行）。
-
-### 8.2 公开 API（草案）
-
-```swift
-public enum FKCheckboxState: Equatable, Sendable {
-  case unchecked, checked, indeterminate
-}
-
-public struct FKCheckboxContentConfiguration: Sendable, Equatable {
-  public var title: String?
-  public var subtitle: String?
-  public var labelPlacement: FKFormControlLabelPlacement
-}
-
-@MainActor
-public final class FKCheckbox: UIControl {
-  public var configuration: FKCheckboxConfiguration
-  public var content: FKCheckboxContentConfiguration
-  public var state: FKCheckboxState { get set }
-  public var showsError: Bool { get set }
-  public var onStateChanged: (@MainActor (FKCheckboxState) -> Void)?
-}
-```
-
-### 8.3 视觉
-
-| 状态 | 图形 |
-|------|------|
-| 未选 | 空方框圆角边框 |
-| 已选 | 填充 + 勾 |
-| 半选 | 填充 + 减号/横杠 |
-| 错误 | 边框 destructive 色（`showsError`） |
-
-### 8.4 交互
-
-- 点击：未选↔已选；半选→已选（`indeterminateTapBehavior`，默认 `.promoteToChecked`）
-- `indeterminateEnabled` 控制是否使用半选
-- 关联 label 扩大点击区（整行点击切换）
-
-### 8.5 无障碍
-
-- `.button` + 选中时 `.selected`
-- Value：本地化「已勾选」/「未勾选」/「部分选中」（`FKI18n`）
-- 多选列表：宿主用 `UIAccessibilityContainer` 或 Table 行语义；独立控件不强制组容器
+摘要：`FKCheckbox`（`UIControl`）支持 `.unchecked` / `.checked` / `.indeterminate`，以及 Disabled / Disabled+On；可选标题行；设计稿五态与三档尺寸为 v1 硬性契约。
 
 ---
 
-## 9. FKRadioGroup
+## 9. FKRadioGroup（含 FKRadioButton）
 
-### 9.1 用途
+> **规范正文已迁移：** `FKRadioButton`、`FKRadioGroup`、卡片列表（insetGrouped）、色板与互斥行为，以 **[FKCheckbox-FKRadio_DESIGN.md](FKCheckbox-FKRadio_DESIGN.md)** 为准。  
+> **实现路径：** 同上 `SelectionControl/`。
 
-**恰好一项**选中（通常 2–6 项）。纵向列表或横向排列。
-
-### 9.2 公开 API（草案）
-
-```swift
-public typealias FKRadioOptionID = String
-
-public struct FKRadioOption: Hashable, Sendable, Identifiable {
-  public var id: FKRadioOptionID
-  public var title: String
-  public var subtitle: String?
-  public var isEnabled: Bool
-  public var accessibilityLabel: String?
-}
-
-public enum FKRadioGroupLayoutMode: Sendable, Equatable {
-  case vertical
-  case horizontal
-  case compact
-}
-
-@MainActor
-public final class FKRadioGroup: UIControl {
-  public var configuration: FKRadioGroupConfiguration
-  public var options: [FKRadioOption] { get set }
-  public var selectedOptionID: FKRadioOptionID? { get set }
-  public var onSelectionChanged: (@MainActor (FKRadioOptionID) -> Void)?
-}
-```
-
-### 9.3 布局
-
-| 模式 | 说明 |
-|------|------|
-| `.vertical` | 选项纵向；指示器 leading；最小行高 44pt |
-| `.horizontal` | 横排或横滚 |
-| `.compact` | 紧凑横条 + 圆形指示器 |
-
-### 9.4 与 FKSegmentedControl
-
-| 用 Segment | 用 Radio |
-|------------|----------|
-| 短标签、紧凑筛选 | 带副标题的说明性选项 |
-| 图标+角标条 | 表单 2–6 项详述 |
+摘要：单项用 `FKRadioButton`；互斥与设计稿 RADIO GROUP 卡片用 `FKRadioGroup`。与 `FKSegmentedControl` 分工不变——短标签紧凑筛选用 Segment，带说明的表单单选用 RadioGroup。
 
 ---
 
@@ -609,8 +524,8 @@ Sources/FKUIKit/Components/FormControls/
 │   │   ├── FKSegmentedControlConfiguration.swift
 │   │   └── FKSegmentedControlPresets.swift
 │   ├── Toggle/
-│   ├── Checkbox/
-│   ├── RadioGroup/
+│   ├── Checkbox/          # 或改由 SelectionControl/ 交付（见 FKCheckbox-FKRadio_DESIGN）
+│   ├── RadioGroup/        # 同上
 │   ├── Slider/
 │   └── Bridge/
 ├── Internal/
@@ -789,11 +704,13 @@ Hub：`FKFormControlsExamplesHubViewController`
 |------|------|
 | 2026-06-08 | 初版，源自 COMPONENT_ROADMAP §1.4 |
 | 2026-06-13 | 增补 §4 架构、§15 分阶段交付、§17 迁移契约；补全 API/配置/SwiftUI/Examples；分阶段成功标准；设计决策扩展 Q6–Q10 |
+| 2026-08-14 | §8–§9 Checkbox/Radio 规范迁移至 [FKCheckbox-FKRadio_DESIGN.md](FKCheckbox-FKRadio_DESIGN.md)；实现路径指向 `SelectionControl/` |
 
 ---
 
 ## 相关文档
 
+- [FKCheckbox-FKRadio_DESIGN.md](FKCheckbox-FKRadio_DESIGN.md) — Checkbox / RadioButton / RadioGroup 详设（规范正文）
 - [COMPONENT_ROADMAP.md](COMPONENT_ROADMAP.md) — §1.4、分阶段 C/D
 - [COMPONENT_GAP_ANALYSIS.md](COMPONENT_GAP_ANALYSIS.md) — §7.2
 - [FKListKit_DESIGN.md](FKListKit_DESIGN.md) — preset switch/checkbox 迁移

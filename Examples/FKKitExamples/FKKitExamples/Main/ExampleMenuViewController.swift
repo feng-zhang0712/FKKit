@@ -169,6 +169,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKSearchViewControllerExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "SelectionControl",
+          subtitle: "Hub: FKCheckbox / FKRadioButton / FKRadioGroup — states, list chrome, agreement, select-all, SwiftUI",
+          make: { FKSelectionControlExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "SheetPresentationController",
           subtitle: "Custom SheetPresentationController examples (sheet/center/anchor, animation, backdrop, keyboard, rotation)",
           make: { FKSheetPresentationControllerExamplesHubViewController() }

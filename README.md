@@ -89,6 +89,7 @@ FKKit/
 │     │  ├─ ProgressBar/
 │     │  ├─ RatingControl/
 │     │  ├─ Refresh/
+│     │  ├─ SelectionControl/
 │     │  ├─ SheetPresentationController/
 │     │  ├─ Skeleton/
 │     │  ├─ TabBar/
@@ -138,6 +139,7 @@ See [`Sources/FKCoreKit/Components/Extension/README.md`](Sources/FKCoreKit/Compo
 | **ProgressBar** | Determinate/indeterminate linear and ring progress control with buffer, segments, gradient, label, accessibility, and SwiftUI wrapper — see [`ProgressBar/README.md`](Sources/FKUIKit/Components/ProgressBar/README.md). |
 | **RatingControl** | Configurable read-only/interactive rating control (`FKRatingControl`) with icon presets, half-step snapping, caption, haptics, accessibility, and SwiftUI `FKRatingControlRepresentable` — see [`RatingControl/README.md`](Sources/FKUIKit/Components/RatingControl/README.md). |
 | **Refresh** | Pull-to-refresh and load-more controls for scroll views. |
+| **SelectionControl** | Discrete selection controls (`FKCheckbox`, `FKRadioButton`, `FKRadioGroup`, `FKSelectionListChrome`) with shared sizes/tints, error/read-only modes, list chrome, and SwiftUI bridges — see [`SelectionControl/README.md`](Sources/FKUIKit/Components/SelectionControl/README.md). |
 | **SheetPresentationController** | Modal/overlay presentation infrastructure (bottom/top/center sheets, anchor dropdowns, detents, keyboard/safe-area/interaction configuration) — see [`SheetPresentationController/README.md`](Sources/FKUIKit/Components/SheetPresentationController/README.md). |
 | **Skeleton** | Skeleton loading system for views/lists/containers with animation options. |
 | **TabBar** | High-performance UIKit tab header (UICollectionView-based) with indicator, badges, data source, and paging progress linkage (UI-only) — see [`TabBar/README.md`](Sources/FKUIKit/Components/TabBar/README.md). |
@@ -163,7 +165,7 @@ See [`Sources/FKCoreKit/Components/Extension/README.md`](Sources/FKCoreKit/Compo
 ### Package.swift
 ```swift
 dependencies: [
-  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.75.0")
+  .package(url: "https://github.com/feng-zhang0712/FKKit.git", from: "0.76.0")
 ],
 targets: [
   .target(
@@ -178,7 +180,7 @@ targets: [
 
 ## Installation (CocoaPods)
 
-The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.75.0`).
+The repository ships **one podspec per Swift product**, aligned with SPM (`FKCoreKit`, `FKUIKit`). Each podspec's **`s.version`** must match a **published Git tag** (for example `0.76.0`).
 
 **Maintainers:** version bump script (`scripts/bump-version.sh`), drift check (`scripts/verify-podspec-versions.sh`, also run in CI), and full release checklist — [`docs/RELEASING.md`](docs/RELEASING.md).
 
@@ -187,8 +189,8 @@ The repository ships **one podspec per Swift product**, aligned with SPM (`FKCor
 ```ruby
 platform :ios, '15.0'
 
-pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.75.0'
-pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.75.0'
+pod 'FKCoreKit', :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.76.0'
+pod 'FKUIKit',   :git => 'https://github.com/feng-zhang0712/FKKit.git', :tag => '0.76.0'
 ```
 
 Order does not matter; CocoaPods resolves dependencies (`FKUIKit` → `FKCoreKit`).
@@ -272,7 +274,7 @@ Please report security vulnerabilities through [GitHub private security advisori
   - change summary
   - test/verification notes
   - migration notes when APIs change
-- Tag stable releases with semantic versions (for example: `0.75.0`), then merge release work back into `develop`.
+- Tag stable releases with semantic versions (for example: `0.76.0`), then merge release work back into `develop`.
 
 ## License
 This repository is licensed under the MIT License.  
