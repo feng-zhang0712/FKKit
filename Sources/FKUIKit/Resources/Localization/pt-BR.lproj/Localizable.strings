@@ -64,6 +64,11 @@
 "fkuikit.chip.filter.unselected" = "%@, filtro, não selecionado";
 "fkuikit.chip.remove" = "Remover %@";
 "fkuikit.chipgroup.selection_count" = "%d filtros selecionados";
+"fkuikit.checkbox.accessibility.checked" = "Marcado";
+"fkuikit.checkbox.accessibility.hint" = "Toque duas vezes para alternar";
+"fkuikit.checkbox.accessibility.mixed" = "Misto";
+"fkuikit.checkbox.accessibility.required" = "Obrigatório";
+"fkuikit.checkbox.accessibility.unchecked" = "Desmarcado";
 "fkuikit.common.cancel" = "Cancelar";
 "fkuikit.common.cancelled" = "Cancelado";
 "fkuikit.common.loading" = "Carregando…";
@@ -198,6 +203,10 @@
 "fkuikit.rating.accessibility.adjustable_hint" = "Ajustável";
 "fkuikit.rating.accessibility.label" = "Avaliação";
 "fkuikit.rating.accessibility.value_format" = "%@ de %@";
+"fkuikit.radio.accessibility.hint" = "Toque duas vezes para selecionar";
+"fkuikit.radio.accessibility.not_selected" = "Não selecionado";
+"fkuikit.radio.accessibility.selected" = "Selecionado";
+"fkuikit.radiogroup.accessibility.label" = "Opções";
 "fkuikit.refresh.footer.failed" = "Não foi possível carregar";
 "fkuikit.refresh.footer.finished" = "Carregado";
 "fkuikit.refresh.footer.loading" = "Carregando…";
@@ -212,6 +221,7 @@
 "fkuikit.search.clear_label" = "Limpar texto";
 "fkuikit.search.cleared" = "Pesquisa limpa";
 "fkuikit.search.loading_finished" = "Pesquisa concluída";
+"fkuikit.selection.error" = "Inválido";
 "fkuikit.sheet.dismiss_action" = "Fechar";
 "fkuikit.sheet.dismiss_label" = "Fechar";
 "fkuikit.sheet.grabber_hint" = "Deslize para cima ou para baixo para ajustar.";

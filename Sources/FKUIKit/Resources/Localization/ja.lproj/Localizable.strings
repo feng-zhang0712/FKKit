@@ -64,6 +64,11 @@
 "fkuikit.chip.filter.unselected" = "%@、フィルター、未選択";
 "fkuikit.chip.remove" = "%@を削除";
 "fkuikit.chipgroup.selection_count" = "%d 件のフィルターを選択";
+"fkuikit.checkbox.accessibility.checked" = "選択済み";
+"fkuikit.checkbox.accessibility.hint" = "ダブルタップで切り替え";
+"fkuikit.checkbox.accessibility.mixed" = "一部選択";
+"fkuikit.checkbox.accessibility.required" = "必須";
+"fkuikit.checkbox.accessibility.unchecked" = "未選択";
 "fkuikit.common.cancel" = "キャンセル";
 "fkuikit.common.cancelled" = "キャンセルされました";
 "fkuikit.common.loading" = "読み込み中…";
@@ -198,6 +203,10 @@
 "fkuikit.rating.accessibility.adjustable_hint" = "調整可能";
 "fkuikit.rating.accessibility.label" = "評価";
 "fkuikit.rating.accessibility.value_format" = "%@ / %@";
+"fkuikit.radio.accessibility.hint" = "ダブルタップで選択";
+"fkuikit.radio.accessibility.not_selected" = "未選択";
+"fkuikit.radio.accessibility.selected" = "選択済み";
+"fkuikit.radiogroup.accessibility.label" = "オプション";
 "fkuikit.refresh.footer.failed" = "読み込めませんでした";
 "fkuikit.refresh.footer.finished" = "読み込み完了";
 "fkuikit.refresh.footer.loading" = "読み込み中…";
@@ -212,6 +221,7 @@
 "fkuikit.search.clear_label" = "テキストを消去";
 "fkuikit.search.cleared" = "検索をクリアしました";
 "fkuikit.search.loading_finished" = "検索が完了しました";
+"fkuikit.selection.error" = "無効";
 "fkuikit.sheet.dismiss_action" = "閉じる";
 "fkuikit.sheet.dismiss_label" = "閉じる";
 "fkuikit.sheet.grabber_hint" = "上下にスワイプして調整します。";

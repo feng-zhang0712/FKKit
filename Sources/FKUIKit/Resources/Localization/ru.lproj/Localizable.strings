@@ -64,6 +64,11 @@
 "fkuikit.chip.filter.unselected" = "%@, фильтр, не выбрано";
 "fkuikit.chip.remove" = "Удалить %@";
 "fkuikit.chipgroup.selection_count" = "Выбрано фильтров: %d";
+"fkuikit.checkbox.accessibility.checked" = "Выбрано";
+"fkuikit.checkbox.accessibility.hint" = "Дважды коснитесь, чтобы переключить";
+"fkuikit.checkbox.accessibility.mixed" = "Частично";
+"fkuikit.checkbox.accessibility.required" = "Обязательно";
+"fkuikit.checkbox.accessibility.unchecked" = "Не выбрано";
 "fkuikit.common.cancel" = "Отмена";
 "fkuikit.common.cancelled" = "Отменено";
 "fkuikit.common.loading" = "Загрузка…";
@@ -198,6 +203,10 @@
 "fkuikit.rating.accessibility.adjustable_hint" = "Настраиваемый";
 "fkuikit.rating.accessibility.label" = "Оценка";
 "fkuikit.rating.accessibility.value_format" = "%@ из %@";
+"fkuikit.radio.accessibility.hint" = "Дважды коснитесь, чтобы выбрать";
+"fkuikit.radio.accessibility.not_selected" = "Не выбрано";
+"fkuikit.radio.accessibility.selected" = "Выбрано";
+"fkuikit.radiogroup.accessibility.label" = "Параметры";
 "fkuikit.refresh.footer.failed" = "Не удалось загрузить";
 "fkuikit.refresh.footer.finished" = "Загружено";
 "fkuikit.refresh.footer.loading" = "Загрузка…";
@@ -212,6 +221,7 @@
 "fkuikit.search.clear_label" = "Очистить текст";
 "fkuikit.search.cleared" = "Поиск очищен";
 "fkuikit.search.loading_finished" = "Поиск завершен";
+"fkuikit.selection.error" = "Недействительно";
 "fkuikit.sheet.dismiss_action" = "Закрыть";
 "fkuikit.sheet.dismiss_label" = "Закрыть";
 "fkuikit.sheet.grabber_hint" = "Проведите вверх или вниз для настройки.";

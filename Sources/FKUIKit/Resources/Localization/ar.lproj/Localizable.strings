@@ -64,6 +64,11 @@
 "fkuikit.chip.filter.unselected" = "%@، تصفية، غير محدد";
 "fkuikit.chip.remove" = "إزالة %@";
 "fkuikit.chipgroup.selection_count" = "تم تحديد %d تصفية";
+"fkuikit.checkbox.accessibility.checked" = "محدد";
+"fkuikit.checkbox.accessibility.hint" = "اضغط مرتين للتبديل";
+"fkuikit.checkbox.accessibility.mixed" = "مختلط";
+"fkuikit.checkbox.accessibility.required" = "مطلوب";
+"fkuikit.checkbox.accessibility.unchecked" = "غير محدد";
 "fkuikit.common.cancel" = "إلغاء";
 "fkuikit.common.cancelled" = "تم الإلغاء";
 "fkuikit.common.loading" = "جارٍ التحميل…";
@@ -198,6 +203,10 @@
 "fkuikit.rating.accessibility.adjustable_hint" = "قابل للتعديل";
 "fkuikit.rating.accessibility.label" = "التقييم";
 "fkuikit.rating.accessibility.value_format" = "%@ من %@";
+"fkuikit.radio.accessibility.hint" = "اضغط مرتين للتحديد";
+"fkuikit.radio.accessibility.not_selected" = "غير محدد";
+"fkuikit.radio.accessibility.selected" = "محدد";
+"fkuikit.radiogroup.accessibility.label" = "الخيارات";
 "fkuikit.refresh.footer.failed" = "تعذر التحميل";
 "fkuikit.refresh.footer.finished" = "تم التحميل";
 "fkuikit.refresh.footer.loading" = "جارٍ التحميل…";
@@ -212,6 +221,7 @@
 "fkuikit.search.clear_label" = "مسح النص";
 "fkuikit.search.cleared" = "تم مسح البحث";
 "fkuikit.search.loading_finished" = "اكتمل البحث";
+"fkuikit.selection.error" = "غير صالح";
 "fkuikit.sheet.dismiss_action" = "إغلاق";
 "fkuikit.sheet.dismiss_label" = "إغلاق";
 "fkuikit.sheet.grabber_hint" = "اسحب لأعلى أو لأسفل للتعديل.";

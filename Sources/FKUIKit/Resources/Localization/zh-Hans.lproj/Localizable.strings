@@ -64,6 +64,11 @@
 "fkuikit.chip.filter.unselected" = "%@，筛选，未选中";
 "fkuikit.chip.remove" = "移除 %@";
 "fkuikit.chipgroup.selection_count" = "已选择 %d 个筛选";
+"fkuikit.checkbox.accessibility.checked" = "已选中";
+"fkuikit.checkbox.accessibility.hint" = "轻点两下即可切换";
+"fkuikit.checkbox.accessibility.mixed" = "部分选中";
+"fkuikit.checkbox.accessibility.required" = "必填";
+"fkuikit.checkbox.accessibility.unchecked" = "未选中";
 "fkuikit.common.cancel" = "取消";
 "fkuikit.common.cancelled" = "已取消";
 "fkuikit.common.loading" = "加载中…";
@@ -198,6 +203,10 @@
 "fkuikit.rating.accessibility.adjustable_hint" = "可调整";
 "fkuikit.rating.accessibility.label" = "评分";
 "fkuikit.rating.accessibility.value_format" = "%@ / %@";
+"fkuikit.radio.accessibility.hint" = "轻点两下即可选择";
+"fkuikit.radio.accessibility.not_selected" = "未选中";
+"fkuikit.radio.accessibility.selected" = "已选中";
+"fkuikit.radiogroup.accessibility.label" = "选项";
 "fkuikit.refresh.footer.failed" = "加载失败";
 "fkuikit.refresh.footer.finished" = "已加载";
 "fkuikit.refresh.footer.loading" = "加载中…";
@@ -212,6 +221,7 @@
 "fkuikit.search.clear_label" = "清除文字";
 "fkuikit.search.cleared" = "已清除搜索";
 "fkuikit.search.loading_finished" = "搜索完成";
+"fkuikit.selection.error" = "无效";
 "fkuikit.sheet.dismiss_action" = "关闭";
 "fkuikit.sheet.dismiss_label" = "关闭";
 "fkuikit.sheet.grabber_hint" = "上下滑动以调整。";
