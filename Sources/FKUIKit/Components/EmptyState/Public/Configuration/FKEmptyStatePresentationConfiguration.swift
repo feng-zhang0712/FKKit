@@ -38,6 +38,8 @@ public struct FKEmptyStatePresentationConfiguration {
   public var announcesStateChanges: Bool
   /// Loading-phase visibility and refresh interaction rules.
   public var loadingBehavior: FKEmptyStateLoadingBehavior
+  /// Line and character limits for title, description, and loading copy.
+  public var textLimits: FKEmptyStateTextLimitsConfiguration
 
   public init(
     transition: FKEmptyStateTransition = .none,
@@ -47,7 +49,8 @@ public struct FKEmptyStatePresentationConfiguration {
     supportsTapToDismissKeyboard: Bool = true,
     adjustsPositionForKeyboard: Bool = true,
     announcesStateChanges: Bool = true,
-    loadingBehavior: FKEmptyStateLoadingBehavior = FKEmptyStateLoadingBehavior()
+    loadingBehavior: FKEmptyStateLoadingBehavior = FKEmptyStateLoadingBehavior(),
+    textLimits: FKEmptyStateTextLimitsConfiguration = FKEmptyStateTextLimitsConfiguration()
   ) {
     self.transition = transition
     self.fadeDuration = max(0, fadeDuration)
@@ -57,5 +60,6 @@ public struct FKEmptyStatePresentationConfiguration {
     self.adjustsPositionForKeyboard = adjustsPositionForKeyboard
     self.announcesStateChanges = announcesStateChanges
     self.loadingBehavior = loadingBehavior
+    self.textLimits = textLimits
   }
 }

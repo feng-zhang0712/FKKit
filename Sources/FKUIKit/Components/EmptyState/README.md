@@ -41,7 +41,8 @@ Same layering as **`Badge`**: **`Public`**, **`Internal`**, **`Extension`**, plu
 | `FKEmptyStateLayoutConfiguration.swift` | Context, density, axis, optional layout overrides |
 | `FKEmptyStateSpacingConfiguration.swift` | Per-segment stack spacing overrides |
 | `FKEmptyStateAppearanceConfiguration.swift` | Typography, buttons, background, loading chrome |
-| `FKEmptyStatePresentationConfiguration.swift` | Transitions, scroll/keyboard behavior, loading rules |
+| `FKEmptyStatePresentationConfiguration.swift` | Transitions, scroll/keyboard behavior, loading rules, text limits |
+| `FKEmptyStateTextLimitsConfiguration.swift` | Line and character caps for title, description, and loading copy |
 | `FKEmptyStateSlotConfiguration.swift` | Header/media/content/actions/footer slots |
 | `FKEmptyStateButtonStyle.swift` | Button chrome + `FKEmptyStateButtonAppearance` |
 | `FKEmptyStateButtonCornerStyle.swift` | Fixed radius vs capsule corner treatment |
@@ -158,6 +159,33 @@ case .show(let type):
 - `appearance.buttons.primary` styles the primary chrome; `appearance.buttons.secondary` / `tertiary` override bordered and plain slots
 - `appearance.buttons.primary.cornerStyle` — `.capsule` for a true pill shape, or `.fixed(radius:)` for a constant radius
 - `FKEmptyStateActionKind.link` renders an underlined text action; `isLoading` shows a button activity indicator (iOS 15+)
+- `presentation.textLimits` — line and character caps for title, description, and loading copy (defaults: title 2 lines, description 4 lines / 200 characters)
+
+### Text limits
+
+When API errors or debug strings are passed as `content.description`, apply limits so the overlay stays readable:
+
+```swift
+var config = FKEmptyStateConfiguration.scenario(.loadFailed)
+config.content.description = apiError.localizedDescription
+
+// Defaults: title 2 lines, description 4 lines + 200 characters, tail ellipsis.
+config.presentation.textLimits = FKEmptyStateTextLimitsConfiguration()
+
+// Per-field overrides:
+config.presentation.textLimits.maxDescriptionLines = 3
+config.presentation.textLimits.maxDescriptionCharacters = 120
+
+// Disable all limits (legacy unlimited display):
+config.presentation.textLimits = .unlimited
+
+// App-wide defaults at launch:
+FKEmptyState.configurePresentation {
+  $0.textLimits.maxDescriptionCharacters = 160
+}
+```
+
+VoiceOver reads the full untruncated string when `preservesFullTextForAccessibility` is `true` (default).
 
 ### Spacing
 

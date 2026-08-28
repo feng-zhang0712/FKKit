@@ -33,6 +33,11 @@ final class FKEmptyStateExamplesHubViewController: UITableViewController {
           make: { FKEmptyStateErrorRetryExampleViewController() }
         ),
         Row(
+          title: "Long API error text",
+          subtitle: "Default text limits vs unlimited for noisy backend messages",
+          make: { FKEmptyStateLongErrorTextExampleViewController() }
+        ),
+        Row(
           title: "Offline + open docs/check network",
           subtitle: "Primary retry plus custom secondary bordered styling",
           make: { FKEmptyStateOfflineExampleViewController() }

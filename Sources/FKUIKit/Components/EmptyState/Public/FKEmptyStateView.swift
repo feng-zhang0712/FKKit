@@ -516,11 +516,31 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
   private func applyLoadingPhase(model: FKEmptyStateConfiguration) {
     syncSlotContainers(with: model)
 
+    let limits = model.presentation.textLimits
+    let loadingMessageMaxLines = FKEmptyStateTextPresentation.resolvedMaxLines(
+      limits.maxLoadingMessageLines,
+      fallback: limits.maxTitleLines
+    )
+    let loadingMessageMaxCharacters = limits.maxLoadingMessageCharacters ?? limits.maxTitleCharacters
+
     let message = model.content.loadingMessage ?? model.content.title
-    titleLabel.text = message
-    titleLabel.isHidden = message?.isEmpty != false
+    applyPresentedText(
+      message,
+      to: titleLabel,
+      maxLines: loadingMessageMaxLines,
+      maxCharacters: loadingMessageMaxCharacters,
+      limits: limits
+    )
+    titleLabel.isHidden = message?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
+
     let showDesc = !model.presentation.loadingBehavior.hidesDescription && !(model.content.description?.isEmpty ?? true)
-    descriptionLabel.text = model.content.description
+    applyPresentedText(
+      showDesc ? model.content.description : nil,
+      to: descriptionLabel,
+      maxLines: limits.maxDescriptionLines,
+      maxCharacters: limits.maxDescriptionCharacters,
+      limits: limits
+    )
     descriptionLabel.isHidden = !showDesc
 
     if model.presentation.loadingBehavior.hidesImage {
@@ -584,11 +604,23 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     syncSlotContainers(with: model)
     loadingIndicator.stopAnimating()
 
-    titleLabel.text = model.content.title
-    titleLabel.isHidden = model.content.title?.isEmpty != false
-
-    descriptionLabel.text = model.content.description
-    descriptionLabel.isHidden = model.content.description?.isEmpty != false
+    let limits = model.presentation.textLimits
+    applyPresentedText(
+      model.content.title,
+      to: titleLabel,
+      maxLines: limits.maxTitleLines,
+      maxCharacters: limits.maxTitleCharacters,
+      limits: limits
+    )
+    applyPresentedText(
+      model.content.description,
+      to: descriptionLabel,
+      maxLines: limits.maxDescriptionLines,
+      maxCharacters: limits.maxDescriptionCharacters,
+      limits: limits
+    )
+    titleLabel.isHidden = model.content.title?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
+    descriptionLabel.isHidden = model.content.description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
 
     applyImageVisibility(model: model)
     applyActions(model: model)
@@ -1099,13 +1131,29 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
 
   /// Lines VoiceOver should speak, aligned with `applyLoadingPhase` / `applyContentPhase` labels.
   private func announcementLines(for model: FKEmptyStateConfiguration) -> (primary: String, secondary: String) {
+    let limits = model.presentation.textLimits
     switch model.phase {
     case .loading:
-      let primary = (model.content.loadingMessage ?? model.content.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+      let loadingMessageMaxCharacters = limits.maxLoadingMessageCharacters ?? limits.maxTitleCharacters
+      let loadingMessageMaxLines = FKEmptyStateTextPresentation.resolvedMaxLines(
+        limits.maxLoadingMessageLines,
+        fallback: limits.maxTitleLines
+      )
+      let primary = presentedAnnouncementText(
+        model.content.loadingMessage ?? model.content.title,
+        maxLines: loadingMessageMaxLines,
+        maxCharacters: loadingMessageMaxCharacters,
+        limits: limits
+      )
       let showDesc = !model.presentation.loadingBehavior.hidesDescription && !(model.content.description?.isEmpty ?? true)
       let secondary: String
-      if showDesc, let d = model.content.description {
-        secondary = d.trimmingCharacters(in: .whitespacesAndNewlines)
+      if showDesc, let description = model.content.description {
+        secondary = presentedAnnouncementText(
+          description,
+          maxLines: limits.maxDescriptionLines,
+          maxCharacters: limits.maxDescriptionCharacters,
+          limits: limits
+        )
       } else {
         secondary = ""
       }
@@ -1113,10 +1161,62 @@ public final class FKEmptyStateView: UIView, UIGestureRecognizerDelegate {
     case .content:
       return ("", "")
     case .empty, .error, .custom:
-      let primary = (model.content.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-      let secondary = (model.content.description ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+      let primary = presentedAnnouncementText(
+        model.content.title,
+        maxLines: limits.maxTitleLines,
+        maxCharacters: limits.maxTitleCharacters,
+        limits: limits
+      )
+      let secondary = presentedAnnouncementText(
+        model.content.description,
+        maxLines: limits.maxDescriptionLines,
+        maxCharacters: limits.maxDescriptionCharacters,
+        limits: limits
+      )
       return (primary, secondary)
     }
+  }
+
+  private func applyPresentedText(
+    _ raw: String?,
+    to label: UILabel,
+    maxLines: Int?,
+    maxCharacters: Int?,
+    limits: FKEmptyStateTextLimitsConfiguration
+  ) {
+    guard let presented = FKEmptyStateTextPresentation.presentedText(
+      raw,
+      maxCharacters: maxCharacters,
+      suffix: limits.truncationSuffix
+    ) else {
+      label.text = nil
+      label.numberOfLines = 0
+      label.lineBreakMode = .byTruncatingTail
+      label.accessibilityLabel = nil
+      return
+    }
+
+    label.text = presented.display
+    label.numberOfLines = FKEmptyStateTextPresentation.labelNumberOfLines(for: maxLines)
+    label.lineBreakMode = .byTruncatingTail
+    if limits.preservesFullTextForAccessibility, presented.wasTruncated {
+      label.accessibilityLabel = presented.accessibility
+    } else {
+      label.accessibilityLabel = nil
+    }
+  }
+
+  private func presentedAnnouncementText(
+    _ raw: String?,
+    maxLines: Int?,
+    maxCharacters: Int?,
+    limits: FKEmptyStateTextLimitsConfiguration
+  ) -> String {
+    FKEmptyStateTextPresentation.presentedText(
+      raw,
+      maxCharacters: maxCharacters,
+      suffix: limits.truncationSuffix
+    )?.display ?? ""
   }
 
   private func announceIfNeeded(model: FKEmptyStateConfiguration) {

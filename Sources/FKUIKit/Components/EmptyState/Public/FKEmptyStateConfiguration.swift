@@ -425,6 +425,13 @@ public extension FKEmptyStateConfiguration {
     body(&copy.presentation)
     return copy
   }
+
+  /// Returns a copy with ``FKEmptyStatePresentationConfiguration/textLimits`` replaced.
+  func withTextLimits(_ textLimits: FKEmptyStateTextLimitsConfiguration) -> Self {
+    var copy = self
+    copy.presentation.textLimits = textLimits
+    return copy
+  }
 }
 
 // MARK: - Global defaults (FKBadge-style)
