@@ -4,6 +4,29 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.77.0] - 2026-08-28
+
+### Added (FKUIKit — EmptyState)
+
+- **`FKEmptyStateTextLimitsConfiguration`** — configurable line and character caps for title, description, and loading copy (defaults: title 2 lines; description 4 lines / 200 characters).
+- Display-time truncation with optional VoiceOver full-text preservation; `.unlimited` restores legacy behavior.
+- **Examples**: Long API error text scenario comparing default limits vs unlimited.
+
+### Added (FKUIKit — Toast)
+
+- **`FKToastTextLimitsConfiguration`** — kind-aware line/character caps for message, title, and subtitle (toast / snackbar / HUD defaults).
+- **`dismissWhenPresentingScreenDisappears`** — toast and snackbar dismiss by default when the presenting screen leaves the hierarchy; HUD stays visible unless opted in.
+- **`FKToastDismissReason.hostScreenDisappeared`** for lifecycle hooks.
+- **Examples**: Long API error text and Navigation dismiss scenarios.
+
+### Fixed (FKUIKit — SearchBar / CI)
+
+- Keep `FKSearchLayoutEngine.intrinsicContentSize` callable from nonisolated tests under `SWIFT_STRICT_CONCURRENCY=complete` (return `-1` instead of `UIView.noIntrinsicMetric`).
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.77.0** (Git tag **`0.77.0`**).
+
 ## [0.76.0] - 2026-08-14
 
 ### Added (FKUIKit — SelectionControl)
