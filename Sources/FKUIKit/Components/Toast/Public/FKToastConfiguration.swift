@@ -163,6 +163,10 @@ public struct FKToastConfiguration: Sendable, Equatable {
   public var disableVisualEffectInLowPowerMode: Bool
   /// Sound behavior triggered when this request is presented.
   public var sound: FKToastSound
+  /// Line and character limits for message/title/subtitle copy. `nil` uses kind-aware defaults.
+  public var textLimits: FKToastTextLimitsConfiguration?
+  /// When `nil`, `.toast` and `.snackbar` dismiss if the presenting screen leaves the hierarchy; `.hud` persists.
+  public var dismissWhenPresentingScreenDisappears: Bool?
 
   /// Creates a configuration tuned for production overlays.
   ///
@@ -211,7 +215,9 @@ public struct FKToastConfiguration: Sendable, Equatable {
     visualEffectOpacity: CGFloat = 1,
     fallbackToSolidColorWhenReduceTransparencyEnabled: Bool = true,
     disableVisualEffectInLowPowerMode: Bool = false,
-    sound: FKToastSound = .none
+    sound: FKToastSound = .none,
+    textLimits: FKToastTextLimitsConfiguration? = nil,
+    dismissWhenPresentingScreenDisappears: Bool? = nil
   ) {
     self.kind = kind
     self.style = style
@@ -256,5 +262,20 @@ public struct FKToastConfiguration: Sendable, Equatable {
     self.fallbackToSolidColorWhenReduceTransparencyEnabled = fallbackToSolidColorWhenReduceTransparencyEnabled
     self.disableVisualEffectInLowPowerMode = disableVisualEffectInLowPowerMode
     self.sound = sound
+    self.textLimits = textLimits
+    self.dismissWhenPresentingScreenDisappears = dismissWhenPresentingScreenDisappears
+  }
+
+  /// Returns whether this request should dismiss when its presenting screen leaves the hierarchy.
+  public func resolvesDismissWhenPresentingScreenDisappears() -> Bool {
+    if let dismissWhenPresentingScreenDisappears {
+      return dismissWhenPresentingScreenDisappears
+    }
+    switch kind {
+    case .toast, .snackbar:
+      return true
+    case .hud:
+      return false
+    }
   }
 }

@@ -18,6 +18,7 @@ Same layering as **`Badge`** and **`PresentationController`**: **`Public`** (API
 |------|------|
 | `FKToast.swift` | `FKToast`, `FKToastHandle`, `FKHUD`, `FKSnackbar` — global entry points |
 | `FKToastConfiguration.swift` | `FKToastConfiguration`, queue/lifecycle/action/localization helpers |
+| `FKToastTextLimitsConfiguration.swift` | Line and character caps for message/title/subtitle copy |
 | `FKToastContent.swift` | `FKToastContent`, `FKToastBuilder`, SwiftUI builder helper |
 | `FKToastTypes.swift` | `FKToastStyle`, placement, animation, priority, dismiss reasons, symbols, blur, sound |
 
@@ -25,7 +26,9 @@ Same layering as **`Badge`** and **`PresentationController`**: **`Public`** (API
 
 | File | Role |
 |------|------|
-| `FKToastCenter.swift` | Window resolution, presentation, timers, keyboard/layout observers |
+| `FKToastCenter.swift` | Window resolution, presentation, timers, keyboard/layout/host lifecycle observers |
+| `FKToastHostTracker.swift` | Dismisses toasts when the presenting view leaves the window hierarchy |
+| `FKToastTextPresentation.swift` | Character truncation helpers for labels and announcements |
 | `FKToastPresentation.swift` | Binds one request to its view and position constraint |
 | `FKToastQueue.swift` | `FKToastQueueActor`, `FKToastRequest`, arrival policy |
 | `FKToastView.swift` | Layout, chrome, gestures, Dynamic Type labels |
@@ -96,6 +99,45 @@ Task {
 ### Custom view + VoiceOver
 
 For `customView` / SwiftUI content, set `accessibilityAnnouncementOverride` when automatic text derivation is not possible.
+
+### Text limits
+
+Long API errors are clipped at display time so toasts stay readable:
+
+```swift
+var config = FKToastConfiguration(kind: .toast, style: .error)
+config.textLimits = FKToastTextLimitsConfiguration() // toast defaults: 3 lines / 120 chars
+
+config.textLimits.maxMessageLines = 2
+config.textLimits.maxMessageCharacters = 80
+config.textLimits = .unlimited // legacy unlimited display
+```
+
+When `textLimits` is `nil`, kind-aware defaults apply (toast 3×120, snackbar 2×100, HUD 2×80).
+
+### Styling (already supported)
+
+| Need | Configuration |
+|------|----------------|
+| Corner radius | `cornerRadius` |
+| Position | `position` (`.top` / `.center` / `.bottom`) |
+| Solid color / tint | `backgroundColor`, `textColor`, `iconTintColor` |
+| Transparency / blur | `backgroundVisualEffect`, `visualEffectOpacity` |
+| Typography | `font`, `titleFont` |
+| Shadow | `showsShadow`, `shadowOpacity`, `shadowRadius`, `shadowOffset` |
+
+See **Environment** and **Snackbar** examples for blur and placement demos.
+
+### Navigation lifecycle
+
+By default, `.toast` and `.snackbar` dismiss when the presenting view controller's view leaves the window hierarchy (push, pop, tab change). HUD keeps showing until timeout or manual dismiss.
+
+```swift
+config.dismissWhenPresentingScreenDisappears = false // keep toast across navigation
+config.dismissWhenPresentingScreenDisappears = true  // explicit for HUD if needed
+```
+
+Dismiss reason: `FKToastDismissReason.hostScreenDisappeared`.
 
 ## Example app layout
 

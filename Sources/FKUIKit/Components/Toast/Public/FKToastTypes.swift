@@ -119,6 +119,8 @@ public enum FKToastDismissReason: Sendable, Equatable {
   case interruptedByPriority
   /// Closed by explicit API call.
   case manual
+  /// Presenting view controller left the window hierarchy (push, pop, tab change).
+  case hostScreenDisappeared
   /// Scene lifecycle ended.
   case sceneDestroyed
 }

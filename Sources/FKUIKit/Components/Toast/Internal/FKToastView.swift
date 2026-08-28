@@ -81,21 +81,25 @@ final class FKToastView: UIView {
       layer.shadowOpacity = 0
     }
 
+    let limits = FKToastTextPresentation.resolvedLimits(configuration.textLimits, kind: configuration.kind)
     titleLabel.font = configuration.titleFont
     titleLabel.adjustsFontForContentSizeCategory = true
     titleLabel.textColor = configuration.textColor
-    titleLabel.numberOfLines = 2
+    titleLabel.numberOfLines = FKToastTextPresentation.labelNumberOfLines(for: limits.maxTitleLines)
+    titleLabel.lineBreakMode = .byTruncatingTail
 
     subtitleLabel.font = configuration.font
     subtitleLabel.adjustsFontForContentSizeCategory = true
     subtitleLabel.textColor = configuration.textColor
-    subtitleLabel.numberOfLines = configuration.kind == .snackbar ? 2 : 0
+    subtitleLabel.numberOfLines = FKToastTextPresentation.labelNumberOfLines(for: limits.maxMessageLines)
+    subtitleLabel.lineBreakMode = .byTruncatingTail
     subtitleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
   }
 
   private func bindContent(request: FKToastRequest) {
     resetContentState()
     let configuration = request.configuration
+    let limits = FKToastTextPresentation.resolvedLimits(configuration.textLimits, kind: configuration.kind)
     if case let .customView(provider) = request.content {
       let customContentView = provider()
       customContentView.translatesAutoresizingMaskIntoConstraints = false
@@ -125,14 +129,32 @@ final class FKToastView: UIView {
 
     switch request.content {
     case let .message(message):
-      subtitleLabel.text = message
-      subtitleLabel.isHidden = message.isEmpty
+      applyPresentedText(
+        message,
+        to: subtitleLabel,
+        maxLines: limits.maxMessageLines,
+        maxCharacters: limits.maxMessageCharacters,
+        limits: limits
+      )
+      subtitleLabel.isHidden = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
       textStack.addArrangedSubview(subtitleLabel)
     case let .titleSubtitle(title, subtitle):
-      titleLabel.text = title
-      titleLabel.isHidden = title.isEmpty
-      subtitleLabel.text = subtitle
-      subtitleLabel.isHidden = subtitle.isEmpty
+      applyPresentedText(
+        title,
+        to: titleLabel,
+        maxLines: limits.maxTitleLines,
+        maxCharacters: limits.maxTitleCharacters,
+        limits: limits
+      )
+      applyPresentedText(
+        subtitle,
+        to: subtitleLabel,
+        maxLines: limits.maxSubtitleLines,
+        maxCharacters: limits.maxSubtitleCharacters,
+        limits: limits
+      )
+      titleLabel.isHidden = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      subtitleLabel.isHidden = subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
       textStack.addArrangedSubview(titleLabel)
       textStack.addArrangedSubview(subtitleLabel)
     case .customView:
@@ -163,12 +185,66 @@ final class FKToastView: UIView {
     accessibilityTraits = configuration.kind == .hud ? [.updatesFrequently] : [.staticText]
     switch request.content {
     case let .message(message):
-      accessibilityLabel = message
+      accessibilityLabel = accessibilityLabel(
+        for: message,
+        maxCharacters: limits.maxMessageCharacters,
+        limits: limits
+      ) ?? message
     case let .titleSubtitle(title, subtitle):
-      accessibilityLabel = "\(title). \(subtitle)"
+      let resolvedTitle = accessibilityLabel(
+        for: title,
+        maxCharacters: limits.maxTitleCharacters,
+        limits: limits
+      ) ?? title
+      let resolvedSubtitle = accessibilityLabel(
+        for: subtitle,
+        maxCharacters: limits.maxSubtitleCharacters,
+        limits: limits
+      ) ?? subtitle
+      accessibilityLabel = "\(resolvedTitle). \(resolvedSubtitle)"
     case .customView:
       accessibilityLabel = request.configuration.accessibilityAnnouncementOverride
     }
+  }
+
+  private func applyPresentedText(
+    _ raw: String,
+    to label: UILabel,
+    maxLines: Int?,
+    maxCharacters: Int?,
+    limits: FKToastTextLimitsConfiguration
+  ) {
+    guard let presented = FKToastTextPresentation.presentedText(
+      raw,
+      maxCharacters: maxCharacters,
+      suffix: limits.truncationSuffix
+    ) else {
+      label.text = nil
+      label.accessibilityLabel = nil
+      return
+    }
+
+    label.text = presented.display
+    label.numberOfLines = FKToastTextPresentation.labelNumberOfLines(for: maxLines)
+    if limits.preservesFullTextForAccessibility, presented.wasTruncated {
+      label.accessibilityLabel = presented.accessibility
+    } else {
+      label.accessibilityLabel = nil
+    }
+  }
+
+  private func accessibilityLabel(
+    for raw: String,
+    maxCharacters: Int?,
+    limits: FKToastTextLimitsConfiguration
+  ) -> String? {
+    guard limits.preservesFullTextForAccessibility else { return nil }
+    guard let presented = FKToastTextPresentation.presentedText(
+      raw,
+      maxCharacters: maxCharacters,
+      suffix: limits.truncationSuffix
+    ), presented.wasTruncated else { return nil }
+    return presented.accessibility
   }
 
   private func installVisualEffectIfNeeded(configuration: FKToastConfiguration) {

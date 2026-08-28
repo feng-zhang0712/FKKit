@@ -31,6 +31,16 @@ final class FKToastExamplesHubViewController: UITableViewController {
           subtitle: "Sequential vs replace-active presentation strategy",
           make: { FKToastLiveUpdateExampleViewController() }
         ),
+        Row(
+          title: "Long API error text",
+          subtitle: "Default text limits vs unlimited for noisy backend messages",
+          make: { FKToastLongErrorTextExampleViewController() }
+        ),
+        Row(
+          title: "Navigation dismiss",
+          subtitle: "Toast/snackbar auto-dismiss when the presenting screen leaves",
+          make: { FKToastNavigationDismissExampleViewController() }
+        ),
       ]
     ),
     Section(

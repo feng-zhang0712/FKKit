@@ -73,6 +73,8 @@ final class FKToastCenter {
   func dismiss(id: UUID, reason: FKToastDismissReason = .manual, animated: Bool = true) {
     guard let presentation = current[id] else { return }
     presentation.request.hooks.willDismiss?(id, reason)
+    presentation.hostTracker?.invalidate()
+    presentation.hostTracker = nil
     dismissTasks[id]?.cancel()
     dismissTasks[id] = nil
     dismissGenerations[id] = nil
@@ -217,7 +219,14 @@ final class FKToastCenter {
       positionConstraint,
     ])
 
-    let presentation = FKToastPresentation(request: request, view: toastView, resolvedPosition: resolvedPosition, positionConstraint: positionConstraint, hostWindow: window)
+    let presentation = FKToastPresentation(
+      request: request,
+      view: toastView,
+      resolvedPosition: resolvedPosition,
+      positionConstraint: positionConstraint,
+      hostWindow: window,
+      hostTracker: hostTracker(for: request, in: window)
+    )
     current[request.id] = presentation
     request.hooks.willShow?(request.id)
     playSound(request.configuration.sound)
@@ -284,17 +293,43 @@ final class FKToastCenter {
       UIAccessibility.post(notification: .announcement, argument: override)
       return
     }
+    let limits = FKToastTextPresentation.resolvedLimits(
+      request.configuration.textLimits,
+      kind: request.configuration.kind
+    )
     let text: String
     switch request.content {
     case let .message(message):
-      text = message
+      text = FKToastTextPresentation.presentedText(
+        message,
+        maxCharacters: limits.maxMessageCharacters,
+        suffix: limits.truncationSuffix
+      )?.display ?? message
     case let .titleSubtitle(title, subtitle):
-      text = "\(title). \(subtitle)"
+      let resolvedTitle = FKToastTextPresentation.presentedText(
+        title,
+        maxCharacters: limits.maxTitleCharacters,
+        suffix: limits.truncationSuffix
+      )?.display ?? title
+      let resolvedSubtitle = FKToastTextPresentation.presentedText(
+        subtitle,
+        maxCharacters: limits.maxSubtitleCharacters,
+        suffix: limits.truncationSuffix
+      )?.display ?? subtitle
+      text = "\(resolvedTitle). \(resolvedSubtitle)"
     case .customView:
       text = ""
     }
     guard !text.isEmpty else { return }
     UIAccessibility.post(notification: .announcement, argument: text)
+  }
+
+  private func hostTracker(for request: FKToastRequest, in window: UIWindow) -> FKToastHostTracker? {
+    guard request.configuration.resolvesDismissWhenPresentingScreenDisappears() else { return nil }
+    guard let host = topViewController(from: window.rootViewController) else { return nil }
+    return FKToastHostTracker(host: host, toastID: request.id) { [weak self] id in
+      self?.dismiss(id: id, reason: .hostScreenDisappeared)
+    }
   }
 
   private func dismissTopMost(reason: FKToastDismissReason, enqueueAfterDismiss request: FKToastRequest) {
