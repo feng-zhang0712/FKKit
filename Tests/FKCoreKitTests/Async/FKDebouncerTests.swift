@@ -72,17 +72,20 @@ final class FKDebouncerTests: XCTestCase {
   }
 
   func testRescheduledSignalsOnlyExecuteLatestAction() async throws {
+    // Wider interval + slack so mid-window reschedule stays reliable under CI jitter.
+    // (Previously: 50ms interval with a 30ms pause — runners often slept past the deadline.)
+    debouncer = FKDebouncer(interval: 0.2, queue: queue)
     let counter = LockedCounter()
 
     debouncer.signal {
       counter.increment()
     }
-    try await Task.sleep(nanoseconds: 30_000_000)
+    try await Task.sleep(nanoseconds: 40_000_000)
 
     debouncer.signal {
       counter.increment(by: 10)
     }
-    try await Task.sleep(nanoseconds: 80_000_000)
+    try await Task.sleep(nanoseconds: 350_000_000)
 
     XCTAssertEqual(counter.current, 10)
   }
