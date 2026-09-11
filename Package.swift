@@ -55,6 +55,7 @@ private let fkUIKitComponentDocDirectories: [String] = [
   "Components/ExpandableText",
   "Components/FlowVisualization",
   "Components/ImageView",
+  "Components/Keyboard",
   "Components/ListKit",
   "Components/MediaGallery",
   "Components/PagingController",
