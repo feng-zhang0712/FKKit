@@ -4,6 +4,22 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.78.0] - 2026-09-12
+
+### Added (FKUIKit — Keyboard)
+
+- **`FKKeyboard`** toolkit (opt-in, no global swizzle): observation (`FKKeyboardObserver` / `FKKeyboardInfo`), avoidance (`FKKeyboardAvoidanceController`), focus scrolling (`FKKeyboardFocusScroller`), form navigation (`FKKeyboardFormNavigator`), accessory toolbar (`FKKeyboardToolbar`), tap-to-dismiss (`FKKeyboardDismissController`), and `keyboardLayoutGuide` helpers (`FKKeyboardLayout`).
+- Relocate **`FKKeyboardAvoidanceStrategy`** under Keyboard; Sheet continues to use the shared type.
+- Focus defaults to **minimum movement** when the field is already clear of the keyboard; opt-in `alignsFocusedViewToKeyboard` for IQ-style pin.
+- **`alignContentRect(_:)`** for comment-list row alignment via `tableView.rectForRow(at:)`, with sticky target that does not retarget to the composer on begin-editing.
+- Restore scroll insets on keyboard hide and repair `contentOffset` after IQ-style extra top inset.
+- **Examples**: FKUIKit → Keyboard hub (observation, avoidance, layout guide, focus/form, dismiss, recipes).
+- Design spec: [`docs/FKKeyboard_DESIGN.md`](docs/FKKeyboard_DESIGN.md); component README under `Sources/FKUIKit/Components/Keyboard/`.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.78.0** (Git tag **`0.78.0`**).
+
 ## [0.77.0] - 2026-08-28
 
 ### Added (FKUIKit — EmptyState)
