@@ -482,9 +482,9 @@ public final class FKBiometricAuth: FKBiometricAuthenticating { ... }
 
 **详细设计需求：** [FKStepIndicator-FKTimeline_DESIGN.md](FKStepIndicator-FKTimeline_DESIGN.md)
 
-### 2.8 FKKeyboardToolbar
+### 2.8 FKKeyboard（含 Toolbar） — ✅
 
-`inputAccessoryView` 工具栏：上一项/下一项/完成；与 `FKTextFieldManager` 或新 `FKFormFocusCoordinator` 配合。
+系统键盘观察、避让、焦点滚动、表单上下项、`inputAccessoryView` 工具栏与点按收起。详见 [FKKeyboard_DESIGN.md](FKKeyboard_DESIGN.md)；实现于 `Sources/FKUIKit/Components/Keyboard/`；Examples 见 FKKitExamples → FKUIKit → Keyboard。
 
 
 ### 2.9 ZIP — 补全 FileManager 实现
@@ -718,7 +718,7 @@ flowchart TB
 | **F** | `FKBanner`、`FKChip`、ZIP 补全 | 通知条 + 核心修复 | Chip ✅；Banner/ZIP ⏳ |
 | **G** | `FKAvatar`、`FKCarousel`、`FKMediaGallery`、`FKFeatureFlag` 默认实现 | 富媒体 UI | Avatar/Carousel ✅；MediaGallery ⏳；FeatureFlag ⏳ |
 | **H** | `FKDatePicker`、`FKPicker`、`FKPhotoPicker` | 选择器 | PhotoPicker ✅；Date/Picker ⏳ |
-| **I** | `FKStepIndicator`、`FKTimeline`、`FKKeyboardToolbar` | 流程 + 表单 | Step/Timeline ✅；Toolbar ⏳ |
+| **I** | `FKStepIndicator`、`FKTimeline`、`FKKeyboard`（含 Toolbar） | 流程 + 表单 | ✅ |
 | **J** | Tier 3 垂直组件、`FKTheme`、`FKForm` | 打磨与专业化 | ⏳ |
 
 每个阶段应：

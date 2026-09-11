@@ -114,6 +114,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKImageViewExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "Keyboard",
+          subtitle: "Hub: observer, avoidance strategies, layout guide, focus, toolbar, dismiss, full form",
+          make: { FKKeyboardExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "ListKit",
           subtitle: "Hub: FKDiffableTable/Collection VC — refresh, pagination, empty/error/skeleton, presets, swipe, FKImageView prefetch",
           make: { FKListKitExamplesHubViewController() }
