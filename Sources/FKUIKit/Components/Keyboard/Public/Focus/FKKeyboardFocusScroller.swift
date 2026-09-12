@@ -255,8 +255,14 @@ public final class FKKeyboardFocusScroller {
       : 0
     let baselineTop =
       (insetApplier.capturedContentTop ?? scroll.contentInset.top) + safeTopContribution
-    let baselineBottom =
-      (insetApplier.capturedContentBottom ?? scroll.contentInset.bottom) + safeBottomContribution
+    // When the host layout-pins a composer (`appliesKeyboardBottomInset == false`), the pin
+    // target is the scroll view’s bounds bottom (composer top). Load-more / other
+    // `contentInset.bottom` must not be treated as keyboard-obscured height — that leaves a
+    // permanent gap between the aligned row and the composer.
+    let baselineBottom: CGFloat =
+      configuration.appliesKeyboardBottomInset
+      ? (insetApplier.capturedContentBottom ?? scroll.contentInset.bottom) + safeBottomContribution
+      : 0
 
     let settled = FKKeyboardVisibleRectScrolling.adjustment(
       for: rect,
