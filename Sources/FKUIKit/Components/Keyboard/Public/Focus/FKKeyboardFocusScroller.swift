@@ -99,17 +99,24 @@ public final class FKKeyboardFocusScroller {
     }
     guard shouldHandleKeyboardEndFrame(info.endFrameInScreen) else { return }
 
-    if alignmentRectInContent != nil || alignmentView != nil {
-      applyAlignment(using: info)
-    } else {
-      scrollFocusedViewVisible(using: info, focusedViewOverride: nil)
+    let work = { [weak self] in
+      guard let self else { return }
+      if self.alignmentRectInContent != nil || self.alignmentView != nil {
+        self.applyAlignment(using: info)
+      } else {
+        self.scrollFocusedViewVisible(using: info, focusedViewOverride: nil)
+      }
     }
+    runAlongsideKeyboard(info, work)
   }
 
   /// Scrolls the current focus target into view immediately (form-style; respects
   /// ``FKKeyboardFocusConfiguration/alignsFocusedViewToKeyboard``).
   public func scrollFocusedViewVisible(using info: FKKeyboardInfo? = nil) {
-    scrollFocusedViewVisible(using: info, focusedViewOverride: nil)
+    let resolved = info ?? (observer.current.isVisible ? observer.current : nil)
+    runAlongsideKeyboard(resolved) { [weak self] in
+      self?.scrollFocusedViewVisible(using: resolved, focusedViewOverride: nil)
+    }
   }
 
   /// Pins a **content-space** rect to the keyboard/composer (comment-cell pattern).
@@ -136,7 +143,9 @@ public final class FKKeyboardFocusScroller {
     let resolved = info ?? (observer.current.isVisible ? observer.current : nil)
     guard let resolved, resolved.isVisible else { return }
     _ = shouldHandleKeyboardEndFrame(resolved.endFrameInScreen)
-    applyAlignment(using: resolved)
+    runAlongsideKeyboard(resolved) { [weak self] in
+      self?.applyAlignment(using: resolved)
+    }
   }
 
   /// Pins `view`’s bottom edge just above the keyboard and remembers it as ``alignmentView``.
@@ -300,62 +309,27 @@ public final class FKKeyboardFocusScroller {
     let placement: FKKeyboardVisibleRectScrolling.Placement =
       configuration.alignsFocusedViewToKeyboard ? .alignContentToKeyboard : .minimumVisible
 
-    let apply = {
-      self.rootView?.layoutIfNeeded()
-      var rect = target.convert(target.bounds, to: scroll)
-      guard rect.height > 0.5 else { return }
-      rect.origin.y -= self.configuration.additionalTopInset
-      rect.size.height += self.configuration.additionalTopInset
+    var rect = target.convert(target.bounds, to: scroll)
+    guard rect.height > 0.5 else { return }
+    applyFocusAdjustment(
+      rect: rect,
+      in: scroll,
+      info: info,
+      additionalBottomInset: 0,
+      placement: placement,
+      resetInsetsBeforeApply: false
+    )
+  }
 
-      let keyboardBottom = self.resolvedKeyboardBottomInset(
-        info: info,
-        in: scroll,
-        additionalBottomInset: 0
-      )
-      let safeTopContribution = max(0, scroll.adjustedContentInset.top - scroll.contentInset.top)
-      let safeBottomContribution = max(
-        0,
-        scroll.adjustedContentInset.bottom - scroll.contentInset.bottom
-      )
-      let baselineTop =
-        (self.insetApplier.capturedContentTop ?? scroll.contentInset.top) + safeTopContribution
-      let baselineBottom =
-        (self.insetApplier.capturedContentBottom ?? scroll.contentInset.bottom) + safeBottomContribution
-
-      let settled = FKKeyboardVisibleRectScrolling.adjustment(
-        for: rect,
-        in: scroll,
-        baselineTopInset: baselineTop,
-        baselineBottomInset: baselineBottom,
-        keyboardBottomInset: keyboardBottom,
-        distanceFromKeyboard: self.configuration.keyboardDistanceFromFocusedView,
-        placement: placement
-      )
-
-      if self.configuration.appliesKeyboardBottomInset {
-        self.insetApplier.apply(
-          bottomInset: keyboardBottom,
-          extraTopInset: settled.extraTopInset,
-          to: scroll
-        )
-      } else {
-        self.insetApplier.apply(
-          bottomInset: 0,
-          extraTopInset: settled.extraTopInset,
-          to: scroll
-        )
-      }
-      if abs(settled.contentOffsetY - scroll.contentOffset.y) > 0.5 {
-        scroll.contentOffset = CGPoint(x: scroll.contentOffset.x, y: settled.contentOffsetY)
-      }
+  private func runAlongsideKeyboard(_ info: FKKeyboardInfo?, _ work: @escaping () -> Void) {
+    guard configuration.animatesAlongsideKeyboard else {
+      work()
+      return
     }
-
-    if info?.isVisible == true {
-      apply()
-    } else if configuration.animatesAlongsideKeyboard {
-      UIView.animate(withDuration: 0.25, delay: 0, options: [.beginFromCurrentState], animations: apply)
+    if let info, info.isVisible {
+      FKKeyboard.animate(alongside: info, animations: work)
     } else {
-      apply()
+      UIView.animate(withDuration: 0.25, delay: 0, options: [.beginFromCurrentState], animations: work)
     }
   }
 
@@ -390,10 +364,12 @@ public final class FKKeyboardFocusScroller {
         if let root = self.rootView, !view.isDescendant(of: root) { return }
         if self.hasAlignmentTarget { return }
         let info = self.observer.current
-        self.scrollFocusedViewVisible(
-          using: info.isVisible ? info : nil,
-          focusedViewOverride: view
-        )
+        self.runAlongsideKeyboard(info.isVisible ? info : nil) {
+          self.scrollFocusedViewVisible(
+            using: info.isVisible ? info : nil,
+            focusedViewOverride: view
+          )
+        }
       }
     }
   }

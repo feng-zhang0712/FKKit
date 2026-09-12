@@ -33,8 +33,8 @@ final class FKKeyboardExamplesHubViewController: UITableViewController {
           make: { FKKeyboardAvoidanceContentInsetsExampleViewController() }
         ),
         Row(
-          title: "Align to keyboard",
-          subtitle: "Default pin above keyboard; no forced pull-down at top",
+          title: "Minimum movement",
+          subtitle: "alignsFocusedViewToKeyboard = false (scroll only when covered)",
           make: { FKKeyboardAvoidanceAlignToKeyboardExampleViewController() }
         ),
         Row(

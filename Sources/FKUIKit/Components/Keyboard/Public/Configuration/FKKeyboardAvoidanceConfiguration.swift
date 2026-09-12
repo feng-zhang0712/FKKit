@@ -10,6 +10,9 @@ public struct FKKeyboardAvoidanceConfiguration: Equatable, Sendable {
   /// Extra bottom padding added on top of computed keyboard overlap (scroll `contentInset.bottom`).
   public var additionalBottomInset: CGFloat
 
+  /// Extra padding kept visible above the focused view inside the scroll view (default `12`).
+  public var additionalTopInset: CGFloat
+
   /// Distance kept between the focused view’s bottom and the unobscured visible bottom.
   ///
   /// Matches IQKeyboardManager’s `keyboardDistanceFromTextField` (default `10`).
@@ -34,6 +37,7 @@ public struct FKKeyboardAvoidanceConfiguration: Equatable, Sendable {
   public init(
     strategy: FKKeyboardAvoidanceStrategy = .adjustContentInsets,
     additionalBottomInset: CGFloat = 0,
+    additionalTopInset: CGFloat = 12,
     keyboardDistanceFromFocusedView: CGFloat = 10,
     subtractSafeAreaBottom: Bool = true,
     observesKeyboardAutomatically: Bool = true,
@@ -42,6 +46,7 @@ public struct FKKeyboardAvoidanceConfiguration: Equatable, Sendable {
   ) {
     self.strategy = strategy
     self.additionalBottomInset = additionalBottomInset
+    self.additionalTopInset = additionalTopInset
     self.keyboardDistanceFromFocusedView = keyboardDistanceFromFocusedView
     self.subtractSafeAreaBottom = subtractSafeAreaBottom
     self.observesKeyboardAutomatically = observesKeyboardAutomatically

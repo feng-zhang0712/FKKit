@@ -33,7 +33,7 @@ final class FKKeyboardFullFormExampleViewController: UIViewController, UITextFie
 
     stack.addArrangedSubview(FKKeyboardExampleUI.headline("Everything together"))
     stack.addArrangedSubview(FKKeyboardExampleUI.caption(
-      "Avoidance (IQ-style focus align) + toolbar/navigator + tap dismiss + footer pinned with FKKeyboardLayout."
+      "Avoidance (with built-in focus pin) + toolbar/navigator + tap dismiss + footer pinned with FKKeyboardLayout."
     ))
     for (index, field) in fields.enumerated() {
       field.delegate = self
