@@ -1,12 +1,15 @@
 import UIKit
 
 /// Scrolls a target view into the unobscured band when the keyboard appears or focus moves —
-/// minimum movement by default; optional IQ-style pin via
-/// ``FKKeyboardFocusConfiguration/alignsFocusedViewToKeyboard``.
+/// pins just above the keyboard by default (no forced pull-down when already at the top).
+/// Opt out with ``FKKeyboardFocusConfiguration/alignsFocusedViewToKeyboard`` `false` for
+/// minimum-only movement.
 ///
 /// ## Comment / reply pattern
 /// Prefer ``alignContentRect(_:toKeyboardUsing:additionalBottomInset:)`` with
 /// `tableView.rectForRow(at:)` so alignment does not depend on a reusable cell instance.
+/// That path always pins the row bottom to the keyboard/composer when reachable, and does
+/// **not** expand top inset when the list is already at the top.
 /// While an alignment rect is active, begin-editing notifications do **not** retarget scrolling
 /// to the text field.
 ///
@@ -109,11 +112,11 @@ public final class FKKeyboardFocusScroller {
     scrollFocusedViewVisible(using: info, focusedViewOverride: nil)
   }
 
-  /// Pins a **content-space** rect into the unobscured band (comment-cell pattern).
+  /// Pins a **content-space** rect to the keyboard/composer (comment-cell pattern).
   ///
-  /// Pass `tableView.rectForRow(at:)`. By default (``FKKeyboardFocusConfiguration/alignsFocusedViewToKeyboard``
-  /// `false`) only scrolls when the row would be covered — top rows that are already clear are left
-  /// alone. Set `alignsFocusedViewToKeyboard` to always pin the row bottom to the keyboard.
+  /// Pass `tableView.rectForRow(at:)`. Always adjusts `contentOffset` so the row bottom meets the
+  /// unobscured bottom when reachable (both upward and downward). Does **not** add extra top inset
+  /// when the list cannot scroll further (already at the top).
   ///
   /// When the keyboard is not yet visible, only stores the rect; scrolling runs from the next
   /// keyboard frame update.
@@ -205,14 +208,12 @@ public final class FKKeyboardFocusScroller {
     }
     guard rect.height > 0.5 else { return }
 
-    let placement: FKKeyboardVisibleRectScrolling.Placement =
-      configuration.alignsFocusedViewToKeyboard ? .alignToKeyboard : .minimumVisible
     applyFocusAdjustment(
       rect: rect,
       in: scroll,
       info: info,
       additionalBottomInset: alignmentAdditionalBottomInset,
-      placement: placement,
+      placement: .alignContentToKeyboard,
       resetInsetsBeforeApply: true
     )
   }
@@ -297,7 +298,7 @@ public final class FKKeyboardFocusScroller {
     }
 
     let placement: FKKeyboardVisibleRectScrolling.Placement =
-      configuration.alignsFocusedViewToKeyboard ? .alignToKeyboard : .minimumVisible
+      configuration.alignsFocusedViewToKeyboard ? .alignContentToKeyboard : .minimumVisible
 
     let apply = {
       self.rootView?.layoutIfNeeded()

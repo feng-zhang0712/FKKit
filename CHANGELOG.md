@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Changed (FKUIKit — Keyboard)
+
+- Focus / avoidance default to **pin focused field above the keyboard** (`alignsFocusedViewToKeyboard = true`); does not expand top inset when already at the top. Set `false` for minimum-only movement.
+
 ## [0.78.0] - 2026-09-12
 
 ### Added (FKUIKit — Keyboard)

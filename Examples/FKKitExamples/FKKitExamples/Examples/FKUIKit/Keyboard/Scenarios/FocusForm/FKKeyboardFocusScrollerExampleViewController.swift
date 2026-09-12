@@ -10,7 +10,7 @@ final class FKKeyboardFocusScrollerExampleViewController: FKKeyboardExamplePageV
     title = "Focus scroller"
     addIntro(
       title: "Scroll first responder into view",
-      body: "Default: scrolls only when the keyboard would cover the field. Set alignsFocusedViewToKeyboard to pin just above the keyboard (IQ-style). Starts on keyboard show and again when focus moves while the keyboard stays visible."
+      body: "Default: pins the focused field just above the keyboard when focus moves; does not force pull-down when already at the top. Set alignsFocusedViewToKeyboard = false for minimum-only movement."
     )
     addTallSpacer(multiplicity: 10)
     addField(title: "Name", field: FKKeyboardExampleUI.makeTextField(placeholder: "Top"))

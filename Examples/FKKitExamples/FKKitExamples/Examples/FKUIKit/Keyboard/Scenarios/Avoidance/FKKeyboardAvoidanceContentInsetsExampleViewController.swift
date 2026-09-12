@@ -12,7 +12,7 @@ final class FKKeyboardAvoidanceContentInsetsExampleViewController: FKKeyboardExa
     title = "Content insets"
     addIntro(
       title: "adjustContentInsets",
-      body: "Adds keyboard overlap to contentInset / indicator insets, then scrolls only when the focused field would be covered (default). Enable alignsFocusedViewToKeyboard to always pin to the keyboard. Switch fields while the keyboard is up — the scroller should follow when needed."
+      body: "Default: pins the focused field just above the keyboard when focus moves (no forced pull-down at the top). Set alignsFocusedViewToKeyboard = false for minimum-only movement. Switch fields while the keyboard is up — the scroller follows."
     )
     contentStack.addArrangedSubview(metrics)
     addTallSpacer(multiplicity: 6)

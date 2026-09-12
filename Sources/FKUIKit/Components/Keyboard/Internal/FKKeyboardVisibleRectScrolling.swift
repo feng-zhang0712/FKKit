@@ -24,8 +24,11 @@ enum FKKeyboardVisibleRectScrolling {
     /// `distanceFromKeyboard`); leave offset unchanged when already clear.
     case minimumVisible
     /// Pin `rect.maxY` just above the obscured bottom (IQKeyboardManager-like), even if
-    /// the field was already fully visible.
+    /// the field was already fully visible. May expand temporary top inset for short content.
     case alignToKeyboard
+    /// Comment-row pin: always move offset so `rect.maxY` meets the obscured bottom when
+    /// reachable, but **never** expand top inset (no downward pull when already at the top).
+    case alignContentToKeyboard
   }
 
   /// Computes extra top inset + offset so `rect` sits correctly in the visible band.
@@ -80,22 +83,55 @@ enum FKKeyboardVisibleRectScrolling {
       return Adjustment(extraTopInset: extraTopInset, contentOffsetY: offsetY)
 
     case .alignToKeyboard:
-      let visibleHeight = boundsHeight - baselineTopInset - bottomInset
-      guard visibleHeight > 0 else {
-        return Adjustment(extraTopInset: 0, contentOffsetY: scroll.contentOffset.y)
-      }
+      return pinToKeyboard(
+        rect: rect,
+        currentOffsetY: scroll.contentOffset.y,
+        boundsHeight: boundsHeight,
+        contentHeight: contentHeight,
+        baselineTopInset: baselineTopInset,
+        bottomInset: bottomInset,
+        distanceFromKeyboard: distanceFromKeyboard,
+        allowsExtraTopInset: true
+      )
 
-      let idealOffsetY: CGFloat
-      if rect.height + distanceFromKeyboard >= visibleHeight {
-        // Tall field: pin top into the visible band.
-        idealOffsetY = rect.minY - baselineTopInset
-      } else {
-        // Sit just above the keyboard / obscured bottom (IQ default).
-        idealOffsetY = rect.maxY + distanceFromKeyboard + bottomInset - boundsHeight
-      }
+    case .alignContentToKeyboard:
+      return pinToKeyboard(
+        rect: rect,
+        currentOffsetY: scroll.contentOffset.y,
+        boundsHeight: boundsHeight,
+        contentHeight: contentHeight,
+        baselineTopInset: baselineTopInset,
+        bottomInset: bottomInset,
+        distanceFromKeyboard: distanceFromKeyboard,
+        allowsExtraTopInset: false
+      )
+    }
+  }
 
-      // Allow scrolling “past” the natural top so short content can still pull the field down.
-      let naturalMinOffsetY = -baselineTopInset
+  private static func pinToKeyboard(
+    rect: CGRect,
+    currentOffsetY: CGFloat,
+    boundsHeight: CGFloat,
+    contentHeight: CGFloat,
+    baselineTopInset: CGFloat,
+    bottomInset: CGFloat,
+    distanceFromKeyboard: CGFloat,
+    allowsExtraTopInset: Bool
+  ) -> Adjustment {
+    let visibleHeight = boundsHeight - baselineTopInset - bottomInset
+    guard visibleHeight > 0 else {
+      return Adjustment(extraTopInset: 0, contentOffsetY: currentOffsetY)
+    }
+
+    let idealOffsetY: CGFloat
+    if rect.height + distanceFromKeyboard >= visibleHeight {
+      idealOffsetY = rect.minY - baselineTopInset
+    } else {
+      idealOffsetY = rect.maxY + distanceFromKeyboard + bottomInset - boundsHeight
+    }
+
+    let naturalMinOffsetY = -baselineTopInset
+    if allowsExtraTopInset {
       let extraTopInset = max(0, naturalMinOffsetY - idealOffsetY)
       let topInset = baselineTopInset + extraTopInset
       let minOffsetY = -topInset
@@ -103,6 +139,12 @@ enum FKKeyboardVisibleRectScrolling {
       let offsetY = min(max(idealOffsetY, minOffsetY), maxOffsetY)
       return Adjustment(extraTopInset: extraTopInset, contentOffsetY: offsetY)
     }
+
+    // Comment / reply lists: clamp only — do not pull past the natural top.
+    let minOffsetY = naturalMinOffsetY
+    let maxOffsetY = max(minOffsetY, contentHeight + bottomInset - boundsHeight)
+    let offsetY = min(max(idealOffsetY, minOffsetY), maxOffsetY)
+    return Adjustment(extraTopInset: 0, contentOffsetY: offsetY)
   }
 
   /// Applies a previously computed ``Adjustment`` to `scroll` (offset only; insets must already match).
