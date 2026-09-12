@@ -4,9 +4,15 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.78.3] - 2026-09-12
+
 ### Fixed (FKUIKit — Keyboard)
 
 - When ``FKKeyboardFocusConfiguration/appliesKeyboardBottomInset`` is `false` (composer layout-pinned), focus / `alignContentRect` geometry no longer treats scroll-view `contentInset.bottom` (e.g. load-more footer) as obscured height — row bottom pins to the scroll bounds / composer top.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.78.3** (Git tag **`0.78.3`**).
 
 ## [0.78.2] - 2026-09-12
 
