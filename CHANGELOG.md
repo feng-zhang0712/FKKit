@@ -4,9 +4,17 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.78.1] - 2026-09-12
+
 ### Changed (FKUIKit — Keyboard)
 
 - Focus / avoidance default to **pin focused field above the keyboard** (`alignsFocusedViewToKeyboard = true`); does not expand top inset when already at the top. Set `false` for minimum-only movement.
+- Comment-row `alignContentRect` always pins the row bottom to the keyboard/composer when reachable (offset moves both ways) without forced pull-down at the top.
+- Add internal `Placement.alignContentToKeyboard` for bounded pin alignment shared by focus scrolling and comment-cell paths.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.78.1** (Git tag **`0.78.1`**).
 
 ## [0.78.0] - 2026-09-12
 
