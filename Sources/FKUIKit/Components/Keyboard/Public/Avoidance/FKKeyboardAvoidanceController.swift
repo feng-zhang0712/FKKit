@@ -7,8 +7,8 @@ import UIKit
 ///
 /// ## Strategy resolution
 /// - ``FKKeyboardAvoidanceStrategy/adjustContentInsets`` — mutates scroll insets and, when
-///   configured, scrolls the first responder into the unobscured band (minimum movement by
-///   default; optional IQ-style pin via ``FKKeyboardAvoidanceConfiguration/alignsFocusedViewToKeyboard``).
+///   configured, pins the first responder just above the keyboard by default (no forced
+///   pull-down at the top; opt out via ``FKKeyboardAvoidanceConfiguration/alignsFocusedViewToKeyboard``).
 /// - ``FKKeyboardAvoidanceStrategy/adjustContainer`` / ``FKKeyboardAvoidanceStrategy/interactive`` —
 ///   translates a **non-scrolling** container just enough for the first responder (or container
 ///   bottom) to clear the keyboard.
@@ -204,7 +204,7 @@ public final class FKKeyboardAvoidanceController {
       rect.origin.y -= topPad
       rect.size.height += topPad
       let placement: FKKeyboardVisibleRectScrolling.Placement =
-        configuration.alignsFocusedViewToKeyboard ? .alignToKeyboard : .minimumVisible
+        configuration.alignsFocusedViewToKeyboard ? .alignContentToKeyboard : .minimumVisible
       let planned = FKKeyboardVisibleRectScrolling.adjustment(
         for: rect,
         in: scroll,

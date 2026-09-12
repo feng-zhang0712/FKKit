@@ -99,7 +99,7 @@ final class FKKeyboardAlignCellToKeyboardExampleViewController: UIViewController
 
     let body = UILabel()
     body.text =
-      "Tap a comment row. Scrolls only when that row would be covered by the composer/keyboard — top rows that are already clear do not move. Set alignsFocusedViewToKeyboard to force pin-to-keyboard."
+      "Tap a comment row. The list offset updates so that row’s bottom aligns to the composer/keyboard (up or down). Rows already at the top are not pulled further with extra top inset."
     body.font = .preferredFont(forTextStyle: .footnote)
     body.textColor = .secondaryLabel
     body.numberOfLines = 0

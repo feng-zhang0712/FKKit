@@ -105,13 +105,13 @@ dismiss.start()
 
 - **Scroll views** always use content-inset avoidance (even if you pass `.adjustContainer` / `.interactive`). Transforming a full-screen `UIScrollView` lifts the whole viewport and creates a blank band above the keyboard.
 - **Fixed cards** should set `containerView` to the card and use `.adjustContainer` / `.interactive`; lift distance is based on the first responder when present.
-- Focus scrolling defaults to **minimum movement**: only adjusts offset when the keyboard would cover the focused field (or violate `keyboardDistanceFromFocusedView`). Set `alignsFocusedViewToKeyboard = true` for IQKeyboardManager-like pinning. Short content still gets a temporary **top** inset when a reveal requires it. Overlap for bottom inset is measured in the **scroll view** bounds so a `FKKeyboardLayout`-pinned footer is not double-counted.
-- **Comment / reply lists:** call ``FKKeyboardFocusScroller/alignContentRect(_:toKeyboardUsing:additionalBottomInset:)`` with `tableView.rectForRow(at:)` (preferred over a reusable cell). That keeps a sticky content rect so begin-editing on the composer does not steal the target. Prefer pinning the composer with ``FKKeyboardLayout`` and `appliesKeyboardBottomInset = false` so inset ownership stays clear.
+- Focus scrolling **pins** the focused field just above the keyboard by default when focus or keyboard frame changes. Does **not** expand top inset when already scrolled to the top. Set `alignsFocusedViewToKeyboard = false` for minimum-only movement. Overlap for bottom inset is measured in the **scroll view** bounds so a `FKKeyboardLayout`-pinned footer is not double-counted.
+- **Comment / reply lists:** call ``FKKeyboardFocusScroller/alignContentRect(_:toKeyboardUsing:additionalBottomInset:)`` with `tableView.rectForRow(at:)` (preferred over a reusable cell). Always pins the row bottom to the keyboard/composer when reachable (offset moves both ways); does not expand top inset when already at the top. Sticky content rect so begin-editing on the composer does not steal the target. Prefer pinning the composer with ``FKKeyboardLayout`` and `appliesKeyboardBottomInset = false` so inset ownership stays clear.
 - Prefer ``FKKeyboardAvoidanceController``’s built-in focus scroll for forms. Use ``FKKeyboardFocusScroller`` when you need focus scrolling **without** a separate avoidance owner — do not stack both on the same scroll view (they each manage insets).
 
 ## Notes
 
-- **Not** a drop-in IQKeyboardManager replacement (no global install / swizzle) — hosts start/stop controllers explicitly. IQ-style pin is opt-in via `alignsFocusedViewToKeyboard` or `alignBottom(of:)`.
+- **Not** a drop-in IQKeyboardManager replacement (no global install / swizzle) — hosts start/stop controllers explicitly. Pin-to-keyboard is the default; use `alignsFocusedViewToKeyboard = false` for minimum-only scrolls.
 - Custom `inputView` keyboards are out of scope; attach them on TextField and reuse `FKKeyboardObserver` if needed.
 - Sheet presentation continues to use `FKKeyboardAvoidanceStrategy`; a later migration will share Internal appliers.
 

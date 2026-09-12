@@ -25,9 +25,9 @@ public struct FKKeyboardAvoidanceConfiguration: Equatable, Sendable {
   /// in the unobscured band (see ``alignsFocusedViewToKeyboard``).
   public var scrollsFocusedViewIntoVisibleArea: Bool
 
-  /// When `true`, pins the focused field just above the keyboard (IQKeyboardManager-like), even if
-  /// it was already fully visible. When `false` (default), only scrolls the minimum amount needed
-  /// when the keyboard would cover the field (or violate ``keyboardDistanceFromFocusedView``).
+  /// When `true` (default), pins the focused field just above the keyboard whenever focus moves.
+  /// Does **not** expand top inset when the scroll view is already at the top. When `false`, only
+  /// scrolls the minimum amount needed if the field would be covered.
   public var alignsFocusedViewToKeyboard: Bool
 
   /// Creates an avoidance configuration.
@@ -38,7 +38,7 @@ public struct FKKeyboardAvoidanceConfiguration: Equatable, Sendable {
     subtractSafeAreaBottom: Bool = true,
     observesKeyboardAutomatically: Bool = true,
     scrollsFocusedViewIntoVisibleArea: Bool = true,
-    alignsFocusedViewToKeyboard: Bool = false
+    alignsFocusedViewToKeyboard: Bool = true
   ) {
     self.strategy = strategy
     self.additionalBottomInset = additionalBottomInset

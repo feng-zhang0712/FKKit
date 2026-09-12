@@ -12,9 +12,9 @@ public struct FKKeyboardFocusConfiguration: Equatable, Sendable {
   /// Matches IQKeyboardManager’s `keyboardDistanceFromTextField` (default `10`).
   public var keyboardDistanceFromFocusedView: CGFloat
 
-  /// When `true`, positions the focused field just above the keyboard even if it was already
-  /// visible (IQKeyboardManager-like). When `false` (default), only scrolls when the keyboard
-  /// would cover the field (or violate ``keyboardDistanceFromFocusedView``).
+  /// When `true` (default), pins the focused field just above the keyboard whenever focus or
+  /// keyboard frame changes. Does **not** expand top inset when the scroll view is already at the
+  /// top. When `false`, only scrolls the minimum amount needed if the field would be covered.
   public var alignsFocusedViewToKeyboard: Bool
 
   /// When `true`, scrolling uses the keyboard animation duration / curve when available.
@@ -33,7 +33,7 @@ public struct FKKeyboardFocusConfiguration: Equatable, Sendable {
   public init(
     additionalTopInset: CGFloat = 12,
     keyboardDistanceFromFocusedView: CGFloat = 10,
-    alignsFocusedViewToKeyboard: Bool = false,
+    alignsFocusedViewToKeyboard: Bool = true,
     animatesAlongsideKeyboard: Bool = true,
     observesKeyboardAutomatically: Bool = true,
     appliesKeyboardBottomInset: Bool = true

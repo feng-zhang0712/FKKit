@@ -1,7 +1,7 @@
 import UIKit
 import FKUIKit
 
-/// Opt-in IQ-style pin: ``FKKeyboardAvoidanceConfiguration/alignsFocusedViewToKeyboard``.
+/// Default pin-to-keyboard (no forced pull-down when already at the top).
 final class FKKeyboardAvoidanceAlignToKeyboardExampleViewController: FKKeyboardExamplePageViewController {
   private var avoidance: FKKeyboardAvoidanceController?
 
@@ -9,19 +9,16 @@ final class FKKeyboardAvoidanceAlignToKeyboardExampleViewController: FKKeyboardE
     super.viewDidLoad()
     title = "Align to keyboard"
     addIntro(
-      title: "alignsFocusedViewToKeyboard = true",
-      body: "Pins the focused field just above the keyboard even when it was already fully visible (IQKeyboardManager-like). Default avoidance uses minimum movement instead — compare with Content insets / External observer feed."
+      title: "Pin focused field to keyboard",
+      body: "Default: switching fields always adjusts offset so the field sits just above the keyboard. Fields already at the top are not pulled further down with extra top inset."
     )
     addTallSpacer(multiplicity: 5)
-    addField(title: "Field", field: FKKeyboardExampleUI.makeTextField(placeholder: "Already clear of the keyboard"))
+    addField(title: "Field", field: FKKeyboardExampleUI.makeTextField(placeholder: "Tap fields above/below"))
     addTallSpacer(multiplicity: 4)
 
     let controller = FKKeyboardAvoidanceController(
       hostView: view,
-      configuration: .init(
-        strategy: .adjustContentInsets,
-        alignsFocusedViewToKeyboard: true
-      )
+      configuration: .init(strategy: .adjustContentInsets)
     )
     controller.scrollView = scrollView
     avoidance = controller
