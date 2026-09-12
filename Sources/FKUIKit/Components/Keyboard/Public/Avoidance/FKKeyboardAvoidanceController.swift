@@ -174,8 +174,6 @@ public final class FKKeyboardAvoidanceController {
     }
 
     // Keyboard dismissed: restore captured insets and repair contentOffset.
-    // Do **not** run align-to-keyboard with overlap 0 — that re-applies extra top inset and
-    // pins the field to the bottom of the screen (blank band above), matching the stuck demo.
     guard info.isVisible else {
       insetApplier.restore(to: scroll)
       lastInsetScrollView = nil
@@ -199,7 +197,7 @@ public final class FKKeyboardAvoidanceController {
     {
       // Top padding only on the rect; keyboard gap is `keyboardDistanceFromFocusedView`
       // (do not bake the gap into `rect` or it is double-counted).
-      let topPad: CGFloat = 12
+      let topPad = configuration.additionalTopInset
       var rect = focused.convert(focused.bounds, to: scroll)
       rect.origin.y -= topPad
       rect.size.height += topPad
@@ -301,13 +299,13 @@ public final class FKKeyboardAvoidanceController {
       let animations = {
         self.applyContentInsets(to: scroll, info: info, focusedView: view)
       }
-      UIView.animate(withDuration: 0.25, delay: 0, options: [.beginFromCurrentState], animations: animations)
+      FKKeyboard.animate(alongside: info, animations: animations)
 
     case .translateContainer(let target):
       let animations = {
         self.applyContainerTranslation(info: info, to: target, in: host, focusedView: view)
       }
-      UIView.animate(withDuration: 0.25, delay: 0, options: [.beginFromCurrentState], animations: animations)
+      FKKeyboard.animate(alongside: info, animations: animations)
 
     case .none:
       break

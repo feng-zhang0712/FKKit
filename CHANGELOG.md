@@ -4,6 +4,13 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+### Changed (FKUIKit — Keyboard)
+
+- Remove unused IQ-style `Placement.alignToKeyboard` (extra top inset); pin path is only `alignContentToKeyboard`.
+- Honor `animatesAlongsideKeyboard` with ``FKKeyboard/animate(alongside:animations:completion:)`` on focus/avoidance begin-editing and keyboard updates.
+- Add ``FKKeyboardAvoidanceConfiguration/additionalTopInset`` (default `12`) instead of a hardcoded pad.
+- Sync design doc and Examples (minimum-movement scenario) with shipped pin-default behavior.
+
 ## [0.78.1] - 2026-09-12
 
 ### Changed (FKUIKit — Keyboard)

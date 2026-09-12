@@ -5,9 +5,9 @@ import UIKit
 /// System `scrollRectToVisible` ignores keyboard-driven `contentInset`, so a field in the
 /// obscured band is treated as already visible. This helper:
 /// 1. Scrolls only when needed (``Placement/minimumVisible``), or pins to the keyboard
-///    (``Placement/alignToKeyboard``).
-/// 2. Reports how much **extra top inset** is required when content is too short to reveal
-///    the field (IQKeyboardManager-style scroll-view content-inset expansion).
+///    (``Placement/alignContentToKeyboard``).
+/// 2. For ``Placement/minimumVisible`` only, reports how much **extra top inset** is required when
+///    content is too short to reveal the field.
 @MainActor
 enum FKKeyboardVisibleRectScrolling {
   /// Result of computing a reveal for a focused rect.
@@ -23,11 +23,8 @@ enum FKKeyboardVisibleRectScrolling {
     /// Scroll only when `rect` would leave the unobscured band (including
     /// `distanceFromKeyboard`); leave offset unchanged when already clear.
     case minimumVisible
-    /// Pin `rect.maxY` just above the obscured bottom (IQKeyboardManager-like), even if
-    /// the field was already fully visible. May expand temporary top inset for short content.
-    case alignToKeyboard
-    /// Comment-row pin: always move offset so `rect.maxY` meets the obscured bottom when
-    /// reachable, but **never** expand top inset (no downward pull when already at the top).
+    /// Always move offset so `rect.maxY` meets the obscured bottom when reachable, but
+    /// **never** expand top inset (no downward pull when already at the top).
     case alignContentToKeyboard
   }
 
@@ -36,7 +33,6 @@ enum FKKeyboardVisibleRectScrolling {
   /// - Parameters:
   ///   - rect: Focused view bounds in scroll-view content coordinates (padding already applied).
   ///   - scroll: Target scroll view.
-  ///   - bottomObscured: Keyboard (and related) obstruction height inside the scroll view.
   ///   - baselineTopInset: Scroll view top inset **without** keyboard extra-top (captured original
   ///     `contentInset.top`, optionally plus safe-area contribution already reflected by caller).
   ///   - baselineBottomInset: Scroll view bottom inset **without** keyboard bottom overlap.
@@ -82,69 +78,25 @@ enum FKKeyboardVisibleRectScrolling {
       offsetY = min(max(offsetY, minOffsetY), maxOffsetY)
       return Adjustment(extraTopInset: extraTopInset, contentOffsetY: offsetY)
 
-    case .alignToKeyboard:
-      return pinToKeyboard(
-        rect: rect,
-        currentOffsetY: scroll.contentOffset.y,
-        boundsHeight: boundsHeight,
-        contentHeight: contentHeight,
-        baselineTopInset: baselineTopInset,
-        bottomInset: bottomInset,
-        distanceFromKeyboard: distanceFromKeyboard,
-        allowsExtraTopInset: true
-      )
-
     case .alignContentToKeyboard:
-      return pinToKeyboard(
-        rect: rect,
-        currentOffsetY: scroll.contentOffset.y,
-        boundsHeight: boundsHeight,
-        contentHeight: contentHeight,
-        baselineTopInset: baselineTopInset,
-        bottomInset: bottomInset,
-        distanceFromKeyboard: distanceFromKeyboard,
-        allowsExtraTopInset: false
-      )
-    }
-  }
+      let visibleHeight = boundsHeight - baselineTopInset - bottomInset
+      guard visibleHeight > 0 else {
+        return Adjustment(extraTopInset: 0, contentOffsetY: scroll.contentOffset.y)
+      }
 
-  private static func pinToKeyboard(
-    rect: CGRect,
-    currentOffsetY: CGFloat,
-    boundsHeight: CGFloat,
-    contentHeight: CGFloat,
-    baselineTopInset: CGFloat,
-    bottomInset: CGFloat,
-    distanceFromKeyboard: CGFloat,
-    allowsExtraTopInset: Bool
-  ) -> Adjustment {
-    let visibleHeight = boundsHeight - baselineTopInset - bottomInset
-    guard visibleHeight > 0 else {
-      return Adjustment(extraTopInset: 0, contentOffsetY: currentOffsetY)
-    }
+      let idealOffsetY: CGFloat
+      if rect.height + distanceFromKeyboard >= visibleHeight {
+        idealOffsetY = rect.minY - baselineTopInset
+      } else {
+        idealOffsetY = rect.maxY + distanceFromKeyboard + bottomInset - boundsHeight
+      }
 
-    let idealOffsetY: CGFloat
-    if rect.height + distanceFromKeyboard >= visibleHeight {
-      idealOffsetY = rect.minY - baselineTopInset
-    } else {
-      idealOffsetY = rect.maxY + distanceFromKeyboard + bottomInset - boundsHeight
-    }
-
-    let naturalMinOffsetY = -baselineTopInset
-    if allowsExtraTopInset {
-      let extraTopInset = max(0, naturalMinOffsetY - idealOffsetY)
-      let topInset = baselineTopInset + extraTopInset
-      let minOffsetY = -topInset
+      // Clamp only — do not pull past the natural top.
+      let minOffsetY = -baselineTopInset
       let maxOffsetY = max(minOffsetY, contentHeight + bottomInset - boundsHeight)
       let offsetY = min(max(idealOffsetY, minOffsetY), maxOffsetY)
-      return Adjustment(extraTopInset: extraTopInset, contentOffsetY: offsetY)
+      return Adjustment(extraTopInset: 0, contentOffsetY: offsetY)
     }
-
-    // Comment / reply lists: clamp only — do not pull past the natural top.
-    let minOffsetY = naturalMinOffsetY
-    let maxOffsetY = max(minOffsetY, contentHeight + bottomInset - boundsHeight)
-    let offsetY = min(max(idealOffsetY, minOffsetY), maxOffsetY)
-    return Adjustment(extraTopInset: 0, contentOffsetY: offsetY)
   }
 
   /// Applies a previously computed ``Adjustment`` to `scroll` (offset only; insets must already match).

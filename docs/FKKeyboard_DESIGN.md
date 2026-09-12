@@ -226,12 +226,13 @@ Default: `overlap = max(0, intersectionHeight - safeAreaInsets.bottom) + additio
 
 When keyboard info changes, editing begins, or on demand:
 
-1. Resolve target: ``alignmentView`` (sticky), else explicit ``focusedView``, else `rootView.fk_findFirstResponder()`.
+1. Resolve target: sticky ``alignmentRectInContent`` / ``alignmentView``, else explicit ``focusedView``, else `rootView.fk_findFirstResponder()`.
 2. Convert target bounds to scroll view content space.
-3. By default, scroll the **minimum** amount so the field stays in the unobscured band (`keyboardDistanceFromFocusedView`). When already clear of the keyboard, **do not** move content.
-4. Opt-in `alignsFocusedViewToKeyboard` pins the field just above the keyboard (IQ-style), even if it was already visible; expand temporary **top** `contentInset` when content is too short.
-5. **Comment / reply:** ``alignBottom(of:toKeyboardUsing:additionalBottomInset:)`` sets ``alignmentView`` and always uses align-to-keyboard placement. Begin-editing does not retarget away from ``alignmentView``. Pair with ``FKKeyboardLayout`` for the composer; set `appliesKeyboardBottomInset = false` when the scroll view is already pinned above the composer.
-6. No-op if target is not inside the scroll view.
+3. By default (`alignsFocusedViewToKeyboard = true`), **pin** the field just above the keyboard whenever focus or keyboard frame changes. Do **not** expand temporary top inset when the scroll view is already at the top.
+4. Opt out with `alignsFocusedViewToKeyboard = false` for **minimum** movement only when the field would be covered (or violate `keyboardDistanceFromFocusedView`).
+5. **Comment / reply:** ``alignContentRect(_:toKeyboardUsing:additionalBottomInset:)`` (preferred) or ``alignBottom(of:toKeyboardUsing:additionalBottomInset:)`` always pins without top-inset expansion. Begin-editing does not retarget away from the alignment target. Pair with ``FKKeyboardLayout`` for the composer; set `appliesKeyboardBottomInset = false` when the scroll view is already pinned above the composer.
+6. When `animatesAlongsideKeyboard` is `true`, apply inset/offset changes with ``FKKeyboard/animate(alongside:animations:completion:)`` using the keyboard duration/curve.
+7. No-op if target is not inside the scroll view.
 
 Reuse `UIView.fk_findFirstResponder` from FKCoreKit. Prefer ``FKKeyboardAvoidanceController``’s built-in focus scroll when that controller already owns scroll insets; do not stack ``FKKeyboardFocusScroller`` on the same scroll view.
 
@@ -242,7 +243,7 @@ Reuse `UIView.fk_findFirstResponder` from FKCoreKit. Prefer ``FKKeyboardAvoidanc
 `FKKeyboardFormNavigator`:
 
 - Maintains an ordered list of focusable views (`UITextField` / `UITextView` / any `UIView` that can become first responder).
-- `focusPrevious()` / `focusNext()` / `resignFirstResponder()` (done).
+- `focusPrevious()` / `focusNext()` / `resignFocus()` (done).
 - Exposes `canGoPrevious` / `canGoNext` for toolbar enabling.
 - Optional auto-discovery of text inputs under a root view (stable DFS order).
 
@@ -416,3 +417,4 @@ Grouped hub sections cover observation, avoidance strategies, layout guide, focu
 | 2026-09-12 | Finishing pass: Examples marked shipped; IQ-style focus align + short-content top inset; docs/API cleanup. |
 | 2026-09-12 | Focus scroll default: minimum movement when already clear of keyboard; `alignsFocusedViewToKeyboard` opt-in for IQ pin. |
 | 2026-09-12 | `alignBottom(of:)` + sticky `alignmentView` for comment-cell ↔ keyboard alignment; `appliesKeyboardBottomInset`. |
+| 2026-09-12 | Pin-to-keyboard becomes default (`alignsFocusedViewToKeyboard = true`) without forced top pull-down; `alignContentRect`; remove dead IQ extra-top pin path. |

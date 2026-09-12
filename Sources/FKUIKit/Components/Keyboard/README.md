@@ -23,7 +23,7 @@ Paths live under `Sources/FKUIKit/Components/Keyboard/`.
 | `Configuration/*` | Sendable / Equatable configuration structs |
 | `Avoidance/FKKeyboardAvoidanceController.swift` | Inset or translate avoidance |
 | `Focus/FKKeyboardFormNavigator.swift` | Previous / next / done, Return handling, focus tracking |
-| `Focus/FKKeyboardFocusScroller.swift` | Scroll first responder or ``alignBottom(of:)`` sticky cell into view |
+| `Focus/FKKeyboardFocusScroller.swift` | Scroll first responder or ``alignContentRect`` / ``alignBottom(of:)`` into view |
 | `Toolbar/FKKeyboardToolbar.swift` | `inputAccessoryView` toolbar + batch install |
 | `Dismiss/FKKeyboardDismissController.swift` | Tap outside to dismiss |
 | `Layout/FKKeyboardLayout.swift` | Pin bottoms to `keyboardLayoutGuide` |
@@ -35,7 +35,7 @@ Paths live under `Sources/FKUIKit/Components/Keyboard/`.
 | `FKKeyboardNotificationParsing.swift` | `userInfo` → `FKKeyboardInfo` |
 | `FKKeyboardEditingObservation.swift` | Begin-editing notifications for fields |
 | `FKKeyboardScrollInsetApplier.swift` | Capture / restore scroll insets |
-| `FKKeyboardVisibleRectScrolling.swift` | IQ-style inset-aware focus alignment + short-content top inset |
+| `FKKeyboardVisibleRectScrolling.swift` | Focus alignment: pin-to-keyboard (default) or minimum-visible; short-content top inset only for minimum mode |
 | `FKKeyboardScrollViewDiscovery.swift` | Primary scroll-view DFS |
 
 ## API overview
