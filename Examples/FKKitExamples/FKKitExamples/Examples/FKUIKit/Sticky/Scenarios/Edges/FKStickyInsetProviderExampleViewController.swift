@@ -2,14 +2,19 @@ import FKUIKit
 import UIKit
 
 /// Demonstrates static stickyInset and dynamic stickyInsetProvider.
+///
+/// Chrome **overlays** the scroll view. A top spacer keeps content readable; the provider
+/// returns the chrome height so the stuck strip pins flush under the chrome (no double inset).
 final class FKStickyInsetProviderExampleViewController: UIViewController {
   private let chromeView = UIView()
   private let scrollView = UIScrollView()
   private let contentStack = UIStackView()
+  private let topSpacer = UIView()
   private let statusLabel = FKStickyExampleUI.statusLabel()
   private let strip = FKStickyExampleUI.makeStrip(title: "Under chrome", backgroundColor: .systemOrange)
   private var chromeHeight: CGFloat = 0
   private var chromeHeightConstraint: NSLayoutConstraint?
+  private var topSpacerHeightConstraint: NSLayoutConstraint?
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -18,6 +23,7 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
 
     chromeView.backgroundColor = .systemGray5
     chromeView.translatesAutoresizingMaskIntoConstraints = false
+    chromeView.isHidden = true
     let chromeLabel = UILabel()
     chromeLabel.text = "Simulated nav chrome"
     chromeLabel.font = .preferredFont(forTextStyle: .subheadline)
@@ -28,11 +34,18 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
     scrollView.alwaysBounceVertical = true
     scrollView.contentInsetAdjustmentBehavior = .never
     contentStack.axis = .vertical
+    contentStack.alignment = .fill
     contentStack.spacing = 12
     contentStack.translatesAutoresizingMaskIntoConstraints = false
 
-    view.addSubview(chromeView)
+    topSpacer.translatesAutoresizingMaskIntoConstraints = false
+    let spacerHeight = topSpacer.heightAnchor.constraint(equalToConstant: 0)
+    topSpacerHeightConstraint = spacerHeight
+    spacerHeight.isActive = true
+
+    // Scroll fills under the nav; chrome overlays it. Provider == chrome height → flush pin.
     view.addSubview(scrollView)
+    view.addSubview(chromeView)
     view.addSubview(statusLabel)
     scrollView.addSubview(contentStack)
 
@@ -41,17 +54,17 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
     let height = chromeView.heightAnchor.constraint(equalToConstant: 0)
     chromeHeightConstraint = height
     NSLayoutConstraint.activate([
+      scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
       chromeView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
       chromeView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       chromeView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       height,
       chromeLabel.centerXAnchor.constraint(equalTo: chromeView.centerXAnchor),
       chromeLabel.centerYAnchor.constraint(equalTo: chromeView.centerYAnchor),
-
-      scrollView.topAnchor.constraint(equalTo: chromeView.bottomAnchor),
-      scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
       contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 16),
       contentStack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 16),
@@ -63,10 +76,11 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
       statusLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
     ])
 
+    contentStack.addArrangedSubview(topSpacer)
     contentStack.addArrangedSubview(FKStickyExampleUI.headline("stickyInset + stickyInsetProvider"))
     contentStack.addArrangedSubview(
       FKStickyExampleUI.caption(
-        "Toggle simulated chrome. Provider supplies the pin offset so the strip sticks under the chrome."
+        "Chrome overlays the scroll view. Spacer clears content under chrome; provider returns the same height so the stuck strip sits flush under chrome."
       )
     )
     contentStack.addArrangedSubview(strip)
@@ -95,14 +109,21 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
     }
   }
 
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    scrollView.fk_reloadStickyLayout()
+  }
+
   private func setChromeHeight(_ height: CGFloat) {
     chromeHeight = height
     chromeHeightConstraint?.constant = height
+    topSpacerHeightConstraint?.constant = height
     chromeView.isHidden = height <= 0
     scrollView.fk_stickyEngine.stickyInsetProvider = { [weak self] in self?.chromeHeight ?? 0 }
     var configuration = scrollView.fk_stickyEngine.configuration
     configuration.stickyInset = 0
     scrollView.fk_stickyEngine.configuration = configuration
+    view.layoutIfNeeded()
     scrollView.fk_reloadStickyLayout()
     statusLabel.text = "Provider chromeHeight=\(Int(height))"
   }
@@ -110,11 +131,13 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
   private func useStaticInset(_ inset: CGFloat) {
     chromeHeight = 0
     chromeHeightConstraint?.constant = 0
+    topSpacerHeightConstraint?.constant = 0
     chromeView.isHidden = true
     scrollView.fk_stickyEngine.stickyInsetProvider = nil
     var configuration = scrollView.fk_stickyEngine.configuration
     configuration.stickyInset = inset
     scrollView.fk_stickyEngine.configuration = configuration
+    view.layoutIfNeeded()
     scrollView.fk_reloadStickyLayout()
     statusLabel.text = "Static stickyInset=\(Int(inset)), provider=nil"
   }

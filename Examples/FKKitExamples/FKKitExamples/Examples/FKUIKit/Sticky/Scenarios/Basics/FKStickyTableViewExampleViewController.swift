@@ -56,29 +56,46 @@ final class FKStickyTableViewExampleViewController: UIViewController, UITableVie
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
+    updateHeaderGeometryIfNeeded()
+    installStickyIfNeeded()
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    // First layout may finish after the initial scroll gesture begins — remasure so the
+    // first drag already sticks once the strip crosses the pin line.
+    updateHeaderGeometryIfNeeded()
+    installStickyIfNeeded()
+    tableView.fk_reloadStickyLayout()
+  }
+
+  private func updateHeaderGeometryIfNeeded() {
     let tableWidth = tableView.bounds.width
     guard tableWidth > 1 else { return }
 
     let headerHeight = stripTop + stripHeight + 12
     let widthChanged = abs(tableWidth - lastHeaderWidth) > 0.5
-    if tableView.tableHeaderView == nil || widthChanged {
-      lastHeaderWidth = tableWidth
-      headerContainer.frame = CGRect(x: 0, y: 0, width: tableWidth, height: headerHeight)
-      // Idle only: while stuck the strip lives in the sticky overlay.
-      if strip.superview === headerContainer || strip.superview == nil {
-        strip.frame = CGRect(x: 16, y: stripTop, width: tableWidth - 32, height: stripHeight)
-      }
-      // Re-assign only when geometry changes — avoids max-offset clamp jitter.
-      tableView.tableHeaderView = headerContainer
-    }
+    guard tableView.tableHeaderView == nil || widthChanged else { return }
 
-    guard !didInstallSticky else { return }
-    didInstallSticky = true
-    strip.frame = CGRect(x: 16, y: stripTop, width: tableWidth - 32, height: stripHeight)
+    lastHeaderWidth = tableWidth
+    headerContainer.frame = CGRect(x: 0, y: 0, width: tableWidth, height: headerHeight)
+    if strip.superview === headerContainer || strip.superview == nil {
+      strip.frame = CGRect(x: 16, y: stripTop, width: tableWidth - 32, height: stripHeight)
+    }
     if strip.superview !== headerContainer {
       headerContainer.addSubview(strip)
     }
+    // Re-assign only when geometry changes — avoids max-offset clamp jitter mid-scroll.
     tableView.tableHeaderView = headerContainer
+  }
+
+  private func installStickyIfNeeded() {
+    guard !didInstallSticky, tableView.bounds.width > 1, tableView.tableHeaderView != nil else { return }
+    didInstallSticky = true
+    if strip.superview !== headerContainer {
+      headerContainer.addSubview(strip)
+      tableView.tableHeaderView = headerContainer
+    }
     tableView.fk_addStickyTarget(id: "table-filters", view: strip) { [weak self] progress in
       self?.statusLabel.text =
         "table-filters → \(progress.state.rawValue) p=\(String(format: "%.2f", progress.value))"

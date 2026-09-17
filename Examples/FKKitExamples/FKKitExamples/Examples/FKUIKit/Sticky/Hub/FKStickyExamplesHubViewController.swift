@@ -44,7 +44,7 @@ final class FKStickyExamplesHubViewController: UITableViewController {
         ),
         Row(
           title: "Sticky inset & provider",
-          subtitle: "configuration.stickyInset + stickyInsetProvider (dynamic chrome)",
+          subtitle: "Overlay chrome + stickyInsetProvider (flush pin); static stickyInset",
           make: { FKStickyInsetProviderExampleViewController() }
         ),
       ]

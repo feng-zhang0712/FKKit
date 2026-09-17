@@ -49,6 +49,18 @@ final class FKStickyCollectionViewExampleViewController: UIViewController, UICol
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
+    updateCollectionGeometryIfNeeded()
+    installStickyIfNeeded()
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    updateCollectionGeometryIfNeeded()
+    installStickyIfNeeded()
+    collectionView.fk_reloadStickyLayout()
+  }
+
+  private func updateCollectionGeometryIfNeeded() {
     let width = collectionView.bounds.width - 32
     guard width > 1 else { return }
 
@@ -65,23 +77,24 @@ final class FKStickyCollectionViewExampleViewController: UIViewController, UICol
       layout.itemSize = CGSize(width: floor(side), height: 88)
     }
 
-    if !didInstallStrip {
-      didInstallStrip = true
-      // Install only after we have a real width — avoids `width == 0` autoresizing conflicts.
+    // Idle only: while stuck the strip lives in the sticky overlay.
+    if strip.superview === collectionView || strip.superview == nil {
       strip.frame = CGRect(x: 16, y: stripTop, width: width, height: stripHeight)
-      collectionView.addSubview(strip)
-      collectionView.fk_addStickyTarget(id: "collection-filters", view: strip) { [weak self] progress in
-        self?.statusLabel.text =
-          "collection-filters → \(progress.state.rawValue) p=\(String(format: "%.2f", progress.value))"
-      }
-      collectionView.fk_reloadStickyLayout()
-      return
     }
+  }
 
-    // Keep the idle frame in sync with rotation / size changes only — do not reload on every
-    // scroll-driven layout pass (that churns contentSize near max offset).
-    guard widthChanged, strip.superview === collectionView else { return }
+  private func installStickyIfNeeded() {
+    let width = collectionView.bounds.width - 32
+    guard !didInstallStrip, width > 1 else { return }
+    didInstallStrip = true
     strip.frame = CGRect(x: 16, y: stripTop, width: width, height: stripHeight)
+    if strip.superview !== collectionView {
+      collectionView.addSubview(strip)
+    }
+    collectionView.fk_addStickyTarget(id: "collection-filters", view: strip) { [weak self] progress in
+      self?.statusLabel.text =
+        "collection-filters → \(progress.state.rawValue) p=\(String(format: "%.2f", progress.value))"
+    }
     collectionView.fk_reloadStickyLayout()
   }
 
