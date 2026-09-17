@@ -315,7 +315,7 @@ public final class FKKeyboardFocusScroller {
     let placement: FKKeyboardVisibleRectScrolling.Placement =
       configuration.alignsFocusedViewToKeyboard ? .alignContentToKeyboard : .minimumVisible
 
-    var rect = target.convert(target.bounds, to: scroll)
+    let rect = target.convert(target.bounds, to: scroll)
     guard rect.height > 0.5 else { return }
     applyFocusAdjustment(
       rect: rect,

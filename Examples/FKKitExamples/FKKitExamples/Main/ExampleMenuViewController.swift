@@ -189,6 +189,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKSkeletonExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "Sticky",
+          subtitle: "Hub: scroll sticky / affix — edges, collision, callbacks, controls, observation, playground",
+          make: { FKStickyExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "StatusPill",
           subtitle: "Hub: FKStatusPill — workflow styles, dot, custom enum, sizes, Tag combo, SwiftUI",
           make: { FKStatusPillExamplesHubViewController() }
