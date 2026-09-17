@@ -13,8 +13,15 @@ final class FKStickyProgressLifecycleExampleViewController: FKStickyExampleScrol
       title: "Callbacks + appliesStuckShadow",
       body: "Watch progress, willStick / didStick / didUnstick. Engine shadow is applied while stuck."
     )
+    // Keep the growing log outside scroll content so appends do not fight max contentOffset.
     logLabel.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
-    contentStack.addArrangedSubview(logLabel)
+    logLabel.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(logLabel)
+    NSLayoutConstraint.activate([
+      logLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+      logLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+      logLabel.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -4),
+    ])
     contentStack.addArrangedSubview(strip)
     addFillerBlocks()
 

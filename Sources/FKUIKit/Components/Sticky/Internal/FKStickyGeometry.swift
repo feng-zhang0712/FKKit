@@ -25,10 +25,35 @@ enum FKStickyGeometry {
     return rect
   }
 
+  /// `contentOffset` clamped to the scrollable range (excludes rubber-band overscroll).
+  ///
+  /// Stick / unstick and pin math must ignore overscroll — otherwise top/bottom bounce briefly
+  /// crosses the release threshold, toggles hosting, fights `contentSize` clamping, and can
+  /// cancel the pan so the scroll view feels locked at the end.
+  static func clampedContentOffset(of scrollView: UIScrollView) -> CGPoint {
+    let inset = scrollView.adjustedContentInset
+    let minX = -inset.left
+    let minY = -inset.top
+    let maxX = max(
+      minX,
+      scrollView.contentSize.width - scrollView.bounds.width + inset.right
+    )
+    let maxY = max(
+      minY,
+      scrollView.contentSize.height - scrollView.bounds.height + inset.bottom
+    )
+    let offset = scrollView.contentOffset
+    return CGPoint(
+      x: min(max(offset.x, minX), maxX),
+      y: min(max(offset.y, minY), maxY)
+    )
+  }
+
   /// View frame in the scroll view’s visible **bounds** coordinate system.
   static func frameInScrollBounds(of view: UIView, in scrollView: UIScrollView) -> CGRect {
-    contentFrame(of: view, in: scrollView)
-      .offsetBy(dx: -scrollView.contentOffset.x, dy: -scrollView.contentOffset.y)
+    let offset = clampedContentOffset(of: scrollView)
+    return contentFrame(of: view, in: scrollView)
+      .offsetBy(dx: -offset.x, dy: -offset.y)
   }
 
   /// Content-space origin of `view` inside `scrollView`.
@@ -83,10 +108,11 @@ enum FKStickyGeometry {
     frozenContentOrigin: CGPoint?
   ) -> Bool {
     let releasePad = isCurrentlySticky ? max(hysteresis, 0) : 0
+    let offsetY = clampedContentOffset(of: scrollView).y
     let boundsY: CGFloat
     if isCurrentlySticky, let frozen = frozenContentOrigin {
       // Hosted in the overlay — derive bounds Y from the frozen content origin.
-      boundsY = frozen.y - scrollView.contentOffset.y
+      boundsY = frozen.y - offsetY
     } else {
       boundsY = frameInScrollBounds(of: view, in: scrollView).minY
     }
@@ -111,9 +137,10 @@ enum FKStickyGeometry {
     isCurrentlySticky: Bool,
     frozenContentOrigin: CGPoint?
   ) -> CGFloat {
+    let offsetY = clampedContentOffset(of: scrollView).y
     let boundsY: CGFloat
     if isCurrentlySticky, let frozen = frozenContentOrigin {
-      boundsY = frozen.y - scrollView.contentOffset.y
+      boundsY = frozen.y - offsetY
     } else {
       boundsY = frameInScrollBounds(of: view, in: scrollView).minY
     }
@@ -130,12 +157,12 @@ enum FKStickyGeometry {
 
   /// Maps a content X origin into overlay (bounds) X.
   static func viewportX(contentX: CGFloat, scrollView: UIScrollView) -> CGFloat {
-    contentX - scrollView.contentOffset.x
+    contentX - clampedContentOffset(of: scrollView).x
   }
 
   /// Maps a content Y origin into overlay (bounds) Y.
   static func viewportY(contentY: CGFloat, scrollView: UIScrollView) -> CGFloat {
-    contentY - scrollView.contentOffset.y
+    contentY - clampedContentOffset(of: scrollView).y
   }
 
   /// Frame comparison used to skip no-op sticky frame writes during scroll ticks.

@@ -229,11 +229,16 @@ public final class FKStickyEngine: NSObject {
   private func startObservationIfNeeded() {
     guard configuration.observesAutomatically, let scrollView, observations.isEmpty else { return }
 
+    // `bounds.origin` mirrors `contentOffset` — only react to size changes (rotation / resize).
+    // Observing both origin and offset would run a full sticky layout twice per scroll tick and
+    // amplify contentSize fights near max offset.
     observations = [
       scrollView.observe(\.contentOffset, options: [.new]) { [weak self] _, _ in
         self?.handleObservedScrollMetrics()
       },
-      scrollView.observe(\.bounds, options: [.new]) { [weak self] _, _ in
+      scrollView.observe(\.bounds, options: [.new, .old]) { [weak self] _, change in
+        guard let newSize = change.newValue?.size else { return }
+        if let oldSize = change.oldValue?.size, oldSize == newSize { return }
         self?.handleObservedScrollMetrics()
       },
       scrollView.observe(\.contentSize, options: [.new]) { [weak self] _, _ in
@@ -682,7 +687,14 @@ public final class FKStickyEngine: NSObject {
     }
     session.naturalContentOrigin = FKStickyGeometry.contentOrigin(of: view, in: scrollView)
     session.naturalFrameInSuperview = view.frame
-    session.naturalSize = measuredSize(of: view)
+    let measured = measuredSize(of: view)
+    // Never collapse a previously laid-out full width back to an intrinsic/label width
+    // when a later isolated `layoutIfNeeded` temporarily shrinks the stack.
+    if session.naturalSize.width > measured.width + 0.5, measured.width > 0.5 {
+      session.naturalSize = CGSize(width: session.naturalSize.width, height: measured.height)
+    } else {
+      session.naturalSize = measured
+    }
     session.hasCapturedNaturalOrigin = session.naturalSize.height > 0.5
   }
 
@@ -719,10 +731,10 @@ public final class FKStickyEngine: NSObject {
   /// Resolves the laid-out size used for overlay frames and placeholders.
   ///
   /// Vertical ``UIStackView`` + `.fill` assigns the stack’s full width to arranged children.
-  /// Before that layout settles, `view.bounds.width` can already be the label’s **intrinsic**
-  /// width (`> 0`), which previously skipped the scroll-view fallback and froze a half-width
-  /// strip into ``FKStickyTargetSession/naturalSize``. Horizontal stacks keep the child’s
-  /// laid-out width (e.g. `fillEqually` side-by-side rows).
+  /// Before that layout settles — or after an isolated `layoutIfNeeded` on the stack —
+  /// `bounds.width` can collapse to the title label’s **intrinsic** width (often ~half the
+  /// screen). That value must not freeze into ``FKStickyTargetSession/naturalSize``.
+  /// Horizontal stacks keep the child’s laid-out width (e.g. `fillEqually` side-by-side rows).
   ///
   /// Does **not** call `scrollView.layoutIfNeeded()` — that fights rubber-band physics when
   /// invoked from content-offset KVO near max offset.
@@ -730,28 +742,18 @@ public final class FKStickyEngine: NSObject {
     guard let scrollView else {
       return view.bounds.size
     }
-    view.superview?.layoutIfNeeded()
-    view.layoutIfNeeded()
 
     var height = max(view.bounds.height, view.frame.height)
     var width = max(view.bounds.width, view.frame.width)
 
     if let stack = view.superview as? UIStackView {
-      stack.layoutIfNeeded()
       switch stack.axis {
       case .vertical:
-        if stack.bounds.width > 0.5 {
-          // Prefer stack width over intrinsic text width when the stack can assign width.
-          if stack.alignment == .fill {
-            width = stack.bounds.width
-          } else if width < 0.5 {
-            width = stack.bounds.width
-          }
-        } else if scrollView.bounds.width > 0.5 {
-          let leadingInBounds = max(stack.convert(CGPoint.zero, to: scrollView).x, 0)
-          width = leadingInBounds > 0.5
-            ? max(scrollView.bounds.width - leadingInBounds * 2, 1)
-            : scrollView.bounds.width
+        if stack.alignment == .fill {
+          // Floor at the scroll-derived fill width so intrinsic/label width cannot win.
+          width = max(width, stack.bounds.width, verticalFillWidthEstimate(for: stack, in: scrollView))
+        } else if stack.bounds.width > 0.5, width < 0.5 {
+          width = stack.bounds.width
         }
       case .horizontal:
         // Respect the arranged child’s own width (fillEqually, fixed widths, etc.).
@@ -761,8 +763,8 @@ public final class FKStickyEngine: NSObject {
       @unknown default:
         break
       }
-    } else if width < 0.5, scrollView.bounds.width > 0.5 {
-      width = scrollView.bounds.width
+    } else {
+      width = max(width, nonStackFillWidthEstimate(for: view, in: scrollView))
     }
 
     if height < 0.5 {
@@ -776,6 +778,30 @@ public final class FKStickyEngine: NSObject {
       }
     }
     return CGSize(width: width, height: height)
+  }
+
+  /// Estimated arranged width for a vertical `.fill` stack pinned into the scroll viewport.
+  private func verticalFillWidthEstimate(for stack: UIStackView, in scrollView: UIScrollView) -> CGFloat {
+    guard scrollView.bounds.width > 0.5 else { return 0 }
+    let originInContent = stack.convert(CGPoint.zero, to: scrollView)
+    let leadingInBounds = originInContent.x - scrollView.contentOffset.x
+    let leading = max(leadingInBounds, 0)
+    // Symmetric trailing margin is the common demo/host pattern (content inset from both edges).
+    return max(scrollView.bounds.width - leading * 2, 1)
+  }
+
+  /// Fallback width when the target is not in a stack (table header / collection content strip).
+  private func nonStackFillWidthEstimate(for view: UIView, in scrollView: UIScrollView) -> CGFloat {
+    let laidOut = max(view.bounds.width, view.frame.width)
+    guard scrollView.bounds.width > 0.5 else { return laidOut }
+    // Trust an already-full layout; only estimate when width looks collapsed.
+    if laidOut >= scrollView.bounds.width * 0.7 {
+      return laidOut
+    }
+    let originInContent = FKStickyGeometry.contentOrigin(of: view, in: scrollView)
+    let leadingInBounds = originInContent.x - scrollView.contentOffset.x
+    let leading = max(leadingInBounds, 0)
+    return max(laidOut, scrollView.bounds.width - leading * 2, 1)
   }
 
   /// Deactivates the target’s own width/height constraints so overlay frame layout is not

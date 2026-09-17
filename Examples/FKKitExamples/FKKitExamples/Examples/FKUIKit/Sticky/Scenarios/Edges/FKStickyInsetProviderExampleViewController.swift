@@ -26,13 +26,17 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
 
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.alwaysBounceVertical = true
+    scrollView.contentInsetAdjustmentBehavior = .never
     contentStack.axis = .vertical
     contentStack.spacing = 12
     contentStack.translatesAutoresizingMaskIntoConstraints = false
 
     view.addSubview(chromeView)
     view.addSubview(scrollView)
+    view.addSubview(statusLabel)
     scrollView.addSubview(contentStack)
+
+    statusLabel.translatesAutoresizingMaskIntoConstraints = false
 
     let height = chromeView.heightAnchor.constraint(equalToConstant: 0)
     chromeHeightConstraint = height
@@ -53,6 +57,10 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
       contentStack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 16),
       contentStack.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -16),
       contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -32),
+
+      statusLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+      statusLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+      statusLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
     ])
 
     contentStack.addArrangedSubview(FKStickyExampleUI.headline("stickyInset + stickyInsetProvider"))
@@ -61,7 +69,6 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
         "Toggle simulated chrome. Provider supplies the pin offset so the strip sticks under the chrome."
       )
     )
-    contentStack.addArrangedSubview(statusLabel)
     contentStack.addArrangedSubview(strip)
 
     let actions = UIStackView(arrangedSubviews: [

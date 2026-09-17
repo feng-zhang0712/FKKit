@@ -10,6 +10,7 @@ final class FKStickyCollectionViewExampleViewController: UIViewController, UICol
   private let stripHeight: CGFloat = 48
   private let stripTop: CGFloat = 12
   private var didInstallStrip = false
+  private var lastLaidOutWidth: CGFloat = 0
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -51,7 +52,10 @@ final class FKStickyCollectionViewExampleViewController: UIViewController, UICol
     let width = collectionView.bounds.width - 32
     guard width > 1 else { return }
 
-    if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+    let widthChanged = abs(width - lastLaidOutWidth) > 0.5
+    lastLaidOutWidth = width
+
+    if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout, widthChanged {
       let side = (
         collectionView.bounds.width
           - layout.sectionInset.left
@@ -74,11 +78,11 @@ final class FKStickyCollectionViewExampleViewController: UIViewController, UICol
       return
     }
 
-    // Keep the idle frame in sync with rotation / size changes; skip while stuck in the overlay.
-    if strip.superview === collectionView {
-      strip.frame = CGRect(x: 16, y: stripTop, width: width, height: stripHeight)
-      collectionView.fk_reloadStickyLayout()
-    }
+    // Keep the idle frame in sync with rotation / size changes only — do not reload on every
+    // scroll-driven layout pass (that churns contentSize near max offset).
+    guard widthChanged, strip.superview === collectionView else { return }
+    strip.frame = CGRect(x: 16, y: stripTop, width: width, height: stripHeight)
+    collectionView.fk_reloadStickyLayout()
   }
 
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {

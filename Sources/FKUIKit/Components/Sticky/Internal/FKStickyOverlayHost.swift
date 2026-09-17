@@ -29,10 +29,19 @@ final class FKStickyOverlayHost: UIView {
     fatalError("init(coder:) has not been implemented")
   }
 
-  /// Forwards hits that miss child sticky views so scrolling underneath still works.
+  /// Only claims hits on interactive sticky children so the scroll view underneath stays draggable.
+  override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    subviews.contains { subview in
+      !subview.isHidden
+        && subview.alpha > 0.01
+        && subview.isUserInteractionEnabled
+        && subview.point(inside: convert(point, to: subview), with: event)
+    }
+  }
+
   override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-    let hit = super.hitTest(point, with: event)
-    return hit === self ? nil : hit
+    guard self.point(inside: point, with: event) else { return nil }
+    return super.hitTest(point, with: event)
   }
 
   /// Re-asserts the host frame if layout rewrote it between scroll ticks.

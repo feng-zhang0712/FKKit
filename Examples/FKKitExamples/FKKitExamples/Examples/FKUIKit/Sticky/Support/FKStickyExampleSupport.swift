@@ -38,6 +38,9 @@ enum FKStickyExampleUI {
     let strip = FKStickyExampleStripView(title: title, backgroundColor: backgroundColor)
     strip.translatesAutoresizingMaskIntoConstraints = false
     strip.heightAnchor.constraint(equalToConstant: height).isActive = true
+    // Prefer the stack’s assigned fill width over the title label’s intrinsic width.
+    strip.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    strip.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     return strip
   }
 
@@ -84,6 +87,7 @@ final class FKStickyExampleStripView: UIView {
     titleLabel.font = .preferredFont(forTextStyle: .headline)
     titleLabel.textColor = .white
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
+    titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
     // Leading + centerY only — a required trailing constraint fights `width == 0`
     // autoresizing masks when the strip is installed before the first layout pass.
     addSubview(titleLabel)
@@ -126,6 +130,9 @@ class FKStickyExampleScrollPageViewController: UIViewController, UIScrollViewDel
     // Scroll view is already pinned under the safe area; keep inset adjustment off so the
     // sticky pin line is not shifted by a second copy of the nav-bar inset.
     scrollView.contentInsetAdjustmentBehavior = .never
+    // Reserve space for the fixed status footer so the last content rows stay reachable.
+    scrollView.contentInset.bottom = 40
+    scrollView.verticalScrollIndicatorInsets.bottom = 40
     if becomesScrollViewDelegate {
       scrollView.delegate = self
     }
@@ -135,6 +142,11 @@ class FKStickyExampleScrollPageViewController: UIViewController, UIScrollViewDel
     contentStack.spacing = 12
     contentStack.translatesAutoresizingMaskIntoConstraints = false
     scrollView.addSubview(contentStack)
+
+    // Status lives outside the scroll content so progress callbacks cannot mutate contentSize
+    // while the user is at max offset (that fight can cancel the pan / feel "stuck" at the bottom).
+    statusLabel.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(statusLabel)
 
     actionsStack.axis = .vertical
     actionsStack.spacing = 8
@@ -151,13 +163,16 @@ class FKStickyExampleScrollPageViewController: UIViewController, UIScrollViewDel
       contentStack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 16),
       contentStack.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -16),
       contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -32),
+
+      statusLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+      statusLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+      statusLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
     ])
   }
 
   func addIntro(title: String, body: String) {
     contentStack.addArrangedSubview(FKStickyExampleUI.headline(title))
     contentStack.addArrangedSubview(FKStickyExampleUI.caption(body))
-    contentStack.addArrangedSubview(statusLabel)
   }
 
   func addActions(_ buttons: [UIButton]) {

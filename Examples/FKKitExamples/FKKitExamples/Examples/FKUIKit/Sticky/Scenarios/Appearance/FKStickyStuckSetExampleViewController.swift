@@ -15,7 +15,13 @@ final class FKStickyStuckSetExampleViewController: FKStickyExampleScrollPageView
       body: "onStuckTargetsChange fires when the active set changes. Buttons read progress/state/target(id:)."
     )
     queryLabel.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
-    contentStack.addArrangedSubview(queryLabel)
+    queryLabel.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(queryLabel)
+    NSLayoutConstraint.activate([
+      queryLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+      queryLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+      queryLabel.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -4),
+    ])
 
     contentStack.addArrangedSubview(stripA)
     addFillerBlocks(count: 7)
