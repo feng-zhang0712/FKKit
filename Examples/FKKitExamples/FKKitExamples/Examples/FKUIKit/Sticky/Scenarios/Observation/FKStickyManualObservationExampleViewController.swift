@@ -15,7 +15,7 @@ final class FKStickyManualObservationExampleViewController: FKStickyExampleScrol
       title: "observesAutomatically = false",
       body: "Scroll events are forwarded via fk_handleStickyScroll only while forwarding is enabled. Disable forwarding to freeze sticky geometry mid-scroll."
     )
-    contentStack.addArrangedSubview(strip)
+    addStickyStrip(strip)
     addFillerBlocks()
 
     var configuration = FKStickyConfiguration.default

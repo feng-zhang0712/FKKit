@@ -14,9 +14,9 @@ final class FKStickyPlaygroundExampleViewController: FKStickyExampleScrollPageVi
       body: "Toggle edge, collision, shadow, hysteresis, inset, and automatic observation while scrolling."
     )
 
-    contentStack.addArrangedSubview(stripA)
+    addStickyStrip(stripA)
     addFillerBlocks(count: 6)
-    contentStack.addArrangedSubview(stripB)
+    addStickyStrip(stripB)
     addFillerBlocks(count: 14)
 
     let engine = scrollView.fk_stickyEngine

@@ -12,7 +12,7 @@ final class FKStickySingleTopExampleViewController: FKStickyExampleScrollPageVie
       title: "Default top sticky",
       body: "Uses scrollView.fk_addStickyTarget with default FKStickyConfiguration (top edge, automatic KVO)."
     )
-    contentStack.addArrangedSubview(strip)
+    addStickyStrip(strip)
     addFillerBlocks()
 
     let target = scrollView.fk_addStickyTarget(id: "filters", view: strip) { [weak self] progress in

@@ -24,11 +24,22 @@ final class FKStickyTargetSession {
   var isArrangedInStack = false
   /// Index in `UIStackView.arrangedSubviews` when ``isArrangedInStack`` is `true`.
   var arrangedStackIndex: Int = 0
+  /// `true` when the target should span the scroll viewport (minus leading inset) while stuck.
+  ///
+  /// Set for vertical ``UIStackView`` + `.fill` parents. Avoids freezing a collapsed intrinsic
+  /// width into overlay layout.
+  var fillsViewportWidth = false
   /// Target-owned width/height constraints deactivated while frame-hosted in the overlay.
   ///
-  /// Leaving them active alongside `translatesAutoresizingMaskIntoConstraints = true` lets
-  /// Auto Layout recover the view to its intrinsic (label) width after each frame assignment.
+  /// Leaving them active alongside overlay layout lets Auto Layout recover the view to its
+  /// intrinsic (label) width after each frame assignment.
   var deactivatedSizeConstraints: [NSLayoutConstraint] = []
+  /// Engine-owned overlay placement constraints.
+  var overlayLeadingConstraint: NSLayoutConstraint?
+  var overlayTrailingConstraint: NSLayoutConstraint?
+  var overlayTopConstraint: NSLayoutConstraint?
+  var overlayWidthConstraint: NSLayoutConstraint?
+  var overlayHeightConstraint: NSLayoutConstraint?
   /// Width constraint on the placeholder when using Auto Layout sizing.
   var placeholderWidthConstraint: NSLayoutConstraint?
   /// Height constraint on the placeholder when using Auto Layout sizing.

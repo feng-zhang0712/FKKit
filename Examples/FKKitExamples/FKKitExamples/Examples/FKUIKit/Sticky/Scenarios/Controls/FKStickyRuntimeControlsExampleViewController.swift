@@ -15,9 +15,9 @@ final class FKStickyRuntimeControlsExampleViewController: FKStickyExampleScrollP
       body: "Exercise setEnabled, forceStick / clearForcedStick, target.isEnabled, removeTarget, removeAllTargets, and reset."
     )
 
-    contentStack.addArrangedSubview(stripA)
+    addStickyStrip(stripA)
     addFillerBlocks(count: 6)
-    contentStack.addArrangedSubview(stripB)
+    addStickyStrip(stripB)
     addFillerBlocks(count: 12)
 
     var configuration = FKStickyConfiguration.default

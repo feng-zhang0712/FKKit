@@ -486,20 +486,31 @@ public final class FKStickyEngine: NSObject {
     ensureHostedInOverlay(session: session, view: view, scrollView: scrollView)
 
     prepareFrameHosting(session: session, view: view)
+
+    // Viewport-fill targets: derive width from the overlay host every frame so a bad
+    // intrinsic/half-width `naturalSize` cannot stick permanently.
+    if session.fillsViewportWidth {
+      let leadingInset = max(
+        FKStickyGeometry.viewportX(
+          contentX: session.naturalContentOrigin.x,
+          scrollView: scrollView
+        ),
+        0
+      )
+      session.naturalSize.width = max(scrollView.bounds.width - leadingInset * 2, 1)
+    }
+
     let size = session.naturalSize
     let overlayX = FKStickyGeometry.viewportX(
       contentX: session.naturalContentOrigin.x,
       scrollView: scrollView
     )
-    view.translatesAutoresizingMaskIntoConstraints = true
     let nextFrame = CGRect(
       origin: CGPoint(x: overlayX, y: overlayY),
       size: size
     )
-    // Avoid redundant frame writes during rubber-band (same pin rect) — UITableView is
-    // sensitive to hierarchy layout churn near max content offset.
-    if !FKStickyGeometry.framesApproximatelyEqual(view.frame, nextFrame) {
-      view.frame = nextFrame
+    if let host = overlayHost {
+      applyOverlayLayout(session: session, view: view, frame: nextFrame, in: host)
     }
 
     let newState: FKStickyState = progress >= 1 - progressEpsilon ? .stuck : .sticking
@@ -560,9 +571,13 @@ public final class FKStickyEngine: NSObject {
       session.isArrangedInStack = true
       session.arrangedStackIndex = arrangedIndex
       session.originalSiblingIndex = arrangedIndex
+      // Vertical fill stacks always span the content width — never trust intrinsic label width.
+      session.fillsViewportWidth = stack.axis == .vertical && stack.alignment == .fill
     } else if let superview = view.superview {
       session.isArrangedInStack = false
       session.originalSiblingIndex = superview.subviews.firstIndex(of: view) ?? superview.subviews.count
+      // Table-header / collection content strips — span the viewport while stuck.
+      session.fillsViewportWidth = true
     }
   }
 
@@ -614,6 +629,7 @@ public final class FKStickyEngine: NSObject {
     applyShadowIfNeeded(on: view, session: session, stuck: false)
 
     let destination = session.originalSuperview
+    clearOverlayLayoutConstraints(session: session)
     view.removeFromSuperview()
     restoreFrameHostingConstraints(session: session)
     view.translatesAutoresizingMaskIntoConstraints = session.usesAutoresizingMask
@@ -700,19 +716,28 @@ public final class FKStickyEngine: NSObject {
 
   /// Updates size (and placeholder) for a target that is already hosted in the overlay.
   private func updateStuckMetrics(for session: FKStickyTargetSession) {
-    guard let view = session.target.view else { return }
+    guard let view = session.target.view, let scrollView, let host = overlayHost else { return }
     // Width stays frozen at the pre-stick layout width. Height may change when the host
     // calls ``reloadLayout()`` after resizing the target (e.g. Dynamic Type demos).
     if let heightConstraint = view.constraints.first(where: {
-      $0.firstAttribute == .height && ($0.firstItem as? UIView) === view
+      $0.firstAttribute == .height && ($0.firstItem as? UIView) === view && $0.isActive
     }), heightConstraint.constant > 0.5 {
       session.naturalSize.height = heightConstraint.constant
     } else if view.bounds.height > 0.5 {
       session.naturalSize.height = view.bounds.height
     }
-    var frame = view.frame
-    frame.size = session.naturalSize
-    view.frame = frame
+
+    let overlayX = FKStickyGeometry.viewportX(
+      contentX: session.naturalContentOrigin.x,
+      scrollView: scrollView
+    )
+    let overlayY = session.overlayTopConstraint?.constant ?? view.frame.minY
+    applyOverlayLayout(
+      session: session,
+      view: view,
+      frame: CGRect(origin: CGPoint(x: overlayX, y: overlayY), size: session.naturalSize),
+      in: host
+    )
 
     if let placeholder = session.placeholder {
       if session.isArrangedInStack {
@@ -731,32 +756,32 @@ public final class FKStickyEngine: NSObject {
   /// Resolves the laid-out size used for overlay frames and placeholders.
   ///
   /// Vertical ``UIStackView`` + `.fill` assigns the stack’s full width to arranged children.
-  /// Before that layout settles — or after an isolated `layoutIfNeeded` on the stack —
-  /// `bounds.width` can collapse to the title label’s **intrinsic** width (often ~half the
-  /// screen). That value must not freeze into ``FKStickyTargetSession/naturalSize``.
-  /// Horizontal stacks keep the child’s laid-out width (e.g. `fillEqually` side-by-side rows).
-  ///
-  /// Does **not** call `scrollView.layoutIfNeeded()` — that fights rubber-band physics when
-  /// invoked from content-offset KVO near max offset.
+  /// Intrinsic label width must never win for fill stacks — that freezes a ~half-screen strip
+  /// into ``FKStickyTargetSession/naturalSize``. Horizontal stacks keep the child’s laid-out
+  /// width (e.g. `fillEqually` side-by-side rows).
   private func measuredSize(of view: UIView) -> CGSize {
     guard let scrollView else {
       return view.bounds.size
     }
 
-    var height = max(view.bounds.height, view.frame.height)
-    var width = max(view.bounds.width, view.frame.width)
+    let contentFrame = FKStickyGeometry.contentFrame(of: view, in: scrollView)
+    var height = max(view.bounds.height, view.frame.height, contentFrame.height)
+    var width = max(view.bounds.width, view.frame.width, contentFrame.width)
 
     if let stack = view.superview as? UIStackView {
       switch stack.axis {
       case .vertical:
         if stack.alignment == .fill {
-          // Floor at the scroll-derived fill width so intrinsic/label width cannot win.
-          width = max(width, stack.bounds.width, verticalFillWidthEstimate(for: stack, in: scrollView))
+          let estimate = verticalFillWidthEstimate(for: stack, in: scrollView)
+          width = max(width, stack.bounds.width, estimate)
+          // Hard floor: intrinsic/label width is typically well below the fill estimate.
+          if estimate > 1, width + 0.5 < estimate {
+            width = estimate
+          }
         } else if stack.bounds.width > 0.5, width < 0.5 {
           width = stack.bounds.width
         }
       case .horizontal:
-        // Respect the arranged child’s own width (fillEqually, fixed widths, etc.).
         if width < 0.5, view.frame.width > 0.5 {
           width = view.frame.width
         }
@@ -784,9 +809,8 @@ public final class FKStickyEngine: NSObject {
   private func verticalFillWidthEstimate(for stack: UIStackView, in scrollView: UIScrollView) -> CGFloat {
     guard scrollView.bounds.width > 0.5 else { return 0 }
     let originInContent = stack.convert(CGPoint.zero, to: scrollView)
-    let leadingInBounds = originInContent.x - scrollView.contentOffset.x
+    let leadingInBounds = originInContent.x - FKStickyGeometry.clampedContentOffset(of: scrollView).x
     let leading = max(leadingInBounds, 0)
-    // Symmetric trailing margin is the common demo/host pattern (content inset from both edges).
     return max(scrollView.bounds.width - leading * 2, 1)
   }
 
@@ -794,17 +818,112 @@ public final class FKStickyEngine: NSObject {
   private func nonStackFillWidthEstimate(for view: UIView, in scrollView: UIScrollView) -> CGFloat {
     let laidOut = max(view.bounds.width, view.frame.width)
     guard scrollView.bounds.width > 0.5 else { return laidOut }
-    // Trust an already-full layout; only estimate when width looks collapsed.
     if laidOut >= scrollView.bounds.width * 0.7 {
       return laidOut
     }
     let originInContent = FKStickyGeometry.contentOrigin(of: view, in: scrollView)
-    let leadingInBounds = originInContent.x - scrollView.contentOffset.x
+    let leadingInBounds = originInContent.x - FKStickyGeometry.clampedContentOffset(of: scrollView).x
     let leading = max(leadingInBounds, 0)
     return max(laidOut, scrollView.bounds.width - leading * 2, 1)
   }
 
-  /// Deactivates the target’s own width/height constraints so overlay frame layout is not
+  /// Pins a stuck target inside the overlay.
+  ///
+  /// Viewport-fill targets use leading + trailing (width tracks the host). Other targets keep
+  /// an explicit width so side-by-side / custom widths are preserved.
+  private func applyOverlayLayout(
+    session: FKStickyTargetSession,
+    view: UIView,
+    frame: CGRect,
+    in host: FKStickyOverlayHost
+  ) {
+    view.translatesAutoresizingMaskIntoConstraints = false
+    let leadingInset = max(frame.minX, 0)
+    let heightValue = max(frame.height, 1)
+
+    if session.fillsViewportWidth {
+      session.overlayWidthConstraint?.isActive = false
+      session.overlayWidthConstraint = nil
+
+      if let leading = session.overlayLeadingConstraint,
+         let trailing = session.overlayTrailingConstraint,
+         let top = session.overlayTopConstraint,
+         let height = session.overlayHeightConstraint {
+        let needsUpdate =
+          abs(leading.constant - leadingInset) > 0.5
+          || abs(trailing.constant + leadingInset) > 0.5
+          || abs(top.constant - frame.minY) > 0.5
+          || abs(height.constant - heightValue) > 0.5
+        guard needsUpdate else { return }
+        leading.constant = leadingInset
+        trailing.constant = -leadingInset
+        top.constant = frame.minY
+        height.constant = heightValue
+        return
+      }
+
+      clearOverlayLayoutConstraints(session: session)
+      let leading = view.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: leadingInset)
+      let trailing = view.trailingAnchor.constraint(equalTo: host.trailingAnchor, constant: -leadingInset)
+      let top = view.topAnchor.constraint(equalTo: host.topAnchor, constant: frame.minY)
+      let height = view.heightAnchor.constraint(equalToConstant: heightValue)
+      height.priority = .required
+      NSLayoutConstraint.activate([leading, trailing, top, height])
+      session.overlayLeadingConstraint = leading
+      session.overlayTrailingConstraint = trailing
+      session.overlayTopConstraint = top
+      session.overlayHeightConstraint = height
+      return
+    }
+
+    session.overlayTrailingConstraint?.isActive = false
+    session.overlayTrailingConstraint = nil
+
+    if let leading = session.overlayLeadingConstraint,
+       let top = session.overlayTopConstraint,
+       let width = session.overlayWidthConstraint,
+       let height = session.overlayHeightConstraint {
+      let needsUpdate =
+        abs(leading.constant - frame.minX) > 0.5
+        || abs(top.constant - frame.minY) > 0.5
+        || abs(width.constant - frame.width) > 0.5
+        || abs(height.constant - frame.height) > 0.5
+      guard needsUpdate else { return }
+      leading.constant = frame.minX
+      top.constant = frame.minY
+      width.constant = max(frame.width, 1)
+      height.constant = max(frame.height, 1)
+      return
+    }
+
+    clearOverlayLayoutConstraints(session: session)
+    let leading = view.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: frame.minX)
+    let top = view.topAnchor.constraint(equalTo: host.topAnchor, constant: frame.minY)
+    let width = view.widthAnchor.constraint(equalToConstant: max(frame.width, 1))
+    let height = view.heightAnchor.constraint(equalToConstant: max(frame.height, 1))
+    width.priority = .required
+    height.priority = .required
+    NSLayoutConstraint.activate([leading, top, width, height])
+    session.overlayLeadingConstraint = leading
+    session.overlayTopConstraint = top
+    session.overlayWidthConstraint = width
+    session.overlayHeightConstraint = height
+  }
+
+  private func clearOverlayLayoutConstraints(session: FKStickyTargetSession) {
+    session.overlayLeadingConstraint?.isActive = false
+    session.overlayTrailingConstraint?.isActive = false
+    session.overlayTopConstraint?.isActive = false
+    session.overlayWidthConstraint?.isActive = false
+    session.overlayHeightConstraint?.isActive = false
+    session.overlayLeadingConstraint = nil
+    session.overlayTrailingConstraint = nil
+    session.overlayTopConstraint = nil
+    session.overlayWidthConstraint = nil
+    session.overlayHeightConstraint = nil
+  }
+
+  /// Deactivates the target’s own width/height constraints so overlay layout is not
   /// overridden by Auto Layout recovery (which collapses width to intrinsic text size).
   private func prepareFrameHosting(session: FKStickyTargetSession, view: UIView) {
     guard session.deactivatedSizeConstraints.isEmpty else { return }

@@ -23,9 +23,9 @@ final class FKStickyStuckSetExampleViewController: FKStickyExampleScrollPageView
       queryLabel.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -4),
     ])
 
-    contentStack.addArrangedSubview(stripA)
+    addStickyStrip(stripA)
     addFillerBlocks(count: 7)
-    contentStack.addArrangedSubview(stripB)
+    addStickyStrip(stripB)
     addFillerBlocks(count: 12)
 
     var configuration = FKStickyConfiguration.default

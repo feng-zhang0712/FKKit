@@ -15,11 +15,11 @@ final class FKStickyPushOffExampleViewController: FKStickyExampleScrollPageViewC
       body: "Default multi-target mode. The next section bar pushes the previous one off the pin line."
     )
 
-    contentStack.addArrangedSubview(stripA)
+    addStickyStrip(stripA)
     addFillerBlocks(count: 8)
-    contentStack.addArrangedSubview(stripB)
+    addStickyStrip(stripB)
     addFillerBlocks(count: 8)
-    contentStack.addArrangedSubview(stripC)
+    addStickyStrip(stripC)
     addFillerBlocks(count: 10)
 
     var configuration = FKStickyConfiguration.default

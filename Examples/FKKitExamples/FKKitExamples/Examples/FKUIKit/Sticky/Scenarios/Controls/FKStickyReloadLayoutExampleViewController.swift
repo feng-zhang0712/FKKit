@@ -21,7 +21,7 @@ final class FKStickyReloadLayoutExampleViewController: FKStickyExampleScrollPage
     height.isActive = true
     heightConstraint = height
 
-    contentStack.addArrangedSubview(strip)
+    addStickyStrip(strip)
     addFillerBlocks()
 
     scrollView.fk_addStickyTarget(id: "resizable", view: strip) { [weak self] progress in

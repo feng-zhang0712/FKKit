@@ -38,7 +38,6 @@ enum FKStickyExampleUI {
     let strip = FKStickyExampleStripView(title: title, backgroundColor: backgroundColor)
     strip.translatesAutoresizingMaskIntoConstraints = false
     strip.heightAnchor.constraint(equalToConstant: height).isActive = true
-    // Prefer the stack’s assigned fill width over the title label’s intrinsic width.
     strip.setContentHuggingPriority(.defaultLow, for: .horizontal)
     strip.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     return strip
@@ -50,6 +49,8 @@ enum FKStickyExampleUI {
     view.layer.cornerRadius = 10
     view.translatesAutoresizingMaskIntoConstraints = false
     view.heightAnchor.constraint(equalToConstant: height).isActive = true
+    view.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
     let label = UILabel()
     label.translatesAutoresizingMaskIntoConstraints = false
@@ -77,6 +78,11 @@ enum FKStickyExampleUI {
 final class FKStickyExampleStripView: UIView {
   let titleLabel = UILabel()
 
+  /// Prevents UIStackView from sizing the strip to the title’s intrinsic (~half-screen) width.
+  override var intrinsicContentSize: CGSize {
+    CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric)
+  }
+
   init(title: String, backgroundColor: UIColor) {
     super.init(frame: .zero)
     self.backgroundColor = backgroundColor
@@ -88,13 +94,12 @@ final class FKStickyExampleStripView: UIView {
     titleLabel.textColor = .white
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
     titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
-    // Leading + centerY only — a required trailing constraint fights `width == 0`
-    // autoresizing masks when the strip is installed before the first layout pass.
+    titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     addSubview(titleLabel)
     NSLayoutConstraint.activate([
       titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+      titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
       titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-      titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -14),
     ])
   }
 
@@ -139,6 +144,7 @@ class FKStickyExampleScrollPageViewController: UIViewController, UIScrollViewDel
     view.addSubview(scrollView)
 
     contentStack.axis = .vertical
+    contentStack.alignment = .fill
     contentStack.spacing = 12
     contentStack.translatesAutoresizingMaskIntoConstraints = false
     scrollView.addSubview(contentStack)
@@ -175,6 +181,17 @@ class FKStickyExampleScrollPageViewController: UIViewController, UIScrollViewDel
     contentStack.addArrangedSubview(FKStickyExampleUI.caption(body))
   }
 
+  /// Adds a sticky strip and pins its width to the content stack (full content width).
+  func addStickyStrip(_ strip: UIView) {
+    strip.translatesAutoresizingMaskIntoConstraints = false
+    strip.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    strip.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    contentStack.addArrangedSubview(strip)
+    let width = strip.widthAnchor.constraint(equalTo: contentStack.widthAnchor)
+    width.priority = .required
+    width.isActive = true
+  }
+
   func addActions(_ buttons: [UIButton]) {
     actionsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
     buttons.forEach { actionsStack.addArrangedSubview($0) }
@@ -201,6 +218,7 @@ class FKStickyExampleScrollPageViewController: UIViewController, UIScrollViewDel
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     // Ensure first sticky metrics are taken after Auto Layout assigns stack widths.
+    view.layoutIfNeeded()
     scrollView.fk_reloadStickyLayout()
   }
 }

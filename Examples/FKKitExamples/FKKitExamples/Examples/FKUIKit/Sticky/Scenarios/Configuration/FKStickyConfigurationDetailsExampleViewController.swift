@@ -21,7 +21,7 @@ final class FKStickyConfigurationDetailsExampleViewController: FKStickyExampleSc
     row.distribution = .fillEqually
     contentStack.addArrangedSubview(row)
     addFillerBlocks(count: 8)
-    contentStack.addArrangedSubview(stripSolo)
+    addStickyStrip(stripSolo)
     addFillerBlocks(count: 12)
 
     var configuration = FKStickyConfiguration.default

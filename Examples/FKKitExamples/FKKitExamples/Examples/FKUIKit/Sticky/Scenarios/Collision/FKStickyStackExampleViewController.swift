@@ -14,9 +14,9 @@ final class FKStickyStackExampleViewController: FKStickyExampleScrollPageViewCon
       body: "Both strips remain stuck and stack under the pin line (filter + tabs). allowsPushOff = false maps to stack."
     )
 
-    contentStack.addArrangedSubview(filters)
+    addStickyStrip(filters)
     addFillerBlocks(count: 6)
-    contentStack.addArrangedSubview(tabs)
+    addStickyStrip(tabs)
     addFillerBlocks(count: 16)
 
     var configuration = FKStickyConfiguration.default

@@ -70,6 +70,7 @@ final class FKStickyInsetProviderExampleViewController: UIViewController {
       )
     )
     contentStack.addArrangedSubview(strip)
+    strip.widthAnchor.constraint(equalTo: contentStack.widthAnchor).isActive = true
 
     let actions = UIStackView(arrangedSubviews: [
       FKStickyExampleUI.makeButton("Chrome 0 pt") { [weak self] in self?.setChromeHeight(0) },

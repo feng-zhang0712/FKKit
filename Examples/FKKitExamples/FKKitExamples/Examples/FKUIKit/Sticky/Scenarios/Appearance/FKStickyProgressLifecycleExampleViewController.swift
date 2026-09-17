@@ -22,7 +22,7 @@ final class FKStickyProgressLifecycleExampleViewController: FKStickyExampleScrol
       logLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
       logLabel.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -4),
     ])
-    contentStack.addArrangedSubview(strip)
+    addStickyStrip(strip)
     addFillerBlocks()
 
     var configuration = FKStickyConfiguration.default

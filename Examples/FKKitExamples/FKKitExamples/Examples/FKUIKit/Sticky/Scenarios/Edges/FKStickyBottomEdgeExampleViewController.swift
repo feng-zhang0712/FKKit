@@ -13,7 +13,7 @@ final class FKStickyBottomEdgeExampleViewController: FKStickyExampleScrollPageVi
       body: "Pins above adjustedContentInset.bottom. Scroll so the strip reaches the bottom pin line."
     )
     addFillerBlocks(count: 12)
-    contentStack.addArrangedSubview(strip)
+    addStickyStrip(strip)
     addFillerBlocks(count: 8)
 
     var configuration = FKStickyConfiguration.default
