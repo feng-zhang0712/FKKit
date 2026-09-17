@@ -1,12 +1,22 @@
 import UIKit
 
-/// Non-scrolling host that tracks a scroll view’s visible bounds for stuck targets.
+/// Non-scrolling host for stuck sticky targets.
 ///
-/// Frame is synced from ``FKStickyEngine`` using `contentOffset` + `bounds.size` rather than
-/// `frameLayoutGuide` constraints. `UITableView` rewrites unconstrained / conflicting subview
-/// frames during layout and rubber-banding; guide constraints alone are not reliable there.
+/// **Preferred:** sibling of the scroll view on `scrollView.superview`, framed to
+/// `scrollView.frame` (viewport in parent coordinates). Rubber-band offset-only changes
+/// do not rewrite the host frame — important for `UITableView` near max content offset.
+///
+/// **Fallback:** subview of the scroll view synced to `contentOffset` + `bounds.size` when
+/// the scroll view has no superview yet. ``ensurePreferredHosting(in:)`` reattaches to the
+/// parent once one appears.
 @MainActor
 final class FKStickyOverlayHost: UIView {
+  /// Scroll view this host tracks; used to re-sync when the parent lays out.
+  private weak var trackedScrollView: UIScrollView?
+
+  /// `true` when hosted as a sibling of the scroll view (preferred path).
+  private(set) var isSiblingHosted = false
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     isUserInteractionEnabled = true
@@ -25,24 +35,70 @@ final class FKStickyOverlayHost: UIView {
     return hit === self ? nil : hit
   }
 
-  /// Re-asserts the visible-bounds frame if `UITableView` / layout rewrote it between scroll ticks.
+  /// Re-asserts the host frame if layout rewrote it between scroll ticks.
   override func layoutSubviews() {
     if let scrollView = superview as? UIScrollView {
       syncToVisibleBounds(of: scrollView)
+    } else if let scrollView = trackedScrollView, superview === scrollView.superview {
+      syncToScrollViewFrame(scrollView)
     }
     super.layoutSubviews()
   }
 
-  /// Installs the overlay inside `scrollView` (frame updated by the engine each layout pass).
+  /// Creates a host and installs it via ``ensurePreferredHosting(in:)``.
   static func install(in scrollView: UIScrollView) -> FKStickyOverlayHost {
     let host = FKStickyOverlayHost(
-      frame: CGRect(origin: scrollView.contentOffset, size: scrollView.bounds.size)
+      frame: CGRect(origin: .zero, size: scrollView.bounds.size)
     )
     host.translatesAutoresizingMaskIntoConstraints = true
     host.autoresizingMask = []
-    scrollView.addSubview(host)
-    scrollView.bringSubviewToFront(host)
+    host.ensurePreferredHosting(in: scrollView)
     return host
+  }
+
+  /// Prefers sibling hosting on `scrollView.superview`; falls back to an in-scroll host.
+  ///
+  /// When already sibling-hosted, only reorders if the host sits below the scroll view —
+  /// does **not** `bringSubviewToFront` on every call (that fights bounce layout).
+  func ensurePreferredHosting(in scrollView: UIScrollView) {
+    trackedScrollView = scrollView
+
+    if let parent = scrollView.superview {
+      if superview !== parent {
+        removeFromSuperview()
+        parent.insertSubview(self, aboveSubview: scrollView)
+      } else if needsReorderAboveScrollView(scrollView) {
+        parent.insertSubview(self, aboveSubview: scrollView)
+      }
+      isSiblingHosted = true
+      syncToScrollViewFrame(scrollView)
+      return
+    }
+
+    // No superview yet — temporary in-scroll host (contentOffset-synced).
+    if superview !== scrollView {
+      removeFromSuperview()
+      scrollView.addSubview(self)
+    } else {
+      scrollView.bringSubviewToFront(self)
+    }
+    isSiblingHosted = false
+    syncToVisibleBounds(of: scrollView)
+  }
+
+  /// Syncs the host frame for the active hosting mode.
+  ///
+  /// Sibling: `scrollView.frame` in the parent (no-op on offset-only rubber-band).
+  /// In-scroll fallback: visible bounds in content coordinates.
+  func syncToScrollViewFrame(_ scrollView: UIScrollView) {
+    trackedScrollView = scrollView
+    if isSiblingHosted, scrollView.superview != nil, superview === scrollView.superview {
+      let next = scrollView.frame
+      guard hostFrameNeedsSync(to: next) else { return }
+      frame = next
+      return
+    }
+    syncToVisibleBounds(of: scrollView)
   }
 
   /// Keeps the host aligned with the scroll view’s visible rect in **content** coordinates.
@@ -55,6 +111,16 @@ final class FKStickyOverlayHost: UIView {
     )
     guard hostFrameNeedsSync(to: next) else { return }
     frame = next
+  }
+
+  private func needsReorderAboveScrollView(_ scrollView: UIScrollView) -> Bool {
+    guard let parent = superview,
+          let scrollIndex = parent.subviews.firstIndex(of: scrollView),
+          let selfIndex = parent.subviews.firstIndex(of: self)
+    else {
+      return false
+    }
+    return selfIndex < scrollIndex
   }
 
   private func hostFrameNeedsSync(to next: CGRect) -> Bool {
