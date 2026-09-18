@@ -72,6 +72,7 @@ private let fkUIKitComponentDocDirectories: [String] = [
   "Components/SelectionControl",
   "Components/SheetPresentationController",
   "Components/Skeleton",
+  "Components/Sticky",
   "Components/TabBar",
   "Components/TextField",
   "Components/Toast",

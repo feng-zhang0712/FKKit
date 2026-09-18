@@ -4,6 +4,28 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.79.0] - 2026-09-18
+
+### Added (FKUIKit — Sticky)
+
+- **`FKSticky`** scroll sticky / affix engine (`FKStickyEngine`) for pinning arbitrary strip, bar, or header views inside `UIScrollView` / `UITableView` / `UICollectionView`.
+- Top and bottom pin edges, sticky inset / inset provider, placeholder preservation, progress + lifecycle callbacks, force-stick, enable/disable, reload/reset.
+- Multi-target collision: ``FKStickyCollisionBehavior/pushOff`` (default) and ``FKStickyCollisionBehavior/stack``.
+- Optional engine-applied stuck shadow (``FKStickyConfiguration/appliesStuckShadow``); unstick hysteresis; automatic KVO or manual `fk_handleStickyScroll`.
+- Sibling overlay host pinned to the scroll view frame (with `frameLayoutGuide` fallback) so stuck chrome survives rubber-band layout.
+- **Examples**: FKUIKit → Sticky hub (basics, edges, collision, configuration, controls, observation, appearance, playground).
+- Design spec: [`docs/FKSticky_DESIGN.md`](docs/FKSticky_DESIGN.md); component README under `Sources/FKUIKit/Components/Sticky/`.
+
+### Fixed (FKUIKit — Sticky)
+
+- Stop `prepareFrameHosting` from deactivating the engine’s own overlay height constraint on the second scroll tick (strip height collapsing to zero while state stayed `sticking` / `stuck`).
+- Restore layer shadow when ``appliesStuckShadow`` is toggled off while a target is still stuck.
+- Harden first-stick / table-header / collection content-strip geometry (plausible frames, contentSize-aware offset clamping, overlay edge pins).
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.79.0** (Git tag **`0.79.0`**).
+
 ## [0.78.3] - 2026-09-12
 
 ### Fixed (FKUIKit — Keyboard)
