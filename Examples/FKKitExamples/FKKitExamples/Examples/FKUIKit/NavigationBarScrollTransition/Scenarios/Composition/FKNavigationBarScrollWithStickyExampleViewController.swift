@@ -21,21 +21,13 @@ final class FKNavigationBarScrollWithStickyExampleViewController:
 
     addIntro(
       title: "Alongside FKSticky",
-      body: "Both engines share one scroll view. Automatic observation is disabled; scrollViewDidScroll forwards fk_handleNavigationBarScroll and fk_handleStickyScroll."
+      body: "Both engines share one scroll view. Automatic observation is disabled; scrollViewDidScroll forwards fk_handleNavigationBarScroll and fk_handleStickyScroll. The strip is a direct stack item and pins under the navigation bar."
     )
 
-    stickyStrip.translatesAutoresizingMaskIntoConstraints = false
-    let stripWrap = UIView()
-    stripWrap.translatesAutoresizingMaskIntoConstraints = false
-    stripWrap.addSubview(stickyStrip)
-    NSLayoutConstraint.activate([
-      stickyStrip.topAnchor.constraint(equalTo: stripWrap.topAnchor, constant: 8),
-      stickyStrip.bottomAnchor.constraint(equalTo: stripWrap.bottomAnchor, constant: -8),
-      stickyStrip.leadingAnchor.constraint(equalTo: stripWrap.leadingAnchor, constant: 16),
-      stickyStrip.trailingAnchor.constraint(equalTo: stripWrap.trailingAnchor, constant: -16),
-      stickyStrip.heightAnchor.constraint(equalToConstant: 44),
-    ])
-    contentStack.addArrangedSubview(stripWrap)
+    // Direct stack child — a wrapper's edge constraints fight FKSticky reparenting and
+    // leave the strip overlapping content after a few scroll ticks.
+    contentStack.addArrangedSubview(stickyStrip)
+    stickyStrip.widthAnchor.constraint(equalTo: contentStack.widthAnchor).isActive = true
     addFillerBlocks()
 
     navEngine = installDefaultEngine { engine in
@@ -46,8 +38,10 @@ final class FKNavigationBarScrollWithStickyExampleViewController:
 
     var stickyConfiguration = FKStickyConfiguration.default
     stickyConfiguration.observesAutomatically = false
-    stickyConfiguration.stickyInset = 0
     scrollView.fk_stickyEngine.configuration = stickyConfiguration
+    scrollView.fk_stickyEngine.stickyInsetProvider = { [weak self] in
+      self?.navigationBarPinInset ?? 0
+    }
     scrollView.fk_addStickyTarget(id: "filters", view: stickyStrip) { [weak self] progress in
       guard let self, let nav = self.navEngine else { return }
       self.statusLabel.text =
@@ -60,6 +54,15 @@ final class FKNavigationBarScrollWithStickyExampleViewController:
     super.viewDidAppear(animated)
     view.layoutIfNeeded()
     scrollView.fk_reloadStickyLayout()
+  }
+
+  /// Stable distance from the scroll-view top to the bar bottom (under-nav pin line).
+  ///
+  /// Must **not** use `convert(_:to: scrollView)` — UIScrollView’s coordinate system includes
+  /// `contentOffset`, so the pin line would travel with scrolling and the stuck strip would
+  /// appear to drift across the page.
+  private var navigationBarPinInset: CGFloat {
+    max(view.safeAreaInsets.top, 0)
   }
 
   func scrollViewDidScroll(_ scrollView: UIScrollView) {

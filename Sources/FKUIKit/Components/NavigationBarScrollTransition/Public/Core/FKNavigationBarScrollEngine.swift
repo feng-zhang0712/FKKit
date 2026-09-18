@@ -39,12 +39,12 @@ public final class FKNavigationBarScrollEngine: NSObject {
 
   /// Chrome at progress `0`.
   public var fromAppearance: FKNavigationBarScrollAppearance {
-    didSet { updateIfNeeded(force: false) }
+    didSet { updateIfNeeded(force: true) }
   }
 
   /// Chrome at progress `1`.
   public var toAppearance: FKNavigationBarScrollAppearance {
-    didSet { updateIfNeeded(force: false) }
+    didSet { updateIfNeeded(force: true) }
   }
 
   /// Invoked when progress changes by at least ``FKNavigationBarScrollConfiguration/progressEpsilon``.
@@ -65,6 +65,7 @@ public final class FKNavigationBarScrollEngine: NSObject {
   private var observations: [NSKeyValueObservation] = []
   private var lastAppliedProgress: CGFloat = -1
   private var lastStatusBarBucket: Bool?
+  private var didRequestUnderlapLayout = false
   private var isUpdating = false
 
   /// Creates an engine with the given configuration and endpoint appearances.
@@ -132,6 +133,7 @@ public final class FKNavigationBarScrollEngine: NSObject {
     forcedProgress = nil
     lastAppliedProgress = -1
     lastStatusBarBucket = nil
+    didRequestUnderlapLayout = false
     progress = .start
     resolvedAppearance = fromAppearance
     if stop {
@@ -261,8 +263,8 @@ public final class FKNavigationBarScrollEngine: NSObject {
       if let item = viewController?.navigationItem {
         FKNavigationBarScrollAppearanceApplicator.apply(appearance: appearance, to: item)
       }
-      // Mirror onto the shared bar so opaque root styles / Liquid Glass cannot linger.
-      FKNavigationBarScrollAppearanceApplicator.applyTintIfNeeded(
+      // Mirror onto the shared bar so an opaque root appearance cannot linger.
+      FKNavigationBarScrollAppearanceApplicator.applySharedNavigationBar(
         appearance: appearance,
         navigationBar: navigationBar
       )
@@ -279,11 +281,14 @@ public final class FKNavigationBarScrollEngine: NSObject {
       }
     }
 
-    // Opaque → translucent toggles change how UINavigationController sizes children; force a pass
-    // so hero content can extend under a newly transparent bar on first appearance.
-    if appearance.backgroundAlpha < 0.99 {
-      navigationBar?.superview?.setNeedsLayout()
-      viewController?.view.setNeedsLayout()
+    // Only when translucency flips. Requesting layout on every progress tick fights scrolling.
+    let needsUnderlap = appearance.backgroundAlpha < 0.99
+    if needsUnderlap != didRequestUnderlapLayout {
+      didRequestUnderlapLayout = needsUnderlap
+      if needsUnderlap {
+        navigationBar?.superview?.setNeedsLayout()
+        viewController?.view.setNeedsLayout()
+      }
     }
   }
 }

@@ -54,9 +54,7 @@ enum FKNavigationBarScrollAppearanceApplicator {
     navigationItem.standardAppearance = barAppearance
     navigationItem.scrollEdgeAppearance = barAppearance
     navigationItem.compactAppearance = barAppearance
-    if #available(iOS 15.0, *) {
-      navigationItem.compactScrollEdgeAppearance = barAppearance
-    }
+    navigationItem.compactScrollEdgeAppearance = barAppearance
   }
 
   static func apply(
@@ -67,39 +65,17 @@ enum FKNavigationBarScrollAppearanceApplicator {
     navigationBar.standardAppearance = barAppearance
     navigationBar.scrollEdgeAppearance = barAppearance
     navigationBar.compactAppearance = barAppearance
-    if #available(iOS 15.0, *) {
-      navigationBar.compactScrollEdgeAppearance = barAppearance
-    }
+    navigationBar.compactScrollEdgeAppearance = barAppearance
     applyBarChrome(appearance: appearance, to: navigationBar)
   }
 
-  /// Applies bar-level chrome and mirrors appearances onto the shared ``UINavigationBar``.
-  ///
-  /// Mirroring is required when the host navigation controller installed an opaque bar-level
-  /// appearance (common in demo shells). Item-only writes are not always enough to defeat
-  /// Liquid Glass / residual bar materials on newer OS versions.
-  static func applyBarChrome(
-    appearance: FKNavigationBarScrollAppearance,
-    navigationBar: UINavigationBar?,
-    mirrorAppearancesOntoBar: Bool
-  ) {
-    guard let navigationBar else { return }
-    if mirrorAppearancesOntoBar {
-      apply(appearance: appearance, to: navigationBar)
-      return
-    }
-    applyBarChrome(appearance: appearance, to: navigationBar)
-  }
-
-  static func applyTintIfNeeded(
+  /// Writes the resolved snapshot onto the shared bar (appearances, tint, translucency).
+  static func applySharedNavigationBar(
     appearance: FKNavigationBarScrollAppearance,
     navigationBar: UINavigationBar?
   ) {
-    applyBarChrome(
-      appearance: appearance,
-      navigationBar: navigationBar,
-      mirrorAppearancesOntoBar: true
-    )
+    guard let navigationBar else { return }
+    apply(appearance: appearance, to: navigationBar)
   }
 
   /// Hides the system scroll-edge glass that otherwise paints a frosted band under the nav bar.
