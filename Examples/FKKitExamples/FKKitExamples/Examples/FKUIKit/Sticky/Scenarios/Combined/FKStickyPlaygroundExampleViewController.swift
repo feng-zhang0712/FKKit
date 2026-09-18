@@ -11,13 +11,16 @@ final class FKStickyPlaygroundExampleViewController: FKStickyExampleScrollPageVi
     title = "Playground"
     addIntro(
       title: "Interactive playground",
-      body: "Toggle edge, collision, shadow, hysteresis, inset, and automatic observation while scrolling."
+      body: "Toggle edge, collision, shadow, hysteresis, inset, and automatic observation while scrolling. Bottom edge needs content above the strips (leading fillers) so they can pin above the bottom inset."
     )
 
+    // Leading fillers place both strips below the fold so `.bottom` can stick at rest —
+    // matching the dedicated Bottom Edge demo. Top edge still sticks after scrolling down.
+    addFillerBlocks(count: 12)
     addStickyStrip(stripA)
     addFillerBlocks(count: 6)
     addStickyStrip(stripB)
-    addFillerBlocks(count: 14)
+    addFillerBlocks(count: 10)
 
     let engine = scrollView.fk_stickyEngine
     engine.addTarget(id: "a", view: stripA)
@@ -30,6 +33,10 @@ final class FKStickyPlaygroundExampleViewController: FKStickyExampleScrollPageVi
       FKStickyExampleUI.makeButton("Toggle edge top/bottom") { [weak self] in
         self?.mutate { config in
           config.edge = config.edge == .top ? .bottom : .top
+        }
+        // Bottom pin is easiest to verify near offset 0 (strips still below the fold).
+        if self?.scrollView.fk_stickyEngine.configuration.edge == .bottom {
+          self?.scrollView.setContentOffset(.zero, animated: true)
         }
       },
       FKStickyExampleUI.makeButton("Toggle collision pushOff/stack") { [weak self] in

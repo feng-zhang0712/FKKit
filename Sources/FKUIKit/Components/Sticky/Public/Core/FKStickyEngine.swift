@@ -1130,8 +1130,8 @@ public final class FKStickyEngine: NSObject {
   }
 
   private func applyShadowIfNeeded(on view: UIView?, session: FKStickyTargetSession, stuck: Bool) {
-    guard configuration.appliesStuckShadow, let view else { return }
-    if stuck {
+    guard let view else { return }
+    if configuration.appliesStuckShadow, stuck {
       if session.capturedShadow == nil {
         session.capturedShadow = FKStickyShadowCapture(
           opacity: view.layer.shadowOpacity,
@@ -1147,6 +1147,8 @@ public final class FKStickyEngine: NSObject {
       view.layer.shadowColor = UIColor.black.cgColor
       view.layer.masksToBounds = false
     } else if let captured = session.capturedShadow {
+      // Restore whenever stuck-shadow is off or the target is idle — including the case where
+      // `appliesStuckShadow` is toggled false while the target is still hosted in the overlay.
       view.layer.shadowOpacity = captured.opacity
       view.layer.shadowRadius = captured.radius
       view.layer.shadowOffset = captured.offset
