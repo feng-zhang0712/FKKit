@@ -524,13 +524,19 @@ public final class FKStickyEngine: NSObject {
       }
     }
 
+    let isFirstHost = !session.isHostedInOverlay
+    // Capture / deactivate target-owned size constraints before overlay pins exist.
+    if isFirstHost {
+      prepareFrameHosting(session: session, view: view)
+    }
+
     ensureHostedInOverlay(session: session, view: view, scrollView: scrollView)
     // First host install activates edge pins — force a layout so the stuck view is visible
     // on the same scroll turn (otherwise the strip vanishes until a later layout pass).
-    scrollView.superview?.layoutIfNeeded()
-    overlayHost?.layoutIfNeeded()
-
-    prepareFrameHosting(session: session, view: view)
+    if isFirstHost {
+      scrollView.superview?.layoutIfNeeded()
+      overlayHost?.layoutIfNeeded()
+    }
 
     // Viewport-fill targets: derive width from the overlay host every frame so a bad
     // intrinsic/half-width `naturalSize` cannot stick permanently.
@@ -970,6 +976,9 @@ public final class FKStickyEngine: NSObject {
         trailing.constant = -leadingInset
         top.constant = frame.minY
         height.constant = heightValue
+        if !leading.isActive || !trailing.isActive || !top.isActive || !height.isActive {
+          NSLayoutConstraint.activate([leading, trailing, top, height])
+        }
         return
       }
 
@@ -1036,10 +1045,27 @@ public final class FKStickyEngine: NSObject {
 
   /// Deactivates the target’s own width/height constraints so overlay layout is not
   /// overridden by Auto Layout recovery (which collapses width to intrinsic text size).
+  ///
+  /// Must run only once per stick cycle and must ignore engine-owned overlay constraints.
+  /// Otherwise the second scroll tick deactivates ``overlayHeightConstraint`` and the strip
+  /// collapses to zero height while state remains `sticking` / `stuck`.
   private func prepareFrameHosting(session: FKStickyTargetSession, view: UIView) {
-    guard session.deactivatedSizeConstraints.isEmpty else { return }
+    guard !session.didPrepareFrameHosting else { return }
+    session.didPrepareFrameHosting = true
+
+    let overlayOwned: Set<ObjectIdentifier> = [
+      session.overlayLeadingConstraint,
+      session.overlayTrailingConstraint,
+      session.overlayTopConstraint,
+      session.overlayWidthConstraint,
+      session.overlayHeightConstraint,
+    ]
+    .compactMap { $0 }
+    .reduce(into: Set()) { $0.insert(ObjectIdentifier($1)) }
+
     let sizeConstraints = view.constraints.filter { constraint in
       guard (constraint.firstItem as? UIView) === view else { return false }
+      guard !overlayOwned.contains(ObjectIdentifier(constraint)) else { return false }
       switch constraint.firstAttribute {
       case .width, .height:
         return constraint.isActive
@@ -1054,6 +1080,7 @@ public final class FKStickyEngine: NSObject {
   private func restoreFrameHostingConstraints(session: FKStickyTargetSession) {
     session.deactivatedSizeConstraints.forEach { $0.isActive = true }
     session.deactivatedSizeConstraints.removeAll()
+    session.didPrepareFrameHosting = false
   }
 
   private func ensureOverlay(in scrollView: UIScrollView) -> FKStickyOverlayHost {

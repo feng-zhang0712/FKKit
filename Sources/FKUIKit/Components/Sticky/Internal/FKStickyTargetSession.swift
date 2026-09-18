@@ -39,6 +39,12 @@ final class FKStickyTargetSession {
   /// Leaving them active alongside overlay layout lets Auto Layout recover the view to its
   /// intrinsic (label) width after each frame assignment.
   var deactivatedSizeConstraints: [NSLayoutConstraint] = []
+  /// Ensures ``FKStickyEngine`` only scans for target-owned size constraints once per stick.
+  ///
+  /// Frame-based targets often have none; without this flag the next scroll tick would treat
+  /// the engine’s own overlay height constraint as “target-owned” and deactivate it, collapsing
+  /// the stuck strip to zero height while progress still reports `sticking` / `stuck`.
+  var didPrepareFrameHosting = false
   /// Engine-owned overlay placement constraints.
   var overlayLeadingConstraint: NSLayoutConstraint?
   var overlayTrailingConstraint: NSLayoutConstraint?
