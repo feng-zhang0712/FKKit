@@ -18,6 +18,11 @@ final class FKStickyTargetSession {
   var isHostedInOverlay = false
   var capturedShadow: FKStickyShadowCapture?
   var hasCapturedNaturalOrigin = false
+  /// Counts layout passes that must keep the target idle after an unstick restore.
+  ///
+  /// Unstick re-inserts the view into Auto Layout; the next nested `contentSize` KVO can run
+  /// before the restored frame settles and would otherwise re-stick with a corrupted origin.
+  var suppressStickForPasses: Int = 0
   /// Captured when first sticking so Autolayout flags can be restored on unstick.
   var usesAutoresizingMask = true
   /// `true` when the target was an arranged subview of a ``UIStackView``.

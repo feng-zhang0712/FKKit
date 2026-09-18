@@ -174,6 +174,17 @@ public final class FKStickyEngine: NSObject {
     for id in sessionOrder {
       guard let session = sessions[id] else { continue }
       if session.isHostedInOverlay {
+        // Prefer the placeholder’s content origin — the target itself lives in the overlay
+        // and `convert` into the scroll view is not content space. Recapturing here also
+        // repairs origins frozen before the first Auto Layout pass (premature stick).
+        if let placeholder = session.placeholder, let scrollView {
+          session.naturalContentOrigin = FKStickyGeometry.contentOrigin(of: placeholder, in: scrollView)
+          session.naturalFrameInSuperview = placeholder.frame
+          if session.naturalSize.height <= 0.5 {
+            session.naturalSize = measuredSize(of: placeholder)
+          }
+          session.hasCapturedNaturalOrigin = session.naturalSize.height > 0.5
+        }
         updateStuckMetrics(for: session)
       } else {
         session.hasCapturedNaturalOrigin = false
@@ -276,6 +287,9 @@ public final class FKStickyEngine: NSObject {
     defer { isLayingOut = false }
 
     guard let scrollView else { return }
+    // Stick decisions need a real viewport. Calling `addTarget` from `viewDidLoad` before
+    // Auto Layout assigns bounds would otherwise treat a zero origin as already past the pin.
+    guard FKStickyGeometry.hasUsableBounds(scrollView) else { return }
 
     if let overlayHost {
       overlayHost.ensurePreferredHosting(in: scrollView)
@@ -313,11 +327,8 @@ public final class FKStickyEngine: NSObject {
         captureNaturalOriginIfNeeded(for: session)
       }
 
-      // Height is enough to participate; width may still settle after the first layout.
-      guard session.naturalSize.height > 0.5 || session.hasCapturedNaturalOrigin else { continue }
-      if session.naturalSize.height <= 0.5 {
-        continue
-      }
+      // Require a real laid-out content frame — height constraints alone must not enable stick.
+      guard session.hasCapturedNaturalOrigin, session.naturalSize.height > 0.5 else { continue }
       if session.naturalSize.width <= 0.5 {
         session.naturalSize.width = max(view.bounds.width, scrollView.bounds.width)
       }
@@ -337,6 +348,25 @@ public final class FKStickyEngine: NSObject {
       let currentlySticky = session.isHostedInOverlay
         || session.state == .stuck
         || session.state == .sticking
+
+      // One-turn suppress after unstick so a nested contentSize layout cannot immediately
+      // re-host from a stale overlay frame.
+      if !currentlySticky, session.suppressStickForPasses > 0 {
+        session.suppressStickForPasses -= 1
+        candidates.append(
+          FKStickyLayoutCandidate(
+            session: session,
+            view: view,
+            pinLineViewportY: pinY,
+            shouldStick: false,
+            distancePastThreshold: 0,
+            naturalContentOrigin: session.naturalContentOrigin,
+            naturalSize: session.naturalSize
+          )
+        )
+        continue
+      }
+
       let crossed = forced || FKStickyGeometry.hasCrossedThreshold(
         edge: configuration.edge,
         view: view,
@@ -401,7 +431,7 @@ public final class FKStickyEngine: NSObject {
 
     cleanupOverlayIfEmpty()
     if let overlayHost {
-      // Sibling host: match scrollView.frame in the parent (no-op on rubber-band offset-only changes).
+      // Edge pins already track the scroll view frame; no per-tick frame write on rubber-band.
       overlayHost.syncToScrollViewFrame(scrollView)
     }
   }
@@ -477,13 +507,28 @@ public final class FKStickyEngine: NSObject {
 
     // Freeze content origin / laid-out size before reparenting.
     if !session.isHostedInOverlay {
-      session.naturalContentOrigin = FKStickyGeometry.contentOrigin(of: view, in: scrollView)
+      // Prefer the idle-captured content origin. Recapturing from a mid-unstick / overlay
+      // residual frame corrupts the release threshold (late unstick only at offset ≈ 0).
+      if !session.hasCapturedNaturalOrigin {
+        let origin = FKStickyGeometry.contentOrigin(of: view, in: scrollView)
+        let frame = FKStickyGeometry.contentFrame(of: view, in: scrollView)
+        if FKStickyGeometry.isPlausibleContentFrame(frame, in: scrollView) {
+          session.naturalContentOrigin = origin
+          session.hasCapturedNaturalOrigin = true
+        }
+      }
       session.naturalFrameInSuperview = view.frame
       session.naturalSize = measuredSize(of: view)
-      session.hasCapturedNaturalOrigin = session.naturalSize.height > 0.5
+      if session.naturalSize.height <= 0.5 {
+        session.hasCapturedNaturalOrigin = false
+      }
     }
 
     ensureHostedInOverlay(session: session, view: view, scrollView: scrollView)
+    // First host install activates edge pins — force a layout so the stuck view is visible
+    // on the same scroll turn (otherwise the strip vanishes until a later layout pass).
+    scrollView.superview?.layoutIfNeeded()
+    overlayHost?.layoutIfNeeded()
 
     prepareFrameHosting(session: session, view: view)
 
@@ -511,6 +556,7 @@ public final class FKStickyEngine: NSObject {
     )
     if let host = overlayHost {
       applyOverlayLayout(session: session, view: view, frame: nextFrame, in: host)
+      host.layoutIfNeeded()
     }
 
     let newState: FKStickyState = progress >= 1 - progressEpsilon ? .stuck : .sticking
@@ -526,7 +572,28 @@ public final class FKStickyEngine: NSObject {
   private func applyIdle(candidate: FKStickyLayoutCandidate) {
     let session = candidate.session
     let previousState = session.state
+    let wasHosted = session.isHostedInOverlay
+    let preservedOrigin = session.naturalContentOrigin
+    let preservedSize = session.naturalSize
+    let preservedFrame = session.naturalFrameInSuperview
+    let hadOrigin = session.hasCapturedNaturalOrigin
     unstickSession(session)
+    if wasHosted {
+      // Restoring into Auto Layout leaves a one-turn stale frame (often the overlay pin
+      // frame). A nested contentSize KVO layout must not recapture that as the natural origin
+      // or immediately re-stick with a near-zero release threshold.
+      session.originalSuperview?.layoutIfNeeded()
+      session.target.view?.layoutIfNeeded()
+      session.suppressStickForPasses = max(session.suppressStickForPasses, 1)
+      session.hasCapturedNaturalOrigin = false
+      captureNaturalOriginIfNeeded(for: session)
+      if !session.hasCapturedNaturalOrigin, hadOrigin {
+        session.naturalContentOrigin = preservedOrigin
+        session.naturalSize = preservedSize
+        session.naturalFrameInSuperview = preservedFrame
+        session.hasCapturedNaturalOrigin = true
+      }
+    }
     emitTransition(
       session: session,
       previousState: previousState,
@@ -695,13 +762,51 @@ public final class FKStickyEngine: NSObject {
 
   private func captureNaturalOriginIfNeeded(for session: FKStickyTargetSession?) {
     guard let session, let view = session.target.view, let scrollView, !session.isHostedInOverlay else { return }
+    guard FKStickyGeometry.hasUsableBounds(scrollView) else {
+      session.hasCapturedNaturalOrigin = false
+      return
+    }
+    // Never sample while the view still sits in the sticky overlay (or its frame still
+    // reflects the pin). That measurement is viewport-space garbage for release math.
+    if view.superview is FKStickyOverlayHost {
+      return
+    }
     // Prefer already-laid-out frames during scroll ticks. Forcing a full scroll-view layout
     // here re-enters UITableView layout while contentOffset is rubber-banding.
-    if view.bounds.height <= 0.5 {
+    if view.bounds.height <= 0.5 || view.bounds.width <= 0.5 {
       view.superview?.layoutIfNeeded()
       view.layoutIfNeeded()
     }
-    session.naturalContentOrigin = FKStickyGeometry.contentOrigin(of: view, in: scrollView)
+    // Height constraints can yield a fitting size before the hierarchy has frames. Capturing
+    // a zero / hugely negative content origin in that window prematurely pins the target.
+    let contentFrame = FKStickyGeometry.contentFrame(of: view, in: scrollView)
+    guard view.bounds.height > 0.5, contentFrame.height > 0.5 else {
+      session.hasCapturedNaturalOrigin = false
+      return
+    }
+    guard FKStickyGeometry.isPlausibleContentFrame(contentFrame, in: scrollView) else {
+      session.hasCapturedNaturalOrigin = false
+      return
+    }
+
+    // If we already have a stable origin, ignore one-frame post-unstick outliers that jump
+    // toward the pin line (typical residual overlay frame before Auto Layout settles).
+    if session.hasCapturedNaturalOrigin {
+      let deltaY = abs(contentFrame.minY - session.naturalContentOrigin.y)
+      if deltaY > 1 {
+        let inOriginalHierarchy =
+          view.superview === session.originalSuperview
+          || (session.isArrangedInStack && view.superview is UIStackView)
+        let looksLikePinnedResidual =
+          abs(view.frame.minY) <= 1
+          && contentFrame.minY + 1 < session.naturalContentOrigin.y
+        if !inOriginalHierarchy || looksLikePinnedResidual {
+          return
+        }
+      }
+    }
+
+    session.naturalContentOrigin = contentFrame.origin
     session.naturalFrameInSuperview = view.frame
     let measured = measuredSize(of: view)
     // Never collapse a previously laid-out full width back to an intrinsic/label width
@@ -710,6 +815,12 @@ public final class FKStickyEngine: NSObject {
       session.naturalSize = CGSize(width: session.naturalSize.width, height: measured.height)
     } else {
       session.naturalSize = measured
+    }
+    if session.naturalSize.height <= 0.5 {
+      session.naturalSize.height = contentFrame.height
+    }
+    if session.naturalSize.width <= 0.5 {
+      session.naturalSize.width = contentFrame.width
     }
     session.hasCapturedNaturalOrigin = session.naturalSize.height > 0.5
   }

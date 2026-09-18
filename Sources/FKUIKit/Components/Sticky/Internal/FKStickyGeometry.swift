@@ -25,24 +25,49 @@ enum FKStickyGeometry {
     return rect
   }
 
+  /// Whether the scroll view has a usable bounds size for sticky math.
+  static func hasUsableBounds(_ scrollView: UIScrollView) -> Bool {
+    scrollView.bounds.width > 0.5 && scrollView.bounds.height > 0.5
+  }
+
+  /// Rejects content frames produced before the hierarchy is ready (or from stale overlay frames).
+  static func isPlausibleContentFrame(_ frame: CGRect, in scrollView: UIScrollView) -> Bool {
+    guard frame.height > 0.5, frame.width > 0.5 else { return false }
+    // Pre-layout converts can yield large negative origins (e.g. -741) that look "already past"
+    // the pin line and cause a premature stick.
+    guard frame.minY >= -1, frame.minX >= -scrollView.bounds.width else { return false }
+    return true
+  }
+
   /// `contentOffset` clamped to the scrollable range (excludes rubber-band overscroll).
   ///
   /// Stick / unstick and pin math must ignore overscroll — otherwise top/bottom bounce briefly
   /// crosses the release threshold, toggles hosting, fights `contentSize` clamping, and can
   /// cancel the pan so the scroll view feels locked at the end.
+  ///
+  /// When `contentSize` is still unset (`0`), the empty range would clamp every offset to the
+  /// minimum and block the first stick while the user can already bounce. In that window the
+  /// raw offset is used until content metrics arrive.
   static func clampedContentOffset(of scrollView: UIScrollView) -> CGPoint {
     let inset = scrollView.adjustedContentInset
     let minX = -inset.left
     let minY = -inset.top
-    let maxX = max(
-      minX,
-      scrollView.contentSize.width - scrollView.bounds.width + inset.right
-    )
-    let maxY = max(
-      minY,
-      scrollView.contentSize.height - scrollView.bounds.height + inset.bottom
-    )
     let offset = scrollView.contentOffset
+    let content = scrollView.contentSize
+
+    let maxX: CGFloat
+    if content.width > 0.5 {
+      maxX = max(minX, content.width - scrollView.bounds.width + inset.right)
+    } else {
+      maxX = offset.x
+    }
+    let maxY: CGFloat
+    if content.height > 0.5 {
+      maxY = max(minY, content.height - scrollView.bounds.height + inset.bottom)
+    } else {
+      maxY = offset.y
+    }
+
     return CGPoint(
       x: min(max(offset.x, minX), maxX),
       y: min(max(offset.y, minY), maxY)
@@ -114,7 +139,9 @@ enum FKStickyGeometry {
       // Hosted in the overlay — derive bounds Y from the frozen content origin.
       boundsY = frozen.y - offsetY
     } else {
-      boundsY = frameInScrollBounds(of: view, in: scrollView).minY
+      let content = contentFrame(of: view, in: scrollView)
+      guard isPlausibleContentFrame(content, in: scrollView) else { return false }
+      boundsY = content.minY - offsetY
     }
 
     switch edge {
@@ -142,7 +169,9 @@ enum FKStickyGeometry {
     if isCurrentlySticky, let frozen = frozenContentOrigin {
       boundsY = frozen.y - offsetY
     } else {
-      boundsY = frameInScrollBounds(of: view, in: scrollView).minY
+      let content = contentFrame(of: view, in: scrollView)
+      guard isPlausibleContentFrame(content, in: scrollView) else { return 0 }
+      boundsY = content.minY - offsetY
     }
 
     switch edge {

@@ -28,7 +28,7 @@ Paths live under `Sources/FKUIKit/Components/Sticky/`.
 
 | File | Role |
 |------|------|
-| `FKStickyOverlayHost.swift` | Sibling host of the scroll view (preferred) or contentOffset-synced fallback; pass-through hit testing |
+| `FKStickyOverlayHost.swift` | Sibling host pinned to the scroll view’s frame (preferred), or `frameLayoutGuide` fallback; pass-through hit testing |
 | `FKStickyPlaceholderView.swift` | Layout spacer while a target is reparented |
 | `FKStickyTargetSession.swift` | Per-target runtime bookkeeping |
 | `FKStickyGeometry.swift` | Threshold / pin-line math |

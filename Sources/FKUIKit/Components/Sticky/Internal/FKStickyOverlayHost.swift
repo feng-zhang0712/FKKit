@@ -2,16 +2,22 @@ import UIKit
 
 /// Non-scrolling host for stuck sticky targets.
 ///
-/// **Preferred:** sibling of the scroll view on `scrollView.superview`, framed to
-/// `scrollView.frame` (viewport in parent coordinates). Rubber-band offset-only changes
-/// do not rewrite the host frame — important for `UITableView` near max content offset.
+/// **Preferred:** sibling of the scroll view on `scrollView.superview`, pinned to the
+/// scroll view’s edges. Those anchors follow `scrollView.frame` and do not change when
+/// only `contentOffset` rubber-bands — important for `UITableView` near max content offset.
 ///
-/// **Fallback:** subview of the scroll view synced to `contentOffset` + `bounds.size` when
-/// the scroll view has no superview yet. ``ensurePreferredHosting(in:)`` reattaches to the
-/// parent once one appears.
+/// **Fallback:** subview of the scroll view, pinned to ``UIScrollView/frameLayoutGuide``,
+/// when the scroll view has no superview yet. ``ensurePreferredHosting(in:)`` reattaches
+/// to the parent once one appears.
+///
+/// The host is not frame-positioned. A translated autoresizing-mask width of `0` (before
+/// the first layout pass) conflicts with required edge constraints on stuck content.
 @MainActor
 final class FKStickyOverlayHost: UIView {
-  /// Scroll view this host tracks; used to re-sync when the parent lays out.
+  /// Identifier for edge pins so they can be replaced without retaining the scroll view.
+  private static let edgeConstraintIdentifier = "fk.sticky.overlay.edge"
+
+  /// Scroll view this host tracks; used to re-pin when the parent changes.
   private weak var trackedScrollView: UIScrollView?
 
   /// `true` when hosted as a sibling of the scroll view (preferred path).
@@ -19,6 +25,9 @@ final class FKStickyOverlayHost: UIView {
 
   override init(frame: CGRect) {
     super.init(frame: frame)
+    // Must be false before the host enters an Auto Layout hierarchy. The default
+    // `true` installs `width == 0` while the frame is still empty.
+    translatesAutoresizingMaskIntoConstraints = false
     isUserInteractionEnabled = true
     backgroundColor = .clear
     accessibilityIdentifier = "fk.sticky.overlay"
@@ -44,23 +53,9 @@ final class FKStickyOverlayHost: UIView {
     return super.hitTest(point, with: event)
   }
 
-  /// Re-asserts the host frame if layout rewrote it between scroll ticks.
-  override func layoutSubviews() {
-    if let scrollView = superview as? UIScrollView {
-      syncToVisibleBounds(of: scrollView)
-    } else if let scrollView = trackedScrollView, superview === scrollView.superview {
-      syncToScrollViewFrame(scrollView)
-    }
-    super.layoutSubviews()
-  }
-
   /// Creates a host and installs it via ``ensurePreferredHosting(in:)``.
   static func install(in scrollView: UIScrollView) -> FKStickyOverlayHost {
-    let host = FKStickyOverlayHost(
-      frame: CGRect(origin: .zero, size: scrollView.bounds.size)
-    )
-    host.translatesAutoresizingMaskIntoConstraints = true
-    host.autoresizingMask = []
+    let host = FKStickyOverlayHost(frame: .zero)
     host.ensurePreferredHosting(in: scrollView)
     return host
   }
@@ -74,52 +69,89 @@ final class FKStickyOverlayHost: UIView {
 
     if let parent = scrollView.superview {
       if superview !== parent {
+        deactivateEdgeConstraints()
         removeFromSuperview()
         parent.insertSubview(self, aboveSubview: scrollView)
       } else if needsReorderAboveScrollView(scrollView) {
         parent.insertSubview(self, aboveSubview: scrollView)
       }
       isSiblingHosted = true
-      syncToScrollViewFrame(scrollView)
+      if !isPinned(to: scrollView, sibling: true) {
+        pinToScrollViewFrame(scrollView)
+      }
       return
     }
 
-    // No superview yet — temporary in-scroll host (contentOffset-synced).
+    // No superview yet — temporary in-scroll host (frameLayoutGuide, not contentOffset).
     if superview !== scrollView {
+      deactivateEdgeConstraints()
       removeFromSuperview()
       scrollView.addSubview(self)
     } else {
       scrollView.bringSubviewToFront(self)
     }
     isSiblingHosted = false
-    syncToVisibleBounds(of: scrollView)
-  }
-
-  /// Syncs the host frame for the active hosting mode.
-  ///
-  /// Sibling: `scrollView.frame` in the parent (no-op on offset-only rubber-band).
-  /// In-scroll fallback: visible bounds in content coordinates.
-  func syncToScrollViewFrame(_ scrollView: UIScrollView) {
-    trackedScrollView = scrollView
-    if isSiblingHosted, scrollView.superview != nil, superview === scrollView.superview {
-      let next = scrollView.frame
-      guard hostFrameNeedsSync(to: next) else { return }
-      frame = next
-      return
+    if !isPinned(to: scrollView, sibling: false) {
+      pinToFrameLayoutGuide(of: scrollView)
     }
-    syncToVisibleBounds(of: scrollView)
   }
 
-  /// Keeps the host aligned with the scroll view’s visible rect in **content** coordinates.
-  func syncToVisibleBounds(of scrollView: UIScrollView) {
-    let next = CGRect(
-      x: scrollView.contentOffset.x,
-      y: scrollView.contentOffset.y,
-      width: scrollView.bounds.width,
-      height: scrollView.bounds.height
-    )
-    guard hostFrameNeedsSync(to: next) else { return }
-    frame = next
+  /// Keeps the host matched to the scroll view’s visible frame.
+  ///
+  /// Sibling and in-scroll pins already track that frame, so this does not write `frame`
+  /// on offset-only rubber-band ticks.
+  func syncToScrollViewFrame(_ scrollView: UIScrollView) {
+    ensurePreferredHosting(in: scrollView)
+  }
+
+  private func pinToScrollViewFrame(_ scrollView: UIScrollView) {
+    replaceEdgeConstraints([
+      leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+      trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      topAnchor.constraint(equalTo: scrollView.topAnchor),
+      bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+    ])
+  }
+
+  private func pinToFrameLayoutGuide(of scrollView: UIScrollView) {
+    let guide = scrollView.frameLayoutGuide
+    replaceEdgeConstraints([
+      leadingAnchor.constraint(equalTo: guide.leadingAnchor),
+      trailingAnchor.constraint(equalTo: guide.trailingAnchor),
+      topAnchor.constraint(equalTo: guide.topAnchor),
+      bottomAnchor.constraint(equalTo: guide.bottomAnchor),
+    ])
+  }
+
+  private func replaceEdgeConstraints(_ constraints: [NSLayoutConstraint]) {
+    deactivateEdgeConstraints()
+    for constraint in constraints {
+      constraint.identifier = Self.edgeConstraintIdentifier
+    }
+    NSLayoutConstraint.activate(constraints)
+  }
+
+  /// Active edge pins live on the superview (common ancestor), not on this host.
+  private func deactivateEdgeConstraints() {
+    guard let parent = superview else { return }
+    let matching = parent.constraints.filter { constraint in
+      constraint.identifier == Self.edgeConstraintIdentifier && (constraint.firstItem as? UIView) === self
+    }
+    NSLayoutConstraint.deactivate(matching)
+  }
+
+  private func isPinned(to scrollView: UIScrollView, sibling: Bool) -> Bool {
+    guard let parent = superview else { return false }
+    let pins = parent.constraints.filter { constraint in
+      constraint.isActive
+        && constraint.identifier == Self.edgeConstraintIdentifier
+        && (constraint.firstItem as? UIView) === self
+    }
+    guard pins.count == 4 else { return false }
+    if sibling {
+      return pins.allSatisfy { ($0.secondItem as? UIView) === scrollView }
+    }
+    return pins.allSatisfy { ($0.secondItem as? UILayoutGuide) === scrollView.frameLayoutGuide }
   }
 
   private func needsReorderAboveScrollView(_ scrollView: UIScrollView) -> Bool {
@@ -130,12 +162,5 @@ final class FKStickyOverlayHost: UIView {
       return false
     }
     return selfIndex < scrollIndex
-  }
-
-  private func hostFrameNeedsSync(to next: CGRect) -> Bool {
-    abs(frame.minX - next.minX) > 0.5
-      || abs(frame.minY - next.minY) > 0.5
-      || abs(frame.width - next.width) > 0.5
-      || abs(frame.height - next.height) > 0.5
   }
 }

@@ -30,6 +30,9 @@ final class FKStickyTableViewExampleViewController: UIViewController, UITableVie
     tableView.estimatedRowHeight = rowHeight
     tableView.estimatedSectionHeaderHeight = 0
     tableView.estimatedSectionFooterHeight = 0
+    // Keep the last rows clear of the fixed status footer.
+    tableView.contentInset.bottom = 40
+    tableView.verticalScrollIndicatorInsets.bottom = 40
     if #available(iOS 15.0, *) {
       tableView.sectionHeaderTopPadding = 0
     }
@@ -92,6 +95,8 @@ final class FKStickyTableViewExampleViewController: UIViewController, UITableVie
   private func installStickyIfNeeded() {
     guard !didInstallSticky, tableView.bounds.width > 1, tableView.tableHeaderView != nil else { return }
     didInstallSticky = true
+    // Ensure row layout / contentSize exist before the first stick decision.
+    tableView.layoutIfNeeded()
     if strip.superview !== headerContainer {
       headerContainer.addSubview(strip)
       tableView.tableHeaderView = headerContainer

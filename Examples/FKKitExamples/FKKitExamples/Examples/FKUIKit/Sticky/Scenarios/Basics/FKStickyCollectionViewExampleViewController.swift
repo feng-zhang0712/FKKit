@@ -28,6 +28,9 @@ final class FKStickyCollectionViewExampleViewController: UIViewController, UICol
     collectionView.dataSource = self
     collectionView.contentInsetAdjustmentBehavior = .never
     collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
+    // Keep the last cells clear of the fixed status footer.
+    collectionView.contentInset.bottom = 40
+    collectionView.verticalScrollIndicatorInsets.bottom = 40
     view.addSubview(collectionView)
     NSLayoutConstraint.activate([
       collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -87,6 +90,8 @@ final class FKStickyCollectionViewExampleViewController: UIViewController, UICol
     let width = collectionView.bounds.width - 32
     guard !didInstallStrip, width > 1 else { return }
     didInstallStrip = true
+    // Ensure item layout / contentSize exist before the first stick decision.
+    collectionView.layoutIfNeeded()
     strip.frame = CGRect(x: 16, y: stripTop, width: width, height: stripHeight)
     if strip.superview !== collectionView {
       collectionView.addSubview(strip)
