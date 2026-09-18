@@ -134,6 +134,11 @@ final class ExampleMenuViewController: UITableViewController {
           make: { FKMediaGalleryExamplesHubViewController() }
         ),
         ExampleMenuItem(
+          title: "NavigationBarScrollTransition",
+          subtitle: "Hub: scroll-driven nav chrome — basics, apply targets, progress, observation, controls, Sticky compose",
+          make: { FKNavigationBarScrollExamplesHubViewController() }
+        ),
+        ExampleMenuItem(
           title: "PagingController",
           subtitle: "FKTabBar ↔ UIPageViewController sync: lazy/SwiftUI/delegate, RTL & gestures (Public/Internal/Extension)",
           make: { FKPagingControllerExamplesHubViewController() }
