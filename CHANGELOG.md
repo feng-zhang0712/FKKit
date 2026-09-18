@@ -4,6 +4,28 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.80.0] - 2026-09-19
+
+### Added (FKUIKit — NavigationBarScrollTransition)
+
+- **`FKNavigationBarScrollTransition`** scroll-driven navigation-bar chrome engine (`FKNavigationBarScrollEngine`) that maps vertical scroll offset to bar appearance.
+- Appearance snapshots (``.transparent`` / ``.solid`` / custom), continuous interpolation (background/title/tint/shadow), and discrete status-bar style at ``discreteThreshold``.
+- Configuration: offset range, adjusted content offset, apply targets (``.navigationItem`` / ``.navigationBar`` / ``.both``), auto or manual observation, force/reset/reload, progress/appearance callbacks.
+- Applicator clears ``backgroundEffect``, mirrors shared-bar appearances, toggles ``isTranslucent`` for underlap, and hides iOS 26+ ``UIScrollView.topEdgeEffect`` to avoid frosted scroll-edge glass.
+- ``UIScrollView`` helpers: ``fk_navigationBarScrollEngine``, ``fk_handleNavigationBarScroll``, ``fk_reloadNavigationBarScroll``, ``fk_resetNavigationBarScroll``.
+- **Examples**: FKUIKit → NavigationBarScrollTransition hub (basics, application targets, progress, observation, runtime controls, Sticky composition, playground).
+- Design spec: [`docs/FKNavigationBarScrollTransition_DESIGN.md`](docs/FKNavigationBarScrollTransition_DESIGN.md); component README under `Sources/FKUIKit/Components/NavigationBarScrollTransition/`.
+
+### Fixed (FKUIKit — NavigationBarScrollTransition)
+
+- Force-reapply chrome when ``fromAppearance`` / ``toAppearance`` change (avoid progress-epsilon skip).
+- Request underlap layout only when translucency flips (stop fighting scroll each tick).
+- Sticky compose demo: direct stack strip hosting; pin under nav via ``safeAreaInsets.top`` (avoid ``convert`` into scroll view, which couples the pin line to ``contentOffset``).
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.80.0** (Git tag **`0.80.0`**).
+
 ## [0.79.0] - 2026-09-18
 
 ### Added (FKUIKit — Sticky)
