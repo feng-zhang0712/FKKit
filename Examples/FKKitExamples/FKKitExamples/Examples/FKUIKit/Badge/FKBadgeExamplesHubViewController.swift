@@ -32,6 +32,10 @@ final class FKBadgeExamplesHubViewController: UITableViewController {
     ),
   ]
 
+  convenience init() {
+    self.init(style: .insetGrouped)
+  }
+
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "FKBadge"
