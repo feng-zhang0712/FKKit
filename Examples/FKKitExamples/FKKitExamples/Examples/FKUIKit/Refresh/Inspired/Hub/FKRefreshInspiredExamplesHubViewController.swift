@@ -30,6 +30,10 @@ final class FKRefreshInspiredExamplesHubViewController: UITableViewController {
     return Row(preset: preset, highlights: extra)
   }
 
+  convenience init() {
+    self.init(style: .insetGrouped)
+  }
+
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Inspired by apps"

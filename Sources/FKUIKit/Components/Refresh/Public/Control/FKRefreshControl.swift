@@ -720,7 +720,9 @@ public final class FKRefreshControl: UIView {
 
     if state == .triggered || state == .readyToRefresh {
       guard coordinator?.canStart(kind: kind) ?? true else {
-        transition(to: .idle)
+        // Keep pull UI until overscroll settles; ``handlePullToRefreshScroll`` returns to
+        // `.pulling` / `.idle` from offset. Immediate `.idle` here hides the label and recenters
+        // the arrow while the header is still on-screen (especially on a fast release).
         return
       }
       guard let scrollView else { return }
@@ -741,10 +743,10 @@ public final class FKRefreshControl: UIView {
         snapScrollViewToRefreshingOffsetIfNeeded(scrollView, animated: true)
       }
       fireAction(triggerSource: .userInteraction)
-    } else if case .pulling = state {
-      transition(to: .idle)
-      currentPullProgress = 0
     }
+    // Do not force `.idle` from `.pulling` on finger-up. The scroll view is still overscrolled
+    // and rubber-banding; applying idle chrome (nil label → arrow recenters) flashes a jump.
+    // ``handlePullToRefreshScroll`` transitions to `.idle` when `pullDistance <= 0`.
   }
 
   // MARK: - State transitions

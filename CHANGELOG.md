@@ -4,6 +4,20 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [
 
 ## [Unreleased]
 
+## [0.80.1] - 2026-09-24
+
+### Fixed (FKUIKit — Refresh)
+
+- Do not force `.idle` on finger-up from `.pulling` (or when a coordinator rejects `canStart` while still overscrolled). Idle chrome cleared the status label and recentered the arrow while the header was still on-screen during rubber-band — especially visible on a fast pull-and-release. Scroll offset now drives `.idle` when `pullDistance <= 0`.
+
+### Changed (Examples)
+
+- Example hubs for Refresh, Refresh Inspired, Badge, CornerShadow, TabBar, PagingController, and ListKit now use `.insetGrouped` so section cards match PhotoPicker and the other component hubs.
+
+### Changed (CocoaPods)
+
+- Root **`*.podspec`**: **`s.version`** set to **0.80.1** (Git tag **`0.80.1`**).
+
 ## [0.80.0] - 2026-09-19
 
 ### Added (FKUIKit — NavigationBarScrollTransition)
@@ -3073,7 +3087,17 @@ Scenarios and **`resolved(from:)`** already populate **`actions`**; integrators 
 - Mark `FKBar.Item.FKButtonSpec.apply(to:)` as `@MainActor`.
 - Make `FKPopover.PresentationDismissReason` conform to `Sendable`.
 
-[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.74.0...HEAD
+[Unreleased]: https://github.com/feng-zhang0712/FKKit/compare/0.80.1...HEAD
+[0.80.1]: https://github.com/feng-zhang0712/FKKit/compare/0.80.0...0.80.1
+[0.80.0]: https://github.com/feng-zhang0712/FKKit/compare/0.79.0...0.80.0
+[0.79.0]: https://github.com/feng-zhang0712/FKKit/compare/0.78.3...0.79.0
+[0.78.3]: https://github.com/feng-zhang0712/FKKit/compare/0.78.2...0.78.3
+[0.78.2]: https://github.com/feng-zhang0712/FKKit/compare/0.78.1...0.78.2
+[0.78.1]: https://github.com/feng-zhang0712/FKKit/compare/0.78.0...0.78.1
+[0.78.0]: https://github.com/feng-zhang0712/FKKit/compare/0.77.0...0.78.0
+[0.77.0]: https://github.com/feng-zhang0712/FKKit/compare/0.76.0...0.77.0
+[0.76.0]: https://github.com/feng-zhang0712/FKKit/compare/0.75.0...0.76.0
+[0.75.0]: https://github.com/feng-zhang0712/FKKit/compare/0.74.0...0.75.0
 [0.74.0]: https://github.com/feng-zhang0712/FKKit/compare/0.73.1...0.74.0
 [0.73.1]: https://github.com/feng-zhang0712/FKKit/compare/0.73.0...0.73.1
 [0.73.0]: https://github.com/feng-zhang0712/FKKit/compare/0.72.0...0.73.0

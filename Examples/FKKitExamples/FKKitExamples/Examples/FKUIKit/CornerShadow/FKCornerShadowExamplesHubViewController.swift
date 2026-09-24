@@ -26,6 +26,10 @@ final class FKCornerShadowExamplesHubViewController: UITableViewController {
     ),
   ]
 
+  convenience init() {
+    self.init(style: .insetGrouped)
+  }
+
   override func viewDidLoad() {
     super.viewDidLoad()
     FKCornerShadowExampleSupport.configureDefaultsIfNeeded()
