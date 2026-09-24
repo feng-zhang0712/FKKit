@@ -175,6 +175,10 @@ final class FKPagingControllerExamplesHubViewController: UITableViewController {
     return list
   }()
 
+  convenience init() {
+    self.init(style: .insetGrouped)
+  }
+
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "PagingController"

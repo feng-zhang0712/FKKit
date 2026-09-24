@@ -121,6 +121,10 @@ final class FKRefreshExamplesHubViewController: UITableViewController {
     ]),
   ]
 
+  convenience init() {
+    self.init(style: .insetGrouped)
+  }
+
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "FKRefresh"
